@@ -23,6 +23,8 @@
 - **File**: `apps/backend/package.json`
 - **Changes**:
   - ✅ **New**: `db:create` - Creates database from SQL schema file
+  - ❌ **Removed**: `db:generate` - No longer uses drizzle-kit generate
+  - ❌ **Removed**: `db:migrate` - No longer uses drizzle-kit migrate
   - ❌ **Removed**: `db:push` - No longer uses drizzle-kit push
   - ✅ **Updated**: `db:reset` - Now runs `db:drop` then `db:create` (SQL-based)
 
