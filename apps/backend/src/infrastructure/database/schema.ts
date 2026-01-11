@@ -85,11 +85,11 @@ export const people = pgTable(
     uniqueEmail: uniqueIndex('people_unique_email').on(table.email),
     firstNameLengthCheck: check(
       'people_first_name_length_check',
-      sql`char_length(${table.firstName}) BETWEEN 1 AND 255`
+      sql`char_length(trim(${table.firstName})) BETWEEN 1 AND 100`
     ),
     lastNameLengthCheck: check(
       'people_last_name_length_check',
-      sql`char_length(${table.lastName}) BETWEEN 1 AND 255`
+      sql`char_length(trim(${table.lastName})) BETWEEN 1 AND 100`
     ),
     emailFormatCheck: check(
       'people_email_format_check',
@@ -97,11 +97,11 @@ export const people = pgTable(
     ),
     phoneLengthCheck: check(
       'people_phone_length_check',
-      sql`${table.phone} IS NULL OR char_length(${table.phone}) BETWEEN 7 AND 20`
+      sql`${table.phone} IS NULL OR char_length(${table.phone}) <= 30`
     ),
     jobTitleLengthCheck: check(
       'people_job_title_length_check',
-      sql`${table.jobTitle} IS NULL OR char_length(${table.jobTitle}) <= 255`
+      sql`${table.jobTitle} IS NULL OR char_length(${table.jobTitle}) <= 100`
     ),
     linkedinUrlFormatCheck: check(
       'people_linkedin_url_format_check',
@@ -132,9 +132,7 @@ export const customerPeople = pgTable(
       }),
     role: contactRoleEnum('role').notNull(),
     isPrimary: boolean('is_primary').default(false),
-    startDate: date('start_date')
-      .notNull()
-      .defaultNow(),
+    startDate: date('start_date').notNull().defaultNow(),
     endDate: date('end_date'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
