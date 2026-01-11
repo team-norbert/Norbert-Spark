@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS people (
     linkedin_url TEXT
         CHECK (
             linkedin_url IS NULL
-            OR linkedin_url ~* '^https?://'
+            OR linkedin_url ~* '^https?://(www\\.)?linkedin\\.com/.*$'
         ),
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
