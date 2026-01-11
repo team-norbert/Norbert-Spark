@@ -45,22 +45,19 @@ export const contactRoleEnum = pgEnum('contact_role', [
  * Customers table: Stores customer information
  */
 
-export const customers = pgTable(
-  'customers',
-  {
-    customerId: uuid('customer_id').primaryKey().defaultRandom(),
-    legalName: text('legal_name').notNull(),
-    displayName: text('display_name').notNull(),
-    status: customerStatusEnum('status').notNull().default('prospect'),
-    industry: text('industry'),
-    companySize: integer('company_size'),
-    websiteUrl: text('website_url'),
-    billingCountry: char('billing_country', { length: 2 }),
-    timezone: text('timezone').notNull().default('UTC'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-  }
-)
+export const customers = pgTable('customers', {
+  customerId: uuid('customer_id').primaryKey().defaultRandom(),
+  legalName: text('legal_name').notNull(),
+  displayName: text('display_name').notNull(),
+  status: customerStatusEnum('status').notNull().default('prospect'),
+  industry: text('industry'),
+  companySize: integer('company_size'),
+  websiteUrl: text('website_url'),
+  billingCountry: char('billing_country', { length: 2 }),
+  timezone: text('timezone').notNull().default('UTC'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
 
 /**
  * People table: Stores contacts associated with customers
@@ -129,7 +126,9 @@ export const customerPeople = pgTable(
       }),
     role: contactRoleEnum('role').notNull(),
     isPrimary: boolean('is_primary').notNull().default(false),
-    startDate: date('start_date').notNull().default(sql`CURRENT_DATE`),
+    startDate: date('start_date')
+      .notNull()
+      .default(sql`CURRENT_DATE`),
     endDate: date('end_date'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },

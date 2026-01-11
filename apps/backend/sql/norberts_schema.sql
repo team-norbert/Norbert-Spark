@@ -91,10 +91,8 @@ CREATE TABLE IF NOT EXISTS customers (
 -- People (Contacts)
 CREATE TABLE IF NOT EXISTS people (
     person_id UUID PRIMARY KEY DEFAULT uuidv7(),
-    first_name TEXT NOT NULL
-        CHECK (length(trim(first_name)) BETWEEN 1 AND 100),
-    last_name TEXT NOT NULL
-        CHECK (length(trim(last_name)) BETWEEN 1 AND 100),
+    first_name TEXT CHECK (length(trim(first_name)) BETWEEN 1 AND 100),
+    last_name TEXT  CHECK (length(trim(last_name)) BETWEEN 1 AND 100),
     email CITEXT
         CHECK (
             email IS NULL
@@ -109,7 +107,7 @@ CREATE TABLE IF NOT EXISTS people (
             linkedin_url IS NULL
             OR linkedin_url ~* '^https?://'
         ),
-    is_active BOOLEAN NOT NULL DEFAULT true,
+    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT people_unique_email UNIQUE (email)
@@ -124,9 +122,9 @@ CREATE TABLE IF NOT EXISTS customer_people (
     person_id UUID NOT NULL
         REFERENCES people(person_id)
         ON DELETE CASCADE,
-    role contact_role NOT NULL,
-    is_primary BOOLEAN NOT NULL DEFAULT false,
-    start_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    role contact_role,
+    is_primary BOOLEAN DEFAULT false,
+    start_date DATE DEFAULT CURRENT_DATE,
     end_date DATE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CHECK (end_date IS NULL OR end_date >= start_date),

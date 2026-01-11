@@ -90,6 +90,7 @@ For future schema changes:
 While we no longer use drizzle-kit for schema creation or migrations, this command remains useful:
 
 - `pnpm db:studio` - Visual database browser
+
 ## Verification
 
 After running `pnpm db:reset`, verify tables were created:
