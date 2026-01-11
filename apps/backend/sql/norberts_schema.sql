@@ -172,17 +172,20 @@ CREATE TABLE IF NOT EXISTS ai_options (
     prompt TEXT NOT NULL,
     max_tokens NUMERIC CHECK (
                          max_tokens IS NULL
-                         OR max_tokens > 0)
+                         OR max_tokens > 0
                      ),
-    temperature NUMERIC CHECK (temperature IS NULL OR temperature >= 0 AND temperature <= 2),
+    temperature NUMERIC CHECK (
+                                 temperature IS NULL
+                                 OR (temperature >= 0 AND temperature <= 2)
+                             ),
     top_p NUMERIC CHECK (
                             top_p IS NULL
-                            OR top_p >= 0 AND top_p <= 1)
-    ),
+                            OR (top_p >= 0 AND top_p <= 1)
+                        ),
     frequency_penalty NUMERIC CHECK (
                                         frequency_penalty IS NULL
-                                        OR frequency_penalty >= -2 AND frequency_penalty <= 2
-    ),
+                                        OR (frequency_penalty >= -2 AND frequency_penalty <= 2)
+                                    ),
     presence_penalty NUMERIC NOT NULL CHECK (presence_penalty >= -2 AND presence_penalty <= 2),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
