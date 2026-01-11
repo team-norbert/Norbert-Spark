@@ -125,7 +125,7 @@ export const customerPeople = pgTable(
         onDelete: 'cascade',
       }),
     role: contactRoleEnum('role').notNull(),
-    isPrimary: boolean('is_primary').notNull().default(false),
+    isPrimary: boolean('is_primary').default(false),
     startDate: date('start_date')
       .notNull()
       .defaultNow(),
