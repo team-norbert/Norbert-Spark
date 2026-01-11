@@ -91,8 +91,8 @@ CREATE TABLE IF NOT EXISTS customers (
 -- People (Contacts)
 CREATE TABLE IF NOT EXISTS people (
     person_id UUID PRIMARY KEY DEFAULT uuidv7(),
-    first_name TEXT CHECK (length(trim(first_name)) BETWEEN 1 AND 100),
-    last_name TEXT  CHECK (length(trim(last_name)) BETWEEN 1 AND 100),
+    first_name TEXT NOT NULL CHECK (length(trim(first_name)) BETWEEN 1 AND 100),
+    last_name TEXT NOT NULL CHECK (length(trim(last_name)) BETWEEN 1 AND 100),
     email CITEXT
         CHECK (
             email IS NULL
