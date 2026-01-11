@@ -80,10 +80,16 @@ Drizzle ORM Schema (for TypeScript types)
 
 For future schema changes:
 
-1. **Edit SQL Schema**: Update `apps/backend/sql/norberts_schema.sql`
-2. **Update Drop Script**: Update `apps/backend/drizzle/drop_all_tables.sql` if needed
-3. **Update Drizzle Schema**: Update Drizzle schema files to match for TypeScript types
-4. **Test**: Run `pnpm db:reset` to verify
+1. **Edit SQL Schema (Source of Truth)**: Update `apps/backend/sql/norberts_schema.sql`. This file is the authoritative definition of the database structure.
+2. **Update Drop Script**: Update `apps/backend/drizzle/drop_all_tables.sql` if needed.
+3. **Update Drizzle Schema (Keep in Sync)**: Update Drizzle schema files to **exactly** match the SQL schema for TypeScript types and query helpers.
+   - Be especially careful to keep the following aligned between SQL and Drizzle:
+     - UUID generation strategies (e.g., `gen_random_uuid()` vs client-generated UUIDs)
+     - `NULL` vs `NOT NULL` columns
+     - Constraints (CHECK, UNIQUE, FK behavior)
+     - Column data types (e.g., `TEXT` vs `CITEXT`, enums)
+   - Schema drift between SQL and Drizzle can cause subtle bugs and runtime errors. When possible, run or add a schema validation/diff script to detect mismatches early in CI.
+4. **Test**: Run `pnpm db:reset` to recreate the database from SQL and verify application behavior.
 
 ## Drizzle-Kit Studio Command
 
