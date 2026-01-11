@@ -69,93 +69,67 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Customers (Accounts)
 CREATE TABLE IF NOT EXISTS customers (
-    customer_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
+    customer_id UUID PRIMARY KEY DEFAULT uuidv7(),
     legal_name TEXT NOT NULL
         CHECK (length(trim(legal_name)) BETWEEN 2 AND 200),
-
     display_name TEXT NOT NULL
         CHECK (length(trim(display_name)) BETWEEN 2 AND 200),
-
     status customer_status NOT NULL DEFAULT 'prospect',
-
     industry TEXT
         CHECK (industry IS NULL OR length(industry) <= 100),
-
     company_size INTEGER
         CHECK (company_size IS NULL OR company_size > 0),
-
     website_url TEXT
         CHECK (website_url IS NULL OR website_url ~* '^https?://'),
-
     billing_country CHAR(2)
         CHECK (billing_country IS NULL OR billing_country ~ '^[A-Z]{2}$'),
-
     timezone TEXT NOT NULL DEFAULT 'UTC',
-
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- People (Contacts)
 CREATE TABLE IF NOT EXISTS people (
-    person_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
+    person_id UUID PRIMARY KEY DEFAULT uuidv7(),
     first_name TEXT NOT NULL
         CHECK (length(trim(first_name)) BETWEEN 1 AND 100),
-
     last_name TEXT NOT NULL
         CHECK (length(trim(last_name)) BETWEEN 1 AND 100),
-
     email CITEXT
         CHECK (
             email IS NULL
             OR email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'
         ),
-
     phone TEXT
         CHECK (phone IS NULL OR length(phone) <= 30),
-
     job_title TEXT
         CHECK (job_title IS NULL OR length(job_title) <= 100),
-
     linkedin_url TEXT
         CHECK (
             linkedin_url IS NULL
             OR linkedin_url ~* '^https?://'
         ),
-
     is_active BOOLEAN NOT NULL DEFAULT true,
-
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-
     CONSTRAINT people_unique_email UNIQUE (email)
 );
 
 -- Customer ↔ Person Relationship (Key Contact Lives Here)
 CREATE TABLE IF NOT EXISTS customer_people (
-    customer_person_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
+    customer_person_id UUID PRIMARY KEY DEFAULT uuidv7(),
     customer_id UUID NOT NULL
         REFERENCES customers(customer_id)
         ON DELETE CASCADE,
-
     person_id UUID NOT NULL
         REFERENCES people(person_id)
         ON DELETE CASCADE,
-
     role contact_role NOT NULL,
-
     is_primary BOOLEAN NOT NULL DEFAULT false,
-
     start_date DATE NOT NULL DEFAULT CURRENT_DATE,
     end_date DATE,
-
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-
     CHECK (end_date IS NULL OR end_date >= start_date),
-
     CONSTRAINT customer_people_unique
         UNIQUE (customer_id, person_id, role)
 );
@@ -171,7 +145,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS one_primary_contact_per_customer
 
 -- Chats table: Stores chat sessions
 CREATE TABLE IF NOT EXISTS chats (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY, // the UUID creation is managed by the application
     user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
