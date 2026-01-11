@@ -59,10 +59,7 @@ export const customers = pgTable(
     timezone: text('timezone').notNull().default('UTC'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => ({
-    billingCountryIdx: index('customers_billing_country_idx').on(table.billingCountry),
-  })
+  }
 )
 
 /**
