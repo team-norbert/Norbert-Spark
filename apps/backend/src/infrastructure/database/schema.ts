@@ -128,7 +128,7 @@ export const customerPeople = pgTable(
     isPrimary: boolean('is_primary').notNull().default(false),
     startDate: date('start_date')
       .notNull()
-      .default(sql`CURRENT_DATE`),
+      .defaultNow(),
     endDate: date('end_date'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
