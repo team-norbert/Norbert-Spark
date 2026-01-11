@@ -113,7 +113,9 @@ export const people = pgTable(
 export const customerPeople = pgTable(
   'customer_people',
   {
-    customerPersonId: uuid('customer_person_id').primaryKey().defaultRandom(),
+    customerPersonId: uuid('customer_person_id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
     customerId: uuid('customer_id')
       .notNull()
       .references(() => customers.customerId, {
