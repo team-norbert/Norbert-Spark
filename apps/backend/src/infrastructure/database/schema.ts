@@ -73,7 +73,7 @@ export const people = pgTable(
     phone: text('phone'),
     jobTitle: text('job_title'),
     linkedinUrl: text('linkedin_url'),
-    isActive: boolean('is_active').notNull().default(true),
+    isActive: boolean('is_active').default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
