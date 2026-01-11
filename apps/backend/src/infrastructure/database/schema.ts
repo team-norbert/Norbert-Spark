@@ -46,7 +46,9 @@ export const contactRoleEnum = pgEnum('contact_role', [
  */
 
 export const customers = pgTable('customers', {
-  customerId: uuid('customer_id').primaryKey().defaultRandom(),
+  customerId: uuid('user_id')
+    .primaryKey()
+    .default(sql`uuidv7()`),
   legalName: text('legal_name').notNull(),
   displayName: text('display_name').notNull(),
   status: customerStatusEnum('status').notNull().default('prospect'),
@@ -66,7 +68,9 @@ export const customers = pgTable('customers', {
 export const people = pgTable(
   'people',
   {
-    personId: uuid('person_id').primaryKey().defaultRandom(),
+    personId: uuid('user_id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
     firstName: text('first_name').notNull(),
     lastName: text('last_name').notNull(),
     email: text('email'),
