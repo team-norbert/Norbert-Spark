@@ -82,6 +82,30 @@ export const people = pgTable(
   },
   (table) => ({
     uniqueEmail: uniqueIndex('people_unique_email').on(table.email),
+    firstNameLengthCheck: check(
+      'people_first_name_length_check',
+      sql`char_length(${table.firstName}) BETWEEN 1 AND 255`
+    ),
+    lastNameLengthCheck: check(
+      'people_last_name_length_check',
+      sql`char_length(${table.lastName}) BETWEEN 1 AND 255`
+    ),
+    emailFormatCheck: check(
+      'people_email_format_check',
+      sql`${table.email} IS NULL OR ${table.email} ~ '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'`
+    ),
+    phoneLengthCheck: check(
+      'people_phone_length_check',
+      sql`${table.phone} IS NULL OR char_length(${table.phone}) BETWEEN 7 AND 20`
+    ),
+    jobTitleLengthCheck: check(
+      'people_job_title_length_check',
+      sql`${table.jobTitle} IS NULL OR char_length(${table.jobTitle}) <= 255`
+    ),
+    linkedinUrlFormatCheck: check(
+      'people_linkedin_url_format_check',
+      sql`${table.linkedinUrl} IS NULL OR ${table.linkedinUrl} ~ '^https?://(www\\.)?linkedin\\.com/.*$'`
+    ),
   })
 )
 
