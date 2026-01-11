@@ -83,14 +83,11 @@ For future schema changes:
 3. **Update Drizzle Schema**: Update Drizzle schema files to match for TypeScript types
 4. **Test**: Run `pnpm db:reset` to verify
 
-## Drizzle-Kit Commands Still Available
+## Drizzle-Kit Studio Command
 
-While we no longer use drizzle-kit for schema creation, these commands remain useful:
+While we no longer use drizzle-kit for schema creation or migrations, this command remains useful:
 
 - `pnpm db:studio` - Visual database browser
-- `pnpm db:generate` - Generate migrations from Drizzle schema (if needed)
-- `pnpm db:migrate` - Run migrations (if using Drizzle migrations)
-
 ## Verification
 
 After running `pnpm db:reset`, verify tables were created:
