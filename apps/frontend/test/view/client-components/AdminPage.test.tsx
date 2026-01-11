@@ -42,6 +42,9 @@ describe('AdminPage', () => {
     pageSize: 10,
   }
 
+  const mockOnCloseSuccessMessage = vi.fn()
+  const mockOnCloseErrorMessage = vi.fn()
+
   const defaultProps = {
     users: mockUsers,
     error: null,
@@ -52,12 +55,16 @@ describe('AdminPage', () => {
     currentUserRole: 'admin' as const,
     selectedUserIds: { type: 'include', ids: new Set() } as GridRowSelectionModel,
     showConfirmDialog: false,
+    successMessage: null,
+    isDeleting: false,
     onSearchChange: mockOnSearchChange,
     onPaginationChange: mockOnPaginationChange,
     onSelectionChange: mockOnSelectionChange,
     onDeleteClick: mockOnDeleteClick,
     onConfirmDelete: mockOnConfirmDelete,
     onCancelDelete: mockOnCancelDelete,
+    onCloseSuccessMessage: mockOnCloseSuccessMessage,
+    onCloseErrorMessage: mockOnCloseErrorMessage,
   }
 
   beforeEach(() => {

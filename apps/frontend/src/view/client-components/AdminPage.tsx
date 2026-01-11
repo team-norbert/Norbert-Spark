@@ -24,6 +24,7 @@ import type { User } from '@/domain/user/user.js'
 interface AdminPageProps {
   users: readonly User[]
   error: string | null
+  successMessage: string | null
   loading: boolean
   searchQuery: string
   paginationModel: GridPaginationModel
@@ -31,12 +32,15 @@ interface AdminPageProps {
   currentUserRole: 'admin' | 'moderator' | 'user'
   selectedUserIds: GridRowSelectionModel
   showConfirmDialog: boolean
+  isDeleting: boolean
   onSearchChange: (query: string) => void
   onPaginationChange: (model: GridPaginationModel) => void
   onSelectionChange: (ids: GridRowSelectionModel) => void
   onDeleteClick: () => void
   onConfirmDelete: () => void
   onCancelDelete: () => void
+  onCloseSuccessMessage: () => void
+  onCloseErrorMessage: () => void
 }
 
 /**
@@ -46,8 +50,11 @@ interface AdminPageProps {
 export function AdminPage({
   currentUserRole,
   error,
+  isDeleting,
   loading,
   onCancelDelete,
+  onCloseErrorMessage,
+  onCloseSuccessMessage,
   onConfirmDelete,
   onDeleteClick,
   onPaginationChange,
@@ -58,6 +65,7 @@ export function AdminPage({
   searchQuery,
   selectedUserIds,
   showConfirmDialog,
+  successMessage,
   users,
 }: AdminPageProps) {
   // Define columns
@@ -100,8 +108,14 @@ export function AdminPage({
         </Typography>
       </Box>
 
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 3 }} onClose={onCloseSuccessMessage}>
+          {successMessage}
+        </Alert>
+      )}
+
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 3 }} onClose={onCloseErrorMessage}>
           {error}
         </Alert>
       )}
@@ -172,16 +186,22 @@ export function AdminPage({
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" onClick={onCancelDelete} data-testid="cancel-delete-button">
+          <Button
+            variant="outlined"
+            onClick={onCancelDelete}
+            disabled={isDeleting}
+            data-testid="cancel-delete-button"
+          >
             Cancel
           </Button>
           <Button
             variant="contained"
             color="error"
             onClick={onConfirmDelete}
+            disabled={isDeleting}
             data-testid="confirm-delete-button"
           >
-            Delete
+            {isDeleting ? 'Deleting...' : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
