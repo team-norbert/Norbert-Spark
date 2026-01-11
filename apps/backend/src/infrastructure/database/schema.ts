@@ -132,9 +132,7 @@ export const customerPeople = pgTable(
       }),
     role: contactRoleEnum('role').notNull(),
     isPrimary: boolean('is_primary').default(false),
-    startDate: date('start_date')
-      .notNull()
-      .defaultNow(),
+    startDate: date('start_date').notNull().defaultNow(),
     endDate: date('end_date'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
