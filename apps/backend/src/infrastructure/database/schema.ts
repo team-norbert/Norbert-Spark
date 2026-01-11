@@ -147,6 +147,10 @@ export const customerPeople = pgTable(
     onePrimaryPerCustomer: uniqueIndex('one_primary_contact_per_customer')
       .on(table.customerId)
       .where(sql`is_primary = true`),
+    endDateAfterStartDate: check(
+      'customer_people_end_date_check',
+      sql`${table.endDate} IS NULL OR ${table.endDate} >= ${table.startDate}`
+    ),
   })
 )
 
