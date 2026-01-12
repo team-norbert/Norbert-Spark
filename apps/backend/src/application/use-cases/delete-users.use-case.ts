@@ -36,9 +36,7 @@ export class DeleteUsersUseCase {
    * @param userRepository - Repository for persisting user data
    * @param logger - Logger for recording operational information and errors
    * @param auditLog - Audit log for tracking user deletion actions
-   * @param aIService - AI service port for AI-related operations
    *
-   * @param aIServicePort
    * @example
    * ```typescript
    * const useCase = new DeleteUsersUseCase(
