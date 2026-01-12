@@ -327,9 +327,18 @@ The `--cache` option is used to speed up formatting by only processing changed f
 
 Turborepo is used as the build system and task runner for this monorepo. It provides efficient caching, parallel execution, and dependency graph management to optimize build times and developer productivity. Turborepo allows defining tasks in each package's `package.json` and orchestrates their execution based on dependencies.
 
-### Drizzle ORM
+### Drizzle ORM and PostgreSQL
 
-The time being this project uses Drizzle ORM for type-safe database interactions with PostgreSQL. Drizzle provides a modern and efficient way to define database schemas, perform queries, and manage migrations using TypeScript. On the roadmap is to replace Drizzle with PostgreSQL stored procedures for improved performance and maintainability.
+This apps use PostgreSQL 18.1 as the database, managed via Docker Compose for easy setup and deployment.
+Drizzle ORM is used as the database ORM, providing a type-safe and modern way to interact with the PostgreSQL database using TypeScript.
+
+The use of both PostgreSQL and Drizzle is as follows:
+
+- SQL migration = source of truth
+
+- Drizzle schema = typed access layer
+
+This avoids ORM drift and keeps invariants enforceable even if someone bypasses the app.
 
 ### Mermaid
 
