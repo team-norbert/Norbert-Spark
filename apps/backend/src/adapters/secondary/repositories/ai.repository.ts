@@ -74,13 +74,10 @@ export class AIRepository implements AIServicePort {
       userId: userId,
       id: chatId,
     }
-    this.logger.info('isArray')
-    const isArrayString = isArray(initialMessages) ? 'yes' : 'no'
+
     this.logger.info('chatId', chatId)
     this.logger.info('userId', userId)
     this.logger.info('initialMessages', initialMessages)
-    this.logger.info('isArray', { isArrayString })
-
     this.logger.info('createChat', newChat)
 
     await db.insert(chats).values(newChat)

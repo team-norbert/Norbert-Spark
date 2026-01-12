@@ -11,6 +11,7 @@ const requiredEnvs: string[] = [
   'JWT_SECRET',
   'API_VERSION',
   'OAUTH_SYNC_SECRET',
+  'CLOUDFLARE_API',
 ]
 
 export class EnvConfig {
@@ -52,6 +53,7 @@ export class EnvConfig {
   static readonly SENTRY_AUTH_TOKEN = process.env.SENTRY_AUTH_TOKEN || ''
   static readonly SENTRY_PROJECT = process.env.SENTRY_PROJECT || ''
   static readonly SENTRY_ORG = process.env.SENTRY_ORG || ''
+  static readonly CLOUDFLARE_API = obscured.make(process.env.CLOUDFLARE_API)
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !process.env[key])
