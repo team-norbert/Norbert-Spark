@@ -17,6 +17,7 @@ export interface UseUsersResult {
   isLoading: boolean
   isError: boolean
   error: string | null
+  refetch: () => Promise<unknown>
 }
 
 /**
@@ -59,5 +60,6 @@ export function useUsers(params: UseUsersParams): UseUsersResult {
     isLoading: query.isLoading || query.isFetching,
     isError: query.isError,
     error: query.error instanceof Error ? query.error.message : null,
+    refetch: query.refetch,
   }
 }

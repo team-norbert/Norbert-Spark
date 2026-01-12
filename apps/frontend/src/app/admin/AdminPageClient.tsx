@@ -12,17 +12,21 @@ export function AdminPageClient() {
     currentUserRole,
     error,
     handleCancelDelete,
+    handleCloseErrorMessage,
+    handleCloseSuccessMessage,
     handleConfirmDelete,
     handleDeleteClick,
     handlePaginationChange,
     handleSearchChange,
     handleSelectionChange,
+    isDeleting,
     loading,
     paginationModel,
     rowCount,
     searchQuery,
     selectedUserIds,
     showConfirmDialog,
+    successMessage,
     users,
   } = useAdminPage()
 
@@ -30,6 +34,7 @@ export function AdminPageClient() {
     <AdminPage
       users={users}
       error={error}
+      successMessage={successMessage}
       loading={loading}
       searchQuery={searchQuery}
       paginationModel={paginationModel}
@@ -37,12 +42,15 @@ export function AdminPageClient() {
       currentUserRole={currentUserRole}
       selectedUserIds={selectedUserIds}
       showConfirmDialog={showConfirmDialog}
+      isDeleting={isDeleting}
       onSearchChange={handleSearchChange}
       onPaginationChange={handlePaginationChange}
       onSelectionChange={handleSelectionChange}
       onDeleteClick={handleDeleteClick}
       onConfirmDelete={handleConfirmDelete}
       onCancelDelete={handleCancelDelete}
+      onCloseSuccessMessage={handleCloseSuccessMessage}
+      onCloseErrorMessage={handleCloseErrorMessage}
     />
   )
 }
