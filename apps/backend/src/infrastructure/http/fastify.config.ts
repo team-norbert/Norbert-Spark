@@ -78,9 +78,5 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     return { status: 'ok', timestamp: new Date().toISOString() }
   })
 
-  fastify.get('/debug-sentry', function mainHandler(_req, _res) {
-    throw new Error('My first Sentry error!')
-  })
-
   return fastify
 }
