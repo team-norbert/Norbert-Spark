@@ -50,6 +50,7 @@ export class EnvConfig {
     ? obscured.make(process.env.SENTRY_DSN)
     : ''
   static readonly SENTRY_ACCOUNT = process.env.SENTRY_ACCOUNT || 'false'
+  static readonly SENTRY_AUTH_TOKEN = process.env.SENTRY_AUTH_TOKEN || ''
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !process.env[key])

@@ -12,6 +12,6 @@ Sentry.init({
     }),
   ],
   // Tracing must be enabled for agent monitoring to work
-  tracesSampleRate: 1.0,
+  tracesSampleRate: EnvConfig.NODE_ENV === 'production'?  0.1 : 1.0,
   sendDefaultPii: false,
 })
