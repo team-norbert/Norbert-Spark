@@ -360,7 +360,7 @@ pnpm mermaid src/infrastructure/di/container.md
 
 Sentry is integrated into both the frontend and backend applications for error tracking and performance monitoring. It provides real-time insights into application errors, crashes, and performance bottlenecks, allowing developers to quickly identify and resolve issues.
 It also now supports monitoring AI interactions, helping to track and analyze the performance of AI models integrated into the applications.
-It will
+Sentry will:
 
 - Track token usage, costs, and latency across all your LLM calls
 - Monitor agent conversations, tool usage, and decision-making processes
