@@ -94,7 +94,7 @@ export class Container {
   public readonly aiExtractDataController: AIExtractDataController
 
   // Audit log
-  public readonly auditLog: AuditLogRepository
+  public readonly auditLog: AuditLogPort
 
   /**
    * Private constructor to enforce Singleton pattern
