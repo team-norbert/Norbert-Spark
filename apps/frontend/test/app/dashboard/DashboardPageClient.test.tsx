@@ -37,6 +37,15 @@ describe('Dashboard', () => {
       expect(screen.getByText('Profile')).toBeInTheDocument()
       expect(screen.getByText('View and edit your profile')).toBeInTheDocument()
     })
+
+    it('should render Extract Data card', () => {
+      render(
+        <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+      )
+
+      expect(screen.getByText('Extract Data')).toBeInTheDocument()
+      expect(screen.getByText('Upload and extract data from files')).toBeInTheDocument()
+    })
   })
 
   describe('Admin Card Visibility', () => {
@@ -87,6 +96,20 @@ describe('Dashboard', () => {
       expect(mockOnNavigate).toHaveBeenCalledTimes(1)
     })
 
+    it('should call onNavigate with /extract-data when Extract Data card is clicked', () => {
+      render(
+        <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+      )
+
+      const extractDataCard = screen.getByText('Extract Data').closest('button')
+      expect(extractDataCard).toBeInTheDocument()
+
+      fireEvent.click(extractDataCard!)
+
+      expect(mockOnNavigate).toHaveBeenCalledWith('/extract-data')
+      expect(mockOnNavigate).toHaveBeenCalledTimes(1)
+    })
+
     it('should call onNavigate with /admin when Admin card is clicked', () => {
       render(
         <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
@@ -126,6 +149,20 @@ describe('Dashboard', () => {
       expect(profileSection).toBeInTheDocument()
 
       const svg = profileSection?.querySelector('svg')
+      expect(svg).toBeInTheDocument()
+    })
+
+    it('should render DescriptionIcon for Extract Data card', () => {
+      render(
+        <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+      )
+
+      const extractDataSection = screen
+        .getByText('Extract Data')
+        .closest('div[class*="CardContent"]')
+      expect(extractDataSection).toBeInTheDocument()
+
+      const svg = extractDataSection?.querySelector('svg')
       expect(svg).toBeInTheDocument()
     })
 
@@ -191,6 +228,15 @@ describe('Dashboard', () => {
 
       expect(screen.getByText('Profile')).toBeInTheDocument()
       expect(screen.getByText('View and edit your profile')).toBeInTheDocument()
+    })
+
+    it('should have correct card content for Extract Data', () => {
+      render(
+        <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+      )
+
+      expect(screen.getByText('Extract Data')).toBeInTheDocument()
+      expect(screen.getByText('Upload and extract data from files')).toBeInTheDocument()
     })
 
     it('should have correct card content for Admin', () => {
