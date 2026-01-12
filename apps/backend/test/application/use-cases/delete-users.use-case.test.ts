@@ -141,13 +141,11 @@ describe('DeleteUsersUseCase', () => {
         let deleteChatHistoryResolved = false
 
         vi.mocked(mockUserRepository.deleteUsers).mockImplementation(async () => {
-          // eslint-disable-next-line no-undef
           await new Promise((resolve) => setTimeout(resolve, 10))
           deleteUsersResolved = true
         })
 
         vi.mocked(mockAIService.deleteChatHistoryByUsers).mockImplementation(async () => {
-          // eslint-disable-next-line no-undef
           await new Promise((resolve) => setTimeout(resolve, 10))
           deleteChatHistoryResolved = true
         })
