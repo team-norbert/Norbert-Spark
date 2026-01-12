@@ -61,7 +61,7 @@ export class DeleteUsersUseCase {
    *
    * This method performs the following steps:
    * 1. Logs the deletion attempt with user IDs
-   * 2. Calls the repository to delete all specified users
+   * 2. Calls the repository to delete all specified users and connected AI chat history
    * 3. Creates an audit log entry with the deletion details and context
    * 4. Returns true to indicate successful completion
    *
