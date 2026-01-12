@@ -47,7 +47,8 @@ export class EnvConfig {
   static readonly KEEP_ALIVE_TIMEOUT = process.env.KEEP_ALIVE_TIMEOUT || '65000'
   static readonly OAUTH_SYNC_SECRET = obscured.make(process.env.OAUTH_SYNC_SECRET)
   static readonly SENTRY_DSN = obscured.make(process.env.SENTRY_DSN)
-  static readonly SENTRY_ACCOUNT = process.env.SENTRY_ACCOUNT || 'false'
+  static readonly SENTRY_ACCOUNT =
+    process.env.SENTRY_ACCOUNT === 'false' ? '' : process.env.SENTRY_ACCOUNT || ''
   static readonly SENTRY_AUTH_TOKEN = process.env.SENTRY_AUTH_TOKEN || ''
   static readonly SENTRY_PROJECT = process.env.SENTRY_PROJECT || ''
   static readonly SENTRY_ORG = process.env.SENTRY_ORG || ''
