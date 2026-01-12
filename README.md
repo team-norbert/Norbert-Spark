@@ -35,7 +35,7 @@ As an example, instead of this:
 git push origin ui/new-page-pdf-extract-data
 ```
 
-Use this to by pass the E2E tests:
+Use this to bypass the E2E tests:
 
 ```bash
 SKIP_E2E=1 git push origin ui/new-page-pdf-extract-data
