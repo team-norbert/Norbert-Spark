@@ -369,7 +369,7 @@ Sentry will:
 In the environment variables you will need to configure the Sentry-related settings:
 
 - `SENTRY_ACCOUNT` (**required**): Set to `"true"` to enable Sentry, or `"false"` to disable it. When `"false"`, all other Sentry-specific variables are ignored.
-- `SENTRY_DSN` (**required when `SENTRY_ACCOUNT` is `"true"`**): The DSN for your Sentry project. This is needed at runtime so the backend and/or frontend can send events to Sentry.
+- `SENTRY_DSN` (**required when `SENTRY_ENABLED` is `"true"`**): The DSN for your Sentry project. This is needed at runtime so the backend and/or frontend can send events to Sentry.
 - `SENTRY_PROJECT` (**optional for basic runtime, recommended for releases/CI**): The Sentry project slug. This is typically used by Sentry CLI or CI pipelines for tasks like release creation and source map uploads.
 - `SENTRY_ORG` (**optional for basic runtime, recommended for releases/CI**): The Sentry organization slug. Like `SENTRY_PROJECT`, this is used by tooling that integrates with Sentry (e.g., releases, deployments).
 - `SENTRY_AUTH_TOKEN` (**optional for local dev, required for authenticated Sentry tooling**): A Sentry auth token used by automation (e.g., CI) to create releases, upload source maps, etc. This is a secret and must never be exposed to the browser or committed to version control. It is referenced in `.env.example` for this purpose.
