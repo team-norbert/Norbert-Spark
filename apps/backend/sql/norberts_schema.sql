@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS ai_options (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     message_id UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
     prompt TEXT NOT NULL,
-    max_tokens NUMERIC CHECK (
+    max_tokens INTEGER CHECK (
                          max_tokens IS NULL
                          OR max_tokens > 0
                      ),
