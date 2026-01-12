@@ -44,7 +44,7 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     ...options,
   })
 
-  if (Boolean(EnvConfig.SENTRY_ACCOUNT)) {
+  if (EnvConfig.SENTRY_ENABLED === 'true') {
     Sentry.setupFastifyErrorHandler(fastify)
   }
 
