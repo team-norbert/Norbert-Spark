@@ -378,10 +378,10 @@ In the Sentry configuration (apps/backend/src/infrastructure/security/instrument
 If you want to use this service, the first step is to create a Sentry account and set the environment variables as described above.
 In the configuration, you can adjust the `tracesSampleRate` based on the environment.
 I've set it to 0.1 for production and 1.0 for development to balance performance monitoring with overhead.
-```typescript
-tracesSampleRate: EnvConfig.NODE_ENV === 'production'?  0.1 : 1.0
-````
 
+```typescript
+tracesSampleRate: EnvConfig.NODE_ENV === 'production' ? 0.1 : 1.0
+```
 
 ### GitHub Actions
 
