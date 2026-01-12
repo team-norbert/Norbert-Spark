@@ -49,7 +49,7 @@ export async function deleteUsersAction(userIds: string[]): Promise<DeleteUsersR
 
     return {
       success: true,
-      message: `Successfully deleted ${userIds.length} user${userIds.length > 1 ? 's' : ''}`,
+      message: `Successfully deleted ${userIds.length} user${userIds.length !== 1 ? 's' : ''}`,
       status: 200,
     }
   } catch (error_) {
