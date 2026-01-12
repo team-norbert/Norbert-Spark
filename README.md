@@ -366,14 +366,19 @@ Sentry will:
 - Monitor agent conversations, tool usage, and decision-making processes
 - Debug failed requests and optimize prompt performance with detailed traces
 
-In the environment variables you will need to set `SENTRY_ACCOUNT` as true or false.
-If true, you will also need to set `SENTRY_DSN`.
+In the environment variables you will need to configure the Sentry-related settings:
+
+- `SENTRY_ACCOUNT` (**required**): Set to `"true"` to enable Sentry, or `"false"` to disable it. When `"false"`, all other Sentry-specific variables are ignored.
+- `SENTRY_DSN` (**required when `SENTRY_ACCOUNT` is `"true"`**): The DSN for your Sentry project. This is needed at runtime so the backend and/or frontend can send events to Sentry.
+- `SENTRY_PROJECT` (**optional for basic runtime, recommended for releases/CI**): The Sentry project slug. This is typically used by Sentry CLI or CI pipelines for tasks like release creation and source map uploads.
+- `SENTRY_ORG` (**optional for basic runtime, recommended for releases/CI**): The Sentry organization slug. Like `SENTRY_PROJECT`, this is used by tooling that integrates with Sentry (e.g., releases, deployments).
+- `SENTRY_AUTH_TOKEN` (**optional for local dev, required for authenticated Sentry tooling**): A Sentry auth token used by automation (e.g., CI) to create releases, upload source maps, etc. This is a secret and must never be exposed to the browser or committed to version control. It is referenced in `.env.example` for this purpose.
 
 Using Sentry with AI-SDK requires the use of telemetry integration provided by AI-SDK.
 This integration captures detailed telemetry data from AI interactions, including token usage, response times, and error rates. By leveraging this telemetry data, Sentry can provide deeper insights into the performance and reliability of AI models within your applications.
 More details can be found in the [AI-SDK documentation](https://ai-sdk.dev/docs/ai-sdk-core/telemetry).
 This app is already configured to use both Telemetry and Sentry.
-If you want to use this service, is create a Sentry account and set the environment variables as described above.
+If you want to use this service, create a Sentry account and set the environment variables as described above.
 In the Sentry configuration (apps/backend/src/infrastructure/security/instrument.ts), I have set the sendDefaultPii property to false. Setting sendDefaultPii to true sends personally identifiable information to Sentry unconditionally. This should be configurable via environment variable or set to false by default, especially to comply with privacy regulations like GDPR.
 If you want to use this service, the first step is to create a Sentry account and set the environment variables as described above.
 In the configuration, you can adjust the `tracesSampleRate` based on the environment.
