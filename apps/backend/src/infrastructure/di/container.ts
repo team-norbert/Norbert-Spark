@@ -22,7 +22,6 @@ import { UserController } from '../../adapters/primary/http/user.controller.js'
 import { AuthController } from '../../adapters/primary/http/auth.controller.js'
 import { AIController } from '../../adapters/primary/http/ai.controller.js'
 
-import type { AuditLogPort } from '../../application/ports/audit-log.port.js'
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
 import { EnvConfig } from '../config/env.config.js'
 import { fileURLToPath } from 'node:url'
@@ -69,9 +68,6 @@ export class Container {
   public readonly userRepository: PostgresUserRepository
   public readonly aiRepository: AIRepository
 
-  // Domain Services
-  // public readonly workoutCalculator: WorkoutCalculator
-
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
   public readonly getAllUsersUseCase: GetAllUsersUseCase
@@ -90,7 +86,7 @@ export class Container {
   public readonly aiController: AIController
 
   // Audit log
-  public readonly auditLog: AuditLogPort
+  public readonly auditLog: AuditLogRepository
 
   /**
    * Private constructor to enforce Singleton pattern
