@@ -1,6 +1,6 @@
 import { eq, count, inArray } from 'drizzle-orm'
 import { db } from '../../../infrastructure/database/index.js'
-import { user } from '../../../infrastructure/database/schema.js'
+import { user, chats } from '../../../infrastructure/database/schema.js'
 import type { DBUserSelect } from '../../../infrastructure/database/schema.js'
 import { User } from '../../../domain/entities/user.js'
 import { Email } from '../../../domain/value-objects/email.js'
@@ -539,6 +539,20 @@ export class PostgresUserRepository implements UserRepositoryPort {
       await db.delete(user).where(inArray(user.userId, userIds))
     } catch (error) {
       throw new DatabaseException('Failed to delete users', { userIds, error })
+    }
+  }
+
+  async deleteHistoryByUsers(userIds: UserIdType[]): Promise<void> {
+    try {
+      if (userIds.length === 0) {
+        return
+      }
+
+      // Delete all chats for the specified users
+      // Messages will be cascade deleted due to foreign key constraint
+      await db.delete(chats).where(inArray(chats.userId, userIds))
+    } catch (error) {
+      throw new DatabaseException('Failed to delete user history', { userIds, error })
     }
   }
   /**
