@@ -1,6 +1,6 @@
-/* eslint-disable no-undef */
 import { useRouter } from 'next/navigation.js'
 import { signOut } from 'next-auth/react'
+import type React from 'react'
 import { useCallback, useState } from 'react'
 
 export interface UploadedFile {
@@ -59,7 +59,7 @@ export function useFileUpload(): UseFileUploadReturn {
   /**
    * Process uploaded files and add valid ones to state
    */
-  const handleFiles = useCallback((files: File[] | FileList | null) => {
+  const handleFiles = useCallback((files: File[] | null) => {
     setError(null)
 
     if (!files || files.length === 0) return
@@ -114,7 +114,7 @@ export function useFileUpload(): UseFileUploadReturn {
       setDragActive(false)
 
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        handleFiles(e.dataTransfer.files)
+        handleFiles(Array.from(e.dataTransfer.files))
       }
     },
     [handleFiles]
@@ -126,7 +126,7 @@ export function useFileUpload(): UseFileUploadReturn {
    */
   const handleFileInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      handleFiles(e.target.files)
+      handleFiles(e.target.files ? Array.from(e.target.files) : null)
     },
     [handleFiles]
   )
