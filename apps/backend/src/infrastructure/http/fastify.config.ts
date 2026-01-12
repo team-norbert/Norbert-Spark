@@ -44,10 +44,6 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     ...options,
   })
 
-  if (EnvConfig.SENTRY_ENABLED === 'true') {
-    Sentry.setupFastifyErrorHandler(fastify)
-  }
-
   // Register CORS with permissive policy for development
   fastify.register(cors, {
     origin: true, // Allow all origins
@@ -73,6 +69,10 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     },
     staticCSP: true,
   })
+
+  if (EnvConfig.SENTRY_ENABLED === 'true') {
+    Sentry.setupFastifyErrorHandler(fastify)
+  }
 
   fastify.get('/health', async (_request, _reply) => {
     return { status: 'ok', timestamp: new Date().toISOString() }
