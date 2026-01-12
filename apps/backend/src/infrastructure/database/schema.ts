@@ -321,10 +321,10 @@ export const aiOptions = pgTable(
       .notNull()
       .references(() => messages.id, { onDelete: 'cascade' }),
     prompt: text('prompt').notNull(),
-    maxOutputTokens: integer('max_tokens').notNull(),
-    temperature: numeric('temperature').notNull(),
-    topP: numeric('top_p').notNull(),
-    frequencyPenalty: numeric('frequency_penalty').notNull(),
+    maxOutputTokens: integer('max_tokens'),
+    temperature: numeric('temperature'),
+    topP: numeric('top_p'),
+    frequencyPenalty: numeric('frequency_penalty'),
     presencePenalty: numeric('presence_penalty').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
@@ -332,15 +332,21 @@ export const aiOptions = pgTable(
   },
   (table) => ({
     messageIdIdx: index('ai_options_message_id_idx').on(table.messageId),
-    maxTokensCheck: check('max_tokens_check', sql`${table.maxOutputTokens} > 0`),
+    maxTokensCheck: check(
+      'max_tokens_check',
+      sql`${table.maxOutputTokens} IS NULL OR ${table.maxOutputTokens} > 0`
+    ),
     temperatureRange: check(
       'temperature_range',
-      sql`${table.temperature} >= 0 AND ${table.temperature} <= 2`
+      sql`${table.temperature} IS NULL OR (${table.temperature} >= 0 AND ${table.temperature} <= 2)`
     ),
-    topPRange: check('top_p_range', sql`${table.topP} >= 0 AND ${table.topP} <= 1`),
+    topPRange: check(
+      'top_p_range',
+      sql`${table.topP} IS NULL OR (${table.topP} >= 0 AND ${table.topP} <= 1)`
+    ),
     frequencyPenaltyRange: check(
       'frequency_penalty_range',
-      sql`${table.frequencyPenalty} >= -2 AND ${table.frequencyPenalty} <= 2`
+      sql`${table.frequencyPenalty} IS NULL OR (${table.frequencyPenalty} >= -2 AND ${table.frequencyPenalty} <= 2)`
     ),
     presencePenaltyRange: check(
       'presence_penalty_range',
