@@ -748,7 +748,7 @@ await auditLog.log(auditEntry)
 1. **Type Safety**: TypeScript will catch type errors at compile time
 2. **Autocomplete**: IDEs provide intelligent code completion for change structures
 3. **Documentation**: Change structures are self-documenting with TypeScript types
-4. **Flexibility**: The union type includes `Record<string, unknown>` as a fallback for custom change structure
+4. **Flexibility**: The union type includes `Record<string, unknown>` as a fallback for custom change structures
 
 ##### Sensitive Data Redaction
 
