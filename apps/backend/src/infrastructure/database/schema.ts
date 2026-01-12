@@ -108,6 +108,9 @@ export const people = pgTable(
     linkedinUrl: text('linkedin_url'),
     isActive: boolean('is_active').default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    // Note: updatedAt is automatically maintained by a database trigger (see norberts_schema.sql).
+    // The defaultNow() here only sets the initial value on INSERT.
+    // On UPDATE operations, the touch_updated_at() trigger function automatically updates this column.
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
@@ -262,6 +265,9 @@ export const chats = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
+    // Note: For the chats table, updatedAt must be manually updated by application code.
+    // Unlike customers and people tables, there is no database trigger for this table.
+    // The default(sql`now()`) here only sets the initial value on INSERT.
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
