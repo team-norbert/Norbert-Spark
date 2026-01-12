@@ -541,20 +541,6 @@ export class PostgresUserRepository implements UserRepositoryPort {
       throw new DatabaseException('Failed to delete users', { userIds, error })
     }
   }
-
-  async deleteHistoryByUsers(userIds: UserIdType[]): Promise<void> {
-    try {
-      if (userIds.length === 0) {
-        return
-      }
-
-      // Delete all chats for the specified users
-      // Messages will be cascade deleted due to foreign key constraint
-      await db.delete(chats).where(inArray(chats.userId, userIds))
-    } catch (error) {
-      throw new DatabaseException('Failed to delete user history', { userIds, error })
-    }
-  }
   /**
    * Transforms a database record into a User domain entity
    *

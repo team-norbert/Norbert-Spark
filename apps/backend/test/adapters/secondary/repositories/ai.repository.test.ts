@@ -7,6 +7,7 @@ import type { LoggerPort } from '../../../../src/application/ports/logger.port.j
 import { ChatId } from '../../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
+import { DatabaseException } from '../../../../src/shared/exceptions/database.exception.js'
 import { Uuid7Util } from '../../../../src/shared/utils/uuid7.util.js'
 
 // Mock the database module
@@ -14,6 +15,7 @@ vi.mock('../../../../src/infrastructure/database/index.js', () => ({
   db: {
     insert: vi.fn(),
     select: vi.fn(),
+    delete: vi.fn(),
   },
 }))
 
@@ -944,6 +946,78 @@ describe('AIRepository', () => {
       expect(result?.[0]?.message.id).toBe('msg-1')
       expect(result?.[1]?.message.id).toBe('msg-2')
       expect(result?.[2]?.message.id).toBe('msg-3')
+    })
+  })
+
+  describe('deleteChatHistoryByUsers', () => {
+    it('should delete chat history for multiple users', async () => {
+      const userId1 = new UserId(uuidv7()).getValue()
+      const userId2 = new UserId(uuidv7()).getValue()
+      const userId3 = new UserId(uuidv7()).getValue()
+      const userIds = [userId1, userId2, userId3]
+
+      const mockWhere = vi.fn().mockResolvedValue(undefined)
+      const mockDelete = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.delete).mockReturnValue(mockDelete() as any)
+
+      await repository.deleteChatHistoryByUsers(userIds)
+
+      expect(db.delete).toHaveBeenCalledTimes(1)
+      expect(mockWhere).toHaveBeenCalledTimes(1)
+    })
+
+    it('should handle single user deletion', async () => {
+      const userId = new UserId(uuidv7()).getValue()
+      const userIds = [userId]
+
+      const mockWhere = vi.fn().mockResolvedValue(undefined)
+      const mockDelete = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.delete).mockReturnValue(mockDelete() as any)
+
+      await repository.deleteChatHistoryByUsers(userIds)
+
+      expect(db.delete).toHaveBeenCalledTimes(1)
+      expect(mockWhere).toHaveBeenCalledTimes(1)
+    })
+
+    it('should return early when userIds array is empty', async () => {
+      const userIds: any[] = []
+
+      await repository.deleteChatHistoryByUsers(userIds)
+
+      expect(db.delete).not.toHaveBeenCalled()
+    })
+
+    it('should throw DatabaseException on database error', async () => {
+      const userId1 = new UserId(uuidv7()).getValue()
+      const userId2 = new UserId(uuidv7()).getValue()
+      const userIds = [userId1, userId2]
+      const dbError = new Error('Delete operation failed')
+
+      const mockWhere = vi.fn().mockRejectedValue(dbError)
+      const mockDelete = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.delete).mockReturnValue(mockDelete() as any)
+
+      await expect(repository.deleteChatHistoryByUsers(userIds)).rejects.toThrow(DatabaseException)
+      await expect(repository.deleteChatHistoryByUsers(userIds)).rejects.toThrow(
+        'Failed to delete user history'
+      )
+    })
+
+    it('should include userIds in error context', async () => {
+      const userId1 = new UserId(uuidv7()).getValue()
+      const userId2 = new UserId(uuidv7()).getValue()
+      const userIds = [userId1, userId2]
+      const dbError = new Error('Delete operation failed')
+
+      const mockWhere = vi.fn().mockRejectedValue(dbError)
+      const mockDelete = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.delete).mockReturnValue(mockDelete() as any)
+
+      await expect(repository.deleteChatHistoryByUsers(userIds)).rejects.toMatchObject({
+        message: 'Failed to delete user history',
+        details: { userIds, error: dbError },
+      })
     })
   })
 })

@@ -1,5 +1,5 @@
 import type { AIServicePort } from 'apps/backend/src/application/ports/ai.port.js'
-import { desc, eq, asc, sql } from 'drizzle-orm'
+import { desc, eq, asc, sql, inArray } from 'drizzle-orm'
 import { db } from '../../../infrastructure/database/index.js'
 import {
   chats,
@@ -14,6 +14,7 @@ import type { ChatIdType } from '../../../domain/value-objects/chatID.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { mapUIMessagePartsToDBParts } from '../../../shared/mapper/index.js'
 import { isArray } from '@norberts-spark/shared'
+import { DatabaseException } from '../../../shared/exceptions/database.exception.js'
 
 export type ChatResponseResult = {
   chat: typeof chats.$inferSelect
@@ -99,6 +100,20 @@ export class AIRepository implements AIServicePort {
     await this.insertMessagesWithParts(chatId, initialMessages)
 
     return chatId
+  }
+
+  async deleteChatHistoryByUsers(userIds: UserIdType[]): Promise<void> {
+    try {
+      if (userIds.length === 0) {
+        return
+      }
+
+      // Delete all chats for the specified users
+      // Messages will be cascade deleted due to foreign key constraint
+      await db.delete(chats).where(inArray(chats.userId, userIds))
+    } catch (error) {
+      throw new DatabaseException('Failed to delete user history', { userIds, error })
+    }
   }
 
   async appendToChatMessages(
