@@ -1,6 +1,7 @@
 'use client'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import ChatIcon from '@mui/icons-material/Chat'
+import DescriptionIcon from '@mui/icons-material/Description'
 import PersonIcon from '@mui/icons-material/Person'
 import { Box, Card, CardActionArea, CardContent, Container, Typography } from '@mui/material'
 
@@ -120,6 +121,41 @@ export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardPr
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 View and edit your profile
+              </Typography>
+            </CardContent>
+          </CardActionArea>
+        </Card>
+
+        {/* Extract Data Card */}
+        <Card
+          sx={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: 6,
+            },
+          }}
+        >
+          <CardActionArea sx={{ flexGrow: 1 }} onClick={() => onNavigate('/extract-data')}>
+            <CardContent
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 200,
+                textAlign: 'center',
+              }}
+            >
+              <DescriptionIcon sx={{ fontSize: 64, mb: 2, color: 'primary.main' }} />
+              <Typography variant="h5" component="h2" gutterBottom>
+                Extract Data
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Upload and extract data from files
               </Typography>
             </CardContent>
           </CardActionArea>

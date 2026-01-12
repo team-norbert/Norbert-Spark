@@ -98,6 +98,46 @@ describe('Dashboard Component', () => {
       })
     })
 
+    describe('Extract Data Card', () => {
+      it('should render Extract Data card with icon, title, and description', () => {
+        render(
+          <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        expect(screen.getByText('Extract Data')).toBeInTheDocument()
+        expect(screen.getByText('Upload and extract data from files')).toBeInTheDocument()
+        expect(screen.getByTestId('DescriptionIcon')).toBeInTheDocument()
+      })
+
+      it('should call onNavigate with /extract-data when Extract Data card is clicked', () => {
+        render(
+          <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        const extractDataCard = screen.getByText('Extract Data').closest('.MuiCardActionArea-root')
+        fireEvent.click(extractDataCard!)
+
+        expect(mockOnNavigate).toHaveBeenCalledWith('/extract-data')
+        expect(mockOnNavigate).toHaveBeenCalledTimes(1)
+      })
+
+      it('should render Extract Data card for both admin and non-admin users', () => {
+        // Test for non-admin
+        const { rerender } = render(
+          <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        expect(screen.getByText('Extract Data')).toBeInTheDocument()
+
+        // Test for admin
+        rerender(
+          <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        expect(screen.getByText('Extract Data')).toBeInTheDocument()
+      })
+    })
+
     describe('Admin Card', () => {
       it('should NOT render Admin card when canAccessAdmin is false', () => {
         render(
@@ -140,7 +180,7 @@ describe('Dashboard Component', () => {
       )
 
       const cards = container.querySelectorAll('.MuiCard-root')
-      expect(cards).toHaveLength(2)
+      expect(cards).toHaveLength(3) // Chat, Profile, Extract Data
     })
 
     it('should render exactly 3 cards when canAccessAdmin is true', () => {
@@ -149,7 +189,7 @@ describe('Dashboard Component', () => {
       )
 
       const cards = container.querySelectorAll('.MuiCard-root')
-      expect(cards).toHaveLength(3)
+      expect(cards).toHaveLength(4) // Chat, Profile, Extract Data, Admin
     })
   })
 
@@ -168,6 +208,14 @@ describe('Dashboard Component', () => {
       )
 
       expect(screen.getByTestId('PersonIcon')).toBeInTheDocument()
+    })
+
+    it('should render DescriptionIcon for Extract Data card', () => {
+      render(
+        <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+      )
+
+      expect(screen.getByTestId('DescriptionIcon')).toBeInTheDocument()
     })
 
     it('should render AdminPanelSettingsIcon when admin access is granted', () => {
