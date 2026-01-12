@@ -140,7 +140,7 @@ describe('Dashboard Component', () => {
       )
 
       const cards = container.querySelectorAll('.MuiCard-root')
-      expect(cards).toHaveLength(2)
+      expect(cards).toHaveLength(3) // Chat, Profile, Extract Data
     })
 
     it('should render exactly 3 cards when canAccessAdmin is true', () => {
@@ -149,7 +149,7 @@ describe('Dashboard Component', () => {
       )
 
       const cards = container.querySelectorAll('.MuiCard-root')
-      expect(cards).toHaveLength(3)
+      expect(cards).toHaveLength(4) // Chat, Profile, Extract Data, Admin
     })
   })
 

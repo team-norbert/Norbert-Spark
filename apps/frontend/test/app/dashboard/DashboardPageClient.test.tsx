@@ -160,7 +160,7 @@ describe('Dashboard', () => {
 
       // Count cards, not all buttons (Sign Out button and Home button are also present)
       const cards = screen.getAllByRole('button')
-      expect(cards).toHaveLength(4) // 2 navigation cards + 1 Sign Out button + 1 Home button
+      expect(cards).toHaveLength(5) // 3 navigation cards (Chat, Profile, Extract Data) + 1 Sign Out button + 1 Home button
     })
 
     it('should render exactly 3 cards when canAccessAdmin is true', () => {
@@ -170,7 +170,7 @@ describe('Dashboard', () => {
 
       // Count cards, not all buttons (Sign Out button and Home button are also present)
       const cards = screen.getAllByRole('button')
-      expect(cards).toHaveLength(5) // 3 navigation cards + 1 Sign Out button + 1 Home button
+      expect(cards).toHaveLength(6) // 4 navigation cards (Chat, Profile, Extract Data, Admin) + 1 Sign Out button + 1 Home button
     })
   })
 

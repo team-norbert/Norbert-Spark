@@ -1,6 +1,5 @@
 'use client'
 
-import type { UIDataTypes, UIMessagePart, UITools } from 'ai'
 import { use } from 'react'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
@@ -9,12 +8,6 @@ import { useAIChat } from '@/view/hooks/useAIChat.js'
 import { useFetchChat } from '@/view/hooks/useFetchChat.js'
 
 const logger = createLogger({ prefix: 'AIChatPage' })
-
-interface MessageType {
-  id: string
-  parts: UIMessagePart<UIDataTypes, UITools>[]
-  role: string
-}
 
 /**
  * AI Chat page following DDD architecture.
