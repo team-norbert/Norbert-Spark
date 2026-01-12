@@ -1060,11 +1060,11 @@ describe('EnvConfig', () => {
 
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      // Dotenv reloads .env file which sets SENTRY_ENABLED=true
-      // When not explicitly set, it uses the .env value or defaults to 'false'
-      // In this test environment, .env has SENTRY_ENABLED=true
+      // Dotenv reloads .env file which may have SENTRY_ENABLED set
+      // When not explicitly set, it uses the .env value or defaults to empty string
+      // In local dev, .env may have SENTRY_ENABLED=true, but in CI it may be unset
       expect(typeof EnvConfig.SENTRY_ENABLED).toBe('string')
-      expect(['true', 'false']).toContain(EnvConfig.SENTRY_ENABLED)
+      expect(['true', 'false', '']).toContain(EnvConfig.SENTRY_ENABLED)
     })
 
     it('should have type string', async () => {
