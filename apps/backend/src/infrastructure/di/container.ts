@@ -22,8 +22,8 @@ import { UserController } from '../../adapters/primary/http/user.controller.js'
 import { AuthController } from '../../adapters/primary/http/auth.controller.js'
 import { AIController } from '../../adapters/primary/http/ai.controller.js'
 
-import type { AuditLogPort } from '../../application/ports/audit-log.port.js'
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
+import type { AuditLogPort } from '../../application/ports/audit-log.port.js'
 import { EnvConfig } from '../config/env.config.js'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -68,9 +68,6 @@ export class Container {
   // Repositories
   public readonly userRepository: PostgresUserRepository
   public readonly aiRepository: AIRepository
-
-  // Domain Services
-  // public readonly workoutCalculator: WorkoutCalculator
 
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
