@@ -16,6 +16,7 @@ import {
   boolean,
   date,
   uniqueIndex,
+  unique,
   char,
 } from 'drizzle-orm/pg-core'
 
@@ -114,7 +115,7 @@ export const people = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
-    uniqueEmail: uniqueIndex('people_unique_email').on(table.email),
+    uniqueEmail: unique('people_unique_email').on(table.email),
     firstNameLengthCheck: check(
       'people_first_name_length_check',
       sql`length(trim(${table.firstName})) BETWEEN 1 AND 100`
