@@ -71,6 +71,7 @@ export class Container {
   // Repositories
   public readonly userRepository: PostgresUserRepository
   public readonly aiRepository: AIRepository
+
   public readonly bucketService: BucketService
 
   // Use Cases
