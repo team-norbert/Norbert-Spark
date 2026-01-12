@@ -36,6 +36,7 @@
     "@fastify/swagger-ui": "^5.2.4",
     "@google/generative-ai": "^0.24.1",
     "@norberts-spark/shared": "workspace:*",
+    "@sentry/node": "^10.32.1",
     "@upstash/redis": "^1.36.1",
     "ai": "^6.0.27",
     "bcrypt": "^6.0.0",

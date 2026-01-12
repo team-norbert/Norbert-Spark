@@ -1,10 +1,13 @@
+import '../security/instrument.js'
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import * as Sentry from '@sentry/node'
 
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
 import { OpenAPI } from '@norberts-spark/shared'
+import { EnvConfig } from '../config/env.config.js'
 /**
  * Creates and configures a Fastify server instance with CORS, Swagger, and OpenAPI support.
  *
@@ -66,6 +69,10 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     },
     staticCSP: true,
   })
+
+  if (EnvConfig.SENTRY_ENABLED === 'true') {
+    Sentry.setupFastifyErrorHandler(fastify)
+  }
 
   fastify.get('/health', async (_request, _reply) => {
     return { status: 'ok', timestamp: new Date().toISOString() }
