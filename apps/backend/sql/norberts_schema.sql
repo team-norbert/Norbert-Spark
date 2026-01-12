@@ -143,7 +143,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS one_primary_contact_per_customer
 
 -- Chats table: Stores chat sessions
 CREATE TABLE IF NOT EXISTS chats (
-    id UUID PRIMARY KEY, // the UUID creation is managed by the application
+    id UUID PRIMARY KEY, -- the UUID creation is managed by the application
     user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
