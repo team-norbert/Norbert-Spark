@@ -3,6 +3,7 @@ import type { UserRepositoryPort } from '../ports/user.repository.port.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { AuditLogPort } from '../ports/audit-log.port.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
+import type { AIServicePort } from '../ports/ai.port.js'
 
 /**
  * Use case for deleting multiple users in a single batch operation.
@@ -36,7 +37,9 @@ export class DeleteUsersUseCase {
    * @param userRepository - Repository for persisting user data
    * @param logger - Logger for recording operational information and errors
    * @param auditLog - Audit log for tracking user deletion actions
+   * @param aIService - AI service port for AI-related operations
    *
+   * @param aIServicePort
    * @example
    * ```typescript
    * const useCase = new DeleteUsersUseCase(
@@ -49,7 +52,8 @@ export class DeleteUsersUseCase {
   constructor(
     private readonly userRepository: UserRepositoryPort,
     private readonly logger: LoggerPort,
-    private readonly auditLog: AuditLogPort
+    private readonly auditLog: AuditLogPort,
+    private readonly aIService: AIServicePort
   ) {}
 
   /**
@@ -112,27 +116,32 @@ export class DeleteUsersUseCase {
   ): Promise<boolean> {
     this.logger.info('Deleting users', { userIds })
 
-    try {
-      await this.userRepository.deleteUsers(userIds)
-    } catch (error) {
-      this.logger.error('Error deleting users', error as Error, { userIds })
-      throw error
-    }
-
-    try {
-      await this.auditLog.log({
-        userId: null,
-        entityType: EntityType.USER,
-        entityId: userIds.join(','),
-        action: AuditAction.DELETE,
-        changes: { reason: 'deleted_users' },
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
+    return Promise.all([
+      this.userRepository.deleteUsers(userIds),
+      this.aIService.deleteChatHistoryByUsers(userIds),
+    ])
+      .then(async () => {
+        this.logger.info('Successfully deleted users', { userIds })
+        try {
+          await this.auditLog.log({
+            userId: null,
+            entityType: EntityType.USER,
+            entityId: userIds.join(','),
+            action: AuditAction.DELETE,
+            changes: { reason: 'deleted_users' },
+            ipAddress: auditContext.ipAddress,
+            userAgent: auditContext.userAgent ?? undefined,
+          })
+        } catch (error) {
+          this.logger.error('Error logging audit for user deletion', error as Error, {
+            userIds,
+          })
+        }
+        return true
       })
-    } catch (error) {
-      this.logger.error('Error logging audit for user deletion', error as Error, { userIds })
-    }
-
-    return true
+      .catch((error) => {
+        this.logger.error('Error deleting users', error as Error, { userIds })
+        throw error
+      })
   }
 }

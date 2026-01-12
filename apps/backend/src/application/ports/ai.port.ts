@@ -9,4 +9,5 @@ export interface AIServicePort {
   appendToChatMessages(chatId: ChatIdType, messages: UIMessage[]): Promise<string>
   getChatsByUserId(userId: UserIdType): Promise<ChatIdType[]>
   getAIChatByChatId(chatId: ChatIdType): Promise<ChatResponseResult | null>
+  deleteChatHistoryByUsers(userIds: UserIdType[]): Promise<void>
 }

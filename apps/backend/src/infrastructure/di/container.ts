@@ -195,7 +195,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.deleteUsersUseCase = new DeleteUsersUseCase(
       this.userRepository,
       this.logger,
-      this.auditLog
+      this.auditLog,
+      this.aiRepository
     )
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
