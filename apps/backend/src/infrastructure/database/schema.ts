@@ -125,7 +125,7 @@ export const people = pgTable(
     ),
     emailFormatCheck: check(
       'people_email_format_check',
-      sql`${table.email} IS NULL OR ${table.email} ~ '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'`
+      sql`${table.email} IS NULL OR ${table.email} ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'`
     ),
     phoneLengthCheck: check(
       'people_phone_length_check',
