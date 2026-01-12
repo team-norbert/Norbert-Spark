@@ -27,6 +27,21 @@ For ease of working with AI tools, there are three parts to the codebase:
 - There is a highly opinionated code quality pipeline including ESLint, Prettier, and TypeScript configurations to ensure consistent code style and quality across the project.
 - There is a strong emphasis on testing, with unit tests using Vitest and end-to-end tests using Playwright to ensure the reliability and stability of the application.
 - Eval testing is a key part of the development process: apps/backend/evals. Eval testing provides a means to validate the functionality and performance of AI models integrated into the application. By running eval tests, developers and business owners can assess how well the AI models perform in real-world scenarios, identify potential issues, and make necessary improvements. This ensures that the AI components meet the desired quality standards and deliver accurate results to users.
+- The E2E tests are designed to cover critical user journeys and interactions within the application. They simulate real-world scenarios to ensure that the application behaves as expected from the user's perspective. By automating these tests, developers can quickly identify regressions or issues introduced during development, ensuring a smooth and reliable user experience. The E2E tests yes temporal testing environment that is spun up and torn down for each test run, ensuring a clean state for accurate testing. This approach helps maintain the integrity of the tests and provides confidence in the application's functionality. However, they are not urn in the CI but are run as part of the Husky pre-push hook. To bypass the E2E tests in your workflow, use the `SKIP_E2E=1` variable on the command line.
+
+As an example, instead of this:
+
+```bash
+git push origin ui/new-page-pdf-extract-data
+```
+
+Use this to by pass the E2E tests:
+
+```bash
+SKIP_E2E=1 git push origin ui/new-page-pdf-extract-data
+```
+
+It is recommended to regularly run the E2E tests, but they may not be required with every git push.
 
 - [Tech Stack](#tech-stack)
 
@@ -340,7 +355,6 @@ Drizzle ORM is used as the database ORM, providing a type-safe and modern way to
 The use of both PostgreSQL and Drizzle is as follows:
 
 - SQL migration = source of truth
-
 - Drizzle schema = typed access layer
 
 This avoids ORM drift and keeps invariants enforceable even if someone bypasses the app.
