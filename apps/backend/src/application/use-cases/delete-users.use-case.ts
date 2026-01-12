@@ -116,32 +116,34 @@ export class DeleteUsersUseCase {
   ): Promise<boolean> {
     this.logger.info('Deleting users', { userIds })
 
-    return Promise.all([
-      this.userRepository.deleteUsers(userIds),
-      this.aIService.deleteChatHistoryByUsers(userIds),
-    ])
-      .then(async () => {
-        this.logger.info('Successfully deleted users', { userIds })
-        try {
-          await this.auditLog.log({
-            userId: null,
-            entityType: EntityType.USER,
-            entityId: userIds.join(','),
-            action: AuditAction.DELETE,
-            changes: { reason: 'deleted_users' },
-            ipAddress: auditContext.ipAddress,
-            userAgent: auditContext.userAgent ?? undefined,
-          })
-        } catch (error) {
-          this.logger.error('Error logging audit for user deletion', error as Error, {
-            userIds,
-          })
-        }
-        return true
-      })
-      .catch((error) => {
-        this.logger.error('Error deleting users', error as Error, { userIds })
-        throw error
-      })
+    try {
+      // Chat records are deleted by a database cascade constraint on the chats table.
+      // We intentionally do not call a separate chat history deletion here to avoid
+      // redundant operations and potential race conditions with the cascade.
+      await this.userRepository.deleteUsers(userIds)
+
+      this.logger.info('Successfully deleted users', { userIds })
+
+      try {
+        await this.auditLog.log({
+          userId: null,
+          entityType: EntityType.USER,
+          entityId: userIds.join(','),
+          action: AuditAction.DELETE,
+          changes: { reason: 'deleted_users' },
+          ipAddress: auditContext.ipAddress,
+          userAgent: auditContext.userAgent ?? undefined,
+        })
+      } catch (error) {
+        this.logger.error('Error logging audit for user deletion', error as Error, {
+          userIds,
+        })
+      }
+
+      return true
+    } catch (error) {
+      this.logger.error('Error deleting users', error as Error, { userIds })
+      throw error
+    }
   }
 }
