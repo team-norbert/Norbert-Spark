@@ -20,13 +20,30 @@ The architecture in both the backend and frontend follows the principles of Clea
 
 The pattern promotes testability, scalability, and ease of understanding, making it easier to adapt to changing requirements over time. The architecture follows the Hexagonal Architecture (Ports and Adapters) principles, allowing for flexibility in integrating different technologies and services. It also aligns with Domain-Driven Design (DDD) concepts, focusing on the core domain and its complexities.
 
-For ease of working with AI tools, there are three parts to the codebase:
+For ease of working with AI tools, several practices have been adopted in the codebase:
 
-- The architecture is written in text fields throughout the codebase. As an example, the hexagonal architecture is explained in the root of the backend in this document: apps/backend/src/HEXAGONAL_ARCHITECTURE.txt. These descriptions are optimized for consumption by AI agents, making it easier for them to understand and navigate the system architecture.
+- The architecture is written in text fila throughout the codebase. As an example, the hexagonal architecture is explained in the root of the backend in this document: apps/backend/src/HEXAGONAL_ARCHITECTURE.txt. These descriptions are optimized for consumption by AI agents, making it easier for them to understand and navigate the system architecture.
 - There are extensive JSDocs comments. Previously code comments were considered bad practice due to the drift between code and comments. However, with the advent of AI tools like GPT-4, well-written comments can be invaluable for understanding code. AI models can use these comments to generate explanations, documentation, and even assist in code generation. Therefore, the codebase includes comprehensive JSDocs comments to facilitate better understanding and collaboration.
 - There is a highly opinionated code quality pipeline including ESLint, Prettier, and TypeScript configurations to ensure consistent code style and quality across the project.
 - There is a strong emphasis on testing, with unit tests using Vitest and end-to-end tests using Playwright to ensure the reliability and stability of the application.
 - Eval testing is a key part of the development process: apps/backend/evals. Eval testing provides a means to validate the functionality and performance of AI models integrated into the application. By running eval tests, developers and business owners can assess how well the AI models perform in real-world scenarios, identify potential issues, and make necessary improvements. This ensures that the AI components meet the desired quality standards and deliver accurate results to users.
+- The E2E tests are designed to cover critical user journeys and interactions within the application. They simulate real-world scenarios to ensure that the application behaves as expected from the user's perspective. By automating these tests, developers can quickly identify regressions or issues introduced during development, ensuring a smooth and reliable user experience.
+- The E2E tests use a temporal testing environment that is spun up and torn down for each test run, ensuring a clean state for accurate testing. This approach helps maintain the integrity of the tests and provides confidence in the application's functionality.
+- The E2E tests are not run in the CI but are executed as part of the Husky pre-push hook. To bypass the E2E tests in your workflow, use the `SKIP_E2E=1` variable on the command line.
+
+As an example, instead of this:
+
+```bash
+git push origin ui/new-page-pdf-extract-data
+```
+
+Use this to bypass the E2E tests:
+
+```bash
+SKIP_E2E=1 git push origin ui/new-page-pdf-extract-data
+```
+
+It is recommended to regularly run the E2E tests, but they may not be required with every git push.
 
 - [Tech Stack](#tech-stack)
 
@@ -340,7 +357,6 @@ Drizzle ORM is used as the database ORM, providing a type-safe and modern way to
 The use of both PostgreSQL and Drizzle is as follows:
 
 - SQL migration = source of truth
-
 - Drizzle schema = typed access layer
 
 This avoids ORM drift and keeps invariants enforceable even if someone bypasses the app.
