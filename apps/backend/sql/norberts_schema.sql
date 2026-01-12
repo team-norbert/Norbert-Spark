@@ -22,30 +22,20 @@ CREATE EXTENSION IF NOT EXISTS citext;
 -- ------------------------------------------------------------
 -- ENUM types
 -- ------------------------------------------------------------
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'customer_status') THEN
-    CREATE TYPE customer_status AS ENUM (
-      'prospect',
-      'active',
-      'paused',
-      'churned'
-    );
-  END IF;
-END $$;
+CREATE TYPE IF NOT EXISTS customer_status AS ENUM (
+  'prospect',
+  'active',
+  'paused',
+  'churned'
+);
 
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'contact_role') THEN
-    CREATE TYPE contact_role AS ENUM (
-      'primary_contact',
-      'decision_maker',
-      'billing_contact',
-      'technical_contact',
-      'stakeholder'
-    );
-  END IF;
-END $$;
+CREATE TYPE IF NOT EXISTS contact_role AS ENUM (
+  'primary_contact',
+  'decision_maker',
+  'billing_contact',
+  'technical_contact',
+  'stakeholder'
+);
 
 -- ============================================================
 -- USER MANAGEMENT
