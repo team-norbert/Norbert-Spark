@@ -367,7 +367,7 @@ Sentry will:
 - Debug failed requests and optimize prompt performance with detailed traces
 
 In the environment variables you will need to set `SENTRY_ACCOUNT` as true or false.
-If true, you will also need to set `SENTRY_DSN` and `SENTRY_AUTH_TOKEN`.
+If true, you will also need to set `SENTRY_DSN`.
 
 Using Sentry with AI-SDK requires the use of telemetry integration provided by AI-SDK.
 This integration captures detailed telemetry data from AI interactions, including token usage, response times, and error rates. By leveraging this telemetry data, Sentry can provide deeper insights into the performance and reliability of AI models within your applications.
