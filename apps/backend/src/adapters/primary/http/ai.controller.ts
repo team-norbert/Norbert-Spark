@@ -22,7 +22,6 @@ import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chat
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import type { GetChatContentByChatIdUseCase } from '../../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
 
-
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
 
