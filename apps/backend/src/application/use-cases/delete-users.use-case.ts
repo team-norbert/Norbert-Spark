@@ -113,6 +113,9 @@ export class DeleteUsersUseCase {
     this.logger.info('Deleting users', { userIds })
 
     try {
+      // Chat records are deleted by a database cascade constraint on the chats table.
+      // We intentionally do not call a separate chat history deletion here to avoid
+      // redundant operations and potential race conditions with the cascade.
       await this.userRepository.deleteUsers(userIds)
     } catch (error) {
       this.logger.error('Error deleting users', error as Error, { userIds })
