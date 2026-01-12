@@ -207,6 +207,14 @@ export const customerPeopleRelations = relations(customerPeople, ({ one }) => ({
   }),
 }))
 
+export type DBCustomer = typeof customers.$inferInsert
+export type DBCustomerSelect = typeof customers.$inferSelect
+
+export type DBPerson = typeof people.$inferInsert
+export type DBPersonSelect = typeof people.$inferSelect
+
+export type DBCustomerPerson = typeof customerPeople.$inferInsert
+export type DBCustomerPersonSelect = typeof customerPeople.$inferSelect
 /**
  * User table: Stores user account information
  */
