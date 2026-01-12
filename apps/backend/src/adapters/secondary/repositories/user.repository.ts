@@ -1,6 +1,6 @@
 import { eq, count, inArray } from 'drizzle-orm'
 import { db } from '../../../infrastructure/database/index.js'
-import { user, chats } from '../../../infrastructure/database/schema.js'
+import { user } from '../../../infrastructure/database/schema.js'
 import type { DBUserSelect } from '../../../infrastructure/database/schema.js'
 import { User } from '../../../domain/entities/user.js'
 import { Email } from '../../../domain/value-objects/email.js'
