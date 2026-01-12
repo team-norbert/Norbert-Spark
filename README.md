@@ -20,9 +20,9 @@ The architecture in both the backend and frontend follows the principles of Clea
 
 The pattern promotes testability, scalability, and ease of understanding, making it easier to adapt to changing requirements over time. The architecture follows the Hexagonal Architecture (Ports and Adapters) principles, allowing for flexibility in integrating different technologies and services. It also aligns with Domain-Driven Design (DDD) concepts, focusing on the core domain and its complexities.
 
-For ease of working with AI tools, there are three parts to the codebase:
+For ease of working with AI tools, several practices have been adopted in the codebase:
 
-- The architecture is written in text fields throughout the codebase. As an example, the hexagonal architecture is explained in the root of the backend in this document: apps/backend/src/HEXAGONAL_ARCHITECTURE.txt. These descriptions are optimized for consumption by AI agents, making it easier for them to understand and navigate the system architecture.
+- The architecture is written in text fila throughout the codebase. As an example, the hexagonal architecture is explained in the root of the backend in this document: apps/backend/src/HEXAGONAL_ARCHITECTURE.txt. These descriptions are optimized for consumption by AI agents, making it easier for them to understand and navigate the system architecture.
 - There are extensive JSDocs comments. Previously code comments were considered bad practice due to the drift between code and comments. However, with the advent of AI tools like GPT-4, well-written comments can be invaluable for understanding code. AI models can use these comments to generate explanations, documentation, and even assist in code generation. Therefore, the codebase includes comprehensive JSDocs comments to facilitate better understanding and collaboration.
 - There is a highly opinionated code quality pipeline including ESLint, Prettier, and TypeScript configurations to ensure consistent code style and quality across the project.
 - There is a strong emphasis on testing, with unit tests using Vitest and end-to-end tests using Playwright to ensure the reliability and stability of the application.
