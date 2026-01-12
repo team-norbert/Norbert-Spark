@@ -323,9 +323,14 @@ pnpm run format
 
 The `--cache` option is used to speed up formatting by only processing changed files.'
 
-### Tubrorepo
+### Tubrorepo and PNPM
 
-Turborepo is used as the build system and task runner for this monorepo. It provides efficient caching, parallel execution, and dependency graph management to optimize build times and developer productivity. Turborepo allows defining tasks in each package's `package.json` and orchestrates their execution based on dependencies.
+Turborepo is used as the build system and task runner for this monorepo.
+It provides efficient caching, parallel execution, and dependency graph management to optimize build times and developer productivity. Turborepo allows defining tasks in each package's `package.json` and orchestrates their execution based on dependencies.
+
+PNPM is used as the package manager for this monorepo.
+PNPM provides fast and efficient package management with a unique disk space-saving approach using symlinks.
+It ensures consistent dependency resolution across all packages in the monorepo and integrates seamlessly with Turborepo for managing dependencies and scripts.
 
 ### Drizzle ORM and PostgreSQL
 
@@ -350,6 +355,35 @@ For example, the dependency injection container diagram is generated using Merma
 cd apps/backend
 pnpm mermaid src/infrastructure/di/container.md
 ```
+
+### GitHub Actions
+
+The project includes two automated GitHub Actions workflows to maintain code quality and dependency management:
+
+**1. CI/CD Pipeline (`.github/workflows/ci-cd.yml`)**
+
+- **Triggers**: Runs on pull requests and pushes to the `main` branch
+- **Purpose**: Ensures code quality and compatibility across Node.js versions
+- **Matrix Testing**: Tests against Node.js 22.x and 24.x
+- **Steps**:
+  - Format checking (Prettier)
+  - Linting (ESLint)
+  - Unit tests (Vitest)
+  - Production build verification
+- **Benefits**: Catches issues early before merging to main
+
+**2. Update Dependencies (`.github/workflows/update-dependencies.yml`)**
+
+- **Triggers**: Runs daily at 9:00 AM UTC (configurable via cron) or manually via workflow_dispatch
+- **Purpose**: Automatically updates minor and patch dependencies to keep the project secure and up-to-date
+- **Steps**:
+  - Updates dependencies in root, frontend, and backend workspaces using `pnpm update`
+  - Runs tests, type checking, and linting to detect breaking changes
+  - Creates a pull request with the updates if changes are detected
+  - PR title indicates if tests fail (⚠️ TESTS FAILING) for immediate attention
+- **Benefits**: Reduces manual dependency maintenance, ensures security patches are applied promptly, and provides visibility into potential breaking changes
+
+Both workflows use PNPM for consistent package management and leverage caching to improve execution speed.
 
 - [Prerequisites](#prerequisites)
 
