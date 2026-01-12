@@ -51,6 +51,8 @@ export class EnvConfig {
     : ''
   static readonly SENTRY_ACCOUNT = process.env.SENTRY_ACCOUNT || 'false'
   static readonly SENTRY_AUTH_TOKEN = process.env.SENTRY_AUTH_TOKEN || ''
+  static readonly SENTRY_PROJECT = process.env.SENTRY_PROJECT || ''
+  static readonly SENTRY_ORG = process.env.SENTRY_ORG || ''
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !process.env[key])

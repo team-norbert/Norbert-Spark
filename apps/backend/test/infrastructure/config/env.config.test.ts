@@ -1103,4 +1103,220 @@ describe('EnvConfig', () => {
       expect(EnvConfig.SENTRY_ACCOUNT).toBe('false')
     })
   })
+
+  describe('SENTRY_AUTH_TOKEN', () => {
+    it('should be a static readonly property', async () => {
+      process.env.SENTRY_AUTH_TOKEN = 'sntrys_test_token_12345'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'SENTRY_AUTH_TOKEN')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use SENTRY_AUTH_TOKEN from environment when set', async () => {
+      process.env.SENTRY_AUTH_TOKEN = 'sntrys_production_token_abc123'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.SENTRY_AUTH_TOKEN).toBe('sntrys_production_token_abc123')
+    })
+
+    it('should use value from .env when SENTRY_AUTH_TOKEN env var is deleted', async () => {
+      delete process.env.SENTRY_AUTH_TOKEN
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Dotenv reloads .env file which may have SENTRY_AUTH_TOKEN set
+      // When not explicitly set, it uses the .env value or defaults to empty string
+      expect(typeof EnvConfig.SENTRY_AUTH_TOKEN).toBe('string')
+    })
+
+    it('should have type string', async () => {
+      process.env.SENTRY_AUTH_TOKEN = 'sntrys_dev_token_xyz789'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.SENTRY_AUTH_TOKEN).toBe('string')
+      expect(EnvConfig.SENTRY_AUTH_TOKEN).toBe('sntrys_dev_token_xyz789')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.SENTRY_AUTH_TOKEN = 'sntrys_test_auth_token'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // SENTRY_AUTH_TOKEN should be a plain string, not obscured
+      expect(typeof EnvConfig.SENTRY_AUTH_TOKEN).toBe('string')
+      expect(EnvConfig.SENTRY_AUTH_TOKEN).toBe('sntrys_test_auth_token')
+      // Should not have obscured behavior
+      expect(String(EnvConfig.SENTRY_AUTH_TOKEN)).toBe('sntrys_test_auth_token')
+    })
+
+    it('should handle empty string value', async () => {
+      process.env.SENTRY_AUTH_TOKEN = ''
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Empty string is falsy, so it defaults to empty string
+      expect(EnvConfig.SENTRY_AUTH_TOKEN).toBe('')
+    })
+  })
+
+  describe('SENTRY_PROJECT', () => {
+    it('should be a static readonly property', async () => {
+      process.env.SENTRY_PROJECT = 'my-project'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'SENTRY_PROJECT')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use SENTRY_PROJECT from environment when set', async () => {
+      process.env.SENTRY_PROJECT = 'production-project'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.SENTRY_PROJECT).toBe('production-project')
+    })
+
+    it('should use value from .env when SENTRY_PROJECT env var is deleted', async () => {
+      delete process.env.SENTRY_PROJECT
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Dotenv reloads .env file which may have SENTRY_PROJECT set
+      // When not explicitly set, it uses the .env value or defaults to empty string
+      expect(typeof EnvConfig.SENTRY_PROJECT).toBe('string')
+    })
+
+    it('should have type string', async () => {
+      process.env.SENTRY_PROJECT = 'dev-project'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.SENTRY_PROJECT).toBe('string')
+      expect(EnvConfig.SENTRY_PROJECT).toBe('dev-project')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.SENTRY_PROJECT = 'test-project'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // SENTRY_PROJECT should be a plain string, not obscured
+      expect(typeof EnvConfig.SENTRY_PROJECT).toBe('string')
+      expect(EnvConfig.SENTRY_PROJECT).toBe('test-project')
+      // Should not have obscured behavior
+      expect(String(EnvConfig.SENTRY_PROJECT)).toBe('test-project')
+    })
+
+    it('should handle empty string value', async () => {
+      process.env.SENTRY_PROJECT = ''
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Empty string is falsy, so it defaults to empty string
+      expect(EnvConfig.SENTRY_PROJECT).toBe('')
+    })
+  })
+
+  describe('SENTRY_ORG', () => {
+    it('should be a static readonly property', async () => {
+      process.env.SENTRY_ORG = 'my-organization'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'SENTRY_ORG')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use SENTRY_ORG from environment when set', async () => {
+      process.env.SENTRY_ORG = 'acme-corp'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.SENTRY_ORG).toBe('acme-corp')
+    })
+
+    it('should use value from .env when SENTRY_ORG env var is deleted', async () => {
+      delete process.env.SENTRY_ORG
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Dotenv reloads .env file which may have SENTRY_ORG set
+      // When not explicitly set, it uses the .env value or defaults to empty string
+      expect(typeof EnvConfig.SENTRY_ORG).toBe('string')
+    })
+
+    it('should have type string', async () => {
+      process.env.SENTRY_ORG = 'test-organization'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.SENTRY_ORG).toBe('string')
+      expect(EnvConfig.SENTRY_ORG).toBe('test-organization')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.SENTRY_ORG = 'my-org'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // SENTRY_ORG should be a plain string, not obscured
+      expect(typeof EnvConfig.SENTRY_ORG).toBe('string')
+      expect(EnvConfig.SENTRY_ORG).toBe('my-org')
+      // Should not have obscured behavior
+      expect(String(EnvConfig.SENTRY_ORG)).toBe('my-org')
+    })
+
+    it('should handle empty string value', async () => {
+      process.env.SENTRY_ORG = ''
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Empty string is falsy, so it defaults to empty string
+      expect(EnvConfig.SENTRY_ORG).toBe('')
+    })
+  })
 })
