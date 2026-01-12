@@ -23,6 +23,7 @@ import { AuthController } from '../../adapters/primary/http/auth.controller.js'
 import { AIController } from '../../adapters/primary/http/ai.controller.js'
 
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
+import type { AuditLogPort } from '../../application/ports/audit-log.port.js'
 import { EnvConfig } from '../config/env.config.js'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -86,7 +87,7 @@ export class Container {
   public readonly aiController: AIController
 
   // Audit log
-  public readonly auditLog: AuditLogRepository
+  public readonly auditLog: AuditLogPort
 
   /**
    * Private constructor to enforce Singleton pattern
