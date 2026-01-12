@@ -311,6 +311,12 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Triggers for auto-updating updated_at columns
+DROP TRIGGER IF EXISTS chats_updated_at ON chats;
+CREATE TRIGGER chats_updated_at
+    BEFORE UPDATE ON chats
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
+
 DROP TRIGGER IF EXISTS customers_updated_at ON customers;
 CREATE TRIGGER customers_updated_at
     BEFORE UPDATE ON customers
