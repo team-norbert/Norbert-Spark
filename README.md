@@ -373,6 +373,8 @@ Using Sentry with AI-SDK requires the use of telementry integration provided by 
 This integration captures detailed telemetry data from AI interactions, including token usage, response times, and error rates. By leveraging this telemetry data, Sentry can provide deeper insights into the performance and reliability of AI models within your applications.
 More details can be found in the [AI-SDK documentation](https://ai-sdk.dev/docs/ai-sdk-core/telemetry).
 This app is already configured to use both Telemetry and Sentry.
+If you want to use this service, is create a Sentry account and set the environment variables as described above.
+In the Sentry configuration (apps/backend/src/infrastructure/security/instrument.ts), I have set the sendDefaultPii property to false. Setting sendDefaultPii to true sends personally identifiable information to Sentry unconditionally. This should be configurable via environment variable or set to false by default, especially to comply with privacy regulations like GDPR.
 If you want to use this service, the first step is to create a Sentry account and set the environment variables as described above.
 
 ### GitHub Actions
