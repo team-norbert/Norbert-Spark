@@ -137,7 +137,7 @@ export const people = pgTable(
     ),
     linkedinUrlFormatCheck: check(
       'people_linkedin_url_format_check',
-      sql`${table.linkedinUrl} IS NULL OR ${table.linkedinUrl} ~ '^https?://(www\\.)?linkedin\\.com/.*$'`
+      sql`${table.linkedinUrl} IS NULL OR ${table.linkedinUrl} ~* '^https?://(www\\.)?linkedin\\.com/.*$'`
     ),
   })
 )
