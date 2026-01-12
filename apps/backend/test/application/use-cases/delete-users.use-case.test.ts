@@ -1,7 +1,6 @@
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { AIServicePort } from '../../../src/application/ports/ai.port.js'
 import type { AuditLogPort } from '../../../src/application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import type { UserRepositoryPort } from '../../../src/application/ports/user.repository.port.js'
@@ -20,7 +19,6 @@ describe('DeleteUsersUseCase', () => {
   let mockUserRepository: UserRepositoryPort
   let mockLogger: LoggerPort
   let mockAuditLog: AuditLogPort
-  let mockAIService: AIServicePort
   const auditContext = { ipAddress: '192.168.1.1', userAgent: 'Mozilla/5.0' }
 
   beforeEach(() => {
@@ -54,17 +52,8 @@ describe('DeleteUsersUseCase', () => {
       getByAction: vi.fn(),
     }
 
-    mockAIService = {
-      createChat: vi.fn(),
-      getAIChatByChatId: vi.fn(),
-      appendToChatMessages: vi.fn(),
-      deleteChatHistoryByUsers: vi.fn().mockResolvedValue(undefined),
-      getChatResponse: vi.fn(),
-      getChatsByUserId: vi.fn(),
-    }
-
     // Create use case instance with mocks
-    useCase = new DeleteUsersUseCase(mockUserRepository, mockLogger, mockAuditLog, mockAIService)
+    useCase = new DeleteUsersUseCase(mockUserRepository, mockLogger, mockAuditLog)
   })
 
   describe('execute()', () => {
@@ -114,46 +103,6 @@ describe('DeleteUsersUseCase', () => {
 
         expect(result).toBe(true)
         expect(mockUserRepository.deleteUsers).toHaveBeenCalledWith(userIds)
-      })
-    })
-
-    describe('AI service integration', () => {
-      it('should delete chat history for users', async () => {
-        const userIds = [createMockUserId()]
-
-        await useCase.execute(userIds, auditContext)
-
-        expect(mockAIService.deleteChatHistoryByUsers).toHaveBeenCalledTimes(1)
-        expect(mockAIService.deleteChatHistoryByUsers).toHaveBeenCalledWith(userIds)
-      })
-
-      it('should delete chat history for multiple users', async () => {
-        const userIds = [createMockUserId(), createMockUserId(), createMockUserId()]
-
-        await useCase.execute(userIds, auditContext)
-
-        expect(mockAIService.deleteChatHistoryByUsers).toHaveBeenCalledWith(userIds)
-      })
-
-      it('should call both user deletion and chat history deletion in parallel', async () => {
-        const userIds = [createMockUserId()]
-        let deleteUsersResolved = false
-        let deleteChatHistoryResolved = false
-
-        vi.mocked(mockUserRepository.deleteUsers).mockImplementation(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 10))
-          deleteUsersResolved = true
-        })
-
-        vi.mocked(mockAIService.deleteChatHistoryByUsers).mockImplementation(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 10))
-          deleteChatHistoryResolved = true
-        })
-
-        await useCase.execute(userIds, auditContext)
-
-        expect(deleteUsersResolved).toBe(true)
-        expect(deleteChatHistoryResolved).toBe(true)
       })
     })
 
@@ -386,43 +335,6 @@ describe('DeleteUsersUseCase', () => {
           userIds,
         })
       })
-
-      it('should throw error if AI service deletion fails', async () => {
-        const userIds = [createMockUserId()]
-        const aiError = new Error('AI service failed')
-        vi.mocked(mockAIService.deleteChatHistoryByUsers).mockRejectedValue(aiError)
-
-        await expect(useCase.execute(userIds, auditContext)).rejects.toThrow(aiError)
-      })
-
-      it('should log error if AI service deletion fails', async () => {
-        const userIds = [createMockUserId()]
-        const aiError = new Error('AI service error')
-        vi.mocked(mockAIService.deleteChatHistoryByUsers).mockRejectedValue(aiError)
-
-        try {
-          await useCase.execute(userIds, auditContext)
-        } catch {
-          // Expected to throw
-        }
-
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', aiError, { userIds })
-      })
-
-      it('should not create audit log if AI service deletion fails', async () => {
-        const userIds = [createMockUserId()]
-        vi.mocked(mockAIService.deleteChatHistoryByUsers).mockRejectedValue(
-          new Error('AI service error')
-        )
-
-        try {
-          await useCase.execute(userIds, auditContext)
-        } catch {
-          // Expected to throw
-        }
-
-        expect(mockAuditLog.log).not.toHaveBeenCalled()
-      })
     })
 
     describe('integration scenarios', () => {
@@ -552,12 +464,7 @@ describe('DeleteUsersUseCase', () => {
 
     describe('constructor', () => {
       it('should create instance with all required dependencies', () => {
-        const instance = new DeleteUsersUseCase(
-          mockUserRepository,
-          mockLogger,
-          mockAuditLog,
-          mockAIService
-        )
+        const instance = new DeleteUsersUseCase(mockUserRepository, mockLogger, mockAuditLog)
 
         expect(instance).toBeInstanceOf(DeleteUsersUseCase)
         expect(instance).toBeDefined()
