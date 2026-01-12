@@ -356,6 +356,25 @@ cd apps/backend
 pnpm mermaid src/infrastructure/di/container.md
 ```
 
+### [Sentry](https://sentry.io/)
+
+Sentry is integrated into both the frontend and backend applications for error tracking and performance monitoring. It provides real-time insights into application errors, crashes, and performance bottlenecks, allowing developers to quickly identify and resolve issues.
+It also now supports monitoring AI interactions, helping to track and analyze the performance of AI models integrated into the applications.
+It will
+
+- Track token usage, costs, and latency across all your LLM calls
+- Monitor agent conversations, tool usage, and decision-making processes
+- Debug failed requests and optimize prompt performance with detailed traces
+
+In the environment variables you will need to set `SENTRY_ACCOUNT` as true or false.
+If true, you will also need to set `SENTRY_DSN` and `SENTRY_AUTH_TOKEN`.
+
+Using Sentry with AI-SDK requires the use of telementry integration provided by AI-SDK.
+This integration captures detailed telemetry data from AI interactions, including token usage, response times, and error rates. By leveraging this telemetry data, Sentry can provide deeper insights into the performance and reliability of AI models within your applications.
+More details can be found in the [AI-SDK documentation](https://ai-sdk.dev/docs/ai-sdk-core/telemetry).
+This app is already configured to use both Telemetry and Sentry.
+If you want to use this service, is create a Sentry account and set the environment variables as described above.
+
 ### GitHub Actions
 
 The project includes two automated GitHub Actions workflows to maintain code quality and dependency management:

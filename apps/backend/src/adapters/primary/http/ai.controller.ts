@@ -194,6 +194,11 @@ export class AIController {
       model: google(EnvConfig.MODEL_NAME),
       messages: await convertToModelMessages(messages as UIMessage[]),
       system: `${SYSTEM_PROMPT}`,
+      experimental_telemetry: {
+        isEnabled: true,
+        recordInputs: true,
+        recordOutputs: true,
+      },
       tools: {
         heartOfDarknessQA: this.heartOfDarknessTool.getTool(),
       },

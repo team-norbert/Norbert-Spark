@@ -1,10 +1,13 @@
+import '../security/instrument.js'
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import * as Sentry from '@sentry/node'
 
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
 import { OpenAPI } from '@norberts-spark/shared'
+import { EnvConfig } from '../config/env.config.js'
 /**
  * Creates and configures a Fastify server instance with CORS, Swagger, and OpenAPI support.
  *
@@ -41,6 +44,10 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     ...options,
   })
 
+  if (EnvConfig.SENTRY_ACCOUNT) {
+    Sentry.setupFastifyErrorHandler(fastify)
+  }
+
   // Register CORS with permissive policy for development
   fastify.register(cors, {
     origin: true, // Allow all origins
@@ -69,6 +76,10 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
 
   fastify.get('/health', async (_request, _reply) => {
     return { status: 'ok', timestamp: new Date().toISOString() }
+  })
+
+  fastify.get('/debug-sentry', function mainHandler(_req, _res) {
+    throw new Error('My first Sentry error!')
   })
 
   return fastify

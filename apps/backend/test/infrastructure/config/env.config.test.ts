@@ -953,4 +953,146 @@ describe('EnvConfig', () => {
       expect(String(EnvConfig.KEEP_ALIVE_TIMEOUT)).toBe('60000')
     })
   })
+
+  describe('SENTRY_DSN', () => {
+    it('should be a static readonly property', async () => {
+      process.env.SENTRY_DSN = 'https://example@sentry.io/12345'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'SENTRY_DSN')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use SENTRY_DSN from environment when set', async () => {
+      process.env.SENTRY_DSN = 'https://example@sentry.io/12345'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // SENTRY_DSN is obscured, so we check it's defined and has obscured behavior
+      expect(EnvConfig.SENTRY_DSN).toBeDefined()
+      expect(String(EnvConfig.SENTRY_DSN)).toBe('[OBSCURED]')
+    })
+
+    it('should default to empty string when SENTRY_DSN is not set', async () => {
+      delete process.env.SENTRY_DSN
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // When not set, it defaults to empty string
+      expect(EnvConfig.SENTRY_DSN).toBe('')
+    })
+
+    it('should be obscured when value is set', async () => {
+      process.env.SENTRY_DSN = 'https://secret@sentry.io/67890'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // SENTRY_DSN should be obscured
+      expect(typeof EnvConfig.SENTRY_DSN).toBe('object')
+      expect(String(EnvConfig.SENTRY_DSN)).toBe('[OBSCURED]')
+      expect(EnvConfig.SENTRY_DSN.toString()).toBe('[OBSCURED]')
+    })
+
+    it('should have type Obscured<string | undefined> or empty string', async () => {
+      process.env.SENTRY_DSN = 'https://key@sentry.io/11111'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Type assertion to verify compile-time type
+      const _typeCheck: typeof EnvConfig.SENTRY_DSN = EnvConfig.SENTRY_DSN
+
+      // Runtime checks - Obscured objects have specific characteristics
+      expect(EnvConfig.SENTRY_DSN).toBeDefined()
+      expect(typeof EnvConfig.SENTRY_DSN).toBe('object')
+
+      // Obscured objects return '[OBSCURED]' when converted to string
+      expect(String(EnvConfig.SENTRY_DSN)).toBe('[OBSCURED]')
+      expect(EnvConfig.SENTRY_DSN.toString()).toBe('[OBSCURED]')
+
+      // Prevent unused variable warning
+      void _typeCheck
+    })
+  })
+
+  describe('SENTRY_ACCOUNT', () => {
+    it('should be a static readonly property', async () => {
+      process.env.SENTRY_ACCOUNT = 'my-sentry-account'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'SENTRY_ACCOUNT')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use SENTRY_ACCOUNT from environment when set', async () => {
+      process.env.SENTRY_ACCOUNT = 'test-sentry-account'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.SENTRY_ACCOUNT).toBe('test-sentry-account')
+    })
+
+    it('should default to false when SENTRY_ACCOUNT is not set', async () => {
+      delete process.env.SENTRY_ACCOUNT
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.SENTRY_ACCOUNT).toBe(false)
+    })
+
+    it('should have type string | false', async () => {
+      process.env.SENTRY_ACCOUNT = 'production-account'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.SENTRY_ACCOUNT).toBe('string')
+      expect(EnvConfig.SENTRY_ACCOUNT).toBe('production-account')
+    })
+
+    it('should not be obscured (plain value)', async () => {
+      process.env.SENTRY_ACCOUNT = 'dev-sentry-account'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // SENTRY_ACCOUNT should be a plain string, not obscured
+      expect(typeof EnvConfig.SENTRY_ACCOUNT).toBe('string')
+      expect(EnvConfig.SENTRY_ACCOUNT).toBe('dev-sentry-account')
+      // Should not have obscured behavior
+      expect(String(EnvConfig.SENTRY_ACCOUNT)).toBe('dev-sentry-account')
+    })
+
+    it('should handle empty string value', async () => {
+      process.env.SENTRY_ACCOUNT = ''
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Empty string should evaluate to false in the default expression
+      expect(EnvConfig.SENTRY_ACCOUNT).toBe(false)
+    })
+  })
 })
