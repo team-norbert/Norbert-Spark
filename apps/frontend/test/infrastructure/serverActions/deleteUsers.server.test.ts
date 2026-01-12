@@ -566,7 +566,7 @@ describe('deleteUsersAction', () => {
 
       expect(result).toEqual({
         success: true,
-        message: 'Successfully deleted 0 user',
+        message: 'Successfully deleted 0 users',
         status: 200,
       })
       expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 0 })
