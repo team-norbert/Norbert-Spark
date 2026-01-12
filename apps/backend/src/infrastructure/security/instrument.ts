@@ -3,7 +3,10 @@ import { obscured } from 'obscured'
 import { EnvConfig } from '../config/env.config.js'
 
 Sentry.init({
-  dsn: typeof EnvConfig.SENTRY_DSN === 'string' ? EnvConfig.SENTRY_DSN : obscured.value(EnvConfig.SENTRY_DSN),
+  dsn:
+    typeof EnvConfig.SENTRY_DSN === 'string'
+      ? EnvConfig.SENTRY_DSN
+      : obscured.value(EnvConfig.SENTRY_DSN),
   integrations: [
     // Configure Sentry AI SDK integration for monitoring LLM calls
     Sentry.vercelAIIntegration({
