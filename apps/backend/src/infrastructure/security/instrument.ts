@@ -5,7 +5,7 @@ import { EnvConfig } from '../config/env.config.js'
 Sentry.init({
   dsn: obscured.value(EnvConfig.SENTRY_DSN),
   integrations: [
-    // Add the Vercel AI SDK integration
+    // Configure Sentry AI SDK integration for monitoring LLM calls
     Sentry.vercelAIIntegration({
       recordInputs: true,
       recordOutputs: true,
