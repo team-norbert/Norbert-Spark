@@ -55,6 +55,28 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+  app:
+    image: norbertsSpark-backend:latest
+    container_name: norbertsSpark-backend
+    restart: unless-stopped
+
+    # Network configuration for isolation
+    networks:
+      - norbertsSpark-network
+
+    ports:
+      - '8000:8000'
+
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${POSTGRES_USER:-postgres}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DATABASE_NAME: ${POSTGRES_DB:-norbertsSpark}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 networks:
   norbertsSpark-network:

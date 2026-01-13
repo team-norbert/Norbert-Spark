@@ -17,7 +17,11 @@
     "typecheck": "turbo typecheck",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\" --cache",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "docker:build": "docker build -t norberts-spark-backend -f apps/backend/Dockerfile .",
+    "docker:run": "docker run -p 3001:3001 --env-file apps/backend/.env --name norbertsSpark-backend norberts-spark-backend",
+    "docker:remove": "docker rm norbertsSpark-backend",
+    "docker:stop": "docker stop norbertsSpark-backend"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.3.1",

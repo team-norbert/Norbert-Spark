@@ -11,7 +11,7 @@
     "dev": "tsx watch src/infrastructure/di/container/index.ts",
     "dev:debug": "tsx watch --inspect src/infrastructure/di/container/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/apps/backend/src/index.js",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",
     "test:unit": "vitest run --hideSkippedTests",
@@ -25,7 +25,7 @@
     "mermaid": "tsx scripts/serve-mermaid.ts",
     "mermaid:di": "tsx scripts/serve-mermaid.ts di:container.md",
     "eval": "evalite run",
-    "eval:view": "evalite view"
+    "eval:view": "evalixste view"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.8",
