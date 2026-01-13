@@ -1,15 +1,23 @@
-import type { ExternalCloudflareServicePort } from '../../../application/ports/external-cloudflare.service.port.js'
+import type { BucketPort } from '../../../application/ports/bucket.service.port.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
-import Cloudflare from 'cloudflare'
+import AWS from 'aws-sdk'
+import type { S3 as s3 } from 'aws-sdk'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { obscured } from 'obscured'
 
-export class ExternalCloudflareService implements ExternalCloudflareServicePort {
-  private readonly client: Cloudflare
+export class BucketService implements BucketPort {
+  private readonly client: s3
+  private secretAccessKey: any
 
   constructor(private readonly logger: LoggerPort) {
-    this.client = new Cloudflare({
-      apiToken: obscured.value(EnvConfig.CLOUDFLARE_API), // This is the default and can be omitted
+    this.client = new AWS.S3({
+      endpoint: EnvConfig.CLOUDFLARE_ENDPOINT,
+      credentials: {
+        accessKeyId: obscured.value(EnvConfig.CLOUDFLARE_ACCESS_ID) as string,
+        secretAccessKey: obscured.value(EnvConfig.CLOUDFLARE_ACCESS_SECRET) as string,
+      },
+      region: 'auto',
+      signatureVersion: 'v4',
     })
   }
   bucketExists(bucketName: string): Promise<boolean> {

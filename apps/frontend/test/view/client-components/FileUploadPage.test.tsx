@@ -19,6 +19,7 @@ describe('FileUploadPage Component', () => {
     uploadedFiles: [] as UploadedFile[],
     dragActive: false,
     error: null,
+    isUploading: false,
     onDrag: mockOnDrag,
     onDrop: mockOnDrop,
     onFileInputChange: mockOnFileInputChange,

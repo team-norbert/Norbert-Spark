@@ -11,6 +11,7 @@ import {
   CardContent,
   Container,
   IconButton,
+  LinearProgress,
   List,
   ListItem,
   ListItemIcon,
@@ -27,6 +28,7 @@ interface FileUploadPageProps {
   uploadedFiles: UploadedFile[]
   dragActive: boolean
   error: string | null
+  isUploading: boolean
   onDrag: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent) => void
   onFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -64,6 +66,7 @@ interface FileUploadPageProps {
 export function FileUploadPage({
   dragActive,
   error,
+  isUploading,
   onClearAllFiles,
   onClearError,
   onDrag,
@@ -161,7 +164,7 @@ export function FileUploadPage({
                 }}
               >
                 <Typography variant="h6">Uploaded Files ({uploadedFiles.length})</Typography>
-                <Button size="small" color="error" onClick={onClearAllFiles}>
+                <Button size="small" color="error" onClick={onClearAllFiles} disabled={isUploading}>
                   Clear All
                 </Button>
               </Box>
@@ -175,6 +178,7 @@ export function FileUploadPage({
                         edge="end"
                         aria-label="delete"
                         onClick={() => onRemoveFile(uploadedFile.id)}
+                        disabled={isUploading}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -185,15 +189,53 @@ export function FileUploadPage({
                       borderRadius: 1,
                       mb: 1,
                       backgroundColor: 'background.paper',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
                     }}
                   >
-                    <ListItemIcon>
-                      <DescriptionIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={uploadedFile.file.name}
-                      secondary={formatFileSize(uploadedFile.file.size)}
-                    />
+                    <Box sx={{ display: 'flex', width: '100%', alignItems: 'center' }}>
+                      <ListItemIcon>
+                        <DescriptionIcon color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={uploadedFile.file.name}
+                        secondary={
+                          <>
+                            {formatFileSize(uploadedFile.file.size)}
+                            {uploadedFile.uploadProgress !== undefined &&
+                              uploadedFile.uploadProgress < 100 && (
+                                <Typography
+                                  component="span"
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{ ml: 1 }}
+                                >
+                                  • Uploading: {uploadedFile.uploadProgress}%
+                                </Typography>
+                              )}
+                            {uploadedFile.uploadProgress === 100 && (
+                              <Typography
+                                component="span"
+                                variant="caption"
+                                color="success.main"
+                                sx={{ ml: 1 }}
+                              >
+                                • Upload complete
+                              </Typography>
+                            )}
+                          </>
+                        }
+                      />
+                    </Box>
+                    {uploadedFile.uploadProgress !== undefined &&
+                      uploadedFile.uploadProgress < 100 && (
+                        <Box sx={{ width: '100%', mt: 1, pr: 7 }}>
+                          <LinearProgress
+                            variant="determinate"
+                            value={uploadedFile.uploadProgress}
+                          />
+                        </Box>
+                      )}
                   </ListItem>
                 ))}
               </List>
@@ -204,10 +246,10 @@ export function FileUploadPage({
                 fullWidth
                 size="large"
                 sx={{ mt: 2 }}
-                disabled={uploadedFiles.length === 0}
+                disabled={uploadedFiles.length === 0 || isUploading}
                 onClick={onProcessFiles}
               >
-                Process Files
+                {isUploading ? 'Uploading...' : 'Process Files'}
               </Button>
             </Box>
           )}
