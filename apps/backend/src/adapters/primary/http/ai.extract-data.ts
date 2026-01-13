@@ -3,6 +3,8 @@ import { UnprocessableEntityException } from '../../../shared/exceptions/unproce
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
+import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
+import type { MultipartFile } from '@fastify/multipart'
 
 interface InitUploadBody {
   filename: string
@@ -17,10 +19,13 @@ interface CompleteUploadBody {
 }
 
 export class AIExtractDataController {
-  constructor(private readonly logger: LoggerPort) {}
+  constructor(
+    private readonly logger: LoggerPort,
+    private readonly extractDataUseCase: ExtractDataUseCase
+  ) {}
 
   registerRoutes(app: FastifyInstance): void {
-    // Initialize multipart upload
+    // Initialize multipart upload - using @fastify/multipart for file handling
     app.post(
       '/ai/extract-data',
       {
@@ -32,44 +37,69 @@ export class AIExtractDataController {
 
   async initializeUpload(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const { filename, fileSize, mimeType, totalChunks } = request.body as InitUploadBody
+      // Check if request is multipart
+      if (!request.isMultipart()) {
+        throw new UnprocessableEntityException('Request must be multipart/form-data')
+      }
 
-      // Extract audit context from request
-      const auditContext = {
-        userId: request.user?.sub,
-        ipAddress: request.ip,
-        userAgent: request.headers['user-agent'] ?? null,
+      // Extract files using @fastify/multipart
+      const parts = request.parts()
+      const files: MultipartFile[] = []
+
+      for await (const part of parts) {
+        if (part.type === 'file') {
+          files.push(part)
+        }
+      }
+
+      if (files.length === 0) {
+        throw new UnprocessableEntityException('No files provided for upload')
       }
 
       this.logger.info('Initializing multipart upload', {
-        filename,
-        fileSize,
-        mimeType,
-        totalChunks,
+        fileCount: files.length,
+        files: files.map((f) => ({ filename: f.filename, mimetype: f.mimetype })),
       })
 
-      // Validate file type - only PDF and ZIP files are allowed
+      // Validate file types - only PDF and ZIP files are allowed
       const allowedMimeTypes = [
         'application/pdf',
         'application/zip',
         'application/x-zip-compressed',
       ]
-      const fileExtension = filename.toLowerCase().split('.').pop()
       const allowedExtensions = ['pdf', 'zip']
 
-      if (
-        !allowedMimeTypes.includes(mimeType) &&
-        !allowedExtensions.includes(fileExtension || '')
-      ) {
-        this.logger.warn('Invalid file type rejected', { filename, mimeType, fileExtension })
-        throw new UnprocessableEntityException(
-          'Invalid file type. Only PDF and ZIP files are allowed.'
-        )
+      for (const file of files) {
+        const fileExtension = file.filename.toLowerCase().split('.').pop()
+        if (
+          !allowedMimeTypes.includes(file.mimetype) &&
+          !allowedExtensions.includes(fileExtension || '')
+        ) {
+          this.logger.warn('Invalid file type rejected', {
+            filename: file.filename,
+            mimeType: file.mimetype,
+            fileExtension,
+          })
+          throw new UnprocessableEntityException(
+            `Invalid file type for ${file.filename}. Only PDF and ZIP files are allowed.`
+          )
+        }
       }
+
+      // Extract audit context from request
+      const auditContext = {
+        userId: request.user?.sub ?? null,
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] ?? null,
+      }
+
+      // Execute use case to generate presigned URLs for upload
+      const result = await this.extractDataUseCase.execute(files, auditContext)
 
       return reply.status(200).send({
         success: true,
-        message: 'Upload initialized successfully',
+        data: result,
+        message: 'Presigned URLs generated successfully',
       })
     } catch (error) {
       const err = error as Error

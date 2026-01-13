@@ -96,163 +96,176 @@ export function FileUploadPage({
 
       <Card elevation={3}>
         <CardContent>
-          <Paper
-            onDragEnter={onDrag}
-            onDragLeave={onDrag}
-            onDragOver={onDrag}
-            onDrop={onDrop}
-            elevation={0}
-            sx={{
-              border: 2,
-              borderStyle: 'dashed',
-              borderColor: dragActive ? 'primary.main' : 'grey.300',
-              backgroundColor: dragActive ? 'action.hover' : 'background.default',
-              borderRadius: 2,
-              p: 4,
-              textAlign: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': {
-                borderColor: 'primary.main',
-                backgroundColor: 'action.hover',
-              },
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              onProcessFiles()
             }}
+            encType="multipart/form-data"
           >
-            <input
-              type="file"
-              id="file-upload"
-              accept=".pdf,.zip"
-              multiple
-              onChange={onFileInputChange}
-              style={{ display: 'none' }}
-              data-testid="extract-data-file-input"
-            />
-            <label
-              htmlFor="file-upload"
-              style={{ cursor: 'pointer', width: '100%', display: 'block' }}
+            <Paper
+              onDragEnter={onDrag}
+              onDragLeave={onDrag}
+              onDragOver={onDrag}
+              onDrop={onDrop}
+              elevation={0}
+              sx={{
+                border: 2,
+                borderStyle: 'dashed',
+                borderColor: dragActive ? 'primary.main' : 'grey.300',
+                backgroundColor: dragActive ? 'action.hover' : 'background.default',
+                borderRadius: 2,
+                p: 4,
+                textAlign: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  backgroundColor: 'action.hover',
+                },
+              }}
             >
-              <CloudUploadIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Drag and drop files here
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                or
-              </Typography>
-              <Button variant="contained" component="span">
-                Browse Files
-              </Button>
-              <Typography variant="caption" display="block" sx={{ mt: 2 }} color="text.secondary">
-                Accepted file types: PDF, ZIP
-              </Typography>
-            </label>
-          </Paper>
-
-          {error && (
-            <Alert severity="error" sx={{ mt: 2 }} onClose={onClearError}>
-              {error}
-            </Alert>
-          )}
-
-          {uploadedFiles.length > 0 && (
-            <Box sx={{ mt: 3 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  mb: 2,
-                }}
+              <input
+                type="file"
+                id="file-upload"
+                accept=".pdf,.zip"
+                multiple
+                onChange={onFileInputChange}
+                style={{ display: 'none' }}
+                data-testid="extract-data-file-input"
+              />
+              <label
+                htmlFor="file-upload"
+                style={{ cursor: 'pointer', width: '100%', display: 'block' }}
               >
-                <Typography variant="h6">Uploaded Files ({uploadedFiles.length})</Typography>
-                <Button size="small" color="error" onClick={onClearAllFiles} disabled={isUploading}>
-                  Clear All
+                <CloudUploadIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  Drag and drop files here
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  or
+                </Typography>
+                <Button variant="contained" component="span">
+                  Browse Files
                 </Button>
-              </Box>
+                <Typography variant="caption" display="block" sx={{ mt: 2 }} color="text.secondary">
+                  Accepted file types: PDF, ZIP
+                </Typography>
+              </label>
+            </Paper>
 
-              <List>
-                {uploadedFiles.map((uploadedFile) => (
-                  <ListItem
-                    key={uploadedFile.id}
-                    secondaryAction={
-                      <IconButton
-                        edge="end"
-                        aria-label="delete"
-                        onClick={() => onRemoveFile(uploadedFile.id)}
-                        disabled={isUploading}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    }
-                    sx={{
-                      border: 1,
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                      mb: 1,
-                      backgroundColor: 'background.paper',
-                      flexDirection: 'column',
-                      alignItems: 'flex-start',
-                    }}
+            {error && (
+              <Alert severity="error" sx={{ mt: 2 }} onClose={onClearError}>
+                {error}
+              </Alert>
+            )}
+
+            {uploadedFiles.length > 0 && (
+              <Box sx={{ mt: 3 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 2,
+                  }}
+                >
+                  <Typography variant="h6">Uploaded Files ({uploadedFiles.length})</Typography>
+                  <Button
+                    size="small"
+                    color="error"
+                    onClick={onClearAllFiles}
+                    disabled={isUploading}
                   >
-                    <Box sx={{ display: 'flex', width: '100%', alignItems: 'center' }}>
-                      <ListItemIcon>
-                        <DescriptionIcon color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={uploadedFile.file.name}
-                        secondary={
-                          <>
-                            {formatFileSize(uploadedFile.file.size)}
-                            {uploadedFile.uploadProgress !== undefined &&
-                              uploadedFile.uploadProgress < 100 && (
+                    Clear All
+                  </Button>
+                </Box>
+
+                <List>
+                  {uploadedFiles.map((uploadedFile) => (
+                    <ListItem
+                      key={uploadedFile.id}
+                      secondaryAction={
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={() => onRemoveFile(uploadedFile.id)}
+                          disabled={isUploading}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      }
+                      sx={{
+                        border: 1,
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        mb: 1,
+                        backgroundColor: 'background.paper',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', width: '100%', alignItems: 'center' }}>
+                        <ListItemIcon>
+                          <DescriptionIcon color="primary" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={uploadedFile.file.name}
+                          secondary={
+                            <>
+                              {formatFileSize(uploadedFile.file.size)}
+                              {uploadedFile.uploadProgress !== undefined &&
+                                uploadedFile.uploadProgress < 100 && (
+                                  <Typography
+                                    component="span"
+                                    variant="caption"
+                                    color="text.secondary"
+                                    sx={{ ml: 1 }}
+                                  >
+                                    • Uploading: {uploadedFile.uploadProgress}%
+                                  </Typography>
+                                )}
+                              {uploadedFile.uploadProgress === 100 && (
                                 <Typography
                                   component="span"
                                   variant="caption"
-                                  color="text.secondary"
+                                  color="success.main"
                                   sx={{ ml: 1 }}
                                 >
-                                  • Uploading: {uploadedFile.uploadProgress}%
+                                  • Upload complete
                                 </Typography>
                               )}
-                            {uploadedFile.uploadProgress === 100 && (
-                              <Typography
-                                component="span"
-                                variant="caption"
-                                color="success.main"
-                                sx={{ ml: 1 }}
-                              >
-                                • Upload complete
-                              </Typography>
-                            )}
-                          </>
-                        }
-                      />
-                    </Box>
-                    {uploadedFile.uploadProgress !== undefined &&
-                      uploadedFile.uploadProgress < 100 && (
-                        <Box sx={{ width: '100%', mt: 1, pr: 7 }}>
-                          <LinearProgress
-                            variant="determinate"
-                            value={uploadedFile.uploadProgress}
-                          />
-                        </Box>
-                      )}
-                  </ListItem>
-                ))}
-              </List>
+                            </>
+                          }
+                        />
+                      </Box>
+                      {uploadedFile.uploadProgress !== undefined &&
+                        uploadedFile.uploadProgress < 100 && (
+                          <Box sx={{ width: '100%', mt: 1, pr: 7 }}>
+                            <LinearProgress
+                              variant="determinate"
+                              value={uploadedFile.uploadProgress}
+                            />
+                          </Box>
+                        )}
+                    </ListItem>
+                  ))}
+                </List>
 
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                size="large"
-                sx={{ mt: 2 }}
-                disabled={uploadedFiles.length === 0 || isUploading}
-                onClick={onProcessFiles}
-              >
-                {isUploading ? 'Uploading...' : 'Process Files'}
-              </Button>
-            </Box>
-          )}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  size="large"
+                  type="submit"
+                  sx={{ mt: 2 }}
+                  disabled={uploadedFiles.length === 0 || isUploading}
+                >
+                  {isUploading ? 'Uploading...' : 'Process Files'}
+                </Button>
+              </Box>
+            )}
+          </form>
         </CardContent>
       </Card>
     </Container>
