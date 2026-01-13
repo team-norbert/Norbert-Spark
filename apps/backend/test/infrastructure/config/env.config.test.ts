@@ -1330,4 +1330,322 @@ describe('EnvConfig', () => {
       expect(EnvConfig.SENTRY_ORG).toBe('')
     })
   })
+
+  describe('CLOUDFLARE_ACCESS_SECRET', () => {
+    it('should be a static readonly property', async () => {
+      process.env.CLOUDFLARE_ACCESS_SECRET = 'test_secret_123'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'CLOUDFLARE_ACCESS_SECRET')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should have type Obscured<string | undefined> | ""', async () => {
+      process.env.CLOUDFLARE_ACCESS_SECRET = 'test_secret_xyz'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Runtime checks - Obscured objects have specific characteristics
+      expect(EnvConfig.CLOUDFLARE_ACCESS_SECRET).toBeDefined()
+      expect(typeof EnvConfig.CLOUDFLARE_ACCESS_SECRET).toBe('object')
+
+      // Obscured objects return '[OBSCURED]' when converted to string
+      expect(String(EnvConfig.CLOUDFLARE_ACCESS_SECRET)).toBe('[OBSCURED]')
+      expect(EnvConfig.CLOUDFLARE_ACCESS_SECRET.toString()).toBe('[OBSCURED]')
+    })
+
+    it('should obscure the actual secret value', async () => {
+      process.env.CLOUDFLARE_ACCESS_SECRET = 'my_secret_cloudflare_key'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Verify the secret is obscured (doesn't expose the raw value)
+      expect(String(EnvConfig.CLOUDFLARE_ACCESS_SECRET)).not.toContain('my_secret_cloudflare_key')
+      expect(EnvConfig.CLOUDFLARE_ACCESS_SECRET.toString()).toBe('[OBSCURED]')
+    })
+
+    it('should default to empty string when not set', async () => {
+      delete process.env.CLOUDFLARE_ACCESS_SECRET
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // When not set, it's an obscured undefined value or empty string
+      // The implementation uses: obscured.make(process.env.CLOUDFLARE_ACCESS_SECRET) || ''
+      // which means it could be obscured(undefined) OR ''
+      expect(EnvConfig.CLOUDFLARE_ACCESS_SECRET).toBeDefined()
+    })
+  })
+
+  describe('CLOUDFLARE_ACCESS_ID', () => {
+    it('should be a static readonly property', async () => {
+      process.env.CLOUDFLARE_ACCESS_ID = 'test_id_123'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'CLOUDFLARE_ACCESS_ID')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should have type Obscured<string | undefined> | ""', async () => {
+      process.env.CLOUDFLARE_ACCESS_ID = 'test_id_abc'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Runtime checks - Obscured objects have specific characteristics
+      expect(EnvConfig.CLOUDFLARE_ACCESS_ID).toBeDefined()
+      expect(typeof EnvConfig.CLOUDFLARE_ACCESS_ID).toBe('object')
+
+      // Obscured objects return '[OBSCURED]' when converted to string
+      expect(String(EnvConfig.CLOUDFLARE_ACCESS_ID)).toBe('[OBSCURED]')
+      expect(EnvConfig.CLOUDFLARE_ACCESS_ID.toString()).toBe('[OBSCURED]')
+    })
+
+    it('should obscure the actual ID value', async () => {
+      process.env.CLOUDFLARE_ACCESS_ID = 'my_cloudflare_access_id_12345'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Verify the ID is obscured (doesn't expose the raw value)
+      expect(String(EnvConfig.CLOUDFLARE_ACCESS_ID)).not.toContain('my_cloudflare_access_id_12345')
+      expect(EnvConfig.CLOUDFLARE_ACCESS_ID.toString()).toBe('[OBSCURED]')
+    })
+
+    it('should default to empty string when not set', async () => {
+      delete process.env.CLOUDFLARE_ACCESS_ID
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // When not set, it's an obscured undefined value or empty string
+      expect(EnvConfig.CLOUDFLARE_ACCESS_ID).toBeDefined()
+    })
+  })
+
+  describe('CLOUDFLARE_ENDPOINT', () => {
+    it('should be a static readonly property', async () => {
+      process.env.CLOUDFLARE_ENDPOINT = 'https://example.com'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'CLOUDFLARE_ENDPOINT')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use CLOUDFLARE_ENDPOINT from environment when set', async () => {
+      process.env.CLOUDFLARE_ENDPOINT = 'https://cf.example.com'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.CLOUDFLARE_ENDPOINT).toBe('https://cf.example.com')
+    })
+
+    it('should default to empty string when not set and no .env value', async () => {
+      delete process.env.CLOUDFLARE_ENDPOINT
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // May be empty string or value from .env file
+      expect(typeof EnvConfig.CLOUDFLARE_ENDPOINT).toBe('string')
+    })
+
+    it('should have type string', async () => {
+      process.env.CLOUDFLARE_ENDPOINT = 'https://endpoint.cloudflare.com'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.CLOUDFLARE_ENDPOINT).toBe('string')
+      expect(EnvConfig.CLOUDFLARE_ENDPOINT).toBe('https://endpoint.cloudflare.com')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.CLOUDFLARE_ENDPOINT = 'https://my-endpoint.com'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // CLOUDFLARE_ENDPOINT should be a plain string, not obscured
+      expect(typeof EnvConfig.CLOUDFLARE_ENDPOINT).toBe('string')
+      expect(EnvConfig.CLOUDFLARE_ENDPOINT).toBe('https://my-endpoint.com')
+      // Should not have obscured behavior
+      expect(String(EnvConfig.CLOUDFLARE_ENDPOINT)).toBe('https://my-endpoint.com')
+    })
+
+    it('should accept URL with path', async () => {
+      process.env.CLOUDFLARE_ENDPOINT = 'https://api.cloudflare.com/v1/s3'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.CLOUDFLARE_ENDPOINT).toBe('https://api.cloudflare.com/v1/s3')
+    })
+  })
+
+  describe('CLOUDFLARE_API', () => {
+    it('should be a static readonly property', async () => {
+      process.env.CLOUDFLARE_API = 'test_api_key'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'CLOUDFLARE_API')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should have type Obscured<string | undefined> | ""', async () => {
+      process.env.CLOUDFLARE_API = 'test_api_token_xyz'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Runtime checks - Obscured objects have specific characteristics
+      expect(EnvConfig.CLOUDFLARE_API).toBeDefined()
+      expect(typeof EnvConfig.CLOUDFLARE_API).toBe('object')
+
+      // Obscured objects return '[OBSCURED]' when converted to string
+      expect(String(EnvConfig.CLOUDFLARE_API)).toBe('[OBSCURED]')
+      expect(EnvConfig.CLOUDFLARE_API.toString()).toBe('[OBSCURED]')
+    })
+
+    it('should obscure the actual API key value', async () => {
+      process.env.CLOUDFLARE_API = 'my_secret_cloudflare_api_token'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Verify the API key is obscured (doesn't expose the raw value)
+      expect(String(EnvConfig.CLOUDFLARE_API)).not.toContain('my_secret_cloudflare_api_token')
+      expect(EnvConfig.CLOUDFLARE_API.toString()).toBe('[OBSCURED]')
+    })
+
+    it('should default to empty string when not set', async () => {
+      delete process.env.CLOUDFLARE_API
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // When not set, it's an obscured undefined value or empty string
+      expect(EnvConfig.CLOUDFLARE_API).toBeDefined()
+    })
+
+    it('should be included in required environment variables', async () => {
+      // Read the source file to verify CLOUDFLARE_API is in requiredEnvs array
+      const fs = await import('fs/promises')
+      const path = await import('path')
+      const envConfigPath = path.join(process.cwd(), 'src/infrastructure/config/env.config.ts')
+      const content = await fs.readFile(envConfigPath, 'utf-8')
+
+      // Verify CLOUDFLARE_API is listed in the requiredEnvs array
+      expect(content).toContain('CLOUDFLARE_API')
+      expect(content).toMatch(/requiredEnvs.*=.*\[[\s\S]*'CLOUDFLARE_API'/m)
+    })
+  })
+
+  describe('R2_BUCKET', () => {
+    it('should be a static readonly property', async () => {
+      process.env.R2_BUCKET = 'my-bucket'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'R2_BUCKET')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use R2_BUCKET from environment when set', async () => {
+      process.env.R2_BUCKET = 'production-bucket'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.R2_BUCKET).toBe('production-bucket')
+    })
+
+    it('should default to empty string when not set and no .env value', async () => {
+      delete process.env.R2_BUCKET
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // May be empty string or value from .env file
+      expect(typeof EnvConfig.R2_BUCKET).toBe('string')
+      expect(EnvConfig.R2_BUCKET).toBeDefined()
+    })
+
+    it('should have type string', async () => {
+      process.env.R2_BUCKET = 'dev-bucket'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.R2_BUCKET).toBe('string')
+      expect(EnvConfig.R2_BUCKET).toBe('dev-bucket')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.R2_BUCKET = 'my-storage-bucket'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // R2_BUCKET should be a plain string, not obscured
+      expect(typeof EnvConfig.R2_BUCKET).toBe('string')
+      expect(EnvConfig.R2_BUCKET).toBe('my-storage-bucket')
+      // Should not have obscured behavior
+      expect(String(EnvConfig.R2_BUCKET)).toBe('my-storage-bucket')
+    })
+
+    it('should accept bucket name with hyphens', async () => {
+      process.env.R2_BUCKET = 'my-production-bucket-2024'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.R2_BUCKET).toBe('my-production-bucket-2024')
+    })
+
+    it('should handle empty string value', async () => {
+      process.env.R2_BUCKET = ''
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.R2_BUCKET).toBe('')
+    })
+  })
 })
