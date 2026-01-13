@@ -802,6 +802,119 @@
           }
         }
       }
+    },
+    "/ai/extractData": {
+      "post": {
+        "summary": "Extract structured data from files or text",
+        "description": "Uses AI to extract structured data from uploaded files (PDF, ZIP) or unstructured text input",
+        "operationId": "extractDataFromText",
+        "tags": ["ai"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "The unstructured text input to extract data from",
+                    "example": "Customer John Doe from Acme Corp called on 2023-10-01 regarding order #12345."
+                  }
+                },
+                "required": ["text"]
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "description": "Files to extract data from (PDF, ZIP, etc.)",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  },
+                  "chunkIndex": {
+                    "type": "integer",
+                    "description": "Index of the current chunk (for chunked uploads)",
+                    "example": 0
+                  },
+                  "totalChunks": {
+                    "type": "integer",
+                    "description": "Total number of chunks (for chunked uploads)",
+                    "example": 5
+                  },
+                  "uploadId": {
+                    "type": "string",
+                    "description": "Upload session ID (for chunked uploads)",
+                    "example": "upload-123-abc"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Structured data extracted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "description": "Extracted structured data",
+                      "example": {
+                        "customerName": "John Doe",
+                        "company": "Acme Corp",
+                        "callDate": "2023-10-01",
+                        "orderNumber": "12345"
+                      }
+                    }
+                  },
+                  "required": ["success", "data"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid authentication token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

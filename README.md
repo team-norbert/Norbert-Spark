@@ -11,6 +11,7 @@ Norbert's Spark currently uses a number of different third-party services, inclu
 - [Cloudflare R2 global object storage](https://www.cloudflare.com/r2/)
 - [Resend · Email for developers](https://resend.com/)
 - [Sentry](https://sentry.io/)
+- [Upstash Redis](https://upstash.com/)
 
 These will potentially be replaced with AWS or self-hosted alternatives in the future.
 
