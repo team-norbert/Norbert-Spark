@@ -22,6 +22,7 @@ import { UserController } from '../../adapters/primary/http/user.controller.js'
 import { AuthController } from '../../adapters/primary/http/auth.controller.js'
 import { AIController } from '../../adapters/primary/http/ai.controller.js'
 import { BucketService } from '../../adapters/secondary/external/bucket.service.js'
+import { AIExtractDataController } from '../../adapters/primary/http/ai.extract-data.js'
 
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
 import type { AuditLogPort } from '../../application/ports/audit-log.port.js'
@@ -87,6 +88,7 @@ export class Container {
   public readonly userController: UserController
   public readonly authController: AuthController
   public readonly aiController: AIController
+  public readonly aiExtractDataController: AIExtractDataController
 
   // Audit log
   public readonly auditLog: AuditLogRepository
@@ -218,7 +220,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.getChatsByUserIdUseCase,
       this.getChatContentByChatIdUseCase
     )
-
+    this.aiExtractDataController = new AIExtractDataController(this.logger)
     // Register routes
     this.registerRoutes()
   }
