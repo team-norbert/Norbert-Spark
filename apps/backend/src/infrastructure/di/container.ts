@@ -21,7 +21,7 @@ import { JwtTokenGeneratorService } from '../../adapters/secondary/services/jwt-
 import { UserController } from '../../adapters/primary/http/user.controller.js'
 import { AuthController } from '../../adapters/primary/http/auth.controller.js'
 import { AIController } from '../../adapters/primary/http/ai.controller.js'
-import { ExternalCloudflareService } from '../../adapters/secondary/external/cloudflare.service.js'
+import { BucketService } from '../../adapters/secondary/external/bucket.service.js'
 
 //import type { AuditLogPort } from '../../application/ports/audit-log.port.js'
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
@@ -69,7 +69,7 @@ export class Container {
   // Repositories
   public readonly userRepository: PostgresUserRepository
   public readonly aiRepository: AIRepository
-  public readonly externalCloudflareService: ExternalCloudflareService
+  public readonly bucketService: BucketService
 
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
@@ -164,7 +164,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.userRepository = new PostgresUserRepository()
     this.aiRepository = new AIRepository(this.logger)
     this.auditLog = new AuditLogRepository(this.logger)
-    this.externalCloudflareService = new ExternalCloudflareService(this.logger)
+    this.bucketService = new BucketService(this.logger)
     // Initialize use cases
     this.registerUserUseCase = new RegisterUserUseCase(
       this.userRepository,

@@ -20,6 +20,7 @@ export function ExtractDataPageClient() {
     handleNavigateHome,
     handleProcessFiles,
     handleSignOut,
+    isUploading,
     removeFile,
     uploadedFiles,
   } = useFileUpload()
@@ -29,6 +30,7 @@ export function ExtractDataPageClient() {
       uploadedFiles={uploadedFiles}
       dragActive={dragActive}
       error={error}
+      isUploading={isUploading}
       onDrag={handleDrag}
       onDrop={handleDrop}
       onFileInputChange={handleFileInputChange}
