@@ -12,6 +12,7 @@ import { GetChatsByUserIdUseCase } from '../../application/use-cases/get-chats-b
 import { GetChatContentByChatIdUseCase } from '../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
 import { RegisterUserWithProviderUseCase } from '../../application/use-cases/register-user-with-provider.use-case.js'
 import { DeleteUsersUseCase } from '../../application/use-cases/delete-users.use-case.js'
+import { ExtractDataUseCase } from '../../application/use-cases/extract-data.use-case.js'
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
@@ -77,6 +78,7 @@ export class Container {
   public readonly getAllUsersUseCase: GetAllUsersUseCase
   public readonly loginUserUseCase: LoginUserUseCase
   public readonly getChatUseCase: GetChatUseCase
+  public readonly extractDataUseCase: ExtractDataUseCase
   private readonly appendChatUseCase: AppendedChatUseCase
   private readonly saveChatUseCase: SaveChatUseCase
   private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase
@@ -202,6 +204,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.logger,
       this.auditLog
     )
+    this.extractDataUseCase = new ExtractDataUseCase(this.logger, this.auditLog, this.bucketService)
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
       this.registerUserUseCase,

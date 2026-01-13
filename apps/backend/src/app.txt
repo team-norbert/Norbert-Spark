@@ -1,3 +1,4 @@
+// IMPORTANT DO NOT USE THIS FILE ANYMORE. IT IS HERE FOR REFERENCE ONLY.
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify'
 import cors from '@fastify/cors'
 import swagger from '@fastify/swagger'
