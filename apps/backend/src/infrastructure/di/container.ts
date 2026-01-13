@@ -222,7 +222,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.getChatsByUserIdUseCase,
       this.getChatContentByChatIdUseCase
     )
-    this.aiExtractDataController = new AIExtractDataController(this.logger)
+    this.aiExtractDataController = new AIExtractDataController(this.logger, this.extractDataUseCase)
     // Register routes
     this.registerRoutes()
   }
