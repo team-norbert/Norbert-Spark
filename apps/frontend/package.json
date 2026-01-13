@@ -23,8 +23,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.6",
-    "@ai-sdk/react": "^3.0.29",
+    "@ai-sdk/google": "^3.0.7",
+    "@ai-sdk/react": "^3.0.33",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.7",
@@ -39,7 +39,7 @@
     "@types/react-dom": "^19.2.3",
     "@upstash/ratelimit": "^0.4.4",
     "@upstash/redis": "^1.36.1",
-    "ai": "^6.0.27",
+    "ai": "^6.0.31",
     "appwrite": "^21.5.0",
     "modern-normalize": "^3.0.1",
     "next": "^16.1.1",
@@ -66,12 +66,12 @@
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
     "@total-typescript/ts-reset": "^0.6.1",
-    "@types/node": "^25.0.6",
+    "@types/node": "^25.0.7",
     "@types/node-fetch": "^2.6.13",
-    "@typescript-eslint/eslint-plugin": "^8.52.0",
-    "@typescript-eslint/parser": "^8.52.0",
+    "@typescript-eslint/eslint-plugin": "^8.53.0",
+    "@typescript-eslint/parser": "^8.53.0",
     "@vitejs/plugin-react": "^5.1.2",
-    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/coverage-v8": "^4.0.17",
     "@vitest/eslint-plugin": "^1.6.6",
     "babel-plugin-react-compiler": "^1.0.0",
     "drizzle-orm": "^0.45.1",
@@ -93,8 +93,8 @@
     "postgres": "^3.4.8",
     "testcontainers": "^11.11.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.52.0",
-    "vitest": "^4.0.16"
+    "typescript-eslint": "^8.53.0",
+    "vitest": "^4.0.17"
   },
   "packageManager": "pnpm@10.25.0",
   "preinstall": "npx --yes only-allow pnpm"
