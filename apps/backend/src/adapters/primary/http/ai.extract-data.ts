@@ -6,18 +6,6 @@ import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
 import type { MultipartFile } from '@fastify/multipart'
 
-interface InitUploadBody {
-  filename: string
-  fileSize: number
-  mimeType: string
-  totalChunks: number
-}
-
-interface CompleteUploadBody {
-  uploadId: string
-  filename: string
-}
-
 export class AIExtractDataController {
   constructor(
     private readonly logger: LoggerPort,
