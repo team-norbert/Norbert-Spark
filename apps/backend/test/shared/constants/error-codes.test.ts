@@ -48,6 +48,8 @@ describe('ErrorCode', () => {
         'VALIDATION_ERROR',
         'INVALID_EMAIL',
         'INVALID_PASSWORD',
+        'TYPE_ERROR',
+        'UNPROCESSABLE_ENTITY',
         'NOT_FOUND',
         'ALREADY_EXISTS',
         'DUPLICATE_ENTRY',
@@ -56,7 +58,6 @@ describe('ErrorCode', () => {
         'INTERNAL_ERROR',
         'DATABASE_ERROR',
         'EXTERNAL_SERVICE_ERROR',
-        'TYPE_ERROR',
       ]
 
       const actualCodes = Object.values(ErrorCode)

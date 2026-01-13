@@ -12,6 +12,7 @@ import { GetChatsByUserIdUseCase } from '../../application/use-cases/get-chats-b
 import { GetChatContentByChatIdUseCase } from '../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
 import { RegisterUserWithProviderUseCase } from '../../application/use-cases/register-user-with-provider.use-case.js'
 import { DeleteUsersUseCase } from '../../application/use-cases/delete-users.use-case.js'
+import { ExtractDataUseCase } from '../../application/use-cases/extract-data.use-case.js'
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
@@ -21,6 +22,8 @@ import { JwtTokenGeneratorService } from '../../adapters/secondary/services/jwt-
 import { UserController } from '../../adapters/primary/http/user.controller.js'
 import { AuthController } from '../../adapters/primary/http/auth.controller.js'
 import { AIController } from '../../adapters/primary/http/ai.controller.js'
+import { BucketService } from '../../adapters/secondary/external/bucket.service.js'
+import { AIExtractDataController } from '../../adapters/primary/http/ai.extract-data.js'
 
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
 import type { AuditLogPort } from '../../application/ports/audit-log.port.js'
@@ -69,11 +72,14 @@ export class Container {
   public readonly userRepository: PostgresUserRepository
   public readonly aiRepository: AIRepository
 
+  public readonly bucketService: BucketService
+
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
   public readonly getAllUsersUseCase: GetAllUsersUseCase
   public readonly loginUserUseCase: LoginUserUseCase
   public readonly getChatUseCase: GetChatUseCase
+  public readonly extractDataUseCase: ExtractDataUseCase
   private readonly appendChatUseCase: AppendedChatUseCase
   private readonly saveChatUseCase: SaveChatUseCase
   private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase
@@ -85,9 +91,10 @@ export class Container {
   public readonly userController: UserController
   public readonly authController: AuthController
   public readonly aiController: AIController
+  public readonly aiExtractDataController: AIExtractDataController
 
   // Audit log
-  public readonly auditLog: AuditLogPort
+  public readonly auditLog: AuditLogRepository
 
   /**
    * Private constructor to enforce Singleton pattern
@@ -162,6 +169,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.userRepository = new PostgresUserRepository()
     this.aiRepository = new AIRepository(this.logger)
     this.auditLog = new AuditLogRepository(this.logger)
+    this.bucketService = new BucketService(this.logger)
     // Initialize use cases
     this.registerUserUseCase = new RegisterUserUseCase(
       this.userRepository,
@@ -197,6 +205,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.logger,
       this.auditLog
     )
+    this.extractDataUseCase = new ExtractDataUseCase(this.logger, this.auditLog, this.bucketService)
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
       this.registerUserUseCase,
@@ -215,7 +224,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.getChatsByUserIdUseCase,
       this.getChatContentByChatIdUseCase
     )
-
+    this.aiExtractDataController = new AIExtractDataController(this.logger, this.extractDataUseCase)
     // Register routes
     this.registerRoutes()
   }

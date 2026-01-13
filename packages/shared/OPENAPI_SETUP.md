@@ -1,6 +1,4 @@
-# OpenAPI & Spectral Setup Complete ✅
-
-## What's Been Added
+# OpenAPI Integration Setup Guide
 
 ### 1. OpenAPI Specification (`openapi.json`)
 

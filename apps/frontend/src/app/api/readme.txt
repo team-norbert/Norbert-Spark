@@ -1,2 +1,2 @@
-Use api routes for server-side data fetching and mutations
-This will be replaced by server actions in the ongoing refactoring process
+Don't add any new API endpoints here. This folder is only for API endpoints used by the frontend application. Any new API endpoints should be added to the appropriate backend service.
+Use server actions for server-side API calls: apps/frontend/src/infrastructure/serverActions

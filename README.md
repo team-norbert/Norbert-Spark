@@ -4,9 +4,18 @@ Norbert's Spark ( named after Norbert Wiener, the father of cybernetics) is a cu
 
 Although there already exist various AI-SDK starter kits, such as the [Next.js Open API Starter Kit](https://ai-sdk.dev/cookbook), Norbert's Spark. goes a step further by providing a comprehensive monorepo structure that includes both frontend and backend components, along with a PostgreSQL database setup.
 
-The aim of Norbert's Spark is to avoid tight coupling between any one technology. On the roadmap are there three different ways to deploy Norbert's Spark: the first is to use PaaS services such as Vercel and Supabase; the second is to use container orchestration platforms like Docker; and the third is to deploy to AWS using either Terraform or Pulumi.
+The aim of Norbert's Spark is to avoid tight coupling between any one technology. On the roadmap there three different ways to deploy Norbert's Spark: the first is to use PaaS services such as Vercel and Supabase; the second is to use Docker containers; and the third is to use Infrastructure as code (IaC) to AWS using either Terraform or Pulumi.
 
-The other difference between Norbert's Spark and other AI-SDK starter kits is that the backend is where the busines logic resides, with the frontend being a thin client. This is in contrast to many AI-SDK starter kits where the frontend contains most of the business logic and directly calls the AI provider APIs. In Norbert's Spark, the frontend calls the backend API, which in turn calls the AI provider APIs. This architecture enhances security, maintainability, and scalability.
+Norbert's Spark currently uses a number of different third-party services, including:
+
+- [Cloudflare R2 global object storage](https://www.cloudflare.com/r2/)
+- [Resend · Email for developers](https://resend.com/)
+- [Sentry](https://sentry.io/)
+- [Upstash Redis](https://upstash.com/)
+
+These will potentially be replaced with AWS or self-hosted alternatives in the future.
+
+The other difference between Norbert's Spark and other AI-SDK starter kits is that the backend is where the business logic resides, with the frontend being a thin client. This is in contrast to many AI-SDK starter kits where the frontend contains most of the business logic and directly calls the AI provider APIs. In Norbert's Spark, the frontend calls the backend API, which in turn calls the AI provider APIs. This architecture enhances security, maintainability, and scalability. This is a similar approach to what is called a headless CMS, where the frontend is decoupled from the backend.
 
 In this repo is a frontend that uses Next.js 16 with React 19 and Material UI. The purpose of this frontend is to provide a user interface for interacting with the AI tools CRM. In the frontend, users can manage their AI tools, view analytics, and configure settings.
 
@@ -31,7 +40,7 @@ For ease of working with AI tools, several practices have been adopted in the co
 - The E2E tests use a temporal testing environment that is spun up and torn down for each test run, ensuring a clean state for accurate testing. This approach helps maintain the integrity of the tests and provides confidence in the application's functionality.
 - The E2E tests are not run in the CI but are executed as part of the Husky pre-push hook. To bypass the E2E tests in your workflow, use the `SKIP_E2E=1` variable on the command line.
 
-As an example, instead of this:
+As an example, instead of this git push command:
 
 ```bash
 git push origin ui/new-page-pdf-extract-data
@@ -477,6 +486,155 @@ Finally, implement the database logic in 'apps/backend/src/infrastructure/db'.
 - [Available Scripts](#available-scripts)
 - [Frontend Development](#frontend-development)
 - [Backend Development](#backend-development)
+
+# Audit Domain
+
+The audit domain `apps/backend/src/domain/audit` directory contains the domain logic for audit logging in the application.
+
+## Type-Safe Audit Changes
+
+The audit log system uses a union type `AuditChanges` to provide type safety and autocomplete support for different change structures based on the action type.
+
+### Available Change Types
+
+#### CreateChanges
+
+Used when an entity is created:
+
+```typescript
+const changes: CreateChanges = {
+  created: {
+    name: 'John Doe',
+    email: 'john@example.com',
+    role: 'user',
+  },
+}
+```
+
+#### UpdateChanges
+
+Used when an entity is updated, capturing before/after states:
+
+```typescript
+const changes: UpdateChanges = {
+  before: {
+    name: 'Old Name',
+    email: 'old@example.com',
+  },
+  after: {
+    name: 'New Name',
+    email: 'new@example.com',
+  },
+}
+```
+
+#### DeleteChanges
+
+Used when an entity is deleted:
+
+```typescript
+const changes: DeleteChanges = {
+  deleted: {
+    chatId: '123',
+    messageCount: 42,
+    wasActive: true,
+  },
+}
+```
+
+#### LoginChanges
+
+Used for successful login events:
+
+```typescript
+const changes: LoginChanges = {
+  success: true,
+  method: 'jwt',
+  sessionDuration: '7d',
+}
+```
+
+#### LoginFailedChanges
+
+Used for failed login attempts:
+
+```typescript
+const changes: LoginFailedChanges = {
+  email: 'user@example.com',
+  reason: 'invalid_password',
+}
+```
+
+#### LogoutChanges
+
+Used for logout events:
+
+```typescript
+const changes: LogoutChanges = {
+  reason: 'user_initiated',
+  sessionDuration: '2h',
+}
+```
+
+#### PasswordChangeChanges
+
+Used for password change events:
+
+```typescript
+const changes: PasswordChangeChanges = {
+  success: true,
+  method: 'email_verification',
+}
+```
+
+#### EmailChangeChanges
+
+Used for email change events:
+
+```typescript
+const changes: EmailChangeChanges = {
+  before: 'old@example.com',
+  after: 'new@example.com',
+  verified: true,
+}
+```
+
+### Usage Example
+
+```typescript
+import { AuditLogPort, CreateAuditLogDTO } from '../application/ports/audit-log.port.js'
+import { AuditAction, EntityType } from '../domain/audit/entity-type.enum.js'
+import type { LoginFailedChanges } from '../domain/audit/audit-changes.types.js'
+
+// Type-safe audit log creation
+const auditEntry: CreateAuditLogDTO = {
+  userId: null,
+  entityType: EntityType.USER,
+  entityId: 'unknown',
+  action: AuditAction.LOGIN_FAILED,
+  changes: {
+    email: 'user@example.com',
+    reason: 'invalid_password',
+  } satisfies LoginFailedChanges, // Type-checked!
+  ipAddress: '192.168.1.1',
+  userAgent: 'Mozilla/5.0',
+}
+
+await auditLog.log(auditEntry)
+```
+
+### Benefits
+
+1. **Type Safety**: TypeScript will catch type errors at compile time
+2. **Autocomplete**: IDEs provide intelligent code completion for change structures
+3. **Documentation**: Change structures are self-documenting with TypeScript types
+4. **Flexibility**: The union type includes `Record<string, unknown>` as a fallback for custom change structure
+
+### Sensitive Data Redaction
+
+All audit log entries are automatically redacted for sensitive fields (passwords, tokens, API keys, etc.) before being stored in the database.
+See `redact-sensitive-data.ts` for the complete list of sensitive fields.
+
 - [Project Structure](#project-structure)
 - [Contributing](#contributing)
 - [License](#license)

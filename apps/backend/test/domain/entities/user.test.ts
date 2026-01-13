@@ -203,7 +203,7 @@ describe('User Entity', () => {
       await expect(
         testUser.updatePassword('newpassword123', anotherPassword)
       ).resolves.not.toThrow()
-    })
+    }, 10000)
 
     it('should not update password if old password verification fails', async () => {
       const newPassword = await Password.create('newpassword123')

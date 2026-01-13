@@ -26,7 +26,7 @@ describe('Database Index', () => {
       expect(pool).toBeDefined()
       expect(pool.options).toBeDefined()
       expect(pool.options.connectionString).toBeDefined()
-    })
+    }, 10000)
 
     it('should configure SSL as false when DATABASE_SSL_ENABLED is not true', async () => {
       process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/testdb'

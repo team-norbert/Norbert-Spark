@@ -2,6 +2,7 @@ import '../security/instrument.js'
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import multipart from '@fastify/multipart'
 import * as Sentry from '@sentry/node'
 
 import swagger from '@fastify/swagger'
@@ -50,6 +51,14 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     credentials: true, // Allow credentials
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+
+  // Register multipart support for file uploads
+  fastify.register(multipart, {
+    limits: {
+      fileSize: 100 * 1024 * 1024, // 100MB max file size
+      files: 10, // Maximum number of files
+    },
   })
 
   // Register Swagger

@@ -6,7 +6,7 @@ import vitestPlugin from '@vitest/eslint-plugin'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import sortDestructureKeys from 'eslint-plugin-sort-destructure-keys'
 
-import rootConfig from '../../eslint.config.ts'
+import rootConfig from '../../eslint.config.js'
 
 const config: Linter.Config[] = [
   ...rootConfig,

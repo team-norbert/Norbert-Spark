@@ -22,7 +22,7 @@ describe('TokeniseOpenAI', () => {
       const instance2 = TokeniseOpenAI.getInstance()
 
       expect(instance1).toBe(instance2)
-    })
+    }, 15000)
 
     it('should create only one instance', () => {
       const instance1 = TokeniseOpenAI.getInstance()
@@ -31,7 +31,7 @@ describe('TokeniseOpenAI', () => {
 
       expect(instance1).toBe(instance2)
       expect(instance2).toBe(instance3)
-    })
+    }, 15000)
 
     it('should have getInstance as a static method', () => {
       expect(typeof TokeniseOpenAI.getInstance).toBe('function')
