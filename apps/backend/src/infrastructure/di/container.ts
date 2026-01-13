@@ -91,7 +91,6 @@ export class Container {
   public readonly userController: UserController
   public readonly authController: AuthController
   public readonly aiController: AIController
-  public readonly aiExtractDataController: AIExtractDataController
 
   // Audit log
   public readonly auditLog: AuditLogRepository
