@@ -803,7 +803,7 @@
         }
       }
     },
-    "/ai/extractData": {
+    "/ai/extract-data": {
       "post": {
         "summary": "Extract structured data from files or text",
         "description": "Uses AI to extract structured data from uploaded files (PDF, ZIP) or unstructured text input",
