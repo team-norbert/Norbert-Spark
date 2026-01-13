@@ -1,3 +1,4 @@
+// IMPORTANT DO NOT USE THIS FILE ANYMORE. IT IS HERE FOR REFERENCE ONLY.
 import { google } from '@ai-sdk/google'
 import { convertToModelMessages, stepCountIs, streamText, tool, type UIMessage } from 'ai'
 import { z } from 'zod'
@@ -9,7 +10,6 @@ import { appendToChatMessages, createChat, getChat } from './shared/persistance-
 
 import { isValidUUID, uuidVersionValidation } from 'uuidv7-utilities'
 import { FastifyUtil } from './shared/utils/fastify.utils.js'
-import path from 'node:path'
 
 // Create a singleton instance of GetText to preserve cache across requests
 const getTextInstance = new GetText('data', 'heart-of-darkness.txt')

@@ -1,6 +1,7 @@
+// IMPORTANT DO NOT USE THIS FILE ANYMORE. IT IS HERE FOR REFERENCE ONLY.
 import 'dotenv/config'
 import type { FastifyServerOptions } from 'fastify'
-import { buildApp } from './app.js'
+import { buildApp } from './app.'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { fileURLToPath } from 'url'

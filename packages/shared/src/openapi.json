@@ -903,6 +903,16 @@
               }
             }
           },
+          "422": {
+            "description": "Unprocessable Entity - wrong file type or extraction failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
