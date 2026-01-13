@@ -57,7 +57,7 @@ const config: Linter.Config[] = [
       'import/newline-after-import': 'error',
       'import/no-duplicates': 'error',
       ...promisePlugin.configs.recommended.rules,
-      'security/detect-object-injection': 'warn',
+      'security/detect-object-injection': 'error',
       'security/detect-non-literal-regexp': 'warn',
       'security/detect-unsafe-regex': 'error',
       'security/detect-buffer-noassert': 'error',

@@ -5,6 +5,21 @@ import { authMiddleware } from '../../../infrastructure/http/middleware/auth.mid
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
 import type { MultipartFile } from '@fastify/multipart'
+import {
+  sanitizeFilename,
+  validateFileExtension,
+  validateMimeType,
+} from '../../../shared/utils/security-validation.util.js'
+
+/**
+ * Allowed file extensions for upload
+ */
+const ALLOWED_EXTENSIONS = ['pdf', 'zip']
+
+/**
+ * Allowed MIME types for upload
+ */
+const ALLOWED_MIME_TYPES = ['application/pdf', 'application/zip', 'application/x-zip-compressed']
 
 /**
  * File metadata for presigned URL generation
@@ -65,13 +80,8 @@ export class AIExtractDataController {
         files: body.files.map((f) => ({ filename: f.filename, mimetype: f.mimetype })),
       })
 
-      // Validate file types - only PDF and ZIP files are allowed
-      const allowedMimeTypes = [
-        'application/pdf',
-        'application/zip',
-        'application/x-zip-compressed',
-      ]
-      const allowedExtensions = ['pdf', 'zip']
+      // Validate and sanitize each file's metadata using security utilities
+      const sanitizedFiles: FileMetadata[] = []
 
       for (const file of body.files) {
         if (!file.filename || !file.mimetype) {
@@ -80,18 +90,28 @@ export class AIExtractDataController {
           )
         }
 
-        const fileExtension = file.filename.toLowerCase().split('.').pop()
-        if (
-          !allowedMimeTypes.includes(file.mimetype) &&
-          !allowedExtensions.includes(fileExtension || '')
-        ) {
-          this.logger.warn('Invalid file type rejected', {
+        try {
+          // Sanitize filename to remove dangerous characters
+          const sanitizedFilename = sanitizeFilename(file.filename)
+
+          // Validate file extension against allowlist
+          validateFileExtension(sanitizedFilename, ALLOWED_EXTENSIONS)
+
+          // Validate MIME type against allowlist
+          validateMimeType(file.mimetype, ALLOWED_MIME_TYPES)
+
+          sanitizedFiles.push({
+            filename: sanitizedFilename,
+            mimetype: file.mimetype,
+          })
+        } catch (validationError) {
+          this.logger.warn('File validation failed', {
             filename: file.filename,
             mimeType: file.mimetype,
-            fileExtension,
+            error: (validationError as Error).message,
           })
           throw new UnprocessableEntityException(
-            `Invalid file type for ${file.filename}. Only PDF and ZIP files are allowed.`
+            `Invalid file: ${file.filename}. ${(validationError as Error).message}`
           )
         }
       }
@@ -103,8 +123,8 @@ export class AIExtractDataController {
         userAgent: request.headers['user-agent'] ?? null,
       }
 
-      // Create file-like objects for the use case
-      const fileMetadata = body.files.map((f) => ({
+      // Create file-like objects for the use case with sanitized filenames
+      const fileMetadata = sanitizedFiles.map((f) => ({
         filename: f.filename,
         mimetype: f.mimetype,
       })) as MultipartFile[]
@@ -138,10 +158,34 @@ export class AIExtractDataController {
       // Extract files using @fastify/multipart
       const parts = request.parts()
       const files: MultipartFile[] = []
+      const sanitizedFilenames: Map<string, string> = new Map()
 
       for await (const part of parts) {
         if (part.type === 'file') {
-          files.push(part)
+          try {
+            // Sanitize filename to remove dangerous characters
+            const sanitizedFilename = sanitizeFilename(part.filename)
+
+            // Validate file extension against allowlist
+            validateFileExtension(sanitizedFilename, ALLOWED_EXTENSIONS)
+
+            // Validate MIME type against allowlist
+            validateMimeType(part.mimetype, ALLOWED_MIME_TYPES)
+
+            // Store the sanitized filename mapping
+            sanitizedFilenames.set(part.filename, sanitizedFilename)
+
+            files.push(part)
+          } catch (validationError) {
+            this.logger.warn('File validation failed', {
+              filename: part.filename,
+              mimeType: part.mimetype,
+              error: (validationError as Error).message,
+            })
+            throw new UnprocessableEntityException(
+              `Invalid file: ${part.filename}. ${(validationError as Error).message}`
+            )
+          }
         }
       }
 
@@ -151,33 +195,12 @@ export class AIExtractDataController {
 
       this.logger.info('Initializing multipart upload', {
         fileCount: files.length,
-        files: files.map((f) => ({ filename: f.filename, mimetype: f.mimetype })),
+        files: files.map((f) => ({
+          originalFilename: f.filename,
+          sanitizedFilename: sanitizedFilenames.get(f.filename),
+          mimetype: f.mimetype,
+        })),
       })
-
-      // Validate file types - only PDF and ZIP files are allowed
-      const allowedMimeTypes = [
-        'application/pdf',
-        'application/zip',
-        'application/x-zip-compressed',
-      ]
-      const allowedExtensions = ['pdf', 'zip']
-
-      for (const file of files) {
-        const fileExtension = file.filename.toLowerCase().split('.').pop()
-        if (
-          !allowedMimeTypes.includes(file.mimetype) ||
-          !allowedExtensions.includes(fileExtension || '')
-        ) {
-          this.logger.warn('Invalid file type rejected', {
-            filename: file.filename,
-            mimeType: file.mimetype,
-            fileExtension,
-          })
-          throw new UnprocessableEntityException(
-            `Invalid file type for ${file.filename}. Only PDF and ZIP files are allowed.`
-          )
-        }
-      }
 
       // Extract audit context from request
       const auditContext = {
@@ -186,8 +209,14 @@ export class AIExtractDataController {
         userAgent: request.headers['user-agent'] ?? null,
       }
 
+      // Create file objects with sanitized filenames for the use case
+      const sanitizedFiles = files.map((f) => ({
+        ...f,
+        filename: sanitizedFilenames.get(f.filename) || f.filename,
+      })) as MultipartFile[]
+
       // Execute use case to generate presigned URLs for upload
-      const result = await this.extractDataUseCase.execute(files, auditContext)
+      const result = await this.extractDataUseCase.execute(sanitizedFiles, auditContext)
 
       return reply.status(200).send({
         success: true,

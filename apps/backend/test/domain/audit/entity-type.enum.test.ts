@@ -269,7 +269,7 @@ describe('AuditAction Enum', () => {
           [AuditAction.EMAIL_CHANGE]: 'Email Changed',
           [AuditAction.REGISTRATION_FAILED]: 'Registration Failed',
         }
-        // eslint-disable-next-line security/detect-object-injection
+        // eslint-disable-next-line security/detect-object-injection -- Safe: action is typed as AuditAction enum
         return labels[action]
       }
 

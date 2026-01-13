@@ -149,7 +149,7 @@ export function extractClientIp(request: Request): string {
     // This represents the real client IP when behind trusted proxies
     // Iterate from right to left
     for (let i = ips.length - 1; i >= 0; i--) {
-      // eslint-disable-next-line security/detect-object-injection
+      // eslint-disable-next-line security/detect-object-injection -- Safe: i is a controlled loop index
       const ip = ips[i]
       if (ip && !TRUSTED_PROXIES.includes(ip)) {
         return ip
