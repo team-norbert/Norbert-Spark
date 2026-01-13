@@ -4,6 +4,7 @@ import type React from 'react'
 import { useCallback, useState } from 'react'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
+import { getPresignedUrls } from '@/infrastructure/serverActions/getPresignedUrls.server.js'
 
 const logger = createLogger({ prefix: '[useFileUpload]' })
 
@@ -31,8 +32,8 @@ interface UseFileUploadReturn {
 
 const ACCEPTED_FILE_TYPES = ['.pdf', '.zip']
 const ACCEPTED_MIME_TYPES = ['application/pdf', 'application/zip', 'application/x-zip-compressed']
-const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB chunks
 const MAX_RETRIES = 3
+const RETRY_DELAY_BASE_MS = 1000 // Base delay for exponential backoff
 
 /**
  * Custom hook for file upload page business logic following DDD architecture.
@@ -168,101 +169,74 @@ export function useFileUpload(): UseFileUploadReturn {
   }, [])
 
   /**
-   * Upload a file in chunks with progress tracking
-   * @param {UploadedFile} uploadedFile - The file to upload
+   * Upload a file directly to R2 using a presigned URL with progress tracking
+   * @param {File} file - The file to upload
+   * @param {string} uploadUrl - The presigned URL for upload
+   * @param {string} id - The file ID for progress tracking
    * @returns {Promise<boolean>} True if upload succeeds
    */
-  const uploadFileInChunks = useCallback(
-    async (uploadedFile: UploadedFile): Promise<boolean> => {
-      const { file, id } = uploadedFile
-      const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
-      let uploadedChunks = 0
+  const uploadFileToR2 = useCallback(
+    async (file: File, uploadUrl: string, id: string): Promise<boolean> => {
+      let retries = 0
 
-      try {
-        // Initialize multipart upload
-        const initResponse = await fetch('/api/upload/init', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: file.name,
-            fileSize: file.size,
-            mimeType: file.type,
-            totalChunks,
-          }),
-        })
+      while (retries < MAX_RETRIES) {
+        try {
+          // Use XMLHttpRequest for progress tracking (browser API)
+          const result = await new Promise<boolean>((resolve, reject) => {
+            const xhr = new window.XMLHttpRequest()
 
-        if (!initResponse.ok) {
-          throw new Error('Failed to initialize upload')
-        }
-
-        const initData = (await initResponse.json()) as { uploadId: string }
-        const { uploadId } = initData
-
-        // Upload chunks
-        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-          const start = chunkIndex * CHUNK_SIZE
-          const end = Math.min(start + CHUNK_SIZE, file.size)
-          const chunk = file.slice(start, end)
-
-          let retries = 0
-          let chunkUploaded = false
-
-          while (retries < MAX_RETRIES && !chunkUploaded) {
-            try {
-              const formData = new FormData()
-              formData.append('chunk', chunk)
-              formData.append('uploadId', uploadId)
-              formData.append('chunkIndex', chunkIndex.toString())
-              formData.append('totalChunks', totalChunks.toString())
-
-              const uploadResponse = await fetch('/api/upload/chunk', {
-                method: 'POST',
-                body: formData,
-              })
-
-              if (!uploadResponse.ok) {
-                throw new Error(`Failed to upload chunk ${chunkIndex}`)
+            xhr.upload.addEventListener('progress', (event) => {
+              if (event.lengthComputable) {
+                const progress = Math.round((event.loaded / event.total) * 100)
+                updateFileProgress(id, progress)
               }
+            })
 
-              chunkUploaded = true
-              uploadedChunks++
-
-              // Update progress
-              const progress = Math.round((uploadedChunks / totalChunks) * 100)
-              updateFileProgress(id, progress)
-            } catch (_error) {
-              retries++
-              if (retries >= MAX_RETRIES) {
-                throw new Error(`Failed to upload chunk ${chunkIndex} after ${MAX_RETRIES} retries`)
+            xhr.addEventListener('load', () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                updateFileProgress(id, 100)
+                resolve(true)
+              } else {
+                reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.statusText}`))
               }
-              // Wait before retrying (exponential backoff)
-              await new Promise((resolve) => setTimeout(resolve, Math.pow(2, retries) * 1000))
-            }
+            })
+
+            xhr.addEventListener('error', () => {
+              reject(new Error('Network error during upload'))
+            })
+
+            xhr.addEventListener('abort', () => {
+              reject(new Error('Upload aborted'))
+            })
+
+            xhr.open('PUT', uploadUrl)
+            xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+            xhr.send(file)
+          })
+
+          return result
+        } catch (error) {
+          retries++
+          logger.warn(`Upload attempt ${retries} failed for ${file.name}`, error)
+
+          if (retries >= MAX_RETRIES) {
+            throw new Error(`Failed to upload ${file.name} after ${MAX_RETRIES} retries`)
           }
+
+          // Exponential backoff before retry
+          await new Promise((resolve) =>
+            setTimeout(resolve, Math.pow(2, retries) * RETRY_DELAY_BASE_MS)
+          )
         }
-
-        // Complete multipart upload
-        const completeResponse = await fetch('/api/upload/complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uploadId, filename: file.name }),
-        })
-
-        if (!completeResponse.ok) {
-          throw new Error('Failed to complete upload')
-        }
-
-        return true
-      } catch (error) {
-        logger.error('Upload error:', error)
-        throw error
       }
+
+      return false
     },
     [updateFileProgress]
   )
 
   /**
-   * Process the uploaded files using multipart upload
+   * Process the uploaded files using presigned URLs for direct R2 upload
    */
   const handleProcessFiles = useCallback(async () => {
     if (uploadedFiles.length === 0 || isUploading) return
@@ -271,13 +245,48 @@ export function useFileUpload(): UseFileUploadReturn {
     setError(null)
 
     try {
-      // Upload files sequentially (could be parallelized if needed)
+      // Prepare file metadata for presigned URL generation
+      const fileMetadata = uploadedFiles.map((uf) => ({
+        filename: uf.file.name,
+        mimetype: uf.file.type || 'application/octet-stream',
+      }))
+
+      logger.info('Requesting presigned URLs for files', { fileCount: fileMetadata.length })
+
+      // Get presigned URLs from the server action
+      const response = await getPresignedUrls(fileMetadata)
+
+      if (!response.success || !response.data?.uploadUrls) {
+        throw new Error(response.error || 'Failed to get presigned URLs')
+      }
+
+      const { uploadUrls } = response.data
+
+      logger.info('Received presigned URLs', { urlCount: uploadUrls.length })
+
+      // Create a map of filename to presigned URL info
+      const urlMap = new Map(uploadUrls.map((u) => [u.filename, u]))
+
+      // Upload files directly to R2 using presigned URLs
       for (const uploadedFile of uploadedFiles) {
-        await uploadFileInChunks(uploadedFile)
+        const urlInfo = urlMap.get(uploadedFile.file.name)
+
+        if (!urlInfo) {
+          throw new Error(`No presigned URL received for ${uploadedFile.file.name}`)
+        }
+
+        logger.info('Uploading file to R2', {
+          filename: uploadedFile.file.name,
+          fileKey: urlInfo.fileKey,
+        })
+
+        await uploadFileToR2(uploadedFile.file, urlInfo.uploadUrl, uploadedFile.id)
+
+        logger.info('File uploaded successfully', { filename: uploadedFile.file.name })
       }
 
       // All files uploaded successfully
-      logger.info('All files uploaded successfully')
+      logger.info('All files uploaded successfully to R2')
       // You can add navigation or success notification here
     } catch (error) {
       const errorMessage =
@@ -287,7 +296,7 @@ export function useFileUpload(): UseFileUploadReturn {
     } finally {
       setIsUploading(false)
     }
-  }, [uploadedFiles, isUploading, uploadFileInChunks])
+  }, [uploadedFiles, isUploading, uploadFileToR2])
 
   /**
    * Clear the error message
