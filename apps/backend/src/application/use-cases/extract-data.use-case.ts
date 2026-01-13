@@ -35,7 +35,6 @@ export class ExtractDataUseCase {
       // Generate presigned URLs for each file
       for (const file of files) {
         const fileId = uuidv7()
-        const fileExtension = file.filename.split('.').pop() || ''
         const fileKey = `data-extraction/${fileId}/${file.filename}`
 
         this.logger.info('Generating presigned URL for file', {
