@@ -4,6 +4,7 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
 import * as Sentry from '@sentry/node'
+import helmet from '@fastify/helmet'
 
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
@@ -52,6 +53,12 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
+
+  fastify.register(
+    helmet,
+    // Example disables the `contentSecurityPolicy` middleware but keeps the rest.
+    { contentSecurityPolicy: false, global: true }
+  )
 
   // Register multipart support for file uploads
   fastify.register(multipart, {
