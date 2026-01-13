@@ -165,7 +165,7 @@ export class AIExtractDataController {
       for (const file of files) {
         const fileExtension = file.filename.toLowerCase().split('.').pop()
         if (
-          !allowedMimeTypes.includes(file.mimetype) &&
+          !allowedMimeTypes.includes(file.mimetype) ||
           !allowedExtensions.includes(fileExtension || '')
         ) {
           this.logger.warn('Invalid file type rejected', {
