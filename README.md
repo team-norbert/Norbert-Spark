@@ -4,9 +4,17 @@ Norbert's Spark ( named after Norbert Wiener, the father of cybernetics) is a cu
 
 Although there already exist various AI-SDK starter kits, such as the [Next.js Open API Starter Kit](https://ai-sdk.dev/cookbook), Norbert's Spark. goes a step further by providing a comprehensive monorepo structure that includes both frontend and backend components, along with a PostgreSQL database setup.
 
-The aim of Norbert's Spark is to avoid tight coupling between any one technology. On the roadmap are there three different ways to deploy Norbert's Spark: the first is to use PaaS services such as Vercel and Supabase; the second is to use container orchestration platforms like Docker; and the third is to deploy to AWS using either Terraform or Pulumi.
+The aim of Norbert's Spark is to avoid tight coupling between any one technology. On the roadmap there three different ways to deploy Norbert's Spark: the first is to use PaaS services such as Vercel and Supabase; the second is to use Docker containers; and the third is to use Infrastructure as code (IaC) to AWS using either Terraform or Pulumi.
 
-The other difference between Norbert's Spark and other AI-SDK starter kits is that the backend is where the busines logic resides, with the frontend being a thin client. This is in contrast to many AI-SDK starter kits where the frontend contains most of the business logic and directly calls the AI provider APIs. In Norbert's Spark, the frontend calls the backend API, which in turn calls the AI provider APIs. This architecture enhances security, maintainability, and scalability.
+Norbert's Spark currently uses a number of different third-party services, including:
+
+- [Cloudflare R2 global object storage](https://www.cloudflare.com/r2/)
+- [Resend · Email for developers](https://resend.com/)
+- [Sentry](https://sentry.io/)
+
+These will potentially be replaced with AWS or self-hosted alternatives in the future.
+
+The other difference between Norbert's Spark and other AI-SDK starter kits is that the backend is where the business logic resides, with the frontend being a thin client. This is in contrast to many AI-SDK starter kits where the frontend contains most of the business logic and directly calls the AI provider APIs. In Norbert's Spark, the frontend calls the backend API, which in turn calls the AI provider APIs. This architecture enhances security, maintainability, and scalability. This is a similar approach to what is called a headless CMS, where the frontend is decoupled from the backend.
 
 In this repo is a frontend that uses Next.js 16 with React 19 and Material UI. The purpose of this frontend is to provide a user interface for interacting with the AI tools CRM. In the frontend, users can manage their AI tools, view analytics, and configure settings.
 
@@ -31,7 +39,7 @@ For ease of working with AI tools, several practices have been adopted in the co
 - The E2E tests use a temporal testing environment that is spun up and torn down for each test run, ensuring a clean state for accurate testing. This approach helps maintain the integrity of the tests and provides confidence in the application's functionality.
 - The E2E tests are not run in the CI but are executed as part of the Husky pre-push hook. To bypass the E2E tests in your workflow, use the `SKIP_E2E=1` variable on the command line.
 
-As an example, instead of this:
+As an example, instead of this git push command:
 
 ```bash
 git push origin ui/new-page-pdf-extract-data
