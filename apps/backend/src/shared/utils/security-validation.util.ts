@@ -23,14 +23,14 @@ const DANGEROUS_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1f`$&;(){}[\]!#%^~']/g
  * Patterns that indicate directory traversal attempts
  */
 const TRAVERSAL_PATTERNS = [
-  /\.\./,           // Parent directory
-  /^\/|^\\/,        // Absolute paths (Unix/Windows)
-  /^[a-zA-Z]:/,     // Windows drive letters
-  /^~\//,           // Home directory expansion
-  /%2e%2e/i,        // URL encoded ..
-  /%2f/i,           // URL encoded /
-  /%5c/i,           // URL encoded \
-  /\0/,             // Null byte injection
+  /\.\./, // Parent directory
+  /^\/|^\\/, // Absolute paths (Unix/Windows)
+  /^[a-zA-Z]:/, // Windows drive letters
+  /^~\//, // Home directory expansion
+  /%2e%2e/i, // URL encoded ..
+  /%2f/i, // URL encoded /
+  /%5c/i, // URL encoded \
+  /\0/, // Null byte injection
 ]
 
 /**
@@ -60,9 +60,7 @@ export function validatePathWithinBase(userPath: string, baseDir: string): strin
   // Check for obvious traversal patterns before normalization
   for (const pattern of TRAVERSAL_PATTERNS) {
     if (pattern.test(userPath)) {
-      throw new ValidationException(
-        `Access denied: Path "${userPath}" contains prohibited pattern`
-      )
+      throw new ValidationException(`Access denied: Path "${userPath}" contains prohibited pattern`)
     }
   }
 
@@ -266,4 +264,3 @@ export function validateFileSize(sizeBytes: number, maxSizeBytes: number): boole
 
   return true
 }
-

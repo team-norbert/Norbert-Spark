@@ -47,7 +47,9 @@ describe('Security Validation Utilities', () => {
 
     it('should reject absolute paths', () => {
       expect(() => validatePathWithinBase('/etc/passwd', baseDir)).toThrow(ValidationException)
-      expect(() => validatePathWithinBase('/root/.ssh/id_rsa', baseDir)).toThrow(ValidationException)
+      expect(() => validatePathWithinBase('/root/.ssh/id_rsa', baseDir)).toThrow(
+        ValidationException
+      )
     })
 
     it('should reject Windows-style paths', () => {
@@ -61,7 +63,9 @@ describe('Security Validation Utilities', () => {
     })
 
     it('should reject URL-encoded traversal attempts', () => {
-      expect(() => validatePathWithinBase('%2e%2e/etc/passwd', baseDir)).toThrow(ValidationException)
+      expect(() => validatePathWithinBase('%2e%2e/etc/passwd', baseDir)).toThrow(
+        ValidationException
+      )
       expect(() => validatePathWithinBase('%2f..%2f..%2fetc/passwd', baseDir)).toThrow(
         ValidationException
       )
@@ -144,7 +148,9 @@ describe('Security Validation Utilities', () => {
 
     it('should reject disallowed extensions', () => {
       expect(() => validateFileExtension('script.exe', ['pdf', 'zip'])).toThrow(ValidationException)
-      expect(() => validateFileExtension('payload.php', ['pdf', 'zip'])).toThrow(ValidationException)
+      expect(() => validateFileExtension('payload.php', ['pdf', 'zip'])).toThrow(
+        ValidationException
+      )
     })
 
     it('should reject files without extension', () => {
@@ -166,9 +172,9 @@ describe('Security Validation Utilities', () => {
     })
 
     it('should reject disallowed MIME types', () => {
-      expect(() =>
-        validateMimeType('application/x-executable', ['application/pdf'])
-      ).toThrow(ValidationException)
+      expect(() => validateMimeType('application/x-executable', ['application/pdf'])).toThrow(
+        ValidationException
+      )
     })
   })
 
@@ -266,4 +272,3 @@ describe('Security Validation Utilities', () => {
     })
   })
 })
-
