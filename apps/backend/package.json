@@ -25,7 +25,7 @@
     "mermaid": "tsx scripts/serve-mermaid.ts",
     "mermaid:di": "tsx scripts/serve-mermaid.ts di:container.md",
     "eval": "evalite run",
-    "eval:view": "evalixste view"
+    "eval:view": "evalite view"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.8",
