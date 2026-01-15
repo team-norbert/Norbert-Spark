@@ -40,7 +40,7 @@ export class BucketService implements BucketPort {
         // Remove checksum-related properties from the request
         const request = args.request as { query?: Record<string, string> | undefined }
         const query = request.query
-        if (query && typeof query === 'object') {
+        if (query) {
           if ('x-amz-checksum-crc32' in query) {
             delete query['x-amz-checksum-crc32']
           }
