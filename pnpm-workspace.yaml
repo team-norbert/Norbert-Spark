@@ -3,4 +3,5 @@ packages:
   - packages/*
 
 ignoredBuiltDependencies:
+  - '@mui/x-telemetry'
   - better-sqlite3

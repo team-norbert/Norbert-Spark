@@ -7,8 +7,10 @@ import { obscured } from 'obscured'
 
 export class BucketService implements BucketPort {
   private readonly client: S3Client
+  private readonly presignClient: S3Client
 
   constructor(private readonly logger: LoggerPort) {
+    // Standard client for server-side operations
     this.client = new S3Client({
       endpoint: EnvConfig.CLOUDFLARE_ENDPOINT,
       credentials: {
@@ -17,6 +19,38 @@ export class BucketService implements BucketPort {
       },
       region: 'auto',
     })
+
+    // Separate client for presigned URLs with checksum disabled
+    this.presignClient = new S3Client({
+      endpoint: EnvConfig.CLOUDFLARE_ENDPOINT,
+      credentials: {
+        accessKeyId: obscured.value(EnvConfig.CLOUDFLARE_ACCESS_ID) as string,
+        secretAccessKey: obscured.value(EnvConfig.CLOUDFLARE_ACCESS_SECRET) as string,
+      },
+      region: 'auto',
+      // Disable flexible checksums for presigned URLs
+      // This prevents CRC32 checksum from being added to presigned URLs
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
+    })
+
+    // Add middleware to remove checksum algorithm from requests before signing
+    this.presignClient.middlewareStack.add(
+      (next) => async (args) => {
+        // Remove checksum-related properties from the request
+        const request = args.request as { query?: Record<string, string> }
+        if (request.query) {
+          delete request.query['x-amz-checksum-crc32']
+          delete request.query['x-amz-sdk-checksum-algorithm']
+        }
+        return next(args)
+      },
+      {
+        step: 'build',
+        name: 'removeChecksumMiddleware',
+        priority: 'high',
+      }
+    )
   }
   bucketExists(bucketName: string): Promise<boolean> {
     throw new Error('Method not implemented.')
@@ -39,13 +73,19 @@ export class BucketService implements BucketPort {
     return getSignedUrl(this.client, command, { expiresIn: expiresInSeconds })
   }
 
-  getUploadURL(bucketName: string, filePath: string, expiresInSeconds: number): Promise<string> {
+  async getUploadURL(
+    bucketName: string,
+    filePath: string,
+    expiresInSeconds: number
+  ): Promise<string> {
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: filePath,
-      ContentType: 'application/octet-stream',
     })
 
-    return getSignedUrl(this.client, command, { expiresIn: expiresInSeconds })
+    // Generate presigned URL without checksum validation
+    return getSignedUrl(this.presignClient, command, {
+      expiresIn: expiresInSeconds,
+    })
   }
 }
