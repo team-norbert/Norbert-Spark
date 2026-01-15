@@ -94,7 +94,7 @@ export class BucketService implements BucketPort {
       // Transform the stream body to a byte array
       return response.Body?.transformToByteArray()
     } catch (error) {
-      this.logger.error('Error fetching file from R2', error as Error, {
+      this.logger.error('Error fetching file from bucket', error as Error, {
         bucketName,
         fileKey,
       })

@@ -3,6 +3,34 @@ import type { AuditLogPort } from '../ports/audit-log.port.js'
 import type { BucketPort } from '../ports/bucket.service.port.js'
 import { ExtractDataDto } from '../dtos/extract-data.dto.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
+import { UnprocessableEntityException } from '../../shared/exceptions/unprocessable-entity.exception.js'
+
+/**
+ * Detect file type from buffer by checking magic bytes (file signature)
+ */
+function detectFileType(buffer: Uint8Array): 'pdf' | 'zip' | 'unknown' {
+  if (buffer.length < 4) {
+    return 'unknown'
+  }
+
+  // PDF magic bytes: %PDF (25 50 44 46)
+  if (buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46) {
+    return 'pdf'
+  }
+
+  // ZIP magic bytes: PK (50 4B 03 04 or 50 4B 05 06 or 50 4B 07 08)
+  if (buffer[0] === 0x50 && buffer[1] === 0x4b) {
+    if (
+      (buffer[2] === 0x03 && buffer[3] === 0x04) ||
+      (buffer[2] === 0x05 && buffer[3] === 0x06) ||
+      (buffer[2] === 0x07 && buffer[3] === 0x08)
+    ) {
+      return 'zip'
+    }
+  }
+
+  return 'unknown'
+}
 
 export class ExtractDataUseCase {
   constructor(
@@ -25,17 +53,35 @@ export class ExtractDataUseCase {
         GetObjectCommandKeys.fileKey
       )
 
+      if (!result) {
+        throw new UnprocessableEntityException('File not found in bucket')
+      }
+
+      // Detect file type from buffer
+      const fileType = detectFileType(result)
+
+      if (fileType === 'unknown') {
+        throw new UnprocessableEntityException(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      }
+
+      this.logger.info('File type detected', {
+        fileKey: GetObjectCommandKeys.fileKey,
+        fileType,
+      })
+
       await this.auditLog.log({
         userId: auditContext.userId,
         entityType: EntityType.DATA_EXTRACTION,
         entityId: GetObjectCommandKeys.fileKey,
         action: AuditAction.FETCH,
-        changes: { reason: 'get_from_bucket' },
+        changes: { reason: 'get_from_bucket', fileType },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       })
 
-      return result
+      return { buffer: result, fileType }
     } catch (error) {
       this.logger.error(
         'Error during data extraction',
@@ -50,6 +96,7 @@ export class ExtractDataUseCase {
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       })
+      throw error
     }
   }
 }

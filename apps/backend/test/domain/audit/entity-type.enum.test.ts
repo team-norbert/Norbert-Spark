@@ -127,7 +127,8 @@ describe('EntityType Enum', () => {
       expect(values).toContain('message')
       expect(values).toContain('part')
       expect(values).toContain('ai_options')
-      expect(values).toHaveLength(5)
+      expect(values).toContain('data_extraction')
+      expect(values).toHaveLength(6)
     })
 
     it('should allow iteration for validation', () => {
@@ -336,11 +337,12 @@ describe('AuditAction Enum', () => {
       expect(values).toContain('delete')
       expect(values).toContain('login')
       expect(values).toContain('logout')
+      expect(values).toContain('fetch')
       expect(values).toContain('login_failed')
       expect(values).toContain('password_change')
       expect(values).toContain('email_change')
       expect(values).toContain('registration_failed')
-      expect(values).toHaveLength(9)
+      expect(values).toHaveLength(10)
     })
 
     it('should allow iteration for validation', () => {

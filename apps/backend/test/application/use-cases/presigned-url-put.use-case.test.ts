@@ -10,7 +10,7 @@ import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
 // Mock EnvConfig
 vi.mock('../../../src/infrastructure/config/env.config.js', () => ({
   EnvConfig: {
-    R2_BUCKET: 'test-bucket',
+    BUCKET: 'test-bucket',
   },
 }))
 
