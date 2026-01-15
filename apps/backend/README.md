@@ -120,9 +120,8 @@ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -node
 ### 4. NPM Scripts
 
 ```bash
-pnpm run api:lint       # Validate OpenAPI spec
-pnpm run api:lint:json  # JSON output for CI/CD
-pnpm run api:docs       # Show docs URL
+# From the monorepo root, lint the OpenAPI spec for the shared API package
+pnpm run lint:api
 ```
 
 ### 5. Documentation
