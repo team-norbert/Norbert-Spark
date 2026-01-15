@@ -231,8 +231,8 @@ describe('PresignedUploadUrlUseCase', () => {
     })
 
     describe('error handling', () => {
-      it('should throw error when R2_BUCKET is not configured', async () => {
-        vi.spyOn(EnvConfig, 'R2_BUCKET', 'get').mockReturnValue('')
+      it('should throw error when BUCKET is not configured', async () => {
+        vi.spyOn(EnvConfig, 'BUCKET', 'get').mockReturnValue('')
         const files = [{ filename: 'test.pdf', mimetype: 'application/pdf' }] as any
 
         await expect(useCase.execute(files, auditContext)).rejects.toThrow(
@@ -240,12 +240,12 @@ describe('PresignedUploadUrlUseCase', () => {
         )
 
         expect(mockLogger.error).toHaveBeenCalledWith(
-          'R2_BUCKET environment variable is not configured'
+          'BUCKET environment variable is not configured'
         )
       })
 
-      it('should throw error when R2_BUCKET is undefined', async () => {
-        vi.spyOn(EnvConfig, 'R2_BUCKET', 'get').mockReturnValue(undefined as any)
+      it('should throw error when BUCKET is undefined', async () => {
+        vi.spyOn(EnvConfig, 'BUCKET', 'get').mockReturnValue(undefined as any)
         const files = [{ filename: 'test.pdf', mimetype: 'application/pdf' }] as any
 
         await expect(useCase.execute(files, auditContext)).rejects.toThrow(
