@@ -374,6 +374,8 @@ Add to `.github/workflows/ci-cd.yml`:
    ```bash
    pnpm add -D openapi-typescript
    openapi-typescript ../../packages/shared/src/openapi.json -o src/types/api.ts
+   ```
+
 - Spectral Config: `apps/backend/.spectral.yaml`
 - Architecture: `backend/src/HEXAGONAL_ARCHITECTURE.txt`
 - Interactive Docs: `https://localhost:3000/docs` (when running)
