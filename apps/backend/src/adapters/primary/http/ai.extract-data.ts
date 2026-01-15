@@ -14,7 +14,7 @@ import {
 } from '../../../shared/utils/security-validation.util.js'
 import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
 import unzipper from 'unzipper'
-import { generateText, generateObject } from 'ai'
+import { generateText, generateObject, streamText, Output } from 'ai'
 import { readFileSync } from 'node:fs'
 import { google } from '@ai-sdk/google'
 import { schema } from '../../../shared/constants/ai-constants.js'
@@ -118,7 +118,7 @@ export class AIExtractDataController {
       if (fileType === 'pdf') {
         const result = await generateObject({
           model: google(EnvConfig.MODEL_NAME as string),
-          system: `You will receive an invoice. ` + `Please extract the data from the invoice.`,
+          system: `You will receive an invoice. Please extract the data from the invoice.`,
           schema,
           messages: [
             {
