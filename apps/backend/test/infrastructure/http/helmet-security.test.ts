@@ -94,8 +94,16 @@ describe('Helmet Security Headers', () => {
       })
 
       expect(response.statusCode).toBe(200)
-      // HSTS header with max-age
-      expect(response.headers['strict-transport-security']).toMatch(/max-age=\d+/)
+
+      const hstsHeader = response.headers['strict-transport-security']
+
+      // HSTS header should exist with max-age
+      expect(hstsHeader).toMatch(/max-age=\d+/)
+
+      // Verify specific HSTS configuration values
+      expect(hstsHeader).toContain('max-age=31536000') // 1 year in seconds
+      expect(hstsHeader).toContain('includeSubDomains')
+      expect(hstsHeader).toContain('preload')
     })
 
     it('should set Origin-Agent-Cluster header', async () => {

@@ -57,7 +57,15 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
   fastify.register(
     helmet,
     // Example disables the `contentSecurityPolicy` middleware but keeps the rest.
-    { contentSecurityPolicy: false, global: true }
+    {
+      contentSecurityPolicy: false,
+      global: true,
+      hsts: {
+        maxAge: 31536000, // 1 year in seconds
+        includeSubDomains: true,
+        preload: true,
+      },
+    }
   )
 
   // Register multipart support for file uploads
