@@ -218,7 +218,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.HOST).toBe('127.0.0.1')
+      expect(EnvConfig.HOST).toBe('0.0.0.0')
     })
 
     it('should have type string', async () => {
