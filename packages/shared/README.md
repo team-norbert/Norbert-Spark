@@ -199,24 +199,27 @@ Features:
 ### 1. Add to `openapi.json`
 
 ```yaml
-paths:
-  /workouts:
-    post:
-      summary: Create workout
-      operationId: createWorkout
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateWorkoutRequest'
-      responses:
-        '201':
-          description: Workout created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Workout'
+"paths": {
+ "/users/register": {
+  "post": {
+    "summary": "Register a new user",
+    "description": "Creates a new user account",
+    "operationId": "registerUser",
+    "tags": ["users"],
+    "security": [],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/RegisterUserRequest"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "User successfully registered",
 ```
 
 ### 2. Validate
@@ -227,37 +230,142 @@ pnpm run api:lint
 
 ### 3. Implement Following Hexagonal Architecture
 
-**Domain** (`src/domain/entities/workout.ts`):
+**API route and adaptor** (`apps/backend/src/adapters/primary/http/user.controller.ts`):
 
 ```typescript
-export class Workout {
+export class UserController {
   constructor(
-    public readonly id: string,
-    public readonly duration: number,
-    public readonly intensity: 'low' | 'medium' | 'high'
+    private readonly registerUserUseCase: RegisterUserUseCase,
+    private readonly getAllUsersUseCase: GetAllUsersUseCase,
+    private readonly deleteUsersUseCase: DeleteUsersUseCase
   ) {}
+
+  registerRoutes(app: FastifyInstance): void {
+    app.post('/users/register', this.register.bind(this))
+  }
+
+  async deleteUsers(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      // Convert HTTP request to DTO
+      const dto = DeleteUsersDto.validate(request.body)
+
+      // Extract audit context from request
+      const auditContext = {
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] ?? null,
+      }
+
+      // Convert UserIdType
+      const userIds = dto.userIds.map((id) => new UserId(id).getValue())
+      const result = await this.deleteUsersUseCase.execute(userIds, auditContext)
+
+      if (result) {
+        reply.code(200).send({
+          success: true,
+          data: 'Users have been successfully deleted',
+        })
+        return
+      }
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'An unexpected error occurred'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
+  }
 }
 ```
 
-**Application** (`src/application/dtos/create-workout.dto.ts`):
+**Data Transfer Objects** (`apps/backend/src/application/dtos/delete-users.dto.ts`):
 
 ```typescript
-export class CreateWorkoutDto {
-  constructor(
-    public readonly duration: number,
-    public readonly intensity: 'low' | 'medium' | 'high'
-  ) {}
+export class DeleteUsersDto {
+  constructor(public readonly userIds: UserIdType[]) {}
+  static validate(data: any): DeleteUsersDto {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      throw new TypeException('Data must be a valid array of user IDs')
+    }
+
+    if (!Array.isArray(data.userIds) || !data.userIds.every((id: any) => typeof id === 'string')) {
+      throw new TypeException('userIds must be an array of strings')
+    }
+
+    // Validate each userId is a valid UUIDv7
+    for (const id of data.userIds) {
+      const version = Uuid7Util.uuidVersionValidation(id)
+      if (version !== 'v7') {
+        throw new TypeException(`Invalid UUIDv7 format for userId: ${id}`)
+      }
+    }
+
+    return new DeleteUsersDto(data.userIds)
+  }
 }
 ```
 
-**Adapter** (`src/adapters/primary/http/workout.controller.ts`):
+**Use cases** (`apps/backend/src/application/use-cases/delete-users.use-case.ts`):
 
 ```typescript
-app.post('/workouts', async (request, reply) => {
-  const dto = CreateWorkoutDto.validate(request.body)
-  const result = await createWorkoutUseCase.execute(dto)
-  reply.code(201).send(result)
-})
+export class DeleteUsersUseCase {
+  constructor(
+    private readonly userRepository: UserRepositoryPort,
+    private readonly logger: LoggerPort,
+    private readonly auditLog: AuditLogPort
+  ) {}
+
+  async execute(
+    userIds: UserIdType[],
+    auditContext: { ipAddress: string; userAgent: string | null }
+  ): Promise<boolean> {
+    this.logger.info('Deleting users', { userIds })
+
+    try {
+      // Chat records are deleted by a database cascade constraint on the chats table.
+      // We intentionally do not call a separate chat history deletion here to avoid
+      // redundant operations and potential race conditions with the cascade.
+      await this.userRepository.deleteUsers(userIds)
+    } catch (error) {
+      this.logger.error('Error deleting users', error as Error, { userIds })
+      throw error
+    }
+
+    try {
+      await this.auditLog.log({
+        userId: null,
+        entityType: EntityType.USER,
+        entityId: userIds.join(','),
+        action: AuditAction.DELETE,
+        changes: { reason: 'deleted_users' },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
+      })
+    } catch (error) {
+      this.logger.error('Error logging audit for user deletion', error as Error, { userIds })
+    }
+
+    return true
+  }
+}
+```
+
+**Secondary adaptors** (`apps/backend/src/application/use-cases/delete-users.use-case.ts`):
+
+```typescript
+export class PostgresUserRepository implements UserRepositoryPort {
+  async deleteUsers(userIds: UserIdType[]): Promise<void> {
+    try {
+      if (userIds.length === 0) {
+        return
+      }
+      await db.delete(user).where(inArray(user.userId, userIds))
+    } catch (error) {
+      throw new DatabaseException('Failed to delete users', { userIds, error })
+    }
+  }
+}
 ```
 
 ## Benefits Achieved
