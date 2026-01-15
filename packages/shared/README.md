@@ -198,7 +198,7 @@ Features:
 
 ### 1. Add to `openapi.json`
 
-```yaml
+```json
 "paths": {
  "/users/register": {
   "post": {
