@@ -89,8 +89,6 @@ jobs:
           else
             echo "Branch $BRANCH_NAME does not exist remotely. Proceeding..."
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Create Pull Request
         if: steps.check-changes.outputs.changes == 'true'
