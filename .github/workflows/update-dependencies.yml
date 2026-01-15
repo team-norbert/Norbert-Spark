@@ -85,7 +85,7 @@ jobs:
           # Check if branch exists remotely
           if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
             echo "Branch $BRANCH_NAME exists remotely. Deleting..."
-            git push origin --delete "$BRANCH_NAME" || echo "Failed to delete branch (may not exist)"
+            git push origin --delete "$BRANCH_NAME" || echo "Failed to delete branch (may be protected by an open PR or restricted by permissions)"
           else
             echo "Branch $BRANCH_NAME does not exist remotely. Proceeding..."
           fi
