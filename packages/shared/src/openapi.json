@@ -51,6 +51,10 @@
     {
       "name": "chat",
       "description": "Chat-related operations"
+    },
+    {
+      "name": "data",
+      "description": "Data extraction operations"
     }
   ],
   "paths": {
@@ -808,7 +812,7 @@
         "summary": "Generate presigned URLs for direct R2 upload",
         "description": "Accepts file metadata (filename and mimetype) and returns presigned URLs for direct upload to Cloudflare R2 storage. The client can then use these URLs to upload files directly without going through the backend.",
         "operationId": "generatePresignedUrls",
-        "tags": ["ai"],
+        "tags": ["ai", "daga"],
         "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
@@ -918,6 +922,99 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/extract-data/{filename}/{fileId}": {
+      "get": {
+        "summary": "Fetch data extracted from PDFs",
+        "description": "Retrieves the data from the PDF file previously uploaded to bucket",
+        "operationId": "extractData",
+        "tags": ["ai", "chat"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "description": "The name of the file uploaded to R2",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier for the file",
+            "schema": { "type": "string", "format": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI response found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIfetchChatResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Authentication required"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have required role (user, moderator or admin)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Access denied. You can only access your own extracted data or must have admin/moderator role"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Data not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Extracted data not found for the specified file"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Internal server error"
                 }
               }
             }

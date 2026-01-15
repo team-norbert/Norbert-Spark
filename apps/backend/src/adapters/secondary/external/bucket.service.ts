@@ -4,9 +4,13 @@ import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { obscured } from 'obscured'
+import { Agent } from 'https'
+import { NodeHttpHandler } from '@smithy/node-http-handler'
+import { PromisePool } from '@supercharge/promise-pool'
 
 export class BucketService implements BucketPort {
   private readonly client: S3Client
+  private readonly clientPool: S3Client
   private readonly presignClient: S3Client
 
   constructor(private readonly logger: LoggerPort) {
@@ -18,6 +22,18 @@ export class BucketService implements BucketPort {
         secretAccessKey: obscured.value(EnvConfig.CLOUDFLARE_ACCESS_SECRET) as string,
       },
       region: 'auto',
+    })
+
+    this.clientPool = new S3Client({
+      endpoint: EnvConfig.CLOUDFLARE_ENDPOINT,
+      credentials: {
+        accessKeyId: obscured.value(EnvConfig.CLOUDFLARE_ACCESS_ID) as string,
+        secretAccessKey: obscured.value(EnvConfig.CLOUDFLARE_ACCESS_SECRET) as string,
+      },
+      region: 'auto',
+      requestHandler: {
+        httpsAgent: new Agent({ keepAlive: false }),
+      },
     })
 
     // Separate client for presigned URLs with checksum disabled
@@ -66,8 +82,24 @@ export class BucketService implements BucketPort {
   uploadFile(bucketName: string, filePath: string, content: Buffer | string): Promise<void> {
     throw new Error('Method not implemented.')
   }
-  getFileUrl(bucketName: string, filePath: string): Promise<string> {
-    throw new Error('Method not implemented.')
+  async getFileUrl(bucketName: string, fileKey: string): Promise<Uint8Array | undefined> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: bucketName,
+        Key: fileKey,
+      })
+
+      const response = await this.client.send(command)
+
+      // Transform the stream body to a byte array
+      return response.Body?.transformToByteArray()
+    } catch (error) {
+      this.logger.error('Error fetching file from R2', error as Error, {
+        bucketName,
+        fileKey,
+      })
+      throw error
+    }
   }
   getLoadURL(bucketName: string, filePath: string, expiresInSeconds: number): Promise<string> {
     const command = new GetObjectCommand({

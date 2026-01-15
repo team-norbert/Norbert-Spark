@@ -12,7 +12,7 @@ interface PresignedUploadUrl {
   fileKey: string
 }
 
-export class ExtractDataUseCase {
+export class PresignedUploadUrlUseCase {
   constructor(
     private readonly logger: LoggerPort,
     private readonly auditLog: AuditLogPort,

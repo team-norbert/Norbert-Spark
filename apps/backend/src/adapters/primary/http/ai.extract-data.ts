@@ -3,7 +3,7 @@ import { UnprocessableEntityException } from '../../../shared/exceptions/unproce
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
-import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
+import { PresignedUploadUrlUseCase } from '../../../application/use-cases/presigned-url-put.use-case.js'
 import type { MultipartFile } from '@fastify/multipart'
 import {
   sanitizeFilename,
@@ -39,7 +39,7 @@ interface PresignedUrlRequestBody {
 export class AIExtractDataController {
   constructor(
     private readonly logger: LoggerPort,
-    private readonly extractDataUseCase: ExtractDataUseCase
+    private readonly presignedUploadUrlUseCase: PresignedUploadUrlUseCase
   ) {}
 
   registerRoutes(app: FastifyInstance): void {
@@ -51,6 +51,27 @@ export class AIExtractDataController {
       },
       this.generatePresignedUrls.bind(this)
     )
+    // Use AI to extract data after successful to pre-signed URLs
+    app.get(
+      '/ai/extract-data',
+      {
+        preHandler: [authMiddleware],
+      },
+      this.extractData.bind(this)
+    )
+  }
+
+  async extractData(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'An unexpected error occurred'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
   }
 
   /**
@@ -58,7 +79,7 @@ export class AIExtractDataController {
    * This endpoint accepts JSON with file metadata and returns presigned URLs
    * for the client to upload files directly to R2.
    */
-  async generatePresignedUrls(request: FastifyRequest, reply: FastifyReply) {
+  async generatePresignedUrls(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       const body = request.body as PresignedUrlRequestBody
 
@@ -121,7 +142,7 @@ export class AIExtractDataController {
       })) as MultipartFile[]
 
       // Execute use case to generate presigned URLs
-      const result = await this.extractDataUseCase.execute(fileMetadata, auditContext)
+      const result = await this.presignedUploadUrlUseCase.execute(fileMetadata, auditContext)
 
       return reply.status(200).send({
         success: true,
