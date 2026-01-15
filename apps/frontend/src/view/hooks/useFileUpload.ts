@@ -181,6 +181,12 @@ export function useFileUpload(): UseFileUploadReturn {
 
       while (retries < MAX_RETRIES) {
         try {
+          logger.info(`Uploading ${file.name} to R2`, {
+            url: uploadUrl,
+            size: file.size,
+            type: file.type,
+          })
+
           // Use XMLHttpRequest for progress tracking (browser API)
           const result = await new Promise<boolean>((resolve, reject) => {
             const xhr = new window.XMLHttpRequest()
@@ -194,14 +200,27 @@ export function useFileUpload(): UseFileUploadReturn {
 
             xhr.addEventListener('load', () => {
               if (xhr.status >= 200 && xhr.status < 300) {
+                logger.info(`Upload successful for ${file.name}`, { status: xhr.status })
                 updateFileProgress(id, 100)
                 resolve(true)
               } else {
+                logger.error(`Upload failed with status ${xhr.status}`, {
+                  status: xhr.status,
+                  statusText: xhr.statusText,
+                  response: xhr.responseText,
+                })
                 reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.statusText}`))
               }
             })
 
-            xhr.addEventListener('error', () => {
+            xhr.addEventListener('error', (event) => {
+              logger.error('XHR error event fired', {
+                filename: file.name,
+                readyState: xhr.readyState,
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseURL: xhr.responseURL,
+              })
               reject(new Error('Network error during upload'))
             })
 
@@ -210,7 +229,8 @@ export function useFileUpload(): UseFileUploadReturn {
             })
 
             xhr.open('PUT', uploadUrl)
-            xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+            // Don't set Content-Type - let the presigned URL handle it
+            // Setting headers not included in X-Amz-SignedHeaders causes 403
             xhr.send(file)
           })
 
