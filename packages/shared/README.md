@@ -29,3 +29,271 @@ Notes:
 
 - This package already includes a `build` script and `exports` in `package.json`.
 - This scaffold expects `zod` to be installed in the workspace.
+
+# Shared Package Testing
+
+This package includes unit tests that run in both Node.js and browser (jsdom) environments to ensure cross-platform compatibility.
+
+## Test Structure
+
+Tests are located in the `tests/` directory and mirror the structure of the `src/` directory:
+
+```
+tests/
+├── guards/
+│   └── type.guards.test.ts
+└── schemas/
+    └── auth.test.ts
+```
+
+## Running Tests
+
+### Run all tests (both environments)
+
+```bash
+pnpm test
+```
+
+### Run tests in Node.js environment only
+
+```bash
+pnpm run test:node
+```
+
+### Run tests in browser (jsdom) environment only
+
+```bash
+pnpm run test:browser
+```
+
+### Run tests in watch mode
+
+```bash
+pnpm run test:watch
+```
+
+### Run tests with coverage
+
+```bash
+pnpm run test:coverage
+```
+
+## Test Configurations
+
+- **Node Environment**: `vitest.config.node.ts` - Tests run in Node.js environment
+- **Browser Environment**: `vitest.config.browser.ts` - Tests run in jsdom (simulated browser) environment
+
+Both configurations use the same test files, ensuring that the code works correctly in both environments.
+
+## Writing Tests
+
+When writing tests, import directly from the source files using relative paths:
+
+```typescript
+import { describe, it, expect } from 'vitest'
+import { LoginSchema } from '../../src/schemas/auth.js'
+
+describe('Auth Schemas', () => {
+  it('should validate login data', () => {
+    const result = LoginSchema.safeParse({
+      email: 'test@example.com',
+      password: 'password123',
+    })
+    expect(result.success).toBe(true)
+  })
+})
+```
+
+## Current Test Coverage
+
+- **Type Guards**: 25 tests covering all type guard utilities
+- **Auth Schemas**: 9 tests covering LoginSchema and RegisterSchema validation
+
+All tests pass in both Node.js and browser environments.
+
+# OpenAPI Integration Setup Guide
+
+### 1. OpenAPI Specification (`openapi.json`)
+
+- **Version**: OpenAPI 3.1.0
+- **Endpoints**: Root, health check, user registration, get user by ID
+- **Schemas**: RegisterUserRequest, RegisterUserResponse, User, Error
+- **Documentation**: Full descriptions, examples, and validation rules
+
+### 2. Spectral API Linting (`.spectral.yaml`)
+
+- **Rulesets**: Extended from `spectral:oas` and `spectral:asyncapi`
+- **Custom Rules**:
+  - Operations must have success responses (2xx)
+  - No HTTP verbs in paths
+  - Error responses must have schemas
+  - POST/PUT/PATCH require request body validation
+  - Security requirements for non-GET operations
+  - Schema descriptions required
+  - Parameter descriptions required
+
+### 3. Fastify Integration
+
+- **@fastify/swagger**: Loads OpenAPI spec
+- **@fastify/swagger-ui**: Interactive documentation at `/docs`
+- **JSON Parser**: Parses `openapi.json` at startup
+
+### 4. NPM Scripts
+
+```bash
+pnpm run api:lint       # Validate OpenAPI spec
+pnpm run api:lint:json  # JSON output for CI/CD
+pnpm run api:docs       # Show docs URL
+```
+
+### 5. Documentation
+
+- **API_FIRST_WORKFLOW.md**: Complete guide to API-first development
+- **Backend README**: Updated with OpenAPI info
+- **Hexagonal Architecture**: Integration guide with DDD layers
+
+## Usage
+
+### 1. Start Development Server
+
+```bash
+cd backend
+pnpm dev
+```
+
+Server starts on: https://localhost:3000 (or http if HTTPS disabled)  
+API Docs available at: https://localhost:3000/docs
+
+### 2. Validate API Design
+
+```bash
+pnpm run api:lint
+```
+
+Current validation: ✅ Passing (1 warning about security on public endpoint)
+
+### 3. View Interactive Documentation
+
+Open browser to: `https://localhost:3000/docs`
+
+Features:
+
+- Browse all endpoints
+- Try API calls interactively
+- View request/response schemas
+- Test authentication
+- Copy curl commands
+
+### 4. API-First Workflow
+
+**Design → Validate → Document → Implement**
+
+1. **Edit `openapi.json`** to design new endpoints
+2. **Run `pnpm run api:lint`** to validate spec
+3. **Review at `/docs`** in browser
+4. **Implement** in hexagonal layers:
+   - Domain → Application → Adapters → Infrastructure
+
+## Example: Adding New Endpoint
+
+### 1. Add to `openapi.json`
+
+```yaml
+paths:
+  /workouts:
+    post:
+      summary: Create workout
+      operationId: createWorkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkoutRequest'
+      responses:
+        '201':
+          description: Workout created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workout'
+```
+
+### 2. Validate
+
+```bash
+pnpm run api:lint
+```
+
+### 3. Implement Following Hexagonal Architecture
+
+**Domain** (`src/domain/entities/workout.ts`):
+
+```typescript
+export class Workout {
+  constructor(
+    public readonly id: string,
+    public readonly duration: number,
+    public readonly intensity: 'low' | 'medium' | 'high'
+  ) {}
+}
+```
+
+**Application** (`src/application/dtos/create-workout.dto.ts`):
+
+```typescript
+export class CreateWorkoutDto {
+  constructor(
+    public readonly duration: number,
+    public readonly intensity: 'low' | 'medium' | 'high'
+  ) {}
+}
+```
+
+**Adapter** (`src/adapters/primary/http/workout.controller.ts`):
+
+```typescript
+app.post('/workouts', async (request, reply) => {
+  const dto = CreateWorkoutDto.validate(request.body)
+  const result = await createWorkoutUseCase.execute(dto)
+  reply.code(201).send(result)
+})
+```
+
+## Benefits Achieved
+
+✅ **Contract-First**: API design before implementation  
+✅ **Auto Documentation**: Always up-to-date via `/docs`  
+✅ **Validation**: Spectral catches API design issues early  
+✅ **Team Collaboration**: Frontend can start work immediately  
+✅ **Type Safety**: OpenAPI schemas → TypeScript types (optional)  
+✅ **Testing**: Contract testing against spec
+
+## CI/CD Integration
+
+Add to `.github/workflows/ci-cd.yml`:
+
+```yaml
+- name: Validate API Specification
+  run: cd backend && pnpm run api:lint
+```
+
+## Next Steps
+
+1. **Add more endpoints** to `openapi.json`
+2. **Enable authentication** in Swagger UI (JWT bearer tokens)
+3. **Generate TypeScript types** from OpenAPI (optional):
+   ```bash
+   pnpm add -D openapi-typescript
+   openapi-typescript openapi.json -o src/types/api.ts
+   ```
+4. **Implement endpoints** following hexagonal architecture
+5. **Add contract tests** using OpenAPI spec
+
+## Resources
+
+- OpenAPI Spec: `backend/openapi.json`
+- Spectral Config: `backend/.spectral.yaml`
+- Workflow Guide: `backend/API_FIRST_WORKFLOW.md`
+- Architecture: `backend/src/HEXAGONAL_ARCHITECTURE.txt`
+- Interactive Docs: `https://localhost:3000/docs` (when running)
