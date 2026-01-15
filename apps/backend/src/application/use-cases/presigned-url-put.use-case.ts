@@ -5,6 +5,7 @@ import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { EnvConfig } from '../../infrastructure/config/env.config.js'
 import { uuidv7 } from 'uuidv7'
 import type { MultipartFile } from '@fastify/multipart'
+import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 
 interface PresignedUploadUrl {
   filename: string
@@ -23,15 +24,15 @@ export class PresignedUploadUrlUseCase {
     files: MultipartFile[],
     auditContext: { ipAddress: string; userAgent: string | null; userId: string | null }
   ): Promise<{ uploadUrls: PresignedUploadUrl[] }> {
-    const bucketName = EnvConfig.R2_BUCKET
+    const bucketName = EnvConfig.BUCKET
     const uploadUrls: PresignedUploadUrl[] = []
 
-    if (!bucketName) {
-      this.logger.error('R2_BUCKET environment variable is not configured')
-      throw new Error('Bucket configuration is missing')
-    }
-
     try {
+      if (!bucketName) {
+        this.logger.error('BUCKET environment variable is not configured')
+        throw new InternalErrorException('Bucket configuration is missing')
+      }
+
       // Generate presigned URLs for each file
       for (const file of files) {
         const fileId = uuidv7()

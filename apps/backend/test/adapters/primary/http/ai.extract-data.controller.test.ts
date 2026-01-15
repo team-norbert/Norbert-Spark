@@ -62,6 +62,7 @@ function setupDefaultMocks() {
 describe('AIExtractDataController', () => {
   let controller: AIExtractDataController
   let mockPresignedUploadUrlUseCase: PresignedUploadUrlUseCase
+  let mockExtractDataUseCase: any
   let mockLogger: LoggerPort
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
@@ -85,8 +86,17 @@ describe('AIExtractDataController', () => {
       debug: vi.fn(),
     }
 
+    // Create mock ExtractDataUseCase
+    mockExtractDataUseCase = {
+      execute: vi.fn(),
+    }
+
     // Create controller instance
-    controller = new AIExtractDataController(mockLogger, mockPresignedUploadUrlUseCase)
+    controller = new AIExtractDataController(
+      mockLogger,
+      mockPresignedUploadUrlUseCase,
+      mockExtractDataUseCase
+    )
 
     // Create mock Fastify reply with chainable methods
     mockReply = {
@@ -113,14 +123,22 @@ describe('AIExtractDataController', () => {
 
   describe('constructor', () => {
     it('should create instance with required dependencies', () => {
-      const instance = new AIExtractDataController(mockLogger, mockPresignedUploadUrlUseCase)
+      const instance = new AIExtractDataController(
+        mockLogger,
+        mockPresignedUploadUrlUseCase,
+        mockExtractDataUseCase
+      )
 
       expect(instance).toBeInstanceOf(AIExtractDataController)
       expect(instance).toBeDefined()
     })
 
     it('should accept LoggerPort and PresignedUploadUrlUseCase as dependencies', () => {
-      const instance = new AIExtractDataController(mockLogger, mockPresignedUploadUrlUseCase)
+      const instance = new AIExtractDataController(
+        mockLogger,
+        mockPresignedUploadUrlUseCase,
+        mockExtractDataUseCase
+      )
 
       expect(instance).toBeDefined()
       expect(instance).toBeInstanceOf(AIExtractDataController)

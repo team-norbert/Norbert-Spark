@@ -4,6 +4,7 @@ export const EntityType = {
   MESSAGE: 'message',
   PART: 'part',
   AI_OPTIONS: 'ai_options',
+  DATA_EXTRACTION: 'data_extraction',
 } as const
 
 export const AuditAction = {
@@ -12,6 +13,7 @@ export const AuditAction = {
   DELETE: 'delete',
   LOGIN: 'login',
   LOGOUT: 'logout',
+  FETCH: 'fetch',
   LOGIN_FAILED: 'login_failed',
   PASSWORD_CHANGE: 'password_change',
   EMAIL_CHANGE: 'email_change',

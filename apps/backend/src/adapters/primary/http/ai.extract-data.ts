@@ -5,11 +5,14 @@ import { authMiddleware } from '../../../infrastructure/http/middleware/auth.mid
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { PresignedUploadUrlUseCase } from '../../../application/use-cases/presigned-url-put.use-case.js'
 import type { MultipartFile } from '@fastify/multipart'
+import { ExtractDataDto } from '../../../application/dtos/extract-data.dto.js'
+import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import {
   sanitizeFilename,
   validateFileExtension,
   validateMimeType,
 } from '../../../shared/utils/security-validation.util.js'
+import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
 
 /**
  * Allowed file extensions for upload
@@ -39,11 +42,12 @@ interface PresignedUrlRequestBody {
 export class AIExtractDataController {
   constructor(
     private readonly logger: LoggerPort,
-    private readonly presignedUploadUrlUseCase: PresignedUploadUrlUseCase
+    private readonly presignedUploadUrlUseCase: PresignedUploadUrlUseCase,
+    private readonly extractDataUseCase: ExtractDataUseCase
   ) {}
 
   registerRoutes(app: FastifyInstance): void {
-    // Generate presigned URLs from file metadata (JSON) - no file upload needed
+    // Generate presigned URLs from file metadata (JSON) - no file upload neededva
     app.post(
       '/ai/extract-data/presigned-urls',
       {
@@ -51,9 +55,9 @@ export class AIExtractDataController {
       },
       this.generatePresignedUrls.bind(this)
     )
-    // Use AI to extract data after successful to pre-signed URLs
+    // Use AI to extract data after successful to pre-signed URLs {fileId}
     app.get(
-      '/ai/extract-data',
+      '/ai/extract-data/:fileId',
       {
         preHandler: [authMiddleware],
       },
@@ -62,6 +66,21 @@ export class AIExtractDataController {
   }
 
   async extractData(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.debug('Received getAIChatsByUserId request')
+    const params = request.params as Record<string, unknown>
+    const fileKey = params.fileId as string
+
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
+    const dto = ExtractDataDto.validate({ fileKey, bucketName: EnvConfig.BUCKET })
+
+    const result = await this.extractDataUseCase.execute(dto, auditContext)
+
     try {
     } catch (error) {
       const err = error as Error

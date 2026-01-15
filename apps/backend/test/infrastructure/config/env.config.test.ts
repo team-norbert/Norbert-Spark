@@ -1572,84 +1572,84 @@ describe('EnvConfig', () => {
     })
   })
 
-  describe('R2_BUCKET', () => {
+  describe('BUCKET', () => {
     it('should be a static readonly property', async () => {
-      process.env.R2_BUCKET = 'my-bucket'
+      process.env.BUCKET = 'my-bucket'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'R2_BUCKET')
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'BUCKET')
       expect(descriptor).toBeDefined()
       expect(descriptor?.configurable).toBe(true)
       expect(descriptor?.enumerable).toBe(true)
     })
 
-    it('should use R2_BUCKET from environment when set', async () => {
-      process.env.R2_BUCKET = 'production-bucket'
+    it('should use BUCKET from environment when set', async () => {
+      process.env.BUCKET = 'production-bucket'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.R2_BUCKET).toBe('production-bucket')
+      expect(EnvConfig.BUCKET).toBe('production-bucket')
     })
 
     it('should default to empty string when not set and no .env value', async () => {
-      delete process.env.R2_BUCKET
+      delete process.env.BUCKET
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
       // May be empty string or value from .env file
-      expect(typeof EnvConfig.R2_BUCKET).toBe('string')
-      expect(EnvConfig.R2_BUCKET).toBeDefined()
+      expect(typeof EnvConfig.BUCKET).toBe('string')
+      expect(EnvConfig.BUCKET).toBeDefined()
     })
 
     it('should have type string', async () => {
-      process.env.R2_BUCKET = 'dev-bucket'
+      process.env.BUCKET = 'dev-bucket'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.R2_BUCKET).toBe('string')
-      expect(EnvConfig.R2_BUCKET).toBe('dev-bucket')
+      expect(typeof EnvConfig.BUCKET).toBe('string')
+      expect(EnvConfig.BUCKET).toBe('dev-bucket')
     })
 
     it('should not be obscured (plain string value)', async () => {
-      process.env.R2_BUCKET = 'my-storage-bucket'
+      process.env.BUCKET = 'my-storage-bucket'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      // R2_BUCKET should be a plain string, not obscured
-      expect(typeof EnvConfig.R2_BUCKET).toBe('string')
-      expect(EnvConfig.R2_BUCKET).toBe('my-storage-bucket')
+      // BUCKET should be a plain string, not obscured
+      expect(typeof EnvConfig.BUCKET).toBe('string')
+      expect(EnvConfig.BUCKET).toBe('my-storage-bucket')
       // Should not have obscured behavior
-      expect(String(EnvConfig.R2_BUCKET)).toBe('my-storage-bucket')
+      expect(String(EnvConfig.BUCKET)).toBe('my-storage-bucket')
     })
 
     it('should accept bucket name with hyphens', async () => {
-      process.env.R2_BUCKET = 'my-production-bucket-2024'
+      process.env.BUCKET = 'my-production-bucket-2024'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.R2_BUCKET).toBe('my-production-bucket-2024')
+      expect(EnvConfig.BUCKET).toBe('my-production-bucket-2024')
     })
 
     it('should handle empty string value', async () => {
-      process.env.R2_BUCKET = ''
+      process.env.BUCKET = ''
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.R2_BUCKET).toBe('')
+      expect(EnvConfig.BUCKET).toBe('')
     })
   })
 })

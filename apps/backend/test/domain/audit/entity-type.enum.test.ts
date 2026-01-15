@@ -80,6 +80,7 @@ describe('EntityType Enum', () => {
           [EntityType.MESSAGE]: 'Message',
           [EntityType.PART]: 'Part',
           [EntityType.AI_OPTIONS]: 'AI Options',
+          [EntityType.DATA_EXTRACTION]: 'Data Extraction',
         }
         // eslint-disable-next-line security/detect-object-injection
         return labels[type]
@@ -264,6 +265,7 @@ describe('AuditAction Enum', () => {
           [AuditAction.DELETE]: 'Deleted',
           [AuditAction.LOGIN]: 'Logged In',
           [AuditAction.LOGOUT]: 'Logged Out',
+          [AuditAction.FETCH]: 'Fetched',
           [AuditAction.LOGIN_FAILED]: 'Login Failed',
           [AuditAction.PASSWORD_CHANGE]: 'Password Changed',
           [AuditAction.EMAIL_CHANGE]: 'Email Changed',
