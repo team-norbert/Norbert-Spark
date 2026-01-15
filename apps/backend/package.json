@@ -40,6 +40,8 @@
     "@google/generative-ai": "^0.24.1",
     "@norberts-spark/shared": "workspace:*",
     "@sentry/node": "^10.34.0",
+    "@smithy/node-http-handler": "^4.4.8",
+    "@supercharge/promise-pool": "^3.2.0",
     "@upstash/redis": "^1.36.1",
     "ai": "^6.0.35",
     "bcrypt": "^6.0.0",
