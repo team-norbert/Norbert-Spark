@@ -204,7 +204,7 @@ Features:
 ### 2. Validate
 
 ```bash
-cd ..
+cd ../..
 pnpm run lint:api
 ```
 
