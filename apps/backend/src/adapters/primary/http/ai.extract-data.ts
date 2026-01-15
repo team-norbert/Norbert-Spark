@@ -14,6 +14,10 @@ import {
 } from '../../../shared/utils/security-validation.util.js'
 import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
 import unzipper from 'unzipper'
+import { generateText, generateObject } from 'ai'
+import { readFileSync } from 'node:fs'
+import { google } from '@ai-sdk/google'
+import { schema } from '../../../shared/constants/ai-constants.js'
 
 /**
  * Allowed file extensions for upload
@@ -66,33 +70,73 @@ export class AIExtractDataController {
     )
   }
 
-  async extractData(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  async extractData(request: FastifyRequest, reply: FastifyReply): Promise<boolean | undefined> {
     this.logger.debug('Received getAIChatsByUserId request')
     const params = request.params as Record<string, unknown>
     const fileKey = params.fileId as string
 
-    // Extract audit context from request
-    const auditContext = {
-      userId: request.user?.sub ?? null,
-      ipAddress: request.ip,
-      userAgent: request.headers['user-agent'] ?? null,
-    }
-
-    const dto = ExtractDataDto.validate({ fileKey, bucketName: EnvConfig.BUCKET })
-
-    const { buffer, fileType } = await this.extractDataUseCase.execute(dto, auditContext)
-
-    if (fileType === 'zip') {
-      // Handle ZIP file extraction using NPM unzipper
-    }
-    if (fileType === 'pdf') {
-      // Handle PDF file extraction using PDF parsing library
-    }
-
-    //return { buffer: result, fileType }
-    //this.
-
     try {
+      // Extract audit context from request
+      const auditContext = {
+        userId: request.user?.sub ?? null,
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] ?? null,
+      }
+
+      const dto = ExtractDataDto.validate({ fileKey, bucketName: EnvConfig.BUCKET })
+
+      const { buffer, fileType } = await this.extractDataUseCase.execute(dto, auditContext)
+
+      if (fileType === 'zip') {
+        // Handle ZIP file extraction using NPM unzipper
+        const directory = await unzipper.Open.buffer(Buffer.from(buffer))
+        for (const fileEntry of directory.files) {
+          if (fileEntry.type === 'File' && fileEntry.path.endsWith('.pdf')) {
+            const fileBuffer = await fileEntry.buffer()
+            const result = await generateObject({
+              model: google(EnvConfig.MODEL_NAME as string),
+              system: `You will receive an invoice. ` + `Please extract the data from the invoice.`,
+              schema,
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    {
+                      type: 'file',
+                      data: fileBuffer,
+                      mediaType: 'application/pdf',
+                    },
+                  ],
+                },
+              ],
+            })
+            this.logger.debug('Received getAIChatsByUserId request', { result })
+          }
+        }
+      }
+
+      if (fileType === 'pdf') {
+        const result = await generateObject({
+          model: google(EnvConfig.MODEL_NAME as string),
+          system: `You will receive an invoice. ` + `Please extract the data from the invoice.`,
+          schema,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'file',
+                  data: Buffer.from(buffer),
+                  mediaType: 'application/pdf',
+                },
+              ],
+            },
+          ],
+        })
+        this.logger.debug('Received getAIChatsByUserId request', { result })
+      }
+
+      return true
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
