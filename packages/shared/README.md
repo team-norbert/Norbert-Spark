@@ -141,9 +141,9 @@ All tests pass in both Node.js and browser environments.
 ### 4. NPM Scripts
 
 ```bash
-pnpm run api:lint       # Validate OpenAPI spec
-pnpm run api:lint:json  # JSON output for CI/CD
-pnpm run api:docs       # Show docs URL
+pnpm run lint:api       # Validate OpenAPI spec
+pnpm run lint:api:json  # JSON output for CI/CD
+pnpm run docs:api       # Show docs URL
 ```
 
 ### 5. Documentation
