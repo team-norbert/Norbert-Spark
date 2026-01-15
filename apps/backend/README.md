@@ -368,19 +368,12 @@ Add to `.github/workflows/ci-cd.yml`:
 
 ## Next Steps
 
-1. **Add more endpoints** to `openapi.json`
+1. **Add more endpoints** to `packages/shared/src/openapi.json`
 2. **Enable authentication** in Swagger UI (JWT bearer tokens)
 3. **Generate TypeScript types** from OpenAPI (optional):
    ```bash
    pnpm add -D openapi-typescript
-   openapi-typescript openapi.json -o src/types/api.ts
-   ```
-4. **Implement endpoints** following hexagonal architecture
-5. **Add contract tests** using OpenAPI spec
-
-## Resources
-
-- OpenAPI Spec: `packages/sharedbackend/openapi.json`
+   openapi-typescript ../../packages/shared/src/openapi.json -o src/types/api.ts
 - Spectral Config: `apps/backend/.spectral.yaml`
 - Architecture: `backend/src/HEXAGONAL_ARCHITECTURE.txt`
 - Interactive Docs: `https://localhost:3000/docs` (when running)
