@@ -1,6 +1,7 @@
 import type { Obscured } from 'obscured'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+//TODO: these tests need refactoring as the environment mocking is incorrectly handled
 describe('EnvConfig', () => {
   let originalEnv: typeof process.env
 
