@@ -157,7 +157,7 @@ pnpm run api:docs       # Show docs URL
 ### 1. Start Development Server
 
 ```bash
-cd backend
+cd apps/backend
 pnpm dev
 ```
 
