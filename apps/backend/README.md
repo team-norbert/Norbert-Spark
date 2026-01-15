@@ -89,6 +89,7 @@ To regenerate certificates if needed:
 cd backend/certs
 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
 ```
+
 # OpenAPI Integration Setup Guide
 
 ### 1. OpenAPI Specification (`openapi.json`)
@@ -102,13 +103,13 @@ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -node
 
 - **Rulesets**: Extended from `spectral:oas` and `spectral:asyncapi`
 - **Custom Rules**:
-   - Operations must have success responses (2xx)
-   - No HTTP verbs in paths
-   - Error responses must have schemas
-   - POST/PUT/PATCH require request body validation
-   - Security requirements for non-GET operations
-   - Schema descriptions required
-   - Parameter descriptions required
+  - Operations must have success responses (2xx)
+  - No HTTP verbs in paths
+  - Error responses must have schemas
+  - POST/PUT/PATCH require request body validation
+  - Security requirements for non-GET operations
+  - Schema descriptions required
+  - Parameter descriptions required
 
 ### 3. Fastify Integration
 
