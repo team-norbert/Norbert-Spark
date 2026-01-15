@@ -383,7 +383,7 @@ Add to `.github/workflows/ci-cd.yml`:
 
 ```yaml
 - name: Validate API Specification
-  run: cd backend && pnpm run api:lint
+  run: cd apps/backend && pnpm run api:lint
 ```
 
 ## Next Steps
