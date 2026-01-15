@@ -177,7 +177,7 @@ Features:
 
 ### 1. Add to `packages/shared/src/openapi.json`
 
-```yaml
+```json
 "paths": {
  "/users/register": {
   "post": {
@@ -331,7 +331,7 @@ export class DeleteUsersUseCase {
 }
 ```
 
-**Secondary adaptors** (`src/application/use-cases/delete-users.use-case.ts`):
+**Secondary adaptors** (`src/adapters/secondary/repositories/user.repository.ts`):
 
 ```typescript
 export class PostgresUserRepository implements UserRepositoryPort {
@@ -363,7 +363,7 @@ Add to `.github/workflows/ci-cd.yml`:
 
 ```yaml
 - name: Validate API Specification
-  run: cd backend && pnpm run api:lint
+  run: pnpm run lint:api
 ```
 
 ## Next Steps
@@ -380,9 +380,8 @@ Add to `.github/workflows/ci-cd.yml`:
 
 ## Resources
 
-- OpenAPI Spec: `backend/openapi.json`
-- Spectral Config: `backend/.spectral.yaml`
-- Workflow Guide: `backend/API_FIRST_WORKFLOW.md`
+- OpenAPI Spec: `packages/sharedbackend/openapi.json`
+- Spectral Config: `apps/backend/.spectral.yaml`
 - Architecture: `backend/src/HEXAGONAL_ARCHITECTURE.txt`
 - Interactive Docs: `https://localhost:3000/docs` (when running)
 
