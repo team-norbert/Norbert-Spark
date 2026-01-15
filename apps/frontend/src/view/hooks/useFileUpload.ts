@@ -300,9 +300,14 @@ export function useFileUpload(): UseFileUploadReturn {
           fileKey: urlInfo.fileKey,
         })
 
-        await uploadFileToR2(uploadedFile.file, urlInfo.uploadUrl, uploadedFile.id)
+        const result = await uploadFileToR2(uploadedFile.file, urlInfo.uploadUrl, uploadedFile.id)
 
-        logger.info('File uploaded successfully', { filename: uploadedFile.file.name })
+        logger.info('File uploaded successfully', {
+          filename: uploadedFile.file.name,
+          urlInfo: urlInfo.uploadUrl,
+          id: uploadedFile.id,
+        })
+        logger.info('Response uploaded successfully', { result })
       }
 
       // All files uploaded successfully

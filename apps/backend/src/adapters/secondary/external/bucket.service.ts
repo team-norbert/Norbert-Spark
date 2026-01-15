@@ -38,10 +38,15 @@ export class BucketService implements BucketPort {
     this.presignClient.middlewareStack.add(
       (next) => async (args) => {
         // Remove checksum-related properties from the request
-        const request = args.request as { query?: Record<string, string> }
-        if (request.query) {
-          delete request.query['x-amz-checksum-crc32']
-          delete request.query['x-amz-sdk-checksum-algorithm']
+        const request = args.request as { query?: Record<string, string> | undefined }
+        const query = request.query
+        if (query) {
+          if ('x-amz-checksum-crc32' in query) {
+            delete query['x-amz-checksum-crc32']
+          }
+          if ('x-amz-sdk-checksum-algorithm' in query) {
+            delete query['x-amz-sdk-checksum-algorithm']
+          }
         }
         return next(args)
       },
