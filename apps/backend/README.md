@@ -136,7 +136,8 @@ pnpm run api:docs       # Show docs URL
 ### 1. Start Development Server
 
 ```bash
-cd backend
+# From the monorepo root
+cd apps/backend
 pnpm dev
 ```
 
