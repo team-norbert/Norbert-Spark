@@ -13,6 +13,7 @@ import {
   validateMimeType,
 } from '../../../shared/utils/security-validation.util.js'
 import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
+import unzipper from 'unzipper'
 
 /**
  * Allowed file extensions for upload
@@ -79,7 +80,17 @@ export class AIExtractDataController {
 
     const dto = ExtractDataDto.validate({ fileKey, bucketName: EnvConfig.BUCKET })
 
-    const result = await this.extractDataUseCase.execute(dto, auditContext)
+    const { buffer, fileType } = await this.extractDataUseCase.execute(dto, auditContext)
+
+    if (fileType === 'zip') {
+      // Handle ZIP file extraction using NPM unzipper
+    }
+    if (fileType === 'pdf') {
+      // Handle PDF file extraction using PDF parsing library
+    }
+
+    //return { buffer: result, fileType }
+    //this.
 
     try {
     } catch (error) {
