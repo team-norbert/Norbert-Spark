@@ -20,7 +20,6 @@ RUN pnpm install --frozen-lockfile
 COPY packages/shared ./packages/shared
 COPY apps/backend/src ./apps/backend/src
 COPY apps/backend/tsconfig.json ./apps/backend/
-COPY apps/backend/certs ./apps/backend/certs
 
 # Build shared package first, then backend
 RUN pnpm --filter @norberts-spark/shared build && \
@@ -48,7 +47,9 @@ RUN pnpm install --frozen-lockfile --prod
 # Copy built artifacts from builder stage
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
-COPY --from=builder /app/apps/backend/certs ./apps/backend/certs
+
+# Copy certificates for runtime
+COPY apps/backend/certs ./apps/backend/certs
 
 # Security: Run as non-root user
 # The node:22-slim image provides a built-in 'node' user (uid 1000)
