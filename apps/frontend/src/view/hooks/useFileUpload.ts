@@ -4,6 +4,7 @@ import type React from 'react'
 import { useCallback, useState } from 'react'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
+import { extractDataByFileIdAction } from '@/infrastructure/serverActions/extractDataByFileId.server.js'
 import { getPresignedUrls } from '@/infrastructure/serverActions/getPresignedUrls.server.js'
 
 const logger = createLogger({ prefix: '[useFileUpload]' })
@@ -301,6 +302,10 @@ export function useFileUpload(): UseFileUploadReturn {
         })
 
         const result = await uploadFileToR2(uploadedFile.file, urlInfo.uploadUrl, uploadedFile.id)
+
+        // Call extract-data endpoint after successful upload
+        const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
+        logger.info('Extract data result', { fileKey: urlInfo.fileKey, extractResult })
 
         logger.info('File uploaded successfully', {
           filename: uploadedFile.file.name,

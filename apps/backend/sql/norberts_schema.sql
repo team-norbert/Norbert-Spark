@@ -283,7 +283,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     user_id UUID REFERENCES users(user_id) ON DELETE SET NULL,
     entity_type VARCHAR(50) NOT NULL,
-    entity_id UUID,
+    entity_id TEXT,
     action VARCHAR(50) NOT NULL,
     changes JSONB,
     ip_address INET,
@@ -347,7 +347,7 @@ COMMENT ON COLUMN parts."order" IS 'Order of parts within a message for proper s
 COMMENT ON TABLE audit_log IS 'Tracks all significant actions and changes across the system for security and compliance';
 COMMENT ON COLUMN audit_log.user_id IS 'User who performed the action (nullable if action performed by system)';
 COMMENT ON COLUMN audit_log.entity_type IS 'Type of entity affected (e.g., user, chat, message, part, customer, person)';
-COMMENT ON COLUMN audit_log.entity_id IS 'UUID of the affected entity';
+COMMENT ON COLUMN audit_log.entity_id IS 'Identifier of the affected entity (UUID or file path)';
 COMMENT ON COLUMN audit_log.action IS 'Action performed (e.g., create, update, delete, login, logout)';
 COMMENT ON COLUMN audit_log.changes IS 'JSONB object containing before/after values for updates, or relevant metadata';
 COMMENT ON COLUMN audit_log.ip_address IS 'IP address from which the action was performed';

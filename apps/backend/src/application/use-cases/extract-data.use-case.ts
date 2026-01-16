@@ -74,7 +74,7 @@ export class ExtractDataUseCase {
       await this.auditLog.log({
         userId: auditContext.userId,
         entityType: EntityType.DATA_EXTRACTION,
-        entityId: GetObjectCommandKeys.fileKey,
+        entityId: auditContext.userId,
         action: AuditAction.FETCH,
         changes: { reason: 'get_from_bucket', fileType },
         ipAddress: auditContext.ipAddress,
