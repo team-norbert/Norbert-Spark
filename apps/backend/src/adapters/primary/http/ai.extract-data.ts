@@ -13,7 +13,7 @@ import {
   validateMimeType,
 } from '../../../shared/utils/security-validation.util.js'
 import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
-import { generateText, Output, streamText } from 'ai'
+import { Output, streamText } from 'ai'
 import { google } from '@ai-sdk/google'
 import { pdfSchema } from '@norberts-spark/shared'
 import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
