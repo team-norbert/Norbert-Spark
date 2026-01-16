@@ -1,12 +1,17 @@
+import type { pdfSchema } from '@norberts-spark/shared'
 import { useRouter } from 'next/navigation.js'
 import { signOut } from 'next-auth/react'
 import type React from 'react'
 import { useCallback, useState } from 'react'
+import type { z } from 'zod'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
+import { extractDataByFileIdAction } from '@/infrastructure/serverActions/extractDataByFileId.server.js'
 import { getPresignedUrls } from '@/infrastructure/serverActions/getPresignedUrls.server.js'
 
 const logger = createLogger({ prefix: '[useFileUpload]' })
+
+type ExtractedInvoiceData = z.infer<typeof pdfSchema>
 
 export interface UploadedFile {
   file: File
@@ -19,6 +24,8 @@ interface UseFileUploadReturn {
   dragActive: boolean
   error: string | null
   isUploading: boolean
+  isExtracting: boolean
+  extractedData: ExtractedInvoiceData[]
   handleDrag: (e: React.DragEvent) => void
   handleDrop: (e: React.DragEvent) => void
   handleFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -52,6 +59,8 @@ export function useFileUpload(): UseFileUploadReturn {
   const [dragActive, setDragActive] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isExtracting, setIsExtracting] = useState(false)
+  const [extractedData, setExtractedData] = useState<ExtractedInvoiceData[]>([])
 
   /**
    * Validate if a file has an accepted extension or MIME type
@@ -169,19 +178,19 @@ export function useFileUpload(): UseFileUploadReturn {
   }, [])
 
   /**
-   * Upload a file directly to R2 using a presigned URL with progress tracking
+   * Upload a file directly to a bucket using a presigned URL with progress tracking
    * @param {File} file - The file to upload
    * @param {string} uploadUrl - The presigned URL for upload
    * @param {string} id - The file ID for progress tracking
    * @returns {Promise<boolean>} True if upload succeeds
    */
-  const uploadFileToR2 = useCallback(
+  const uploadFileToBucket = useCallback(
     async (file: File, uploadUrl: string, id: string): Promise<boolean> => {
       let retries = 0
 
       while (retries < MAX_RETRIES) {
         try {
-          logger.info(`Uploading ${file.name} to R2`, {
+          logger.info(`Uploading ${file.name} to Bucket`, {
             url: uploadUrl,
             size: file.size,
             type: file.type,
@@ -213,7 +222,7 @@ export function useFileUpload(): UseFileUploadReturn {
               }
             })
 
-            xhr.addEventListener('error', (event) => {
+            xhr.addEventListener('error', (_event) => {
               logger.error('XHR error event fired', {
                 filename: file.name,
                 readyState: xhr.readyState,
@@ -256,13 +265,13 @@ export function useFileUpload(): UseFileUploadReturn {
   )
 
   /**
-   * Process the uploaded files using presigned URLs for direct R2 upload
+   * Process the uploaded files using presigned URLs for direct bucket upload
    */
   const handleProcessFiles = useCallback(async () => {
     if (uploadedFiles.length === 0 || isUploading) return
 
-    setIsUploading(true)
     setError(null)
+    setIsUploading(true)
 
     try {
       // Prepare file metadata for presigned URL generation
@@ -287,7 +296,7 @@ export function useFileUpload(): UseFileUploadReturn {
       // Create a map of filename to presigned URL info
       const urlMap = new Map(uploadUrls.map((u) => [u.filename, u]))
 
-      // Upload files directly to R2 using presigned URLs
+      // Upload files directly to bucket using presigned URLs
       for (const uploadedFile of uploadedFiles) {
         const urlInfo = urlMap.get(uploadedFile.file.name)
 
@@ -295,12 +304,47 @@ export function useFileUpload(): UseFileUploadReturn {
           throw new Error(`No presigned URL received for ${uploadedFile.file.name}`)
         }
 
-        logger.info('Uploading file to R2', {
+        logger.info('Uploading file to Bucket', {
           filename: uploadedFile.file.name,
           fileKey: urlInfo.fileKey,
         })
 
-        const result = await uploadFileToR2(uploadedFile.file, urlInfo.uploadUrl, uploadedFile.id)
+        const result = await uploadFileToBucket(
+          uploadedFile.file,
+          urlInfo.uploadUrl,
+          uploadedFile.id
+        )
+
+        console.log('=== UPLOAD COMPLETE, STARTING EXTRACTION ===')
+        console.log('File:', uploadedFile.file.name)
+        console.log('FileKey:', urlInfo.fileKey)
+
+        // Clear previous extraction results
+        setExtractedData([])
+        setIsExtracting(true)
+
+        // Extract data using server action
+        try {
+          logger.info('Starting extraction via server action', { fileKey: urlInfo.fileKey })
+
+          const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
+
+          if (
+            extractResult.success &&
+            extractResult.allResults &&
+            extractResult.allResults.length > 0
+          ) {
+            logger.info('Extraction successful', { count: extractResult.allResults.length })
+            setExtractedData(extractResult.allResults)
+          } else if (extractResult.error) {
+            logger.error('Extraction failed', { error: extractResult.error })
+            throw new Error(extractResult.error)
+          }
+        } catch (extractError) {
+          logger.error('Extraction failed', { error: extractError })
+        } finally {
+          setIsExtracting(false)
+        }
 
         logger.info('File uploaded successfully', {
           filename: uploadedFile.file.name,
@@ -311,7 +355,7 @@ export function useFileUpload(): UseFileUploadReturn {
       }
 
       // All files uploaded successfully
-      logger.info('All files uploaded successfully to R2')
+      logger.info('All files uploaded successfully to bucket')
       // You can add navigation or success notification here
     } catch (error) {
       const errorMessage =
@@ -321,7 +365,7 @@ export function useFileUpload(): UseFileUploadReturn {
     } finally {
       setIsUploading(false)
     }
-  }, [uploadedFiles, isUploading, uploadFileToR2])
+  }, [uploadedFiles, isUploading, uploadFileToBucket])
 
   /**
    * Clear the error message
@@ -350,6 +394,8 @@ export function useFileUpload(): UseFileUploadReturn {
     dragActive,
     error,
     isUploading,
+    isExtracting,
+    extractedData,
     handleDrag,
     handleDrop,
     handleFileInputChange,

@@ -14,12 +14,14 @@ export function ExtractDataPageClient() {
     clearError,
     dragActive,
     error,
+    extractedData,
     handleDrag,
     handleDrop,
     handleFileInputChange,
     handleNavigateHome,
     handleProcessFiles,
     handleSignOut,
+    isExtracting,
     isUploading,
     removeFile,
     uploadedFiles,
@@ -31,6 +33,8 @@ export function ExtractDataPageClient() {
       dragActive={dragActive}
       error={error}
       isUploading={isUploading}
+      isExtracting={isExtracting}
+      extractedData={extractedData}
       onDrag={handleDrag}
       onDrop={handleDrop}
       onFileInputChange={handleFileInputChange}

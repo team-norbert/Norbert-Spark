@@ -1,15 +1,35 @@
 import type { LoggerPort } from '../ports/logger.port.js'
 import type { AuditLogPort } from '../ports/audit-log.port.js'
 import type { BucketPort } from '../ports/bucket.service.port.js'
+import { ExtractDataDto } from '../dtos/extract-data.dto.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
-import { EnvConfig } from '../../infrastructure/config/env.config.js'
-import { uuidv7 } from 'uuidv7'
-import type { MultipartFile } from '@fastify/multipart'
+import { UnprocessableEntityException } from '../../shared/exceptions/unprocessable-entity.exception.js'
 
-interface PresignedUploadUrl {
-  filename: string
-  uploadUrl: string
-  fileKey: string
+/**
+ * Detect file type from buffer by checking magic bytes (file signature)
+ */
+function detectFileType(buffer: Uint8Array): 'pdf' | 'zip' | 'unknown' {
+  if (buffer.length < 4) {
+    return 'unknown'
+  }
+
+  // PDF magic bytes: %PDF (25 50 44 46)
+  if (buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46) {
+    return 'pdf'
+  }
+
+  // ZIP magic bytes: PK (50 4B 03 04 or 50 4B 05 06 or 50 4B 07 08)
+  if (buffer[0] === 0x50 && buffer[1] === 0x4b) {
+    if (
+      (buffer[2] === 0x03 && buffer[3] === 0x04) ||
+      (buffer[2] === 0x05 && buffer[3] === 0x06) ||
+      (buffer[2] === 0x07 && buffer[3] === 0x08)
+    ) {
+      return 'zip'
+    }
+  }
+
+  return 'unknown'
 }
 
 export class ExtractDataUseCase {
@@ -20,72 +40,61 @@ export class ExtractDataUseCase {
   ) {}
 
   async execute(
-    files: MultipartFile[],
+    GetObjectCommandKeys: ExtractDataDto,
     auditContext: { ipAddress: string; userAgent: string | null; userId: string | null }
-  ): Promise<{ uploadUrls: PresignedUploadUrl[] }> {
-    const bucketName = EnvConfig.R2_BUCKET
-    const uploadUrls: PresignedUploadUrl[] = []
-
-    if (!bucketName) {
-      this.logger.error('R2_BUCKET environment variable is not configured')
-      throw new Error('Bucket configuration is missing')
-    }
+  ) {
+    this.logger.info('Starting data extraction from file', {
+      fileKey: GetObjectCommandKeys.fileKey,
+    })
 
     try {
-      // Generate presigned URLs for each file
-      for (const file of files) {
-        const fileId = uuidv7()
-        const fileKey = `data-extraction/${fileId}/${file.filename}`
+      const result = await this.bucketService.getFileUrl(
+        GetObjectCommandKeys.bucketName,
+        GetObjectCommandKeys.fileKey
+      )
 
-        this.logger.info('Generating presigned URL for file', {
-          filename: file.filename,
-          fileKey,
-          mimetype: file.mimetype,
-        })
-
-        // Generate presigned URL with 1 hour expiration
-        const uploadUrl = await this.bucketService.getUploadURL(bucketName, fileKey, 3600)
-
-        uploadUrls.push({
-          filename: file.filename,
-          uploadUrl,
-          fileKey,
-        })
+      if (!result) {
+        throw new UnprocessableEntityException('File not found in bucket')
       }
 
-      // Log audit event for data extraction upload initialization
-      try {
-        await this.auditLog.log({
-          userId: auditContext.userId,
-          entityType: EntityType.USER,
-          entityId: auditContext.userId,
-          action: AuditAction.CREATE,
-          changes: {
-            action: 'data_extraction_upload_initialized',
-            fileCount: files.length,
-            files: files.map((f) => ({
-              filename: f.filename,
-              mimetype: f.mimetype,
-            })),
-          },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        })
-      } catch (error) {
-        this.logger.error('Error logging audit for data extraction upload', error as Error, {
-          userId: auditContext.userId,
-        })
+      // Detect file type from buffer
+      const fileType = detectFileType(result)
+
+      if (fileType === 'unknown') {
+        throw new UnprocessableEntityException(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
       }
 
-      this.logger.info('Presigned URLs generated successfully', {
-        fileCount: uploadUrls.length,
+      this.logger.info('File type detected', {
+        fileKey: GetObjectCommandKeys.fileKey,
+        fileType,
       })
 
-      return { uploadUrls }
-    } catch (error) {
-      this.logger.error('Error generating presigned URLs', error as Error, {
+      await this.auditLog.log({
         userId: auditContext.userId,
-        fileCount: files.length,
+        entityType: EntityType.DATA_EXTRACTION,
+        entityId: GetObjectCommandKeys.fileKey,
+        action: AuditAction.FETCH,
+        changes: { reason: 'get_from_bucket', fileType },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
+      })
+
+      return { buffer: result, fileType }
+    } catch (error) {
+      this.logger.error(
+        'Error during data extraction',
+        error instanceof Error ? error : new Error(String(error))
+      )
+      await this.auditLog.log({
+        userId: auditContext.userId,
+        entityType: EntityType.DATA_EXTRACTION,
+        entityId: GetObjectCommandKeys.fileKey,
+        action: AuditAction.FETCH,
+        changes: { reason: 'get_from_bucket_failed' },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
       })
       throw error
     }

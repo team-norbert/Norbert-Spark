@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIExtractDataController } from '../../../../src/adapters/primary/http/ai.extract-data.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
-import type { ExtractDataUseCase } from '../../../../src/application/use-cases/extract-data.use-case.js'
+import type { PresignedUploadUrlUseCase } from '../../../../src/application/use-cases/presigned-url-put.use-case.js'
 import { UnprocessableEntityException } from '../../../../src/shared/exceptions/unprocessable-entity.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
 import {
@@ -61,8 +61,10 @@ function setupDefaultMocks() {
 
 describe('AIExtractDataController', () => {
   let controller: AIExtractDataController
-  let mockExtractDataUseCase: ExtractDataUseCase
+  let mockPresignedUploadUrlUseCase: PresignedUploadUrlUseCase
+  let mockExtractDataUseCase: any
   let mockLogger: LoggerPort
+  let mockPdfUtils: any
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
 
@@ -73,7 +75,7 @@ describe('AIExtractDataController', () => {
     setupDefaultMocks()
 
     // Create mock use case
-    mockExtractDataUseCase = {
+    mockPresignedUploadUrlUseCase = {
       execute: vi.fn(),
     } as any
 
@@ -85,8 +87,23 @@ describe('AIExtractDataController', () => {
       debug: vi.fn(),
     }
 
+    // Create mock ExtractDataUseCase
+    mockExtractDataUseCase = {
+      execute: vi.fn(),
+    }
+
+    // Create mock PDFUtils
+    mockPdfUtils = {
+      extractFromBuffer: vi.fn(),
+    }
+
     // Create controller instance
-    controller = new AIExtractDataController(mockLogger, mockExtractDataUseCase)
+    controller = new AIExtractDataController(
+      mockLogger,
+      mockPresignedUploadUrlUseCase,
+      mockExtractDataUseCase,
+      mockPdfUtils
+    )
 
     // Create mock Fastify reply with chainable methods
     mockReply = {
@@ -113,14 +130,24 @@ describe('AIExtractDataController', () => {
 
   describe('constructor', () => {
     it('should create instance with required dependencies', () => {
-      const instance = new AIExtractDataController(mockLogger, mockExtractDataUseCase)
+      const instance = new AIExtractDataController(
+        mockLogger,
+        mockPresignedUploadUrlUseCase,
+        mockExtractDataUseCase,
+        mockPdfUtils
+      )
 
       expect(instance).toBeInstanceOf(AIExtractDataController)
       expect(instance).toBeDefined()
     })
 
-    it('should accept LoggerPort and ExtractDataUseCase as dependencies', () => {
-      const instance = new AIExtractDataController(mockLogger, mockExtractDataUseCase)
+    it('should accept LoggerPort and PresignedUploadUrlUseCase as dependencies', () => {
+      const instance = new AIExtractDataController(
+        mockLogger,
+        mockPresignedUploadUrlUseCase,
+        mockExtractDataUseCase,
+        mockPdfUtils
+      )
 
       expect(instance).toBeDefined()
       expect(instance).toBeInstanceOf(AIExtractDataController)
@@ -131,6 +158,7 @@ describe('AIExtractDataController', () => {
     it('should register POST /ai/extract-data/presigned-urls route', () => {
       const mockApp = {
         post: vi.fn(),
+        get: vi.fn(),
       } as unknown as FastifyInstance
 
       controller.registerRoutes(mockApp)
@@ -146,6 +174,7 @@ describe('AIExtractDataController', () => {
     it('should register route with auth middleware', () => {
       const mockApp = {
         post: vi.fn(),
+        get: vi.fn(),
       } as unknown as FastifyInstance
 
       controller.registerRoutes(mockApp)
@@ -158,6 +187,7 @@ describe('AIExtractDataController', () => {
     it('should bind controller context to route handler', () => {
       const mockApp = {
         post: vi.fn(),
+        get: vi.fn(),
       } as unknown as FastifyInstance
 
       controller.registerRoutes(mockApp)
@@ -181,7 +211,7 @@ describe('AIExtractDataController', () => {
           ],
         }
 
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         mockRequest.body = {
           files: [{ filename: 'document.pdf', mimetype: 'application/pdf' }],
@@ -208,7 +238,7 @@ describe('AIExtractDataController', () => {
           ],
         }
 
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         mockRequest.body = {
           files: [{ filename: 'archive.zip', mimetype: 'application/zip' }],
@@ -240,7 +270,7 @@ describe('AIExtractDataController', () => {
           ],
         }
 
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         mockRequest.body = {
           files: [
@@ -270,7 +300,7 @@ describe('AIExtractDataController', () => {
           ],
         }
 
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         mockRequest.body = {
           files: [{ filename: 'archive.zip', mimetype: 'application/x-zip-compressed' }],
@@ -283,7 +313,7 @@ describe('AIExtractDataController', () => {
 
       it('should log file information when generating presigned URLs', async () => {
         const mockResult = { uploadUrls: [] }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         mockRequest.body = {
           files: [{ filename: 'document.pdf', mimetype: 'application/pdf' }],
@@ -302,7 +332,7 @@ describe('AIExtractDataController', () => {
 
       it('should pass audit context to use case', async () => {
         const mockResult = { uploadUrls: [] }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         const userId = uuidv7()
         mockRequest = {
@@ -318,7 +348,7 @@ describe('AIExtractDataController', () => {
 
         await controller.generatePresignedUrls(mockRequest, mockReply)
 
-        expect(mockExtractDataUseCase.execute).toHaveBeenCalledWith(
+        expect(mockPresignedUploadUrlUseCase.execute).toHaveBeenCalledWith(
           expect.any(Array),
           expect.objectContaining({
             userId: userId,
@@ -330,7 +360,7 @@ describe('AIExtractDataController', () => {
 
       it('should handle request without user (null userId)', async () => {
         const mockResult = { uploadUrls: [] }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         mockRequest.body = {
           files: [{ filename: 'document.pdf', mimetype: 'application/pdf' }],
@@ -339,7 +369,7 @@ describe('AIExtractDataController', () => {
 
         await controller.generatePresignedUrls(mockRequest, mockReply)
 
-        expect(mockExtractDataUseCase.execute).toHaveBeenCalledWith(
+        expect(mockPresignedUploadUrlUseCase.execute).toHaveBeenCalledWith(
           expect.any(Array),
           expect.objectContaining({
             userId: null,
@@ -349,7 +379,7 @@ describe('AIExtractDataController', () => {
 
       it('should handle missing user-agent header', async () => {
         const mockResult = { uploadUrls: [] }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         mockRequest.body = {
           files: [{ filename: 'document.pdf', mimetype: 'application/pdf' }],
@@ -358,7 +388,7 @@ describe('AIExtractDataController', () => {
 
         await controller.generatePresignedUrls(mockRequest, mockReply)
 
-        expect(mockExtractDataUseCase.execute).toHaveBeenCalledWith(
+        expect(mockPresignedUploadUrlUseCase.execute).toHaveBeenCalledWith(
           expect.any(Array),
           expect.objectContaining({
             userAgent: null,
@@ -536,7 +566,7 @@ describe('AIExtractDataController', () => {
         }
 
         const mockResult = { uploadUrls: [] }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.generatePresignedUrls(mockRequest, mockReply)
 
@@ -549,7 +579,7 @@ describe('AIExtractDataController', () => {
         }
 
         const mockResult = { uploadUrls: [] }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.generatePresignedUrls(mockRequest, mockReply)
 
@@ -562,7 +592,7 @@ describe('AIExtractDataController', () => {
         }
 
         const mockResult = { uploadUrls: [] }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.generatePresignedUrls(mockRequest, mockReply)
 
@@ -596,7 +626,9 @@ describe('AIExtractDataController', () => {
 
     describe('error handling', () => {
       it('should return 500 for unexpected errors', async () => {
-        vi.mocked(mockExtractDataUseCase.execute).mockRejectedValue(new Error('Database error'))
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockRejectedValue(
+          new Error('Database error')
+        )
 
         mockRequest.body = {
           files: [{ filename: 'document.pdf', mimetype: 'application/pdf' }],
@@ -612,7 +644,7 @@ describe('AIExtractDataController', () => {
       })
 
       it('should return appropriate status code for BaseException errors', async () => {
-        vi.mocked(mockExtractDataUseCase.execute).mockRejectedValue(
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockRejectedValue(
           new UnprocessableEntityException('Custom validation error')
         )
 
@@ -632,7 +664,7 @@ describe('AIExtractDataController', () => {
       it('should handle error without message', async () => {
         const errorWithoutMessage = new Error()
         errorWithoutMessage.message = ''
-        vi.mocked(mockExtractDataUseCase.execute).mockRejectedValue(errorWithoutMessage)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockRejectedValue(errorWithoutMessage)
 
         mockRequest.body = {
           files: [{ filename: 'document.pdf', mimetype: 'application/pdf' }],
@@ -648,7 +680,7 @@ describe('AIExtractDataController', () => {
       })
 
       it('should handle null error', async () => {
-        vi.mocked(mockExtractDataUseCase.execute).mockRejectedValue(null)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockRejectedValue(null)
 
         mockRequest.body = {
           files: [{ filename: 'document.pdf', mimetype: 'application/pdf' }],
@@ -667,7 +699,7 @@ describe('AIExtractDataController', () => {
     describe('edge cases', () => {
       it('should handle files with special characters in filename', async () => {
         const mockResult = { uploadUrls: [] }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         mockRequest.body = {
           files: [{ filename: 'my file (1).pdf', mimetype: 'application/pdf' }],
@@ -680,7 +712,7 @@ describe('AIExtractDataController', () => {
 
       it('should handle files with unicode characters in filename', async () => {
         const mockResult = { uploadUrls: [] }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         mockRequest.body = {
           files: [{ filename: 'документ.pdf', mimetype: 'application/pdf' }],
@@ -693,7 +725,7 @@ describe('AIExtractDataController', () => {
 
       it('should handle very long filenames', async () => {
         const mockResult = { uploadUrls: [] }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         const longFilename = 'a'.repeat(200) + '.pdf'
         mockRequest.body = {
@@ -715,7 +747,7 @@ describe('AIExtractDataController', () => {
               fileKey: `data-extraction/uuid${i}/document${i}.pdf`,
             })),
         }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         mockRequest.body = {
           files: Array(100)
@@ -729,7 +761,7 @@ describe('AIExtractDataController', () => {
         await controller.generatePresignedUrls(mockRequest, mockReply)
 
         expect(mockReply.status).toHaveBeenCalledWith(200)
-        expect(mockExtractDataUseCase.execute).toHaveBeenCalledWith(
+        expect(mockPresignedUploadUrlUseCase.execute).toHaveBeenCalledWith(
           expect.arrayContaining([expect.objectContaining({ filename: 'document0.pdf' })]),
           expect.any(Object)
         )
@@ -750,7 +782,7 @@ describe('AIExtractDataController', () => {
             },
           ],
         }
-        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue(mockResult)
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
 
         mockRequest.body = {
           files: [

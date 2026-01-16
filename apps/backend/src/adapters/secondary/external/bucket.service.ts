@@ -66,8 +66,24 @@ export class BucketService implements BucketPort {
   uploadFile(bucketName: string, filePath: string, content: Buffer | string): Promise<void> {
     throw new Error('Method not implemented.')
   }
-  getFileUrl(bucketName: string, filePath: string): Promise<string> {
-    throw new Error('Method not implemented.')
+  async getFileUrl(bucketName: string, fileKey: string): Promise<Uint8Array | undefined> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: bucketName,
+        Key: fileKey,
+      })
+
+      const response = await this.client.send(command)
+
+      // Transform the stream body to a byte array
+      return response.Body?.transformToByteArray()
+    } catch (error) {
+      this.logger.error('Error fetching file from bucket', error as Error, {
+        bucketName,
+        fileKey,
+      })
+      throw error
+    }
   }
   getLoadURL(bucketName: string, filePath: string, expiresInSeconds: number): Promise<string> {
     const command = new GetObjectCommand({

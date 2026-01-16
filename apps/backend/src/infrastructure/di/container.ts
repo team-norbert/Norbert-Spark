@@ -12,6 +12,7 @@ import { GetChatsByUserIdUseCase } from '../../application/use-cases/get-chats-b
 import { GetChatContentByChatIdUseCase } from '../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
 import { RegisterUserWithProviderUseCase } from '../../application/use-cases/register-user-with-provider.use-case.js'
 import { DeleteUsersUseCase } from '../../application/use-cases/delete-users.use-case.js'
+import { PresignedUploadUrlUseCase } from '../../application/use-cases/presigned-url-put.use-case.js'
 import { ExtractDataUseCase } from '../../application/use-cases/extract-data.use-case.js'
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
@@ -24,9 +25,10 @@ import { AuthController } from '../../adapters/primary/http/auth.controller.js'
 import { AIController } from '../../adapters/primary/http/ai.controller.js'
 import { BucketService } from '../../adapters/secondary/external/bucket.service.js'
 import { AIExtractDataController } from '../../adapters/primary/http/ai.extract-data.js'
-
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
-import type { AuditLogPort } from '../../application/ports/audit-log.port.js'
+// Utils
+import { PDFUtils } from '../../shared/utils/pdf.utils.js'
+
 import { EnvConfig } from '../config/env.config.js'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -71,7 +73,6 @@ export class Container {
   // Repositories
   public readonly userRepository: PostgresUserRepository
   public readonly aiRepository: AIRepository
-
   public readonly bucketService: BucketService
 
   // Use Cases
@@ -79,6 +80,7 @@ export class Container {
   public readonly getAllUsersUseCase: GetAllUsersUseCase
   public readonly loginUserUseCase: LoginUserUseCase
   public readonly getChatUseCase: GetChatUseCase
+  public readonly presignedUploadUrlUseCase: PresignedUploadUrlUseCase
   public readonly extractDataUseCase: ExtractDataUseCase
   private readonly appendChatUseCase: AppendedChatUseCase
   private readonly saveChatUseCase: SaveChatUseCase
@@ -86,6 +88,9 @@ export class Container {
   private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase
   private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase
   public readonly deleteUsersUseCase: DeleteUsersUseCase
+
+  // Utils
+  public readonly pdfUtils: PDFUtils
 
   // Controllers
   public readonly userController: UserController
@@ -161,6 +166,9 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       )
     }
 
+    // utils
+    this.pdfUtils = new PDFUtils(this.logger)
+
     // Initialize services (secondary adapters)
     this.emailService = new ResendService(EnvConfig.RESEND_API_KEY, this.logger)
     this.tokenGenerator = new JwtTokenGeneratorService()
@@ -205,6 +213,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.logger,
       this.auditLog
     )
+    this.presignedUploadUrlUseCase = new PresignedUploadUrlUseCase(
+      this.logger,
+      this.auditLog,
+      this.bucketService
+    )
     this.extractDataUseCase = new ExtractDataUseCase(this.logger, this.auditLog, this.bucketService)
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
@@ -224,7 +237,12 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.getChatsByUserIdUseCase,
       this.getChatContentByChatIdUseCase
     )
-    this.aiExtractDataController = new AIExtractDataController(this.logger, this.extractDataUseCase)
+    this.aiExtractDataController = new AIExtractDataController(
+      this.logger,
+      this.presignedUploadUrlUseCase,
+      this.extractDataUseCase,
+      this.pdfUtils
+    )
     // Register routes
     this.registerRoutes()
   }
