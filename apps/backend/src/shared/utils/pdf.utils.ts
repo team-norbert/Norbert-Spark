@@ -69,9 +69,7 @@ export class PDFUtils {
    * const arrayBuffer = await response.arrayBuffer()
    * const pdfs = await pdfUtils.extractFromBuffer(Buffer.from(arrayBuffer))
    */
-  async extractFromBuffer(
-    buffer: Buffer
-  ): Promise<{
+  async extractFromBuffer(buffer: Buffer): Promise<{
     totalEntries: number
     pdfFilesFound: number
     pdfPaths: string[]
