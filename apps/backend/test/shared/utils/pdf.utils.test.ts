@@ -185,7 +185,7 @@ describe('PDFUtils', () => {
   })
 
   describe('Security Features', () => {
-    const testZipPath = join(process.cwd(), 'test', 'fake-reciepts.zip')
+    const testZipPath = join(process.cwd(), 'test', 'fake-receipts.zip')
     const zipBuffer = readFileSync(testZipPath)
 
     describe('File Count Limits', () => {
