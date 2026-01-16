@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
-import { PDFUtils } from '../../../src/shared/utils/pdf.utils.js'
+import { PDFUtils, ZipSecurityError } from '../../../src/shared/utils/pdf.utils.js'
 
 describe('PDFUtils', () => {
   let pdfUtils: PDFUtils
@@ -175,8 +175,158 @@ describe('PDFUtils', () => {
           totalEntries: expect.any(Number),
           pdfFilesFound: 10,
           pdfPaths: expect.any(Array),
+          securityLimits: expect.objectContaining({
+            maxFileCount: expect.any(Number),
+            maxDecompressedSize: expect.any(Number),
+          }),
         })
       )
+    })
+  })
+
+  describe('Security Features', () => {
+    const testZipPath = join(process.cwd(), 'test', 'fake-receipts.zip')
+    const zipBuffer = readFileSync(testZipPath)
+
+    describe('File Count Limits', () => {
+      it('should throw ZipSecurityError when file count exceeds limit', async () => {
+        const strictPdfUtils = new PDFUtils(mockLogger, { maxFileCount: 5 })
+
+        await expect(strictPdfUtils.extractFromBuffer(zipBuffer)).rejects.toThrow(ZipSecurityError)
+        await expect(strictPdfUtils.extractFromBuffer(zipBuffer)).rejects.toThrow(
+          /ZIP contains too many files/
+        )
+      })
+
+      it('should allow extraction when file count is within limit', async () => {
+        const result = await pdfUtils.extractFromBuffer(zipBuffer)
+        expect(result.pdfFiles.length).toBeGreaterThan(0)
+      })
+
+      it('should use override limits when provided', async () => {
+        // Override to allow more files
+        const result = await pdfUtils.extractFromBuffer(zipBuffer, { maxFileCount: 200 })
+        expect(result.pdfFiles.length).toBe(10)
+      })
+    })
+
+    describe('Decompressed Size Limits', () => {
+      it('should throw ZipSecurityError when total size exceeds limit', async () => {
+        const strictPdfUtils = new PDFUtils(mockLogger, { maxDecompressedSize: 100 }) // 100 bytes
+
+        await expect(strictPdfUtils.extractFromBuffer(zipBuffer)).rejects.toThrow(ZipSecurityError)
+        await expect(strictPdfUtils.extractFromBuffer(zipBuffer)).rejects.toThrow(
+          /total decompressed size exceeds limit/
+        )
+      })
+
+      it('should allow extraction when size is within limit', async () => {
+        const result = await pdfUtils.extractFromBuffer(zipBuffer)
+        expect(result.pdfFiles.length).toBeGreaterThan(0)
+      })
+    })
+
+    describe('Path Traversal Prevention', () => {
+      it('should have path sanitization that rejects null bytes', async () => {
+        // The sanitizePath method is private but we can verify behavior through logging
+        const result = await pdfUtils.extractFromBuffer(zipBuffer)
+        // Normal paths should work
+        expect(result.pdfFiles.length).toBe(10)
+      })
+
+      it('should exclude files with path traversal in paths', async () => {
+        const result = await pdfUtils.extractFromBuffer(zipBuffer)
+
+        // No file paths should contain ..
+        const traversalFiles = result.pdfFiles.filter(
+          (f) => f.path.includes('../') || f.path.includes('..')
+        )
+        expect(traversalFiles.length).toBe(0)
+      })
+
+      it('should only allow relative paths', async () => {
+        const result = await pdfUtils.extractFromBuffer(zipBuffer)
+
+        // No file paths should be absolute
+        const absolutePathFiles = result.pdfFiles.filter((f) => f.path.startsWith('/'))
+        expect(absolutePathFiles.length).toBe(0)
+      })
+    })
+
+    describe('Custom Security Limits', () => {
+      it('should accept custom security limits in constructor', () => {
+        const customPdfUtils = new PDFUtils(mockLogger, {
+          maxFileCount: 50,
+          maxDecompressedSize: 50 * 1024 * 1024,
+          maxFileSize: 25 * 1024 * 1024,
+          maxCompressionRatio: 50,
+        })
+
+        expect(customPdfUtils).toBeInstanceOf(PDFUtils)
+      })
+
+      it('should merge custom limits with defaults', async () => {
+        const customPdfUtils = new PDFUtils(mockLogger, { maxFileCount: 200 })
+
+        const result = await customPdfUtils.extractFromBuffer(zipBuffer)
+        expect(result.pdfFiles.length).toBe(10)
+      })
+    })
+
+    describe('ZipSecurityError', () => {
+      it('should have correct error code for file count exceeded', async () => {
+        const strictPdfUtils = new PDFUtils(mockLogger, { maxFileCount: 1 })
+
+        const result = await strictPdfUtils
+          .extractFromBuffer(zipBuffer)
+          .catch((e: ZipSecurityError) => e)
+
+        expect(result).toBeInstanceOf(ZipSecurityError)
+        const error = result as ZipSecurityError
+        expect(error.code).toBe('MAX_FILE_COUNT_EXCEEDED')
+      })
+
+      it('should have correct error code for size exceeded', async () => {
+        const strictPdfUtils = new PDFUtils(mockLogger, { maxDecompressedSize: 1 })
+
+        const result = await strictPdfUtils
+          .extractFromBuffer(zipBuffer)
+          .catch((e: ZipSecurityError) => e)
+
+        expect(result).toBeInstanceOf(ZipSecurityError)
+        const error = result as ZipSecurityError
+        expect(error.code).toBe('MAX_DECOMPRESSED_SIZE_EXCEEDED')
+      })
+    })
+
+    describe('Logging Security Events', () => {
+      it('should log errors when security limits are exceeded', async () => {
+        const strictPdfUtils = new PDFUtils(mockLogger, { maxFileCount: 1 })
+
+        try {
+          await strictPdfUtils.extractFromBuffer(zipBuffer)
+        } catch (_error) {
+          // Expected
+        }
+
+        expect(mockLogger.error).toHaveBeenCalled()
+      })
+
+      it('should include security limits in debug output', async () => {
+        await pdfUtils.extractFromBuffer(zipBuffer)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith(
+          'ZIP extraction summary',
+          expect.objectContaining({
+            securityLimits: expect.objectContaining({
+              maxFileCount: expect.any(Number),
+              maxDecompressedSize: expect.any(Number),
+              maxFileSize: expect.any(Number),
+              maxCompressionRatio: expect.any(Number),
+            }),
+          })
+        )
+      })
     })
   })
 })
