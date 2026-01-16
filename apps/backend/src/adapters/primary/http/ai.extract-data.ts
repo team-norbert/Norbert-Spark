@@ -14,7 +14,7 @@ import {
 } from '../../../shared/utils/security-validation.util.js'
 import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
 import unzipper from 'unzipper'
-import { generateText, generateObject, streamText, Output } from 'ai'
+import { generateText, Output } from 'ai'
 import { readFileSync } from 'node:fs'
 import { google } from '@ai-sdk/google'
 import { schema } from '../../../shared/constants/ai-constants.js'
@@ -90,13 +90,50 @@ export class AIExtractDataController {
       if (fileType === 'zip') {
         // Handle ZIP file extraction using NPM unzipper
         const directory = await unzipper.Open.buffer(Buffer.from(buffer))
-        for (const fileEntry of directory.files) {
-          if (fileEntry.type === 'File' && fileEntry.path.endsWith('.pdf')) {
+
+        // Filter to only actual PDF files using positive matching:
+        // - Must be a file (not directory)
+        // - Must end with .pdf (case-insensitive)
+        // - Filename must not start with . (hidden files on Unix/macOS)
+        // - Path must not contain segments starting with . or _ (system folders like __MACOSX, .git, etc.)
+        const pdfFiles = directory.files.filter((f) => {
+          if (f.type !== 'File') return false
+          if (!f.path.toLowerCase().endsWith('.pdf')) return false
+
+          // Get the filename from the path
+          const filename = f.path.split('/').pop() || ''
+
+          // Exclude hidden files (starting with .)
+          if (filename.startsWith('.')) return false
+
+          // Exclude files in hidden/system directories (segments starting with . or _)
+          const pathSegments = f.path.split('/')
+          const hasSystemFolder = pathSegments.some(
+            (segment) => segment.startsWith('.') || segment.startsWith('_')
+          )
+          if (hasSystemFolder) return false
+
+          return true
+        })
+
+        this.logger.debug('ZIP extraction summary', {
+          totalEntries: directory.files.length,
+          pdfFilesFound: pdfFiles.length,
+          pdfPaths: pdfFiles.map((f) => f.path),
+        })
+
+        debugger
+
+        for (const fileEntry of pdfFiles) {
+          this.logger.debug('Processing PDF from zip', { path: fileEntry.path })
+          debugger
+
+          try {
             const fileBuffer = await fileEntry.buffer()
-            const result = await generateObject({
+            const result = await generateText({
               model: google(EnvConfig.MODEL_NAME as string),
-              system: `You will receive an invoice. ` + `Please extract the data from the invoice.`,
-              schema,
+              system: `You will receive an invoice. Please extract the data from the invoice.`,
+              output: Output.object({ schema }),
               messages: [
                 {
                   role: 'user',
@@ -110,16 +147,27 @@ export class AIExtractDataController {
                 },
               ],
             })
-            this.logger.debug('Received getAIChatsByUserId request', { result })
+            this.logger.info('Extracted data from PDF', {
+              filePath: fileEntry.path,
+              result: result.experimental_output,
+            })
+            debugger
+          } catch (pdfError) {
+            this.logger.error(
+              'Failed to process PDF',
+              pdfError instanceof Error ? pdfError : new Error(String(pdfError)),
+              { filePath: fileEntry.path }
+            )
+            // Continue processing other PDFs even if one fails
           }
         }
       }
 
       if (fileType === 'pdf') {
-        const result = await generateObject({
+        const result = await generateText({
           model: google(EnvConfig.MODEL_NAME as string),
           system: `You will receive an invoice. Please extract the data from the invoice.`,
-          schema,
+          output: Output.object({ schema }),
           messages: [
             {
               role: 'user',
@@ -133,9 +181,10 @@ export class AIExtractDataController {
             },
           ],
         })
-        this.logger.debug('Received getAIChatsByUserId request', { result })
+        this.logger.info('Data extraction completed successfully for PDF', {
+          result: result.experimental_output,
+        })
       }
-
       return true
     } catch (error) {
       const err = error as Error
