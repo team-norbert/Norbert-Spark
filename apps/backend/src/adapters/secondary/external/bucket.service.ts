@@ -4,11 +4,9 @@ import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { obscured } from 'obscured'
-import { Agent } from 'https'
 
 export class BucketService implements BucketPort {
   private readonly client: S3Client
-  private readonly clientPool: S3Client
   private readonly presignClient: S3Client
 
   constructor(private readonly logger: LoggerPort) {
@@ -20,18 +18,6 @@ export class BucketService implements BucketPort {
         secretAccessKey: obscured.value(EnvConfig.CLOUDFLARE_ACCESS_SECRET) as string,
       },
       region: 'auto',
-    })
-
-    this.clientPool = new S3Client({
-      endpoint: EnvConfig.CLOUDFLARE_ENDPOINT,
-      credentials: {
-        accessKeyId: obscured.value(EnvConfig.CLOUDFLARE_ACCESS_ID) as string,
-        secretAccessKey: obscured.value(EnvConfig.CLOUDFLARE_ACCESS_SECRET) as string,
-      },
-      region: 'auto',
-      requestHandler: {
-        httpsAgent: new Agent({ keepAlive: false }),
-      },
     })
 
     // Separate client for presigned URLs with checksum disabled
