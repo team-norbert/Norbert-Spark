@@ -82,7 +82,7 @@ services:
       CLOUDFLARE_API: ${CLOUDFLARE_API}
       HOST: 0.0.0.0
       PORT: 3001
-      
+
 
     depends_on:
       postgres:
