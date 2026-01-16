@@ -226,6 +226,78 @@ const { text } = await generateText({
 })
 ```
 
+## Docker Containerization
+
+### Backend as a Docker Container
+
+The backend can be run as a Docker container for production deployments or testing. All commands should be run from the **project root**:
+
+#### Building the Backend Image
+
+```bash
+pnpm docker:build
+```
+
+This builds a Docker image tagged as `norberts-spark-backend` using the Dockerfile at `apps/backend/Dockerfile`. The build process:
+
+- Uses Node.js 22 slim base image
+- Installs pnpm via Corepack
+- Copies workspace configuration and dependencies
+- Builds both the shared package and backend
+- Runs as a non-root user for security
+- Exposes port 3001
+
+#### Running the Backend Container
+
+```bash
+pnpm docker:run
+```
+
+This starts a new container named `norbertsSpark-backend` that:
+
+- Runs the backend server on port 3001
+- Loads environment variables from `apps/backend/.env`
+- Maps host port 3001 to container port 3001
+
+**Note**: Ensure `apps/backend/.env` exists and contains all required configuration before running.
+
+#### Stopping the Backend Container
+
+```bash
+pnpm docker:stop
+```
+
+Gracefully stops the running `norbertsSpark-backend` container without removing it.
+
+#### Removing the Backend Container
+
+```bash
+pnpm docker:remove
+```
+
+Removes the stopped `norbertsSpark-backend` container. The container must be stopped first.
+
+#### Complete Workflow Example
+
+```bash
+# 1. Build the backend image
+pnpm docker:build
+
+# 2. Ensure environment file exists
+cd apps/backend && cp .env.example .env
+cd ../..
+
+# 3. Run the container
+pnpm docker:run
+
+# 4. Test the API
+curl http://localhost:3001/health
+
+# 5. Stop and remove when done
+pnpm docker:stop
+pnpm docker:remove
+```
+
 ## PostgreSQL Setup
 
 ### Local Development with Docker
