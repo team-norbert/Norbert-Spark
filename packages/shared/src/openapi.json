@@ -812,7 +812,7 @@
         "summary": "Generate presigned URLs for direct R2 upload",
         "description": "Accepts file metadata (filename and mimetype) and returns presigned URLs for direct upload to Cloudflare R2 storage. The client can then use these URLs to upload files directly without going through the backend.",
         "operationId": "generatePresignedUrls",
-        "tags": ["ai", "daga"],
+        "tags": ["ai", "data"],
         "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
