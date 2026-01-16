@@ -17,7 +17,8 @@ RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY packages/shared ./packages/shared
-COPY apps/backend ./apps/backend
+COPY apps/backend/src ./apps/backend/src
+COPY apps/backend/certs ./apps/backend/certs
 
 # Build shared package first, then backend
 RUN pnpm --filter @norberts-spark/shared build && \
