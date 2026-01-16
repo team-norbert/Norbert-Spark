@@ -84,6 +84,9 @@ const config: Linter.Config[] = [
         clearTimeout: 'readonly',
         setInterval: 'readonly',
         clearInterval: 'readonly',
+        TextDecoder: 'readonly',
+        TextEncoder: 'readonly',
+        ReadableStream: 'readonly',
         // DOM types
         HTMLElement: 'readonly',
         HTMLInputElement: 'readonly',

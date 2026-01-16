@@ -52,27 +52,73 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
       throw new Error(`Backend returned ${response.status}`)
     }
 
-    // Read NDJSON stream
-    const text = await response.text()
-    const lines = text.split('\n').filter((line) => line.trim())
+    // Stream NDJSON response line-by-line to avoid loading entire response into memory
     const allResults: ExtractedInvoiceData[] = []
 
-    for (const line of lines) {
-      try {
-        const result = JSON.parse(line) as {
-          fileName: string
-          data: string
-          success: boolean
-          error?: string
-        }
+    if (!response.body) {
+      throw new Error('Response body is null')
+    }
 
-        if (result.success && result.data) {
-          const parsedData = JSON.parse(result.data) as ExtractedInvoiceData
-          allResults.push(parsedData)
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+
+        if (done) break
+
+        // Decode chunk and append to buffer
+        buffer += decoder.decode(value, { stream: true })
+
+        // Process complete lines from buffer
+        const lines = buffer.split('\n')
+        // Keep the last incomplete line in buffer
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          const trimmedLine = line.trim()
+          if (!trimmedLine) continue
+
+          try {
+            const result = JSON.parse(trimmedLine) as {
+              fileName: string
+              data: string
+              success: boolean
+              error?: string
+            }
+
+            if (result.success && result.data) {
+              const parsedData = JSON.parse(result.data) as ExtractedInvoiceData
+              allResults.push(parsedData)
+            }
+          } catch (parseError) {
+            logger.error('Failed to parse NDJSON line', { line: trimmedLine, error: parseError })
+          }
         }
-      } catch (parseError) {
-        logger.error('Failed to parse NDJSON line', { line, error: parseError })
       }
+
+      // Process any remaining data in buffer
+      if (buffer.trim()) {
+        try {
+          const result = JSON.parse(buffer.trim()) as {
+            fileName: string
+            data: string
+            success: boolean
+            error?: string
+          }
+
+          if (result.success && result.data) {
+            const parsedData = JSON.parse(result.data) as ExtractedInvoiceData
+            allResults.push(parsedData)
+          }
+        } catch (parseError) {
+          logger.error('Failed to parse final NDJSON line', { line: buffer, error: parseError })
+        }
+      }
+    } finally {
+      reader.releaseLock()
     }
 
     logger.info('Response from extract data', { count: allResults.length })
