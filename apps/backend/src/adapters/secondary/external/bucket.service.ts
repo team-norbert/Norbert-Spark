@@ -5,8 +5,6 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { obscured } from 'obscured'
 import { Agent } from 'https'
-import { NodeHttpHandler } from '@smithy/node-http-handler'
-import { PromisePool } from '@supercharge/promise-pool'
 
 export class BucketService implements BucketPort {
   private readonly client: S3Client
