@@ -56,6 +56,7 @@ services:
       retries: 3
       start_period: 40s
   app:
+    # NOTE: Build this image first from the repository root with: pnpm run docker:build
     image: norbertsSpark-backend:latest
     container_name: norbertsSpark-backend
     restart: unless-stopped
