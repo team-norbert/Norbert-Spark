@@ -380,6 +380,83 @@ Add to `.github/workflows/ci-cd.yml`:
 - Architecture: `backend/src/HEXAGONAL_ARCHITECTURE.txt`
 - Interactive Docs: `https://localhost:3000/docs` (when running)
 
+## Docker Containerization
+
+The backend can be containerized for production deployments or testing. Docker commands are available in the **root package.json** and should be run from the **project root directory**.
+
+### Building the Docker Image
+
+```bash
+cd ../..  # Navigate to project root if in backend directory
+pnpm docker:build
+```
+
+Builds a Docker image named `norberts-spark-backend` using `apps/backend/Dockerfile`. The image:
+
+- Based on Node.js 22 slim
+- Includes pnpm 10.25.0 via Corepack
+- Builds the shared package and backend in the correct order
+- Runs as non-root user (node:1000) for security
+- Exposes port 3001
+
+### Running the Container
+
+```bash
+pnpm docker:run
+```
+
+Starts a container named `norbertsSpark-backend` with:
+
+- Port mapping: `3001:3001` (host:container)
+- Environment variables loaded from `apps/backend/.env`
+- Backend API accessible at `http://localhost:3001`
+
+**Prerequisites**:
+
+1. Ensure `apps/backend/.env` exists (copy from `.env.example`)
+2. PostgreSQL database must be accessible from the container (use host networking or Docker network)
+
+### Managing the Container
+
+```bash
+# Stop the running container
+pnpm docker:stop
+
+# Remove the stopped container
+pnpm docker:remove
+
+# View container logs
+docker logs norbertsSpark-backend
+
+# View container status
+docker ps -a | grep norbertsSpark-backend
+```
+
+### Complete Docker Workflow
+
+```bash
+# From project root
+pnpm docker:build          # Build image
+pnpm docker:run            # Start container
+curl http://localhost:3001/health  # Test
+pnpm docker:stop           # Stop when done
+pnpm docker:remove         # Clean up
+```
+
+### Connecting to PostgreSQL
+
+When running the backend in Docker, ensure the database connection in `apps/backend/.env` uses the correct hostname:
+
+```env
+# For PostgreSQL running on host machine (not in Docker)
+DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/norbertsSpark
+
+# For PostgreSQL in Docker Compose (same Docker network)
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/norbertsSpark
+```
+
+See the root `DOCKER_POSTGRES.md` for PostgreSQL Docker setup instructions.
+
 ## Available Scripts
 
 - `pnpm dev` - Start development server with hot reloading
