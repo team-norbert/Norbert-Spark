@@ -16,6 +16,32 @@ type BackendError = Error & {
   cause?: unknown
 }
 
+type NDJSONResult = {
+  fileName: string
+  data: string
+  success: boolean
+  error?: string
+}
+
+/**
+ * Parse and process a single NDJSON line
+ * @param line - NDJSON line to parse
+ * @returns Extracted invoice data if successful, null otherwise
+ */
+function parseNDJSONLine(line: string): ExtractedInvoiceData | null {
+  try {
+    const result = JSON.parse(line) as NDJSONResult
+
+    if (result.success && result.data) {
+      const parsedData = JSON.parse(result.data) as ExtractedInvoiceData
+      return parsedData
+    }
+  } catch (parseError) {
+    logger.error('Failed to parse NDJSON line', { line, error: parseError })
+  }
+  return null
+}
+
 /**
  * Server Action to extract data from a file by its fileKey
  * Calls backend /ai/extract-data/{fileId} endpoint server-side
@@ -81,40 +107,18 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
           const trimmedLine = line.trim()
           if (!trimmedLine) continue
 
-          try {
-            const result = JSON.parse(trimmedLine) as {
-              fileName: string
-              data: string
-              success: boolean
-              error?: string
-            }
-
-            if (result.success && result.data) {
-              const parsedData = JSON.parse(result.data) as ExtractedInvoiceData
-              allResults.push(parsedData)
-            }
-          } catch (parseError) {
-            logger.error('Failed to parse NDJSON line', { line: trimmedLine, error: parseError })
+          const parsedData = parseNDJSONLine(trimmedLine)
+          if (parsedData) {
+            allResults.push(parsedData)
           }
         }
       }
 
       // Process any remaining data in buffer
       if (buffer.trim()) {
-        try {
-          const result = JSON.parse(buffer.trim()) as {
-            fileName: string
-            data: string
-            success: boolean
-            error?: string
-          }
-
-          if (result.success && result.data) {
-            const parsedData = JSON.parse(result.data) as ExtractedInvoiceData
-            allResults.push(parsedData)
-          }
-        } catch (parseError) {
-          logger.error('Failed to parse final NDJSON line', { line: buffer, error: parseError })
+        const parsedData = parseNDJSONLine(buffer.trim())
+        if (parsedData) {
+          allResults.push(parsedData)
         }
       }
     } finally {
