@@ -270,6 +270,7 @@ export function useFileUpload(): UseFileUploadReturn {
   const handleProcessFiles = useCallback(async () => {
     if (uploadedFiles.length === 0 || isUploading) return
 
+    setError(null)
     setIsUploading(true)
 
     try {
