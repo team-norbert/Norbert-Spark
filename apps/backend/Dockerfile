@@ -1,7 +1,8 @@
 FROM node:22-slim
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.25.0 --activate
+# Install curl for healthchecks and enable pnpm
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* && \
+    corepack enable && corepack prepare pnpm@10.25.0 --activate
 
 WORKDIR /app
 
