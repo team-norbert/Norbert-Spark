@@ -23,10 +23,6 @@ COPY apps/backend ./apps/backend
 RUN pnpm --filter @norberts-spark/shared build && \
     pnpm --filter @norbets-spark/backend build
 
-# Copy certs to the expected location for the compiled app
-RUN mkdir -p /app/apps/backend/dist/apps/backend/certs && \
-    cp -r /app/apps/backend/certs/* /app/apps/backend/dist/apps/backend/certs/ 2>/dev/null || true
-
 # Security: Run as non-root user
 # The node:22-slim image provides a built-in 'node' user (uid 1000)
 # Change ownership of app files to the node user
