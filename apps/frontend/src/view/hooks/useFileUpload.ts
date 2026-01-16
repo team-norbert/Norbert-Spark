@@ -321,8 +321,8 @@ export function useFileUpload(): UseFileUploadReturn {
         // For now, we'll need to update the server action to handle text streams
         // and parse the JSON data from the streamed response
         if (extractResult.success && extractResult.data) {
-          // Placeholder: set extracted data when backend returns structured data
-          // setExtractedData(parsedData)
+          // Set extracted data when backend returns structured data
+          setExtractedData(extractResult.data)
         }
 
         logger.info('File uploaded successfully', {
