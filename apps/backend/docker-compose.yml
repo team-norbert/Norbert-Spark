@@ -83,6 +83,13 @@ services:
       HOST: 0.0.0.0
       PORT: 3001
 
+    # Health check using the backend's /health endpoint
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3001/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
     depends_on:
       postgres:
