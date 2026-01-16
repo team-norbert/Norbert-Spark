@@ -166,41 +166,70 @@ export class AIExtractDataController {
       }
 
       if (fileType === 'pdf') {
-        const result = streamText({
-          model: google(EnvConfig.MODEL_NAME as string),
-          system: `You will receive an invoice. Please extract the data from the invoice.`,
-          output: Output.object({ schema: pdfSchema }),
-          experimental_telemetry: {
-            isEnabled: EnvConfig.SENTRY_ENABLED === 'true',
-            recordInputs: true,
-            recordOutputs: true,
-          },
-          messages: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'file',
-                  data: Buffer.from(buffer),
-                  mediaType: 'application/pdf',
-                },
-              ],
-            },
-          ],
-        })
-        this.logger.info('Data extraction completed successfully for PDF', {
-          result: result,
-        })
+        // Set headers for streaming newline-delimited JSON
+        reply.raw.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8')
+        reply.raw.setHeader('Transfer-Encoding', 'chunked')
 
-        for await (const textPart of result.textStream) {
-          process.stdout.write(textPart)
+        try {
+          const result = streamText({
+            model: google(EnvConfig.MODEL_NAME as string),
+            system: `You will receive an invoice. Please extract the data from the invoice.`,
+            output: Output.object({ schema: pdfSchema }),
+            experimental_telemetry: {
+              isEnabled: EnvConfig.SENTRY_ENABLED === 'true',
+              recordInputs: true,
+              recordOutputs: true,
+            },
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'file',
+                    data: Buffer.from(buffer),
+                    mediaType: 'application/pdf',
+                  },
+                ],
+              },
+            ],
+          })
+
+          // Stream extracted text to client as it arrives, then write NDJSON summary
+          let extractedText = ''
+          for await (const textPart of result.textStream) {
+            extractedText += textPart
+          }
+
+          // Write result as NDJSON line
+          const data = JSON.stringify({
+            fileName: fileKey,
+            data: extractedText,
+            success: true,
+          })
+
+          this.logger.info('Extracted data from PDF', {
+            data,
+          })
+          reply.raw.write(data + '\n')
+        } catch (pdfError) {
+          this.logger.error(
+            'Failed to process PDF',
+            pdfError instanceof Error ? pdfError : new Error(String(pdfError)),
+            { fileKey }
+          )
+          // Stream error for this PDF
+          const errorLine = JSON.stringify({
+            fileName: fileKey,
+            data: null,
+            success: false,
+            error: pdfError instanceof Error ? pdfError.message : String(pdfError),
+          })
+          reply.raw.write(errorLine + '\n')
         }
 
-        // Mark the response as a v1 data stream:
-        reply.header('X-Vercel-AI-Data-Stream', 'v1')
-        reply.header('Content-Type', 'text/plain; charset=utf-8')
-
-        return reply.send(result.toTextStreamResponse())
+        // End the stream
+        reply.raw.end()
+        return
       }
     } catch (error) {
       const err = error as Error

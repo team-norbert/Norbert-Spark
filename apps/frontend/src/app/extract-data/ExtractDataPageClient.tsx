@@ -21,6 +21,7 @@ export function ExtractDataPageClient() {
     handleNavigateHome,
     handleProcessFiles,
     handleSignOut,
+    isExtracting,
     isUploading,
     removeFile,
     uploadedFiles,
@@ -32,6 +33,7 @@ export function ExtractDataPageClient() {
       dragActive={dragActive}
       error={error}
       isUploading={isUploading}
+      isExtracting={isExtracting}
       extractedData={extractedData}
       onDrag={handleDrag}
       onDrop={handleDrop}
