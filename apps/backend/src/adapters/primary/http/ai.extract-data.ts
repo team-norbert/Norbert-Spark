@@ -91,7 +91,7 @@ export class AIExtractDataController {
       const { buffer, fileType } = await this.extractDataUseCase.execute(dto, auditContext)
 
       if (fileType === 'zip') {
-        const { pdfFilesFound, pdfFiles } = await this.pdfUtils.extractFromBuffer(
+        const { pdfFiles } = await this.pdfUtils.extractFromBuffer(
           Buffer.from(buffer)
         )
 
