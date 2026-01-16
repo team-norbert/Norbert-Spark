@@ -24,7 +24,7 @@ interface UseFileUploadReturn {
   dragActive: boolean
   error: string | null
   isUploading: boolean
-  extractedData: ExtractedInvoiceData | null
+  extractedData: ExtractedInvoiceData[]
   handleDrag: (e: React.DragEvent) => void
   handleDrop: (e: React.DragEvent) => void
   handleFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -58,7 +58,7 @@ export function useFileUpload(): UseFileUploadReturn {
   const [dragActive, setDragActive] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [extractedData, setExtractedData] = useState<ExtractedInvoiceData | null>(null)
+  const [extractedData, setExtractedData] = useState<ExtractedInvoiceData[]>([])
 
   /**
    * Validate if a file has an accepted extension or MIME type
@@ -269,7 +269,6 @@ export function useFileUpload(): UseFileUploadReturn {
     if (uploadedFiles.length === 0 || isUploading) return
 
     setIsUploading(true)
-    setError(null)
 
     try {
       // Prepare file metadata for presigned URL generation
@@ -313,16 +312,32 @@ export function useFileUpload(): UseFileUploadReturn {
           uploadedFile.id
         )
 
-        // Call extract-data endpoint after successful upload
-        const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
-        logger.info('Extract data result', { fileKey: urlInfo.fileKey, extractResult })
+        console.log('=== UPLOAD COMPLETE, STARTING EXTRACTION ===')
+        console.log('File:', uploadedFile.file.name)
+        console.log('FileKey:', urlInfo.fileKey)
 
-        // TODO: Parse streaming text response and extract structured data
-        // For now, we'll need to update the server action to handle text streams
-        // and parse the JSON data from the streamed response
-        if (extractResult.success && extractResult.data) {
-          // Set extracted data when backend returns structured data
-          setExtractedData(extractResult.data)
+        // Clear previous extraction results
+        setExtractedData([])
+
+        // Extract data using server action
+        try {
+          logger.info('Starting extraction via server action', { fileKey: urlInfo.fileKey })
+
+          const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
+
+          if (
+            extractResult.success &&
+            extractResult.allResults &&
+            extractResult.allResults.length > 0
+          ) {
+            logger.info('Extraction successful', { count: extractResult.allResults.length })
+            setExtractedData(extractResult.allResults)
+          } else if (extractResult.error) {
+            logger.error('Extraction failed', { error: extractResult.error })
+            throw new Error(extractResult.error)
+          }
+        } catch (extractError) {
+          logger.error('Extraction failed', { error: extractError })
         }
 
         logger.info('File uploaded successfully', {
