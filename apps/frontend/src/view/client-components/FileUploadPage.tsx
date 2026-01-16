@@ -34,7 +34,7 @@ interface FileUploadPageProps {
   dragActive: boolean
   error: string | null
   isUploading: boolean
-  extractedData: ExtractedInvoiceData | null
+  extractedData: ExtractedInvoiceData[]
   onDrag: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent) => void
   onFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -102,7 +102,13 @@ export function FileUploadPage({
         Upload PDF or ZIP files for data extraction
       </Typography>
 
-      <ExtractedDataDisplay data={extractedData} fileName={uploadedFiles[0]?.file.name} />
+      {extractedData.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          {extractedData.map((data, index) => (
+            <ExtractedDataDisplay key={index} data={data} fileName={`PDF ${index + 1}`} />
+          ))}
+        </Box>
+      )}
 
       <Card elevation={3}>
         <CardContent>

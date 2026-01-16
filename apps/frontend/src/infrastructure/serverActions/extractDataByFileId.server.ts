@@ -26,7 +26,12 @@ type BackendError = Error & {
  */
 export async function extractDataByFileIdAction(
   fileKey: string
-): Promise<{ success: boolean; data?: ExtractedInvoiceData; error?: string }> {
+): Promise<{
+  success: boolean
+  data?: ExtractedInvoiceData
+  allResults?: ExtractedInvoiceData[]
+  error?: string
+}> {
   try {
     const token = await getAuthToken()
     if (!token) {
@@ -36,27 +41,54 @@ export async function extractDataByFileIdAction(
 
     logger.info('Calling extract data endpoint', { fileKey })
 
-    const response = await backendRequest<{
-      success: boolean
-      data?: ExtractedInvoiceData
-      error?: string
-    }>({
+    const backendUrl = process.env.BACKEND_URL || 'https://127.0.0.1:3001'
+    const url = `${backendUrl}/api/v1/ai/extract-data/${encodeURIComponent(fileKey)}`
+
+    const response = await fetch(url, {
       method: 'GET',
-      endpoint: `/ai/extract-data/${encodeURIComponent(fileKey)}`,
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      timeoutMs: 30000, // Longer timeout for AI extraction
     })
 
-    logger.info('Response from extract data', { response })
+    if (!response.ok) {
+      throw new Error(`Backend returned ${response.status}`)
+    }
 
-    return response
+    // Read NDJSON stream
+    const text = await response.text()
+    const lines = text.split('\n').filter((line) => line.trim())
+    const allResults: ExtractedInvoiceData[] = []
+
+    for (const line of lines) {
+      try {
+        const result = JSON.parse(line) as {
+          fileName: string
+          data: string
+          success: boolean
+          error?: string
+        }
+
+        if (result.success && result.data) {
+          const parsedData = JSON.parse(result.data) as ExtractedInvoiceData
+          allResults.push(parsedData)
+        }
+      } catch (parseError) {
+        logger.error('Failed to parse NDJSON line', { line, error: parseError })
+      }
+    }
+
+    logger.info('Response from extract data', { count: allResults.length })
+
+    return {
+      success: true,
+      allResults,
+      data: allResults[allResults.length - 1],
+    }
   } catch (error) {
     const err = error as BackendError
     logger.error('extractDataByFileIdAction error', { fileKey, error: err })
 
-    // Return error response
     return { success: false, error: err.message || 'Failed to extract data' }
   }
 }

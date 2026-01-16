@@ -8,7 +8,7 @@ import type { z } from 'zod'
 type ExtractedInvoiceData = z.infer<typeof pdfSchema>
 
 interface ExtractedDataDisplayProps {
-  data: ExtractedInvoiceData | null
+  data: ExtractedInvoiceData
   fileName?: string
 }
 
@@ -34,9 +34,7 @@ interface ExtractedDataDisplayProps {
  * ```
  */
 export function ExtractedDataDisplay({ data, fileName }: ExtractedDataDisplayProps) {
-  if (!data) {
-    return null
-  }
+  console.log('=== ExtractedDataDisplay RENDER ===', { data, fileName })
 
   return (
     <Card
