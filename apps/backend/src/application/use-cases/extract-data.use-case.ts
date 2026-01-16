@@ -40,17 +40,17 @@ export class ExtractDataUseCase {
   ) {}
 
   async execute(
-    GetObjectCommandKeys: ExtractDataDto,
+    extractDataDto: ExtractDataDto,
     auditContext: { ipAddress: string; userAgent: string | null; userId: string | null }
   ) {
     this.logger.info('Starting data extraction from file', {
-      fileKey: GetObjectCommandKeys.fileKey,
+      fileKey: extractDataDto.fileKey,
     })
 
     try {
       const result = await this.bucketService.getFileUrl(
-        GetObjectCommandKeys.bucketName,
-        GetObjectCommandKeys.fileKey
+        extractDataDto.bucketName,
+        extractDataDto.fileKey
       )
 
       if (!result) {
@@ -67,14 +67,14 @@ export class ExtractDataUseCase {
       }
 
       this.logger.info('File type detected', {
-        fileKey: GetObjectCommandKeys.fileKey,
+        fileKey: extractDataDto.fileKey,
         fileType,
       })
 
       await this.auditLog.log({
         userId: auditContext.userId,
         entityType: EntityType.DATA_EXTRACTION,
-        entityId: GetObjectCommandKeys.fileKey,
+        entityId: extractDataDto.fileKey,
         action: AuditAction.FETCH,
         changes: { reason: 'get_from_bucket', fileType },
         ipAddress: auditContext.ipAddress,
@@ -90,7 +90,7 @@ export class ExtractDataUseCase {
       await this.auditLog.log({
         userId: auditContext.userId,
         entityType: EntityType.DATA_EXTRACTION,
-        entityId: GetObjectCommandKeys.fileKey,
+        entityId: extractDataDto.fileKey,
         action: AuditAction.FETCH,
         changes: { reason: 'get_from_bucket_failed' },
         ipAddress: auditContext.ipAddress,
