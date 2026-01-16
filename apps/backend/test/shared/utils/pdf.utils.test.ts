@@ -1,37 +1,54 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { PDFUtils } from '../../../src/shared/utils/pdf.utils.js'
 
 describe('PDFUtils', () => {
+  let pdfUtils: PDFUtils
+  let mockLogger: LoggerPort
+
+  beforeEach(() => {
+    // Create mock logger
+    mockLogger = {
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+    }
+
+    // Create PDFUtils instance with mock logger
+    pdfUtils = new PDFUtils(mockLogger)
+  })
+
   describe('extractFromBuffer', () => {
     // Load the test zip file once for all tests
     const testZipPath = join(process.cwd(), 'test', 'fake-reciepts.zip')
     const zipBuffer = readFileSync(testZipPath)
 
     it('should extract only PDF files from a zip buffer', async () => {
-      const pdfFiles = await PDFUtils.extractFromBuffer(zipBuffer)
+      const result = await pdfUtils.extractFromBuffer(zipBuffer)
 
       // Should only return PDF files, not directories or system files
-      expect(pdfFiles.length).toBe(10)
-      expect(pdfFiles.every((f) => f.path.toLowerCase().endsWith('.pdf'))).toBe(true)
+      expect(result.pdfFiles.length).toBe(10)
+      expect(result.pdfFiles.every((f) => f.path.toLowerCase().endsWith('.pdf'))).toBe(true)
     })
 
     it('should exclude __MACOSX system folder entries', async () => {
-      const pdfFiles = await PDFUtils.extractFromBuffer(zipBuffer)
+      const result = await pdfUtils.extractFromBuffer(zipBuffer)
 
       // None of the returned files should be from __MACOSX folder
-      const macOSFiles = pdfFiles.filter((f) => f.path.includes('__MACOSX'))
+      const macOSFiles = result.pdfFiles.filter((f) => f.path.includes('__MACOSX'))
       expect(macOSFiles.length).toBe(0)
     })
 
     it('should exclude hidden files starting with dot', async () => {
-      const pdfFiles = await PDFUtils.extractFromBuffer(zipBuffer)
+      const result = await pdfUtils.extractFromBuffer(zipBuffer)
 
       // None of the returned files should start with a dot
-      const hiddenFiles = pdfFiles.filter((f) => {
+      const hiddenFiles = result.pdfFiles.filter((f) => {
         const filename = f.path.split('/').pop() || ''
         return filename.startsWith('.')
       })
@@ -39,10 +56,10 @@ describe('PDFUtils', () => {
     })
 
     it('should exclude files in directories starting with underscore', async () => {
-      const pdfFiles = await PDFUtils.extractFromBuffer(zipBuffer)
+      const result = await pdfUtils.extractFromBuffer(zipBuffer)
 
       // None of the returned files should be in underscore-prefixed directories
-      const underscorePathFiles = pdfFiles.filter((f) => {
+      const underscorePathFiles = result.pdfFiles.filter((f) => {
         const segments = f.path.split('/')
         return segments.some((seg) => seg.startsWith('_'))
       })
@@ -50,17 +67,17 @@ describe('PDFUtils', () => {
     })
 
     it('should return files with type "File" only', async () => {
-      const pdfFiles = await PDFUtils.extractFromBuffer(zipBuffer)
+      const result = await pdfUtils.extractFromBuffer(zipBuffer)
 
       // All returned entries should be files, not directories
-      expect(pdfFiles.every((f) => f.type === 'File')).toBe(true)
+      expect(result.pdfFiles.every((f) => f.type === 'File')).toBe(true)
     })
 
     it('should return correct PDF file paths', async () => {
-      const pdfFiles = await PDFUtils.extractFromBuffer(zipBuffer)
+      const result = await pdfUtils.extractFromBuffer(zipBuffer)
 
       // Sort paths for consistent comparison
-      const paths = pdfFiles.map((f) => f.path).sort()
+      const paths = result.pdfFiles.map((f) => f.path).sort()
 
       expect(paths).toEqual([
         'fake-reciepts/receipt-1.pdf',
@@ -77,20 +94,20 @@ describe('PDFUtils', () => {
     })
 
     it('should handle case-insensitive PDF extension matching', async () => {
-      const pdfFiles = await PDFUtils.extractFromBuffer(zipBuffer)
+      const result = await pdfUtils.extractFromBuffer(zipBuffer)
 
       // All files should end with .pdf (case insensitive)
-      expect(pdfFiles.every((f) => f.path.toLowerCase().endsWith('.pdf'))).toBe(true)
+      expect(result.pdfFiles.every((f) => f.path.toLowerCase().endsWith('.pdf'))).toBe(true)
     })
 
     it('should return entries that can be read as buffers', async () => {
-      const pdfFiles = await PDFUtils.extractFromBuffer(zipBuffer)
+      const result = await pdfUtils.extractFromBuffer(zipBuffer)
 
       // Each file entry should have a buffer method
-      expect(pdfFiles.every((f) => typeof f.buffer === 'function')).toBe(true)
+      expect(result.pdfFiles.every((f) => typeof f.buffer === 'function')).toBe(true)
 
       // Verify we can actually read the buffer content of the first file
-      const firstFile = pdfFiles[0]
+      const firstFile = result.pdfFiles[0]
       expect(firstFile).toBeDefined()
       const fileBuffer = await firstFile!.buffer()
       expect(fileBuffer).toBeInstanceOf(Buffer)
@@ -124,27 +141,42 @@ describe('PDFUtils', () => {
         0x00, // Comment length
       ])
 
-      const pdfFiles = await PDFUtils.extractFromBuffer(emptyZipBuffer)
-      expect(pdfFiles).toEqual([])
+      const result = await pdfUtils.extractFromBuffer(emptyZipBuffer)
+      expect(result.pdfFiles).toEqual([])
+      expect(result.pdfFilesFound).toBe(0)
     })
 
     it('should filter out non-PDF files if present in zip', async () => {
-      const pdfFiles = await PDFUtils.extractFromBuffer(zipBuffer)
+      const result = await pdfUtils.extractFromBuffer(zipBuffer)
 
       // No file should have an extension other than .pdf
-      const nonPdfFiles = pdfFiles.filter((f) => !f.path.toLowerCase().endsWith('.pdf'))
+      const nonPdfFiles = result.pdfFiles.filter((f) => !f.path.toLowerCase().endsWith('.pdf'))
       expect(nonPdfFiles.length).toBe(0)
     })
 
     it('should exclude resource fork files (._prefix)', async () => {
-      const pdfFiles = await PDFUtils.extractFromBuffer(zipBuffer)
+      const result = await pdfUtils.extractFromBuffer(zipBuffer)
 
       // macOS resource fork files start with ._ and should be excluded
-      const resourceForkFiles = pdfFiles.filter((f) => {
+      const resourceForkFiles = result.pdfFiles.filter((f) => {
         const filename = f.path.split('/').pop() || ''
         return filename.startsWith('._')
       })
       expect(resourceForkFiles.length).toBe(0)
+    })
+
+    it('should log debug information about extraction', async () => {
+      await pdfUtils.extractFromBuffer(zipBuffer)
+
+      // Verify logger.debug was called with extraction summary
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        'ZIP extraction summary',
+        expect.objectContaining({
+          totalEntries: expect.any(Number),
+          pdfFilesFound: 10,
+          pdfPaths: expect.any(Array),
+        })
+      )
     })
   })
 })

@@ -947,11 +947,12 @@
         ],
         "responses": {
           "200": {
-            "description": "AI response found",
+            "description": "Streaming text response with extracted data",
             "content": {
-              "application/json": {
+              "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/AIfetchChatResponse"
+                  "type": "string",
+                  "description": "Streamed text response containing the extracted data from the PDF"
                 }
               }
             }

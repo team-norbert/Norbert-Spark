@@ -42,6 +42,8 @@ export async function extractDataByFileIdAction(
       timeoutMs: 30000, // Longer timeout for AI extraction
     })
 
+    logger.info('Response from extract data', { response })
+
     return response
   } catch (error) {
     const err = error as BackendError

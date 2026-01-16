@@ -1,13 +1,17 @@
+import type { pdfSchema } from '@norberts-spark/shared'
 import { useRouter } from 'next/navigation.js'
 import { signOut } from 'next-auth/react'
 import type React from 'react'
 import { useCallback, useState } from 'react'
+import type { z } from 'zod'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { extractDataByFileIdAction } from '@/infrastructure/serverActions/extractDataByFileId.server.js'
 import { getPresignedUrls } from '@/infrastructure/serverActions/getPresignedUrls.server.js'
 
 const logger = createLogger({ prefix: '[useFileUpload]' })
+
+type ExtractedInvoiceData = z.infer<typeof pdfSchema>
 
 export interface UploadedFile {
   file: File
@@ -20,6 +24,7 @@ interface UseFileUploadReturn {
   dragActive: boolean
   error: string | null
   isUploading: boolean
+  extractedData: ExtractedInvoiceData | null
   handleDrag: (e: React.DragEvent) => void
   handleDrop: (e: React.DragEvent) => void
   handleFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -53,6 +58,7 @@ export function useFileUpload(): UseFileUploadReturn {
   const [dragActive, setDragActive] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [extractedData, setExtractedData] = useState<ExtractedInvoiceData | null>(null)
 
   /**
    * Validate if a file has an accepted extension or MIME type
@@ -307,6 +313,14 @@ export function useFileUpload(): UseFileUploadReturn {
         const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
         logger.info('Extract data result', { fileKey: urlInfo.fileKey, extractResult })
 
+        // TODO: Parse streaming text response and extract structured data
+        // For now, we'll need to update the server action to handle text streams
+        // and parse the JSON data from the streamed response
+        if (extractResult.success && extractResult.data) {
+          // Placeholder: set extracted data when backend returns structured data
+          // setExtractedData(parsedData)
+        }
+
         logger.info('File uploaded successfully', {
           filename: uploadedFile.file.name,
           urlInfo: urlInfo.uploadUrl,
@@ -355,6 +369,7 @@ export function useFileUpload(): UseFileUploadReturn {
     dragActive,
     error,
     isUploading,
+    extractedData,
     handleDrag,
     handleDrop,
     handleFileInputChange,
