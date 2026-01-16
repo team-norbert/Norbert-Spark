@@ -291,7 +291,7 @@ export class PDFUtils {
       totalEntries: directory.files.length,
       pdfFilesFound: pdfFiles.length,
       pdfPaths: pdfFiles.map((f) => f.path),
-      skippedFiles: skippedFiles.length > 0 ? skippedFiles : undefined,
+      skippedFiles,
       securityLimits: {
         maxFileCount: limits.maxFileCount,
         maxDecompressedSize: limits.maxDecompressedSize,
