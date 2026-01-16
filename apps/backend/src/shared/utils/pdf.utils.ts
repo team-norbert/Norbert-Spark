@@ -234,13 +234,19 @@ export class PDFUtils {
     }
 
     // Check overall compression ratio
-    if (compressedSize > 0) {
-      const overallRatio = totalUncompressedSize / compressedSize
-      if (overallRatio > limits.maxCompressionRatio) {
-        const error = `Suspicious overall compression ratio: ${overallRatio.toFixed(2)} > ${limits.maxCompressionRatio}`
-        this.logger.error(error)
-        throw new ZipSecurityError(error, 'SUSPICIOUS_COMPRESSION_RATIO')
-      }
+    // Minimum valid ZIP file size is ~22 bytes (empty ZIP header)
+    const MIN_VALID_ZIP_SIZE = 22
+    if (compressedSize < MIN_VALID_ZIP_SIZE) {
+      const error = `Invalid or corrupted ZIP: buffer size ${compressedSize} bytes is below minimum valid ZIP size`
+      this.logger.error(error)
+      throw new ZipSecurityError(error, 'INVALID_ZIP_SIZE')
+    }
+
+    const overallRatio = totalUncompressedSize / compressedSize
+    if (overallRatio > limits.maxCompressionRatio) {
+      const error = `Suspicious overall compression ratio: ${overallRatio.toFixed(2)} > ${limits.maxCompressionRatio}`
+      this.logger.error(error)
+      throw new ZipSecurityError(error, 'SUSPICIOUS_COMPRESSION_RATIO')
     }
 
     const pdfFiles: unzipper.File[] = []
