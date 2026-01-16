@@ -65,7 +65,7 @@ services:
       - norbertsSpark-network
 
     ports:
-      - '8000:8000'
+      - '3001:3001'
 
     environment:
       DATABASE_HOST: postgres
@@ -73,6 +73,9 @@ services:
       DATABASE_USER: ${POSTGRES_USER:-postgres}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       DATABASE_NAME: ${POSTGRES_DB:-norbertsSpark}
+      HOST: 0.0.0.0
+      PORT: 3001
+      
 
     depends_on:
       postgres:
