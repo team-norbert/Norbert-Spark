@@ -176,19 +176,19 @@ export function useFileUpload(): UseFileUploadReturn {
   }, [])
 
   /**
-   * Upload a file directly to R2 using a presigned URL with progress tracking
+   * Upload a file directly to a bucket using a presigned URL with progress tracking
    * @param {File} file - The file to upload
    * @param {string} uploadUrl - The presigned URL for upload
    * @param {string} id - The file ID for progress tracking
    * @returns {Promise<boolean>} True if upload succeeds
    */
-  const uploadFileToR2 = useCallback(
+  const uploadFileToBucket = useCallback(
     async (file: File, uploadUrl: string, id: string): Promise<boolean> => {
       let retries = 0
 
       while (retries < MAX_RETRIES) {
         try {
-          logger.info(`Uploading ${file.name} to R2`, {
+          logger.info(`Uploading ${file.name} to Bucket`, {
             url: uploadUrl,
             size: file.size,
             type: file.type,
@@ -263,7 +263,7 @@ export function useFileUpload(): UseFileUploadReturn {
   )
 
   /**
-   * Process the uploaded files using presigned URLs for direct R2 upload
+   * Process the uploaded files using presigned URLs for direct bucket upload
    */
   const handleProcessFiles = useCallback(async () => {
     if (uploadedFiles.length === 0 || isUploading) return
@@ -294,7 +294,7 @@ export function useFileUpload(): UseFileUploadReturn {
       // Create a map of filename to presigned URL info
       const urlMap = new Map(uploadUrls.map((u) => [u.filename, u]))
 
-      // Upload files directly to R2 using presigned URLs
+      // Upload files directly to bucket using presigned URLs
       for (const uploadedFile of uploadedFiles) {
         const urlInfo = urlMap.get(uploadedFile.file.name)
 
@@ -302,12 +302,16 @@ export function useFileUpload(): UseFileUploadReturn {
           throw new Error(`No presigned URL received for ${uploadedFile.file.name}`)
         }
 
-        logger.info('Uploading file to R2', {
+        logger.info('Uploading file to Bucket', {
           filename: uploadedFile.file.name,
           fileKey: urlInfo.fileKey,
         })
 
-        const result = await uploadFileToR2(uploadedFile.file, urlInfo.uploadUrl, uploadedFile.id)
+        const result = await uploadFileToBucket(
+          uploadedFile.file,
+          urlInfo.uploadUrl,
+          uploadedFile.id
+        )
 
         // Call extract-data endpoint after successful upload
         const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
@@ -330,7 +334,7 @@ export function useFileUpload(): UseFileUploadReturn {
       }
 
       // All files uploaded successfully
-      logger.info('All files uploaded successfully to R2')
+      logger.info('All files uploaded successfully to bucket')
       // You can add navigation or success notification here
     } catch (error) {
       const errorMessage =
@@ -340,7 +344,7 @@ export function useFileUpload(): UseFileUploadReturn {
     } finally {
       setIsUploading(false)
     }
-  }, [uploadedFiles, isUploading, uploadFileToR2])
+  }, [uploadedFiles, isUploading, uploadFileToBucket])
 
   /**
    * Clear the error message
