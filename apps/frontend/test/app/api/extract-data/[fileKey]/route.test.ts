@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { GET } from '@/app/api/extract-data/[fileKey]/route.js'
 
-/* eslint-disable no-undef */
+ 
 // ReadableStream and TextEncoder are Node.js globals in tests
 
 // Mock the auth helper
