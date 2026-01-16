@@ -25,9 +25,10 @@ import { AuthController } from '../../adapters/primary/http/auth.controller.js'
 import { AIController } from '../../adapters/primary/http/ai.controller.js'
 import { BucketService } from '../../adapters/secondary/external/bucket.service.js'
 import { AIExtractDataController } from '../../adapters/primary/http/ai.extract-data.js'
-
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
-import type { AuditLogPort } from '../../application/ports/audit-log.port.js'
+// Utils
+import { PDFUtils } from '../../shared/utils/pdf.utils.js'
+
 import { EnvConfig } from '../config/env.config.js'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -72,7 +73,6 @@ export class Container {
   // Repositories
   public readonly userRepository: PostgresUserRepository
   public readonly aiRepository: AIRepository
-
   public readonly bucketService: BucketService
 
   // Use Cases
@@ -88,6 +88,9 @@ export class Container {
   private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase
   private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase
   public readonly deleteUsersUseCase: DeleteUsersUseCase
+
+  // Utils
+  public readonly pdfUtils: PDFUtils
 
   // Controllers
   public readonly userController: UserController
@@ -163,6 +166,9 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       )
     }
 
+    // utils
+    this.pdfUtils = new PDFUtils(this.logger)
+
     // Initialize services (secondary adapters)
     this.emailService = new ResendService(EnvConfig.RESEND_API_KEY, this.logger)
     this.tokenGenerator = new JwtTokenGeneratorService()
@@ -234,7 +240,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.aiExtractDataController = new AIExtractDataController(
       this.logger,
       this.presignedUploadUrlUseCase,
-      this.extractDataUseCase
+      this.extractDataUseCase,
+      this.pdfUtils
     )
     // Register routes
     this.registerRoutes()

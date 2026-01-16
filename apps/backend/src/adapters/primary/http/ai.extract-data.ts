@@ -13,11 +13,10 @@ import {
   validateMimeType,
 } from '../../../shared/utils/security-validation.util.js'
 import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
-import unzipper from 'unzipper'
-import { generateText, Output } from 'ai'
-import { readFileSync } from 'node:fs'
+import { generateText, Output, streamText } from 'ai'
 import { google } from '@ai-sdk/google'
-import { schema } from '../../../shared/constants/ai-constants.js'
+import { pdfSchema } from '@norberts-spark/shared'
+import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 
 /**
  * Allowed file extensions for upload
@@ -48,7 +47,8 @@ export class AIExtractDataController {
   constructor(
     private readonly logger: LoggerPort,
     private readonly presignedUploadUrlUseCase: PresignedUploadUrlUseCase,
-    private readonly extractDataUseCase: ExtractDataUseCase
+    private readonly extractDataUseCase: ExtractDataUseCase,
+    private readonly pdfUtils: PDFUtils
   ) {}
 
   registerRoutes(app: FastifyInstance): void {
@@ -70,7 +70,10 @@ export class AIExtractDataController {
     )
   }
 
-  async extractData(request: FastifyRequest, reply: FastifyReply): Promise<boolean | undefined> {
+  async extractData(
+    request: FastifyRequest,
+    reply: FastifyReply
+  ): Promise<{ output: any } | boolean | void> {
     this.logger.debug('Received getAIChatsByUserId request')
     const params = request.params as Record<string, unknown>
     const fileKey = params.fileId as string
@@ -88,52 +91,27 @@ export class AIExtractDataController {
       const { buffer, fileType } = await this.extractDataUseCase.execute(dto, auditContext)
 
       if (fileType === 'zip') {
-        // Handle ZIP file extraction using NPM unzipper
-        const directory = await unzipper.Open.buffer(Buffer.from(buffer))
+        const { totalEntries, pdfFilesFound, pdfPaths, pdfFiles } =
+          await this.pdfUtils.extractFromBuffer(Buffer.from(buffer))
 
-        // Filter to only actual PDF files using positive matching:
-        // - Must be a file (not directory)
-        // - Must end with .pdf (case-insensitive)
-        // - Filename must not start with . (hidden files on Unix/macOS)
-        // - Path must not contain segments starting with . or _ (system folders like __MACOSX, .git, etc.)
-        const pdfFiles = directory.files.filter((f) => {
-          if (f.type !== 'File') return false
-          if (!f.path.toLowerCase().endsWith('.pdf')) return false
-
-          // Get the filename from the path
-          const filename = f.path.split('/').pop() || ''
-
-          // Exclude hidden files (starting with .)
-          if (filename.startsWith('.')) return false
-
-          // Exclude files in hidden/system directories (segments starting with . or _)
-          const pathSegments = f.path.split('/')
-          const hasSystemFolder = pathSegments.some(
-            (segment) => segment.startsWith('.') || segment.startsWith('_')
-          )
-          if (hasSystemFolder) return false
-
-          return true
-        })
-
-        this.logger.debug('ZIP extraction summary', {
-          totalEntries: directory.files.length,
-          pdfFilesFound: pdfFiles.length,
-          pdfPaths: pdfFiles.map((f) => f.path),
-        })
-
-        debugger
+        // Set headers for streaming newline-delimited JSON
+        reply.raw.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8')
+        reply.raw.setHeader('Transfer-Encoding', 'chunked')
 
         for (const fileEntry of pdfFiles) {
           this.logger.debug('Processing PDF from zip', { path: fileEntry.path })
-          debugger
 
           try {
             const fileBuffer = await fileEntry.buffer()
-            const result = await generateText({
+            const result = streamText({
               model: google(EnvConfig.MODEL_NAME as string),
               system: `You will receive an invoice. Please extract the data from the invoice.`,
-              output: Output.object({ schema }),
+              output: Output.object({ schema: pdfSchema }),
+              experimental_telemetry: {
+                isEnabled: EnvConfig.SENTRY_ENABLED === 'true',
+                recordInputs: true,
+                recordOutputs: true,
+              },
               messages: [
                 {
                   role: 'user',
@@ -147,27 +125,56 @@ export class AIExtractDataController {
                 },
               ],
             })
-            this.logger.info('Extracted data from PDF', {
-              filePath: fileEntry.path,
-              result: result.experimental_output,
+
+            // Stream extracted text to client as it arrives, then write NDJSON summary
+            let extractedText = ''
+            for await (const textPart of result.textStream) {
+              extractedText += textPart
+            }
+
+            // Write result as NDJSON line
+            const data = JSON.stringify({
+              fileName: fileEntry.path,
+              data: extractedText,
+              success: true,
             })
-            debugger
+
+            this.logger.info('Extracted data from PDF', {
+              data,
+            })
+            reply.raw.write(data + '\n')
           } catch (pdfError) {
             this.logger.error(
               'Failed to process PDF',
               pdfError instanceof Error ? pdfError : new Error(String(pdfError)),
               { filePath: fileEntry.path }
             )
-            // Continue processing other PDFs even if one fails
+            // Stream error for this PDF
+            const errorLine = JSON.stringify({
+              fileName: fileEntry.path,
+              data: null,
+              success: false,
+              error: pdfError instanceof Error ? pdfError.message : String(pdfError),
+            })
+            reply.raw.write(errorLine + '\n')
           }
         }
+
+        // End the stream after all PDFs are processed
+        reply.raw.end()
+        return
       }
 
       if (fileType === 'pdf') {
-        const result = await generateText({
+        const result = streamText({
           model: google(EnvConfig.MODEL_NAME as string),
           system: `You will receive an invoice. Please extract the data from the invoice.`,
-          output: Output.object({ schema }),
+          output: Output.object({ schema: pdfSchema }),
+          experimental_telemetry: {
+            isEnabled: EnvConfig.SENTRY_ENABLED === 'true',
+            recordInputs: true,
+            recordOutputs: true,
+          },
           messages: [
             {
               role: 'user',
@@ -182,10 +189,19 @@ export class AIExtractDataController {
           ],
         })
         this.logger.info('Data extraction completed successfully for PDF', {
-          result: result.experimental_output,
+          result: result,
         })
+
+        for await (const textPart of result.textStream) {
+          process.stdout.write(textPart)
+        }
+
+        // Mark the response as a v1 data stream:
+        reply.header('X-Vercel-AI-Data-Stream', 'v1')
+        reply.header('Content-Type', 'text/plain; charset=utf-8')
+
+        return reply.send(result.toTextStreamResponse())
       }
-      return true
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500

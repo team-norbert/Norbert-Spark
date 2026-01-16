@@ -1,4 +1,5 @@
 import unzipper from 'unzipper'
+import type { LoggerPort } from '../../application/ports/logger.port.js'
 
 /**
  * Utility class for PDF file operations.
@@ -7,10 +8,14 @@ import unzipper from 'unzipper'
  * including ZIP archives. Handles cross-platform compatibility by filtering out
  * system files and hidden directories that may be included in archives.
  *
+ * Uses dependency injection to accept a logger for debugging and monitoring.
+ *
  * @example
  * // Extract PDFs from a ZIP buffer
+ * const logger = createLogger({ prefix: 'PDFUtils' })
+ * const pdfUtils = new PDFUtils(logger)
  * const zipBuffer = fs.readFileSync('documents.zip')
- * const pdfEntries = await PDFUtils.extractFromBuffer(zipBuffer)
+ * const pdfEntries = await pdfUtils.extractFromBuffer(zipBuffer)
  *
  * for (const entry of pdfEntries) {
  *   const pdfBuffer = await entry.buffer()
@@ -18,6 +23,7 @@ import unzipper from 'unzipper'
  * }
  */
 export class PDFUtils {
+  constructor(private logger: LoggerPort) {}
   /**
    * Extracts PDF file entries from a ZIP archive buffer.
    *
@@ -38,13 +44,17 @@ export class PDFUtils {
    *
    * @example
    * // Basic usage
+   * const logger = createLogger({ prefix: 'PDFUtils' })
+   * const pdfUtils = new PDFUtils(logger)
    * const zipBuffer = fs.readFileSync('invoices.zip')
-   * const pdfs = await PDFUtils.extractFromBuffer(zipBuffer)
+   * const pdfs = await pdfUtils.extractFromBuffer(zipBuffer)
    * console.log(`Found ${pdfs.length} PDF files`)
    *
    * @example
    * // Process each PDF
-   * const pdfs = await PDFUtils.extractFromBuffer(zipBuffer)
+   * const logger = createLogger({ prefix: 'PDFUtils' })
+   * const pdfUtils = new PDFUtils(logger)
+   * const pdfs = await pdfUtils.extractFromBuffer(zipBuffer)
    * for (const pdf of pdfs) {
    *   console.log(`Processing: ${pdf.path}`)
    *   const content = await pdf.buffer()
@@ -53,12 +63,21 @@ export class PDFUtils {
    *
    * @example
    * // Handle ZIP from HTTP response
+   * const logger = createLogger({ prefix: 'PDFUtils' })
+   * const pdfUtils = new PDFUtils(logger)
    * const response = await fetch('https://example.com/documents.zip')
    * const arrayBuffer = await response.arrayBuffer()
-   * const pdfs = await PDFUtils.extractFromBuffer(Buffer.from(arrayBuffer))
+   * const pdfs = await pdfUtils.extractFromBuffer(Buffer.from(arrayBuffer))
    */
-  static async extractFromBuffer(buffer: Buffer): Promise<unzipper.File[]> {
-    const directory = await unzipper.Open.buffer(Buffer.from(buffer))
+  async extractFromBuffer(
+    buffer: Buffer
+  ): Promise<{
+    totalEntries: number
+    pdfFilesFound: number
+    pdfPaths: string[]
+    pdfFiles: unzipper.File[]
+  }> {
+    const directory = await unzipper.Open.buffer(buffer)
 
     const pdfFiles = directory.files.filter((f) => {
       if (f.type !== 'File') return false
@@ -80,6 +99,17 @@ export class PDFUtils {
       return true
     })
 
-    return pdfFiles
+    this.logger.debug('ZIP extraction summary', {
+      totalEntries: directory.files.length,
+      pdfFilesFound: pdfFiles.length,
+      pdfPaths: pdfFiles.map((f) => f.path),
+    })
+
+    return {
+      totalEntries: directory.files.length,
+      pdfFilesFound: pdfFiles.length,
+      pdfPaths: pdfFiles.map((f) => f.path),
+      pdfFiles,
+    }
   }
 }

@@ -64,6 +64,7 @@ describe('AIExtractDataController', () => {
   let mockPresignedUploadUrlUseCase: PresignedUploadUrlUseCase
   let mockExtractDataUseCase: any
   let mockLogger: LoggerPort
+  let mockPdfUtils: any
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
 
@@ -91,11 +92,17 @@ describe('AIExtractDataController', () => {
       execute: vi.fn(),
     }
 
+    // Create mock PDFUtils
+    mockPdfUtils = {
+      extractFromBuffer: vi.fn(),
+    }
+
     // Create controller instance
     controller = new AIExtractDataController(
       mockLogger,
       mockPresignedUploadUrlUseCase,
-      mockExtractDataUseCase
+      mockExtractDataUseCase,
+      mockPdfUtils
     )
 
     // Create mock Fastify reply with chainable methods
@@ -126,7 +133,8 @@ describe('AIExtractDataController', () => {
       const instance = new AIExtractDataController(
         mockLogger,
         mockPresignedUploadUrlUseCase,
-        mockExtractDataUseCase
+        mockExtractDataUseCase,
+        mockPdfUtils
       )
 
       expect(instance).toBeInstanceOf(AIExtractDataController)
@@ -137,7 +145,8 @@ describe('AIExtractDataController', () => {
       const instance = new AIExtractDataController(
         mockLogger,
         mockPresignedUploadUrlUseCase,
-        mockExtractDataUseCase
+        mockExtractDataUseCase,
+        mockPdfUtils
       )
 
       expect(instance).toBeDefined()

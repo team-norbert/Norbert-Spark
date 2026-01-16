@@ -19,16 +19,22 @@ import {
   Paper,
   Typography,
 } from '@mui/material'
+import type { pdfSchema } from '@norberts-spark/shared'
+import type { z } from 'zod'
 
 import type { UploadedFile } from '@/view/hooks/useFileUpload.js'
 
+import { ExtractedDataDisplay } from './ExtractedDataDisplay.js'
 import { PageHeader } from './PageHeader.js'
+
+type ExtractedInvoiceData = z.infer<typeof pdfSchema>
 
 interface FileUploadPageProps {
   uploadedFiles: UploadedFile[]
   dragActive: boolean
   error: string | null
   isUploading: boolean
+  extractedData: ExtractedInvoiceData | null
   onDrag: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent) => void
   onFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -66,6 +72,7 @@ interface FileUploadPageProps {
 export function FileUploadPage({
   dragActive,
   error,
+  extractedData,
   isUploading,
   onClearAllFiles,
   onClearError,
@@ -94,6 +101,8 @@ export function FileUploadPage({
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
         Upload PDF or ZIP files for data extraction
       </Typography>
+
+      <ExtractedDataDisplay data={extractedData} fileName={uploadedFiles[0]?.file.name} />
 
       <Card elevation={3}>
         <CardContent>
