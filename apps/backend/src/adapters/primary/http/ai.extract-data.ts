@@ -91,7 +91,7 @@ export class AIExtractDataController {
       const { buffer, fileType } = await this.extractDataUseCase.execute(dto, auditContext)
 
       if (fileType === 'zip') {
-        const { totalEntries, pdfFilesFound, pdfPaths, pdfFiles } =
+        const { pdfFilesFound, pdfPaths, pdfFiles } =
           await this.pdfUtils.extractFromBuffer(Buffer.from(buffer))
 
         // Set headers for streaming newline-delimited JSON
