@@ -34,8 +34,6 @@ interface ExtractedDataDisplayProps {
  * ```
  */
 export function ExtractedDataDisplay({ data, fileName }: ExtractedDataDisplayProps) {
-  console.log('=== ExtractedDataDisplay RENDER ===', { data, fileName })
-
   return (
     <Card
       elevation={2}
