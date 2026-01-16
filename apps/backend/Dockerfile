@@ -23,7 +23,7 @@ COPY apps/backend/certs ./apps/backend/certs
 
 # Build shared package first, then backend
 RUN pnpm --filter @norberts-spark/shared build && \
-    pnpm --filter @norbets-spark/backend build
+    pnpm --filter @norberts-spark/backend build
 
 # Security: Run as non-root user
 # The node:22-slim image provides a built-in 'node' user (uid 1000)
