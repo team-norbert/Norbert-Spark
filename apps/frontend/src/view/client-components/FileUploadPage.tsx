@@ -34,6 +34,7 @@ interface FileUploadPageProps {
   dragActive: boolean
   error: string | null
   isUploading: boolean
+  isExtracting: boolean
   extractedData: ExtractedInvoiceData[]
   onDrag: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent) => void
@@ -73,6 +74,7 @@ export function FileUploadPage({
   dragActive,
   error,
   extractedData,
+  isExtracting,
   isUploading,
   onClearAllFiles,
   onClearError,
@@ -101,6 +103,24 @@ export function FileUploadPage({
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
         Upload PDF or ZIP files for data extraction
       </Typography>
+
+      {isExtracting && (
+        <Box sx={{ mb: 3 }}>
+          <Card elevation={3}>
+            <CardContent>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Extracting data from files...
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  This may take a few moments
+                </Typography>
+                <LinearProgress sx={{ width: '100%', maxWidth: 400 }} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
+      )}
 
       {extractedData.length > 0 && (
         <Box sx={{ mb: 3 }}>

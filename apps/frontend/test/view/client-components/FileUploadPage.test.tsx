@@ -20,6 +20,7 @@ describe('FileUploadPage Component', () => {
     dragActive: false,
     error: null,
     isUploading: false,
+    isExtracting: false,
     extractedData: [],
     onDrag: mockOnDrag,
     onDrop: mockOnDrop,

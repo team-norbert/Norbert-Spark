@@ -24,6 +24,7 @@ interface UseFileUploadReturn {
   dragActive: boolean
   error: string | null
   isUploading: boolean
+  isExtracting: boolean
   extractedData: ExtractedInvoiceData[]
   handleDrag: (e: React.DragEvent) => void
   handleDrop: (e: React.DragEvent) => void
@@ -58,6 +59,7 @@ export function useFileUpload(): UseFileUploadReturn {
   const [dragActive, setDragActive] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isExtracting, setIsExtracting] = useState(false)
   const [extractedData, setExtractedData] = useState<ExtractedInvoiceData[]>([])
 
   /**
@@ -220,7 +222,7 @@ export function useFileUpload(): UseFileUploadReturn {
               }
             })
 
-            xhr.addEventListener('error', (event) => {
+            xhr.addEventListener('error', (_event) => {
               logger.error('XHR error event fired', {
                 filename: file.name,
                 readyState: xhr.readyState,
@@ -318,6 +320,7 @@ export function useFileUpload(): UseFileUploadReturn {
 
         // Clear previous extraction results
         setExtractedData([])
+        setIsExtracting(true)
 
         // Extract data using server action
         try {
@@ -338,6 +341,8 @@ export function useFileUpload(): UseFileUploadReturn {
           }
         } catch (extractError) {
           logger.error('Extraction failed', { error: extractError })
+        } finally {
+          setIsExtracting(false)
         }
 
         logger.info('File uploaded successfully', {
@@ -388,6 +393,7 @@ export function useFileUpload(): UseFileUploadReturn {
     dragActive,
     error,
     isUploading,
+    isExtracting,
     extractedData,
     handleDrag,
     handleDrop,

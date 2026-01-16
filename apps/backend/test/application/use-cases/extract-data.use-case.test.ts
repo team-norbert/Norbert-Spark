@@ -283,7 +283,7 @@ describe('ExtractDataUseCase', () => {
 
         try {
           await useCase.execute(dto, auditContext)
-        } catch (error) {
+        } catch (_error) {
           // Expected error
         }
 
@@ -299,7 +299,7 @@ describe('ExtractDataUseCase', () => {
 
         try {
           await useCase.execute(dto, auditContext)
-        } catch (error) {
+        } catch (_error) {
           // Expected error
         }
 
@@ -346,7 +346,7 @@ describe('ExtractDataUseCase', () => {
 
         try {
           await useCase.execute(dto, auditContext)
-        } catch (error) {
+        } catch (_error) {
           // Expected error
         }
 
@@ -363,7 +363,7 @@ describe('ExtractDataUseCase', () => {
 
         try {
           await useCase.execute(dto, auditContext)
-        } catch (error) {
+        } catch (_error) {
           // Expected error
         }
 
@@ -395,7 +395,7 @@ describe('ExtractDataUseCase', () => {
 
         try {
           await useCase.execute(dto, auditContext)
-        } catch (error) {
+        } catch (_error) {
           // Expected error
         }
 
@@ -408,7 +408,7 @@ describe('ExtractDataUseCase', () => {
 
         try {
           await useCase.execute(dto, auditContext)
-        } catch (error) {
+        } catch (_error) {
           // Expected error
         }
 
@@ -425,7 +425,7 @@ describe('ExtractDataUseCase', () => {
 
         try {
           await useCase.execute(dto, auditContext)
-        } catch (error) {
+        } catch (_error) {
           // Expected error
         }
 

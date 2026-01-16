@@ -4,7 +4,6 @@ import type { pdfSchema } from '@norberts-spark/shared'
 import type { z } from 'zod'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
-import { backendRequest } from '@/infrastructure/serverActions/baseServerAction.js'
 import { getAuthToken } from '@/lib/auth.js'
 
 type ExtractedInvoiceData = z.infer<typeof pdfSchema>
@@ -24,9 +23,7 @@ type BackendError = Error & {
  * @param fileKey - The unique identifier for the file in the bucket
  * @returns Response with success flag and extracted data
  */
-export async function extractDataByFileIdAction(
-  fileKey: string
-): Promise<{
+export async function extractDataByFileIdAction(fileKey: string): Promise<{
   success: boolean
   data?: ExtractedInvoiceData
   allResults?: ExtractedInvoiceData[]
