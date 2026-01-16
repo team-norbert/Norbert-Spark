@@ -396,7 +396,7 @@ Builds a Docker image named `norberts-spark-backend` using `apps/backend/Dockerf
 - Based on Node.js 22 slim
 - Includes pnpm 10.25.0 via Corepack
 - Builds the shared package and backend in the correct order
-- Runs as non-root user (node:1000) for security
+- Runs as non-root user (built-in `node` user) for security
 - Exposes port 3001
 
 ### Running the Container
@@ -449,11 +449,13 @@ When running the backend in Docker, ensure the database connection in `apps/back
 
 ```env
 # For PostgreSQL running on host machine (not in Docker)
-DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/norbertsSpark
+DATABASE_URL=postgresql://username:password@host.docker.internal:5432/norbertsSpark
 
 # For PostgreSQL in Docker Compose (same Docker network)
-DATABASE_URL=postgresql://postgres:postgres@postgres:5432/norbertsSpark
+DATABASE_URL=postgresql://username:password@postgres:5432/norbertsSpark
 ```
+
+Replace `username` and `password` with your actual database credentials (e.g., from `.env.example`).
 
 See the root `DOCKER_POSTGRES.md` for PostgreSQL Docker setup instructions.
 
