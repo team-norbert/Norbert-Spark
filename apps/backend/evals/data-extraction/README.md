@@ -47,7 +47,7 @@ The eval uses three complementary scorers:
 
 ```bash
 cd apps/backend
-pnpm evalite evals/data-extraction/data_extraction.eval.ts
+pnpm eval
 ```
 
 ## Updating Ground Truth
