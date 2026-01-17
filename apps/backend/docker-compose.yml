@@ -81,6 +81,9 @@ services:
       API_VERSION: ${API_VERSION}
       OAUTH_SYNC_SECRET: ${OAUTH_SYNC_SECRET}
       CLOUDFLARE_API: ${CLOUDFLARE_API}
+      # In Docker we must bind to all interfaces inside the container so the service is reachable
+      # from the host and other containers. This intentionally overrides the EnvConfig default
+      # of 127.0.0.1 used for local (non-Docker) development.
       HOST: 0.0.0.0
       PORT: 3001
 
