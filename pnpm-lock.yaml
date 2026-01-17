@@ -72,9 +72,6 @@ importers:
       husky:
         specifier: ^9.1.7
         version: 9.1.7
-      node-gyp:
-        specifier: ^12.1.0
-        version: 12.1.0
       prettier:
         specifier: ^3.8.0
         version: 3.8.0
