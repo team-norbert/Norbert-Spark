@@ -147,7 +147,8 @@ function fuzzyStringMatch(actual: string, expected: string): number {
   const expectedWords = expectedNorm.split(' ').filter((word) => word.length > 0)
   const actualWords = new Set(actualNorm.split(' ').filter((word) => word.length > 0))
 
-  // Return 0 if no valid words exist in either string
+  // Defensive check: Return 0 if no valid words exist in either string
+  // This should not be reached given the earlier empty string check, but added for safety
   if (expectedWords.length === 0 || actualWords.size === 0) return 0
 
   const matchedWords = expectedWords.filter((word) => actualWords.has(word)).length
