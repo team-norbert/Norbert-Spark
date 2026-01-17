@@ -48,8 +48,9 @@ RUN pnpm install --frozen-lockfile --prod
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 
-# Copy certificates for runtime
-COPY apps/backend/certs ./apps/backend/certs
+# Certificates are expected to be mounted at runtime (e.g. via Docker/K8s secrets)
+# into /app/apps/backend/certs. This directory is created here for convenience.
+RUN mkdir -p ./apps/backend/certs
 
 # Security: Run as non-root user
 # The node:22-slim image provides a built-in 'node' user (uid 1000)
