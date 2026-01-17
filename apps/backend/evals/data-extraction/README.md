@@ -23,6 +23,7 @@ The eval measures how accurately the system extracts structured data from invoic
 The eval uses three complementary scorers:
 
 ### 1. Field Accuracy (Rule-based)
+
 - Compares each field individually with fuzzy matching
 - Uses exact match for numeric/currency fields
 - Uses normalized string matching for addresses/names
@@ -30,12 +31,14 @@ The eval uses three complementary scorers:
 - **Pass threshold**: ≥ 0.75
 
 ### 2. LLM Judge
+
 - Uses Gemini model to evaluate extraction quality holistically
 - Considers formatting, completeness, and semantic accuracy
 - Returns score (0-1) with reasoning
 - **Pass threshold**: ≥ 0.75
 
 ### 3. Critical Fields
+
 - Focuses on the most important fields: total, currency, invoice number
 - Uses exact matching (case-insensitive, trimmed)
 - **Pass threshold**: ≥ 0.8
@@ -52,6 +55,7 @@ pnpm evalite evals/data-extraction/data_extraction.eval.ts
 **IMPORTANT**: Before running the eval, update the `expected` values in `data_extraction.eval.ts` to match the actual content of `receipt-1.pdf`.
 
 Current placeholder values:
+
 ```typescript
 {
   total: 1250.0,
@@ -64,6 +68,7 @@ Current placeholder values:
 ```
 
 To update:
+
 1. Open `receipt-1.pdf` and manually extract the correct values
 2. Update the `expected` object in `testCases` array
 3. Run the eval
@@ -74,6 +79,7 @@ To add additional PDFs to test:
 
 1. Add PDF file to `apps/backend/evals/data-extraction/`
 2. Add new object to `testCases` array:
+
 ```typescript
 {
   pdfPath: path.join(__dirname, 'your-invoice.pdf'),
@@ -88,6 +94,7 @@ To add additional PDFs to test:
 ## Implementation Details
 
 The eval replicates the exact extraction logic from `AIExtractDataController`:
+
 - Uses `streamText` with `Output.object({ schema: pdfSchema })`
 - Same system prompt: "You will receive an invoice. Please extract the data from the invoice."
 - Same model configuration (respects `MODEL_NAME` env var)
@@ -96,5 +103,6 @@ The eval replicates the exact extraction logic from `AIExtractDataController`:
 ## Environment Variables
 
 Requires:
+
 - `MODEL_NAME` - Gemini model name (defaults to `gemini-2.0-flash-exp`)
 - Google API credentials configured in `.env`
