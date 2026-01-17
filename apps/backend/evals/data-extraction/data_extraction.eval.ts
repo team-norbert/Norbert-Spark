@@ -8,9 +8,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: true })
 
 import { evalite } from 'evalite'
-import { streamText, generateText } from 'ai'
+import { streamText, generateText, Output } from 'ai'
 import { google } from '@ai-sdk/google'
-import { Output } from 'ai'
 import { pdfSchema } from '@norberts-spark/shared'
 import type { z } from 'zod'
 
