@@ -137,12 +137,18 @@ function fuzzyStringMatch(actual: string, expected: string): number {
   const actualNorm = normalize(actual)
   const expectedNorm = normalize(expected)
 
+  // Handle empty strings - return 0 if either is empty
+  if (!actualNorm || !expectedNorm) return 0
+
   // Exact match after normalization
   if (actualNorm === expectedNorm) return 1
 
   // Check if all words from expected are in actual
-  const expectedWords = expectedNorm.split(' ')
-  const actualWords = new Set(actualNorm.split(' '))
+  const expectedWords = expectedNorm.split(' ').filter((word) => word.length > 0)
+  const actualWords = new Set(actualNorm.split(' ').filter((word) => word.length > 0))
+
+  // Return 0 if no valid words exist
+  if (expectedWords.length === 0) return 0
 
   const matchedWords = expectedWords.filter((word) => actualWords.has(word)).length
   const wordMatchRatio = matchedWords / expectedWords.length
