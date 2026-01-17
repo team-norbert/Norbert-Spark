@@ -54,19 +54,6 @@ pnpm evalite evals/data-extraction/data_extraction.eval.ts
 
 **IMPORTANT**: Before running the eval, update the `expected` values in `data_extraction.eval.ts` to match the actual content of `receipt-1.pdf`.
 
-Current placeholder values:
-
-```typescript
-{
-  total: 1250.0,
-  currency: 'USD',
-  invoiceNumber: 'INV-2024-001',
-  companyAddress: '123 Business St, Suite 100, New York, NY 10001',
-  companyName: 'Acme Corporation',
-  invoiceeAddress: '456 Client Ave, Los Angeles, CA 90001',
-}
-```
-
 To update:
 
 1. Open `receipt-1.pdf` and manually extract the correct values
