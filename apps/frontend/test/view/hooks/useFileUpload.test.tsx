@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { useRouter } from 'next/navigation.js'
+import { useRouter } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -7,8 +7,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useFileUpload } from '@/view/hooks/useFileUpload.js'
 
 // Mock next/navigation
-vi.mock('next/navigation.js', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
+  isRedirectError: vi.fn(),
 }))
 
 // Mock NextAuth signOut

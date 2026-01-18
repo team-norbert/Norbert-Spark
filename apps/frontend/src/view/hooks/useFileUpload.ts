@@ -1,6 +1,5 @@
 import type { pdfSchema } from '@norberts-spark/shared'
-import { isRedirectError } from 'next/dist/client/components/redirect-error.js'
-import { useRouter } from 'next/navigation.js'
+import { isRedirectError, useRouter } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import type React from 'react'
 import { useCallback, useState } from 'react'
