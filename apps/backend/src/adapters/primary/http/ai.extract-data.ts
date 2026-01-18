@@ -78,6 +78,13 @@ export class AIExtractDataController {
     const params = request.params as Record<string, unknown>
     const fileKey = params.fileId as string
 
+    if (!request.user?.sub) {
+      return reply.code(401).send({
+        success: false,
+        error: 'User not authenticated',
+      })
+    }
+
     try {
       // Extract audit context from request
       const auditContext = {
@@ -252,6 +259,13 @@ export class AIExtractDataController {
 
       if (!body?.files || !Array.isArray(body.files) || body.files.length === 0) {
         throw new UnprocessableEntityException('No files provided. Expected { files: [...] }')
+      }
+
+      if (!request.user?.sub) {
+        return reply.code(401).send({
+          success: false,
+          error: 'User not authenticated',
+        })
       }
 
       this.logger.info('Generating presigned URLs from metadata', {

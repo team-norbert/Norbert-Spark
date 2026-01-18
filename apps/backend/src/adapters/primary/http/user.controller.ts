@@ -156,6 +156,13 @@ export class UserController {
         userAgent: request.headers['user-agent'] ?? null,
       }
 
+      if (!request.user?.sub) {
+        return reply.code(401).send({
+          success: false,
+          error: 'User not authenticated',
+        })
+      }
+
       // Convert UserIdType
       const userIds = dto.userIds.map((id) => new UserId(id).getValue())
       const result = await this.deleteUsersUseCase.execute(userIds, auditContext)
@@ -219,6 +226,13 @@ export class UserController {
           error: 'Invalid offset parameter. Must be 0 or greater.',
         })
         return
+      }
+
+      if (!request.user?.sub) {
+        return reply.code(401).send({
+          success: false,
+          error: 'User not authenticated',
+        })
       }
 
       const result = await this.getAllUsersUseCase.execute({ limit, offset })
@@ -339,6 +353,13 @@ export class UserController {
           error: 'Invalid user ID parameter',
         })
         return
+      }
+
+      if (!request.user?.sub) {
+        return reply.code(401).send({
+          success: false,
+          error: 'User not authenticated',
+        })
       }
 
       reply.code(200).send({

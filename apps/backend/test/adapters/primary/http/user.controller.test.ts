@@ -91,6 +91,10 @@ describe('UserController', () => {
       headers: {
         'user-agent': 'test-agent',
       },
+      user: {
+        sub: 'user-123',
+        role: 'admin',
+      },
     } as any
   })
 
@@ -999,7 +1003,11 @@ describe('UserController', () => {
     it('should return user by id from params', async () => {
       const mockRequestWithParams = {
         params: { id: 'user-123' },
-      } as FastifyRequest<{ Params: { id: string } }>
+        user: {
+          sub: 'user-123',
+          role: 'admin',
+        },
+      } as unknown as FastifyRequest<{ Params: { id: string } }>
 
       await controller.getUser(mockRequestWithParams, mockReply)
 
@@ -1009,7 +1017,11 @@ describe('UserController', () => {
     it('should handle different user ids', async () => {
       const mockRequestWithParams = {
         params: { id: 'user-456-xyz' },
-      } as FastifyRequest<{ Params: { id: string } }>
+        user: {
+          sub: 'user-123',
+          role: 'admin',
+        },
+      } as unknown as FastifyRequest<{ Params: { id: string } }>
 
       await controller.getUser(mockRequestWithParams, mockReply)
 
@@ -1019,7 +1031,11 @@ describe('UserController', () => {
     it('should extract id from request params', async () => {
       const mockRequestWithParams = {
         params: { id: 'test-id-789' },
-      } as FastifyRequest<{ Params: { id: string } }>
+        user: {
+          sub: 'user-123',
+          role: 'admin',
+        },
+      } as unknown as FastifyRequest<{ Params: { id: string } }>
 
       await controller.getUser(mockRequestWithParams, mockReply)
 

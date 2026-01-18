@@ -1,3 +1,4 @@
+// IMPORTANT DO NOT USE THIS FILE ANYMORE. IT IS HERE FOR REFERENCE ONLY.
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import type { UIMessage } from 'ai'

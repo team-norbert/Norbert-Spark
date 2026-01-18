@@ -358,10 +358,7 @@ describe('AIExtractDataController', () => {
         )
       })
 
-      it('should handle request without user (null userId)', async () => {
-        const mockResult = { uploadUrls: [] }
-        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
-
+      it('should return 401 when user is not authenticated', async () => {
         mockRequest.body = {
           files: [{ filename: 'document.pdf', mimetype: 'application/pdf' }],
         }
@@ -369,12 +366,12 @@ describe('AIExtractDataController', () => {
 
         await controller.generatePresignedUrls(mockRequest, mockReply)
 
-        expect(mockPresignedUploadUrlUseCase.execute).toHaveBeenCalledWith(
-          expect.any(Array),
-          expect.objectContaining({
-            userId: null,
-          })
-        )
+        expect(mockReply.code).toHaveBeenCalledWith(401)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'User not authenticated',
+        })
+        expect(mockPresignedUploadUrlUseCase.execute).not.toHaveBeenCalled()
       })
 
       it('should handle missing user-agent header', async () => {

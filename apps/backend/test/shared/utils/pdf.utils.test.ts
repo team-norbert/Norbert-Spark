@@ -305,7 +305,7 @@ describe('PDFUtils', () => {
 
         try {
           await strictPdfUtils.extractFromBuffer(zipBuffer)
-        } catch (_error) {
+        } catch {
           // Expected
         }
 
