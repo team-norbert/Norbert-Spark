@@ -290,7 +290,7 @@ export function useFileUpload(): UseFileUploadReturn {
       const response = await getPresignedUrls(fileMetadata)
 
       // Check if session expired (JWT expired on backend)
-      if ('sessionExpired' in response && response.sessionExpired) {
+      if (response.sessionExpired) {
         logger.warn('Session expired, redirecting to signin')
         router.push('/signin?error=session_expired&callbackUrl=/extract-data')
         return
