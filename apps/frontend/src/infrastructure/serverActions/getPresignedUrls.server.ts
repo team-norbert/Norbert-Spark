@@ -34,6 +34,7 @@ export interface PresignedUrlsResponse {
   }
   message?: string
   error?: string
+  sessionExpired?: boolean
 }
 
 /**
@@ -122,7 +123,7 @@ export async function getPresignedUrls(files: FileMetadata[]): Promise<Presigned
         success: false,
         error: 'Session expired. Please sign in again.',
         sessionExpired: true,
-      } as PresignedUrlsResponse & { sessionExpired?: boolean }
+      }
     }
 
     const errorMessage = error instanceof Error ? error.message : 'Failed to get presigned URLs'
