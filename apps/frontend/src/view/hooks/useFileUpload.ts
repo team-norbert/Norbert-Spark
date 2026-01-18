@@ -286,6 +286,13 @@ export function useFileUpload(): UseFileUploadReturn {
       // Get presigned URLs from the server action
       const response = await getPresignedUrls(fileMetadata)
 
+      // Check if session expired (JWT expired on backend)
+      if ('sessionExpired' in response && response.sessionExpired) {
+        logger.warn('Session expired, redirecting to signin')
+        router.push('/signin?error=session_expired&callbackUrl=/extract-data')
+        return
+      }
+
       if (!response.success || !response.data?.uploadUrls) {
         throw new Error(response.error || 'Failed to get presigned URLs')
       }
@@ -329,6 +336,13 @@ export function useFileUpload(): UseFileUploadReturn {
           logger.info('Starting extraction via server action', { fileKey: urlInfo.fileKey })
 
           const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
+
+          // Check if session expired (JWT expired on backend)
+          if (extractResult.sessionExpired) {
+            logger.warn('Session expired during extraction, redirecting to signin')
+            router.push('/signin?error=session_expired&callbackUrl=/extract-data')
+            return
+          }
 
           if (
             extractResult.success &&
@@ -375,7 +389,7 @@ export function useFileUpload(): UseFileUploadReturn {
     } finally {
       setIsUploading(false)
     }
-  }, [uploadedFiles, isUploading, uploadFileToBucket])
+  }, [uploadedFiles, isUploading, uploadFileToBucket, router])
 
   /**
    * Clear the error message

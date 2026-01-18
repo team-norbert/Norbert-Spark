@@ -104,6 +104,7 @@ export async function getPresignedUrls(files: FileMetadata[]): Promise<Presigned
         Authorization: `Bearer ${accessToken}`,
       },
       timeoutMs: 30000, // 30 seconds for presigned URL generation
+      redirectOn401: false, // Don't redirect on 401, let the client handle auth errors
     })
 
     logger.info('Presigned URLs received', {
@@ -113,6 +114,17 @@ export async function getPresignedUrls(files: FileMetadata[]): Promise<Presigned
 
     return response
   } catch (error) {
+    // Check if this is a 401 Unauthorized error (JWT expired)
+    const err = error as Error & { status?: number }
+    if (err.status === 401) {
+      logger.warn('JWT expired or unauthorized in getPresignedUrls')
+      return {
+        success: false,
+        error: 'Session expired. Please sign in again.',
+        sessionExpired: true,
+      } as PresignedUrlsResponse & { sessionExpired?: boolean }
+    }
+
     const errorMessage = error instanceof Error ? error.message : 'Failed to get presigned URLs'
     logger.error('Error getting presigned URLs', { error: errorMessage })
 

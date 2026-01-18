@@ -92,6 +92,7 @@ describe('getPresignedUrls', () => {
           Authorization: `Bearer ${TEST_TOKEN}`,
         },
         timeoutMs: 30000,
+        redirectOn401: false,
       })
       expect(mockLoggerInfo).toHaveBeenCalledWith('Requesting presigned URLs', {
         fileCount: 2,

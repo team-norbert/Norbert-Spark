@@ -54,6 +54,7 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
   data?: ExtractedInvoiceData
   allResults?: ExtractedInvoiceData[]
   error?: string
+  sessionExpired?: boolean
 }> {
   try {
     const token = await getAuthToken()
@@ -75,6 +76,15 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
     })
 
     if (!response.ok) {
+      // Check for 401 Unauthorized (JWT expired on backend)
+      if (response.status === 401) {
+        logger.warn('JWT expired or unauthorized in extractDataByFileIdAction')
+        return {
+          success: false,
+          error: 'Session expired. Please sign in again.',
+          sessionExpired: true,
+        }
+      }
       throw new Error(`Backend returned ${response.status}`)
     }
 
