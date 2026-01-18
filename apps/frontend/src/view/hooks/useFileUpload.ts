@@ -1,5 +1,9 @@
 import type { pdfSchema } from '@norberts-spark/shared'
-import { isRedirectError, useRouter } from 'next/navigation'
+// Note: isRedirectError is imported from an internal Next.js path because it's not
+// exported from the public API in Next.js 16.1.x. This may require updates when
+// upgrading Next.js versions. See: https://github.com/vercel/next.js/discussions/50170
+import { isRedirectError } from 'next/dist/client/components/redirect-error.js'
+import { useRouter } from 'next/navigation.js'
 import { signOut } from 'next-auth/react'
 import type React from 'react'
 import { useCallback, useState } from 'react'
