@@ -11,24 +11,6 @@ import { getPresignedUrls } from '@/infrastructure/serverActions/getPresignedUrl
 
 const logger = createLogger({ prefix: '[useFileUpload]' })
 
-/**
- * Check if an error is a Next.js redirect error by examining its digest property.
- * Next.js redirect() throws an error with a digest starting with 'NEXT_REDIRECT'.
- * This approach avoids using internal Next.js APIs which may not be stable across versions.
- *
- * @param {unknown} error - The error to check
- * @returns {boolean} True if the error is a redirect error
- */
-function isRedirectError(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'digest' in error &&
-    typeof error.digest === 'string' &&
-    error.digest.startsWith('NEXT_REDIRECT')
-  )
-}
-
 type ExtractedInvoiceData = z.infer<typeof pdfSchema>
 
 export interface UploadedFile {
@@ -373,10 +355,6 @@ export function useFileUpload(): UseFileUploadReturn {
             throw new Error(extractResult.error)
           }
         } catch (extractError) {
-          // Re-throw Next.js redirect errors so they are handled properly
-          if (isRedirectError(extractError)) {
-            throw extractError
-          }
           logger.error('Extraction failed', { error: extractError })
         } finally {
           setIsExtracting(false)
@@ -394,11 +372,6 @@ export function useFileUpload(): UseFileUploadReturn {
       logger.info('All files uploaded successfully to bucket')
       // You can add navigation or success notification here
     } catch (error) {
-      // Re-throw Next.js redirect errors so they are handled properly
-      // (e.g., when JWT expires and server action redirects to /signin)
-      if (isRedirectError(error)) {
-        throw error
-      }
       const errorMessage =
         error instanceof Error ? error.message : 'An error occurred during upload'
       setError(`Upload failed: ${errorMessage}`)
