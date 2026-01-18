@@ -11,6 +11,11 @@ vi.mock('next/navigation.js', () => ({
   useRouter: vi.fn(),
 }))
 
+// Mock isRedirectError from internal Next.js path
+vi.mock('next/dist/client/components/redirect-error.js', () => ({
+  isRedirectError: vi.fn(),
+}))
+
 // Mock NextAuth signOut
 vi.mock('next-auth/react', () => ({
   signOut: vi.fn(),
