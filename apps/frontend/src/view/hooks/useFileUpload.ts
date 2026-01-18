@@ -1,8 +1,4 @@
 import type { pdfSchema } from '@norberts-spark/shared'
-// Note: isRedirectError is imported from an internal Next.js path because it's not
-// exported from the public API in Next.js 16.1.x. This may require updates when
-// upgrading Next.js versions. See: https://github.com/vercel/next.js/discussions/50170
-import { isRedirectError } from 'next/dist/client/components/redirect-error.js'
 import { useRouter } from 'next/navigation.js'
 import { signOut } from 'next-auth/react'
 import type React from 'react'
@@ -14,6 +10,24 @@ import { extractDataByFileIdAction } from '@/infrastructure/serverActions/extrac
 import { getPresignedUrls } from '@/infrastructure/serverActions/getPresignedUrls.server.js'
 
 const logger = createLogger({ prefix: '[useFileUpload]' })
+
+/**
+ * Check if an error is a Next.js redirect error by examining its digest property.
+ * Next.js redirect() throws an error with a digest starting with 'NEXT_REDIRECT'.
+ * This approach avoids using internal Next.js APIs which may not be stable across versions.
+ *
+ * @param {unknown} error - The error to check
+ * @returns {boolean} True if the error is a redirect error
+ */
+function isRedirectError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'digest' in error &&
+    typeof error.digest === 'string' &&
+    error.digest.startsWith('NEXT_REDIRECT')
+  )
+}
 
 type ExtractedInvoiceData = z.infer<typeof pdfSchema>
 
