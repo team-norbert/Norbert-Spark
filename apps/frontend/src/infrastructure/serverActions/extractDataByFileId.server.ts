@@ -144,7 +144,7 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
     }
   } catch (error) {
     const err = error as BackendError
-    
+
     // Check if this is a 401 Unauthorized error (JWT expired)
     if (err.status === 401) {
       logger.warn('JWT expired or unauthorized in extractDataByFileId catch block')
@@ -154,7 +154,7 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
         sessionExpired: true,
       }
     }
-    
+
     logger.error('extractDataByFileIdAction error', { fileKey, error: err })
 
     return { success: false, error: err.message || 'Failed to extract data' }
