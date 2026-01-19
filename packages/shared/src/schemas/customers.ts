@@ -75,6 +75,10 @@ export const customers = pgTable(
       'customers_billing_country_format_check',
       sql`${table.billingCountry} IS NULL OR ${table.billingCountry} ~ '^[A-Z]{2}$'`
     ),
+    timezoneValidCheck: check(
+      'customers_timezone_valid_check',
+      sql`${table.timezone} IN (SELECT name FROM pg_timezone_names)`
+    ),
   })
 )
 
