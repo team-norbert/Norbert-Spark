@@ -345,7 +345,7 @@ export const chats = pgTable(
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),
     name: text('name').notNull().default('Untitled Chat'),
-    description: text('description').notNull().default('Explanation of purpose of chat'),
+    description: text('description').notNull().default('No description'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
