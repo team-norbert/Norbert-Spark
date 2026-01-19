@@ -11,7 +11,7 @@
     "dev": "tsx watch src/infrastructure/di/container/index.ts",
     "dev:debug": "tsx watch --inspect src/infrastructure/di/container/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/infrastructure/di/container/index.js",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",
     "test:unit": "vitest run --hideSkippedTests",

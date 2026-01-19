@@ -219,10 +219,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      // In CI (no .env file): expects code default "127.0.0.1"
-      // Locally (with .env): may load HOST=0.0.0.0 from .env
-      // This test verifies the fallback works correctly in both environments
-      expect(['127.0.0.1', '0.0.0.0']).toContain(EnvConfig.HOST)
+      expect(EnvConfig.HOST).toBe('127.0.0.1')
     })
 
     it('should have type string', async () => {

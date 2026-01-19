@@ -55,6 +55,49 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+  app:
+    # NOTE: Build this image first from the repository root with: pnpm run docker:build
+    image: norbertsSpark-backend:latest
+    container_name: norbertsSpark-backend
+    restart: unless-stopped
+
+    # Network configuration for isolation
+    networks:
+      - norbertsSpark-network
+
+    ports:
+      - '3001:3001'
+
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${POSTGRES_USER:-postgres}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DATABASE_NAME: ${POSTGRES_DB:-norbertsSpark}
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
+      MODEL_NAME: ${MODEL_NAME}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      API_VERSION: ${API_VERSION}
+      OAUTH_SYNC_SECRET: ${OAUTH_SYNC_SECRET}
+      CLOUDFLARE_API: ${CLOUDFLARE_API}
+      # In Docker we must bind to all interfaces inside the container so the service is reachable
+      # from the host and other containers. This intentionally overrides the EnvConfig default
+      # of 127.0.0.1 used for local (non-Docker) development.
+      HOST: 0.0.0.0
+      PORT: 3001
+
+    # Health check using the backend's /health endpoint
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3001/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 networks:
   norbertsSpark-network:
