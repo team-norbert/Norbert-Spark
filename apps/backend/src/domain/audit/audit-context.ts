@@ -11,7 +11,7 @@ import type { UserIdType } from '../value-objects/userID.js'
  * ```typescript
  * // Authenticated user action
  * const auditContext: AuditContext = {
- *   userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
+ *   userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' as UserIdType,
  *   ipAddress: '192.168.1.100',
  *   userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
  * }
