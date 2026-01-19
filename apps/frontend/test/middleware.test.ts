@@ -89,6 +89,24 @@ describe('Middleware', () => {
       )
     })
 
+    it('should redirect unauthenticated user from /extract-data to /signin with callbackUrl', async () => {
+      const request = createRequest('/extract-data')
+      const response = await middleware(request)
+
+      expect(response.status).toBe(302)
+      expect(response.headers.get('location')).toBe(`${baseUrl}/signin?callbackUrl=%2Fextract-data`)
+    })
+
+    it('should redirect unauthenticated user from /extract-data/subfolder to /signin with callbackUrl', async () => {
+      const request = createRequest('/extract-data/subfolder')
+      const response = await middleware(request)
+
+      expect(response.status).toBe(302)
+      expect(response.headers.get('location')).toBe(
+        `${baseUrl}/signin?callbackUrl=%2Fextract-data%2Fsubfolder`
+      )
+    })
+
     it('should preserve complex paths with query params in callbackUrl', async () => {
       const request = createRequest('/admin/users?page=2&sort=name')
       const response = await middleware(request)
@@ -140,6 +158,20 @@ describe('Middleware', () => {
 
     it('should allow authenticated user to access /profile/edit', async () => {
       const request = createRequest('/profile/edit')
+      const response = await middleware(request)
+
+      expect(response.status).toBe(200)
+    })
+
+    it('should allow authenticated user to access /extract-data', async () => {
+      const request = createRequest('/extract-data')
+      const response = await middleware(request)
+
+      expect(response.status).toBe(200)
+    })
+
+    it('should allow authenticated user to access /extract-data/subfolder', async () => {
+      const request = createRequest('/extract-data/subfolder')
       const response = await middleware(request)
 
       expect(response.status).toBe(200)
