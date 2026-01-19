@@ -1,13 +1,5 @@
 import { relations, sql } from 'drizzle-orm'
-import {
-  pgTable,
-  uuid,
-  varchar,
-  timestamp,
-  jsonb,
-  index,
-  check,
-} from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, timestamp, jsonb, index, check } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
 
 export const pdfSchema = z

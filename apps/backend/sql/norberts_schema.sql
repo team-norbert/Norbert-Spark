@@ -186,7 +186,10 @@ CREATE TABLE IF NOT EXISTS ai_options (
                                         frequency_penalty IS NULL
                                         OR (frequency_penalty >= -2 AND frequency_penalty <= 2)
                                     ),
-    presence_penalty NUMERIC NOT NULL CHECK (presence_penalty >= -2 AND presence_penalty <= 2),
+    presence_penalty NUMERIC (
+                                 presence_penalty IS NULL
+                                 OR (frequency_penalty >= -2 AND frequency_penalty <= 2)
+    ),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

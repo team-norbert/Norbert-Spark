@@ -20,7 +20,7 @@ export const aiOptions = pgTable(
     temperature: numeric('temperature'),
     topP: numeric('top_p'),
     frequencyPenalty: numeric('frequency_penalty'),
-    presencePenalty: numeric('presence_penalty').notNull(),
+    presencePenalty: numeric('presence_penalty'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
