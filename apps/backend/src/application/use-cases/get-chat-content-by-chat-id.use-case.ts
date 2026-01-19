@@ -12,7 +12,10 @@ export class GetChatContentByChatIdUseCase {
     private readonly logger: LoggerPort,
     private readonly auditLog: AuditLogPort
   ) {}
-  async execute(chatId: ChatIdType, auditContext: AuditContext): Promise<ChatResponseResult | null> {
+  async execute(
+    chatId: ChatIdType,
+    auditContext: AuditContext
+  ): Promise<ChatResponseResult | null> {
     this.logger.info('GetChatContentByChatIdUseCase.execute', chatId)
     const chatContent = await this.aiService.getAIChatByChatId(chatId)
 
