@@ -344,6 +344,8 @@ export const chatTypes = pgTable(
       .primaryKey()
       .default(sql`uuidv7()`),
     name: text('name').notNull().unique(),
+    seoFriendlyId: text('seo_friendly_id').notNull().unique(),
+    seoFriendlyBase64Id: text('seo_friendly_base64_id').notNull().unique(),
     description: text('description').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
@@ -357,6 +359,14 @@ export const chatTypes = pgTable(
     nameLengthCheck: check(
       'chat_types_name_length_check',
       sql`length(${table.name}) >= 1 AND length(${table.name}) <= 200`
+    ),
+    seoFriendlyIdLengthCheck: check(
+      'chat_types_seo_friendly_id_length_check',
+      sql`length(${table.seoFriendlyId}) >= 1 AND length(${table.seoFriendlyId}) <= 200`
+    ),
+    seoFriendlyBase64IdLengthCheck: check(
+      'chat_types_seo_friendly_base64_id_length_check',
+      sql`length(${table.seoFriendlyBase64Id}) = 22`
     ),
     descriptionLengthCheck: check(
       'chat_types_description_length_check',
