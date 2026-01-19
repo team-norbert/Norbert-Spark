@@ -26,7 +26,7 @@ describe('RegisterUserUseCase', () => {
   let mockLogger: LoggerPort
   let mockTokenGenerator: TokenGeneratorPort
   let mockAuditLog: AuditLogPort
-  const auditContext = { ipAddress: '127.0.0.1', userAgent: 'test-agent' }
+  const auditContext = { userId: null, ipAddress: '127.0.0.1', userAgent: 'test-agent' }
 
   beforeEach(() => {
     // Reset all mocks before each test
@@ -108,7 +108,7 @@ describe('RegisterUserUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: mockUserId,
+          userId: auditContext.userId,
           entityType: EntityType.USER,
           entityId: mockUserId,
           action: AuditAction.CREATE,

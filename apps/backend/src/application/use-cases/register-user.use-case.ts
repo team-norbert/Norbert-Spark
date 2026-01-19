@@ -14,6 +14,7 @@ import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { AuditLogPort } from '../ports/audit-log.port.js'
 import { EntityType } from '../../domain/audit/entity-type.enum.js'
 import { AuditAction } from '../../domain/audit/entity-type.enum.js'
+import type { AuditConstantsType } from '../../shared/constants/audit-constants.js'
 
 /**
  * Use case for registering a new user in the system
@@ -94,7 +95,7 @@ export class RegisterUserUseCase {
    */
   async execute(
     dto: RegisterUserDto,
-    auditContext: { ipAddress: string; userAgent: string | null }
+    auditContext: AuditConstantsType
   ): Promise<{ userId: string; access_token: string; token_type: string; expires_in: number }> {
     this.logger.info('Starting user registration', { email: dto.email })
 
@@ -120,7 +121,7 @@ export class RegisterUserUseCase {
       this.logger.error('Failed to save user', error as Error, { email: dto.email })
       if (DatabaseUtil.isDuplicateKeyError(error)) {
         await this.auditLog.log({
-          userId: null,
+          userId: auditContext.userId,
           entityType: EntityType.USER,
           entityId: String(email),
           action: AuditAction.REGISTRATION_FAILED,
@@ -135,7 +136,7 @@ export class RegisterUserUseCase {
 
     try {
       await this.auditLog.log({
-        userId: userId,
+        userId: auditContext.userId,
         entityType: EntityType.USER,
         entityId: userId,
         action: AuditAction.CREATE,

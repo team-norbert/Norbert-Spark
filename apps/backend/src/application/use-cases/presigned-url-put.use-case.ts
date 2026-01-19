@@ -6,6 +6,7 @@ import { EnvConfig } from '../../infrastructure/config/env.config.js'
 import { uuidv7 } from 'uuidv7'
 import type { MultipartFile } from '@fastify/multipart'
 import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
+import type { AuditConstantsType } from '../../shared/constants/audit-constants.js'
 
 interface PresignedUploadUrl {
   filename: string
@@ -22,7 +23,7 @@ export class PresignedUploadUrlUseCase {
 
   async execute(
     files: MultipartFile[],
-    auditContext: { ipAddress: string; userAgent: string | null; userId: string | null }
+    auditContext: AuditConstantsType
   ): Promise<{ uploadUrls: PresignedUploadUrl[] }> {
     const bucketName = EnvConfig.BUCKET
     const uploadUrls: PresignedUploadUrl[] = []

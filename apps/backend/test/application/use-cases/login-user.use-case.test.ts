@@ -23,6 +23,7 @@ describe('LoginUserUseCase', () => {
 
   // Standard audit context for tests
   const auditContext = {
+    userId: null,
     ipAddress: '127.0.0.1',
     userAgent: 'test-user-agent',
   }

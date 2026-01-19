@@ -177,6 +177,7 @@ export class AuthController {
 
       // Extract audit context from request
       const auditContext = {
+        userId: request.user?.sub ?? null,
         ipAddress: request.ip,
         userAgent: request.headers['user-agent'] ?? null,
       }
@@ -248,6 +249,7 @@ export class AuthController {
 
       // Extract audit context from request
       const auditContext = {
+        userId: request.user?.sub ?? null,
         ipAddress: request.ip,
         userAgent: request.headers['user-agent'] ?? null,
       }
