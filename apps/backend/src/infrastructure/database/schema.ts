@@ -195,6 +195,8 @@ export const dataRetrievalMessages = pgTable('data_retrieval_messages', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+export type DBDataRetrievalMessage = typeof dataRetrievalMessages.$inferInsert
+export type DBDataRetrievalMessageSelect = typeof dataRetrievalMessages.$inferSelect
 export const dataRetrievalMessagesRelations = relations(
   dataRetrievalMessages,
   ({ many }) => ({
