@@ -241,7 +241,7 @@ describe('Database Schema', () => {
         expect(chatAiOptions.prompt.notNull).toBe(true)
       })
 
-      it('should have default value for maxTokens', () => {
+      it('should not have default value for maxTokens', () => {
         expect(chatAiOptions.maxTokens.hasDefault).toBe(false)
       })
 
