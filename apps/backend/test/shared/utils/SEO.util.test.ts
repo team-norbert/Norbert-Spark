@@ -171,9 +171,7 @@ describe('SEO', () => {
     })
 
     it('should handle complex real-world title', () => {
-      const result = SEO.generateSeoFriendlyTitle(
-        'How to Build a React Application in 2024'
-      )
+      const result = SEO.generateSeoFriendlyTitle('How to Build a React Application in 2024')
 
       expect(result).toBe('build-react-application-2024')
     })
