@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   auditLog,
+  chatAiOptions,
   chats,
   dataRetrievalMessageParts,
   dataRetrievalMessages,
@@ -26,6 +27,11 @@ describe('Database Schema', () => {
     it('should export messages table constant', () => {
       expect(messages).toBeDefined()
       expect(typeof messages).toBe('object')
+    })
+
+    it('should export chatAiOptions table constant', () => {
+      expect(chatAiOptions).toBeDefined()
+      expect(typeof chatAiOptions).toBe('object')
     })
 
     it('should export parts table constant', () => {
@@ -123,6 +129,16 @@ describe('Database Schema', () => {
         expect(chats.userId.name).toBe('user_id')
       })
 
+      it('should have name column', () => {
+        expect(chats.name).toBeDefined()
+        expect(chats.name.name).toBe('name')
+      })
+
+      it('should have description column', () => {
+        expect(chats.description).toBeDefined()
+        expect(chats.description.name).toBe('description')
+      })
+
       it('should have createdAt column', () => {
         expect(chats.createdAt).toBeDefined()
         expect(chats.createdAt.name).toBe('created_at')
@@ -153,6 +169,104 @@ describe('Database Schema', () => {
       it('should have role column', () => {
         expect(messages.role).toBeDefined()
         expect(messages.role.name).toBe('role')
+      })
+    })
+
+    describe('chatAiOptions table columns', () => {
+      it('should have id column', () => {
+        expect(chatAiOptions.id).toBeDefined()
+        expect(chatAiOptions.id.name).toBe('id')
+      })
+
+      it('should have chatId column', () => {
+        expect(chatAiOptions.chatId).toBeDefined()
+        expect(chatAiOptions.chatId.name).toBe('chat_id')
+      })
+
+      it('should have prompt column', () => {
+        expect(chatAiOptions.prompt).toBeDefined()
+        expect(chatAiOptions.prompt.name).toBe('prompt')
+      })
+
+      it('should have maxTokens column', () => {
+        expect(chatAiOptions.maxTokens).toBeDefined()
+        expect(chatAiOptions.maxTokens.name).toBe('max_tokens')
+      })
+
+      it('should have temperature column', () => {
+        expect(chatAiOptions.temperature).toBeDefined()
+        expect(chatAiOptions.temperature.name).toBe('temperature')
+      })
+
+      it('should have topP column', () => {
+        expect(chatAiOptions.topP).toBeDefined()
+        expect(chatAiOptions.topP.name).toBe('top_p')
+      })
+
+      it('should have frequencyPenalty column', () => {
+        expect(chatAiOptions.frequencyPenalty).toBeDefined()
+        expect(chatAiOptions.frequencyPenalty.name).toBe('frequency_penalty')
+      })
+
+      it('should have presencePenalty column', () => {
+        expect(chatAiOptions.presencePenalty).toBeDefined()
+        expect(chatAiOptions.presencePenalty.name).toBe('presence_penalty')
+      })
+
+      it('should have createdAt column', () => {
+        expect(chatAiOptions.createdAt).toBeDefined()
+        expect(chatAiOptions.createdAt.name).toBe('created_at')
+      })
+
+      it('should have updatedAt column', () => {
+        expect(chatAiOptions.updatedAt).toBeDefined()
+        expect(chatAiOptions.updatedAt.name).toBe('updated_at')
+      })
+    })
+
+    describe('chatAiOptions table properties', () => {
+      it('should have primary key on id', () => {
+        expect(chatAiOptions.id.primary).toBe(true)
+      })
+
+      it('should have not null constraint on chatId', () => {
+        expect(chatAiOptions.chatId.notNull).toBe(true)
+      })
+
+      it('should have unique constraint on chatId', () => {
+        expect(chatAiOptions.chatId.isUnique).toBe(true)
+      })
+
+      it('should have not null constraint on prompt', () => {
+        expect(chatAiOptions.prompt.notNull).toBe(true)
+      })
+
+      it('should not have default value for maxTokens', () => {
+        expect(chatAiOptions.maxTokens.hasDefault).toBe(false)
+      })
+
+      it('should have not null constraint on createdAt', () => {
+        expect(chatAiOptions.createdAt.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on updatedAt', () => {
+        expect(chatAiOptions.updatedAt.notNull).toBe(true)
+      })
+
+      it('should have nullable temperature', () => {
+        expect(chatAiOptions.temperature.notNull).toBe(false)
+      })
+
+      it('should have nullable topP', () => {
+        expect(chatAiOptions.topP.notNull).toBe(false)
+      })
+
+      it('should have nullable frequencyPenalty', () => {
+        expect(chatAiOptions.frequencyPenalty.notNull).toBe(false)
+      })
+
+      it('should have nullable presencePenalty', () => {
+        expect(chatAiOptions.presencePenalty.notNull).toBe(false)
       })
     })
 
@@ -376,13 +490,14 @@ describe('Database Schema', () => {
         getTableName(user),
         getTableName(chats),
         getTableName(messages),
+        getTableName(chatAiOptions),
         getTableName(parts),
         getTableName(auditLog),
         getTableName(dataRetrievalMessages),
         getTableName(dataRetrievalMessageParts),
       ]
       const uniqueNames = new Set(tableNames)
-      expect(uniqueNames.size).toBe(7)
+      expect(uniqueNames.size).toBe(8)
     })
 
     it('should have consistent timestamp column naming', () => {
@@ -400,6 +515,7 @@ describe('Database Schema', () => {
       expect(user.userId.name).toBe('user_id')
       expect(chats.id.name).toBe('id')
       expect(messages.id.name).toBe('id')
+      expect(chatAiOptions.id.name).toBe('id')
       expect(parts.id.name).toBe('id')
       expect(auditLog.id.name).toBe('id')
       expect(dataRetrievalMessages.id.name).toBe('id')
@@ -409,6 +525,7 @@ describe('Database Schema', () => {
     it('should have consistent foreign key naming pattern', () => {
       expect(chats.userId.name).toBe('user_id')
       expect(messages.chatId.name).toBe('chat_id')
+      expect(chatAiOptions.chatId.name).toBe('chat_id')
       expect(parts.messageId.name).toBe('message_id')
       expect(auditLog.userId.name).toBe('user_id')
       expect(dataRetrievalMessageParts.messageId.name).toBe('message_id')

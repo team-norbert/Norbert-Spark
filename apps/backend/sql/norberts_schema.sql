@@ -145,6 +145,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS one_primary_contact_per_customer
 CREATE TABLE IF NOT EXISTS chats (
     id UUID PRIMARY KEY, -- the UUID creation is managed by the application
     user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    name TEXT NOT NULL DEFAULT 'Untitled Chat' CHECK (length(name) >= 1 AND length(name) <= 200);
+    description TEXT NOT NULL DEFAULT 'No description' CHECK (length(description) >= 1 AND length(description) <= 500);
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -152,6 +154,7 @@ CREATE TABLE IF NOT EXISTS chats (
 -- Index for chats table
 CREATE INDEX IF NOT EXISTS chats_user_id_idx ON chats(user_id);
 CREATE INDEX IF NOT EXISTS chats_user_id_updated_at_idx ON chats(user_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS chats_user_id_name_idx ON chats(user_id, name);
 
 -- Messages table: Stores individual messages within chats
 CREATE TABLE IF NOT EXISTS messages (
@@ -165,15 +168,15 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE INDEX IF NOT EXISTS messages_chat_id_idx ON messages(chat_id);
 CREATE INDEX IF NOT EXISTS messages_chat_id_created_at_idx ON messages(chat_id, created_at);
 
--- AI options table: Stores model configuration parameters for each message
-CREATE TABLE IF NOT EXISTS ai_options (
+-- AI options table: Stores model configuration parameters for each chat (one-to-one with chats)
+CREATE TABLE IF NOT EXISTS chat_ai_options (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    message_id UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    chat_id UUID NOT NULL UNIQUE REFERENCES chats(id) ON DELETE CASCADE,
     prompt TEXT NOT NULL,
     max_tokens INTEGER CHECK (
-                         max_tokens IS NULL
-                         OR max_tokens > 0
-                     ),
+                                 max_tokens IS NULL
+                                 OR (max_tokens > 0 AND max_tokens <= 100000)
+                             ),
     temperature NUMERIC CHECK (
                                  temperature IS NULL
                                  OR (temperature >= 0 AND temperature <= 2)
@@ -186,11 +189,16 @@ CREATE TABLE IF NOT EXISTS ai_options (
                                         frequency_penalty IS NULL
                                         OR (frequency_penalty >= -2 AND frequency_penalty <= 2)
                                     ),
-    presence_penalty NUMERIC NOT NULL CHECK (presence_penalty >= -2 AND presence_penalty <= 2),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    presence_penalty NUMERIC CHECK (
+                                        presence_penalty IS NULL
+                                        OR (presence_penalty >= -2 AND presence_penalty <= 2)
+                                    ),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS ai_options_message_id_idx ON ai_options(message_id);
+-- Index for efficient lookup
+CREATE UNIQUE INDEX chat_ai_options_chat_id_idx ON chat_ai_options(chat_id);
 
 -- Parts table: Stores message parts (text, files, tools, etc.)
 CREATE TABLE IF NOT EXISTS parts (
@@ -382,7 +390,13 @@ COMMENT ON TABLE chats IS 'Stores chat sessions linked to users';
 COMMENT ON TABLE messages IS 'Stores individual messages within chats';
 COMMENT ON TABLE parts IS 'Stores message parts with polymorphic structure based on type field';
 
+COMMENT ON TABLE chat_ai_options IS 'Stores AI model configuration parameters for each chat';
+COMMENT ON COLUMN chat_ai_options.chat_id IS 'One-to-one relationship with chats table';
+COMMENT ON COLUMN chat_ai_options.prompt IS 'System prompt/context for this chat';
+
 COMMENT ON COLUMN chats.user_id IS 'Foreign key linking chat to the user who created it';
+COMMENT ON COLUMN chats.name IS 'Display name for the chat, user-defined (1-200 characters)';
+COMMENT ON COLUMN chats.description IS 'Optional longer description or notes about the chat, user-defined';
 COMMENT ON COLUMN chats.updated_at IS 'Timestamp of last activity in this chat, useful for sorting chat history';
 COMMENT ON COLUMN parts.type IS 'Discriminator field - values: text, reasoning, file, source_url, source_document, tool-getWeatherInformation, tool-getLocation, data-weather';
 COMMENT ON COLUMN parts."order" IS 'Order of parts within a message for proper sequencing';
