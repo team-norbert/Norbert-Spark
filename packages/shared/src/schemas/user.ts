@@ -1,12 +1,7 @@
 import { sql } from 'drizzle-orm'
-import { pgTable, uuid, text, timestamp, check, customType } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, check } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
-// Define CITEXT custom type for case-insensitive text
-const citext = customType<{ data: string }>({
-  dataType() {
-    return 'citext'
-  },
-})
+import { citext } from './utils.js'
 
 export const UserSchema = z.object({
   id: z.string(),
