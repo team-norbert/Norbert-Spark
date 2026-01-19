@@ -86,8 +86,7 @@ export class AIExtractDataController {
         userAgent: request.headers['user-agent'] ?? null,
       }
 
-      console.dir(auditContext)
-      debugger
+      this.logger.debug('Audit context for extractData', auditContext)
 
       const dto = ExtractDataDto.validate({ fileKey, bucketName: EnvConfig.BUCKET })
 
