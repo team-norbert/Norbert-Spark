@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS chats (
     id UUID PRIMARY KEY, -- the UUID creation is managed by the application
     user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     name TEXT NOT NULL DEFAULT 'Untitled Chat' CHECK (length(name) >= 1 AND length(name) <= 200);
-    description TEXT NOT NULL DEFAULT 'Explanation of purpose of chat' CHECK (length(description) >= 1 AND length(description) <= 500);
+    description TEXT NOT NULL DEFAULT 'No description' CHECK (length(description) >= 1 AND length(description) <= 500);
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
