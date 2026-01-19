@@ -7,16 +7,8 @@ import {
   jsonb,
   index,
   check,
-  customType,
 } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
-
-// Define CITEXT custom type for case-insensitive text
-const citext = customType<{ data: string }>({
-  dataType() {
-    return 'citext'
-  },
-})
 
 export const pdfSchema = z
   .object({
