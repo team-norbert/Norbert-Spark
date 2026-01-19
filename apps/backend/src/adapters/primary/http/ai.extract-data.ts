@@ -125,8 +125,25 @@ export class AIExtractDataController {
                   ],
                 },
               ],
-            })
+              onFinish: ({ text, finishReason, usage, response, totalUsage, sources }) => {
+                // Called once when the full output is complete
+                // The reason the model finished generating the text.
+                // "stop" | "length" | "content-filter" | "tool-calls" | "error" | "other" | "unknown"
+                this.logger.debug('Stream finished', { finishReason })
+                this.logger.debug('Stream usage info', { usage, totalUsage })
+                this.logger.debug('streamText.onFinish')
 
+                this.logger.debug('Stream sources', { sources })
+
+                // 'response.messages' is an array of ToolModelMessage and AssistantModelMessage,
+                // which are the model messages that were generated during the stream.
+                // This is useful if you don't need UIMessages - for simpler applications.
+                this.logger.debug('Stream response', { response: JSON.stringify(response) })
+              },
+              onError: ({ error }) => {
+                this.logger.error('Stream error', error as Error)
+              },
+            })
             // Stream extracted text to client as it arrives, then write NDJSON summary
             let extractedText = ''
             for await (const textPart of result.textStream) {
@@ -171,6 +188,8 @@ export class AIExtractDataController {
         reply.raw.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8')
         reply.raw.setHeader('Transfer-Encoding', 'chunked')
 
+        this.logger.debug('Processing PDF from zip', { path: fileKey })
+
         try {
           const result = streamText({
             model: google(EnvConfig.MODEL_NAME as string),
@@ -193,6 +212,24 @@ export class AIExtractDataController {
                 ],
               },
             ],
+            onFinish: ({ text, finishReason, usage, response, totalUsage, sources }) => {
+              // Called once when the full output is complete
+              // The reason the model finished generating the text.
+              // "stop" | "length" | "content-filter" | "tool-calls" | "error" | "other" | "unknown"
+              this.logger.debug('Stream finished', { finishReason })
+              this.logger.debug('Stream usage info', { usage, totalUsage })
+              this.logger.debug('streamText.onFinish')
+
+              this.logger.debug('Stream sources', { sources })
+
+              // 'response.messages' is an array of ToolModelMessage and AssistantModelMessage,
+              // which are the model messages that were generated during the stream.
+              // This is useful if you don't need UIMessages - for simpler applications.
+              this.logger.debug('Stream response', { response })
+            },
+            onError: ({ error }) => {
+              this.logger.error('Stream error', error as Error)
+            },
           })
 
           // Stream extracted text to client as it arrives, then write NDJSON summary

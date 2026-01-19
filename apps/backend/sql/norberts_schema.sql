@@ -275,6 +275,45 @@ CREATE INDEX IF NOT EXISTS parts_message_id_idx ON parts(message_id);
 CREATE INDEX IF NOT EXISTS parts_message_id_order_idx ON parts(message_id, "order");
 
 -- ============================================================
+-- DATA RETRIEVAL MESSAGE PARTS
+-- ============================================================
+-- Data Retrieval Messages table: Stores messages related to data retrieval operations
+/*
+Why NOT reuse messages / parts
+Do not reuse messages/parts because:
+Semantic mismatch:	Chat ≠ extraction job
+Lifecycle:	Retrievals are immutable; chats are mutable
+Query patterns:	Extraction data is analytical
+Constraints	parts has many irrelevant columns
+Performance	Narrow tables + JSONB GIN index
+*/
+
+CREATE TABLE IF NOT EXISTS data_retrieval_message_parts (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    message_id UUID NOT NULL
+    REFERENCES data_retrieval_messages(id)
+    ON DELETE CASCADE,
+    type VARCHAR(20) NOT NULL,
+    text_json JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT text_json_required_if_type_is_text
+    CHECK (
+              CASE
+              WHEN type = 'text' THEN text_json IS NOT NULL
+              ELSE TRUE
+              END
+          )
+    );
+
+CREATE INDEX IF NOT EXISTS data_retrieval_message_parts_message_id_idx
+    ON data_retrieval_message_parts (message_id);
+
+CREATE INDEX IF NOT EXISTS data_retrieval_message_parts_text_json_idx
+    ON data_retrieval_message_parts
+    USING GIN (text_json);
+
+
+-- ============================================================
 -- AUDIT LOGGING
 -- ============================================================
 
