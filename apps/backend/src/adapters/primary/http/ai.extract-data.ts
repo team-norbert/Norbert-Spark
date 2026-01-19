@@ -188,7 +188,7 @@ export class AIExtractDataController {
         reply.raw.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8')
         reply.raw.setHeader('Transfer-Encoding', 'chunked')
 
-        this.logger.debug('Processing PDF from zip', { path: fileKey })
+        this.logger.debug('Processing PDF file', { path: fileKey })
 
         try {
           const result = streamText({
