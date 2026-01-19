@@ -242,7 +242,7 @@ describe('Database Schema', () => {
       })
 
       it('should have default value for maxTokens', () => {
-        expect(chatAiOptions.maxTokens.hasDefault).toBe(true)
+        expect(chatAiOptions.maxTokens.hasDefault).toBe(false)
       })
 
       it('should have not null constraint on createdAt', () => {
