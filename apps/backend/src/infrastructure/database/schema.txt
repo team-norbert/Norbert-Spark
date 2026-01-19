@@ -1,3 +1,5 @@
+// deprecated: use src/infrastructure/database/schema/*.ts files instead
+// kept for future reference
 import { relations, sql } from 'drizzle-orm'
 import {
   pgTable,

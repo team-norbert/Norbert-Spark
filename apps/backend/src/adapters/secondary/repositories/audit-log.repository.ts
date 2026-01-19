@@ -1,5 +1,5 @@
 import { db } from '../../../infrastructure/database/index.js'
-import { auditLog, type DBAuditLogSelect } from '../../../infrastructure/database/schema.js'
+import { auditLog, type DBAuditLogSelect } from '@norberts-spark/shared'
 import type { AuditLogPort, CreateAuditLogDTO } from '../../../application/ports/audit-log.port.js'
 import { eq, desc, and } from 'drizzle-orm'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'

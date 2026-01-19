@@ -27,7 +27,7 @@
  */
 // TODO: convert to using the test configuration DB instead of the live DB
 import { db } from '../src/infrastructure/database/index.js'
-import { user } from '../src/infrastructure/database/schema.js'
+import { user } from '@norberts-spark/shared'
 import { Password } from '../src/domain/value-objects/password.js'
 
 // Get the number of users to create from:

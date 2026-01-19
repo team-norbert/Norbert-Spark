@@ -7,7 +7,7 @@ import {
   parts,
   type DBMessageSelect,
   type MyDBUIMessagePartSelect,
-} from '../../../infrastructure/database/schema.js'
+} from '@norberts-spark/shared'
 import type { UIMessage } from 'ai'
 import type { UserIdType } from '../../../domain/value-objects/userID.js'
 import type { ChatIdType } from '../../../domain/value-objects/chatID.js'

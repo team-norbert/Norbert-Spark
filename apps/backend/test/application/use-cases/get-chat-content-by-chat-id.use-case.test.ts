@@ -1,3 +1,4 @@
+import type { DBMessageSelect, MyDBUIMessagePartSelect } from '@norberts-spark/shared'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -9,10 +10,6 @@ import { GetChatContentByChatIdUseCase } from '../../../src/application/use-case
 import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { ChatId, type ChatIdType } from '../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
-import type {
-  DBMessageSelect,
-  MyDBUIMessagePartSelect,
-} from '../../../src/infrastructure/database/schema.js'
 
 describe('GetChatContentByChatIdUseCase', () => {
   let useCase: GetChatContentByChatIdUseCase

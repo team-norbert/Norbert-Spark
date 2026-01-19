@@ -1,6 +1,6 @@
+import type { MyDBUIMessagePartSelect } from '@norberts-spark/shared'
 import { describe, expect, it } from 'vitest'
 
-import type { MyDBUIMessagePartSelect } from '../../../src/infrastructure/database/schema.js'
 import {
   mapDBPartToUIMessagePart,
   mapUIMessagePartsToDBParts,

@@ -1,59 +1,57 @@
+import { sql } from 'drizzle-orm'
+import { pgTable, uuid, text, timestamp, integer, index, check, numeric } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
+import { messages } from './chat.js'
 
-export const pdfSchema = z
-  .object({
-    total: z.number().describe('The total amount of the invoice.'),
-    currency: z.string().describe('The currency of the total amount.'),
-    invoiceNumber: z.string().describe('The invoice number.'),
-    companyAddress: z
-      .string()
-      .describe('The address of the company or person issuing the invoice.'),
-    companyName: z.string().describe('The name of the company issuing the invoice.'),
-    invoiceeAddress: z
-      .string()
-      .describe('The address of the company or person receiving the invoice.'),
+/**
+ * AI Options table: Stores AI generation parameters for each message
+ */
+export const aiOptions = pgTable(
+  'ai_options',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    messageId: uuid('message_id')
+      .notNull()
+      .references(() => messages.id, { onDelete: 'cascade' }),
+    prompt: text('prompt').notNull(),
+    maxOutputTokens: integer('max_tokens'),
+    temperature: numeric('temperature'),
+    topP: numeric('top_p'),
+    frequencyPenalty: numeric('frequency_penalty'),
+    presencePenalty: numeric('presence_penalty').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => ({
+    messageIdIdx: index('ai_options_message_id_idx').on(table.messageId),
+    maxTokensCheck: check(
+      'max_tokens_check',
+      sql`${table.maxOutputTokens} IS NULL OR ${table.maxOutputTokens} > 0`
+    ),
+    temperatureRange: check(
+      'temperature_range',
+      sql`${table.temperature} IS NULL OR (${table.temperature} >= 0 AND ${table.temperature} <= 2)`
+    ),
+    topPRange: check(
+      'top_p_range',
+      sql`${table.topP} IS NULL OR (${table.topP} >= 0 AND ${table.topP} <= 1)`
+    ),
+    frequencyPenaltyRange: check(
+      'frequency_penalty_range',
+      sql`${table.frequencyPenalty} IS NULL OR (${table.frequencyPenalty} >= -2 AND ${table.frequencyPenalty} <= 2)`
+    ),
+    presencePenaltyRange: check(
+      'presence_penalty_range',
+      sql`${table.presencePenalty} >= -2 AND ${table.presencePenalty} <= 2`
+    ),
   })
-  .describe('The extracted data from the invoice.')
+)
 
-export const AISchema = z.object({
-  id: z.string(),
-  // Text prompt associated with this AI option (maps to ai_options.prompt)
-  prompt: z.string().min(1, { message: 'Prompt is required' }),
-  // Maximum number of tokens to generate (maps to ai_options.max_tokens)
-  maxTokens: z.number().int().min(1, { message: 'maxTokens must be at least 1' }),
-  // Temperature for sampling (maps to ai_options.temperature)
-  temperature: z
-    .number()
-    .min(0, { message: 'temperature must be at least 0' })
-    .max(2, { message: 'temperature must be at most 2' }),
-  // Top P for nucleus sampling (maps to ai_options.top_p)
-  topP: z
-    .number()
-    .min(0, { message: 'topP must be at least 0' })
-    .max(1, { message: 'topP must be at most 1' }),
-  // Penalty for repeated tokens (maps to ai_options.frequency_penalty)
-  frequencyPenalty: z
-    .number()
-    .min(-2, { message: 'frequencyPenalty must be at least -2' })
-    .max(2, { message: 'frequencyPenalty must be at most 2' }),
-  // Penalty for presence of tokens (maps to ai_options.presence_penalty)
-  presencePenalty: z
-    .number()
-    .min(-2, { message: 'presencePenalty must be at least -2' })
-    .max(2, { message: 'presencePenalty must be at most 2' }),
-  createdAt: z.coerce.date(),
-})
-
-export const CreateAISchema = AISchema.pick({
-  prompt: true,
-  maxTokens: true,
-  temperature: true,
-  topP: true,
-  frequencyPenalty: true,
-  presencePenalty: true,
-})
-
-export const UpdateAISchema = CreateAISchema.partial()
+export type DBAIOptions = typeof aiOptions.$inferInsert
+export type DBAIOptionsSelect = typeof aiOptions.$inferSelect
 
 export const AISummarySchema = z.object({
   id: z.string(),
@@ -208,9 +206,6 @@ export const metadataSchema = z.object({})
 export type MyMetadata = z.infer<typeof metadataSchema>
 
 export type AISummaryWithUsageSchemaType = z.infer<typeof AISummaryWithUsageSchema>
-export type AISchemaType = z.infer<typeof AISchema>
-export type CreateAISchemaType = z.infer<typeof CreateAISchema>
-export type UpdateAISchemaType = z.infer<typeof UpdateAISchema>
 export type AISummarySchemaType = z.infer<typeof AISummarySchema>
 export type AIListSchemaType = z.infer<typeof AIListSchema>
 export type AIUsageSchemaType = z.infer<typeof AIUsageSchema>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { LoginSchema, RegisterSchema } from '../../src/schemas/auth.js'
+import { LoginSchema, RegisterSchema } from '../../src'
 
 describe('Auth Schemas', () => {
   describe('LoginSchema', () => {

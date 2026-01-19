@@ -497,6 +497,9 @@ importers:
       ai:
         specifier: ^6.0.11
         version: 6.0.11(zod@4.3.5)
+      drizzle-orm:
+        specifier: ^0.45.1
+        version: 0.45.1(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(@upstash/redis@1.36.1)(better-sqlite3@11.10.0)(pg@8.17.1)(postgres@3.4.8)
       zod:
         specifier: ^4.3.5
         version: 4.3.5

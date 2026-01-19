@@ -1,6 +1,3 @@
-import { getTableName } from 'drizzle-orm'
-import { describe, expect, it } from 'vitest'
-
 import {
   auditLog,
   chats,
@@ -9,7 +6,9 @@ import {
   messages,
   parts,
   user,
-} from '../src/infrastructure/database/schema.js'
+} from '@norberts-spark/shared'
+import { getTableName } from 'drizzle-orm'
+import { describe, expect, it } from 'vitest'
 
 describe('Database Schema', () => {
   describe('Table exports', () => {

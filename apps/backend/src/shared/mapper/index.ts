@@ -1,8 +1,5 @@
 import type { MyUIMessagePart } from '../types/index.js'
-import type {
-  MyDBUIMessagePart,
-  MyDBUIMessagePartSelect,
-} from '../../infrastructure/database/schema.js'
+import type { MyDBUIMessagePart, MyDBUIMessagePartSelect } from '@norberts-spark/shared'
 import type { LoggerPort } from '../../application/ports/logger.port.js'
 
 export const mapUIMessagePartsToDBParts = (
