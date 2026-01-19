@@ -1,5 +1,4 @@
 import { Uuid7Util } from '../../shared/utils/uuid7.util.js'
-import type { UUIDType } from './uuid.js'
 
 /**
  * Unique symbol for UUID branding to ensure type safety.

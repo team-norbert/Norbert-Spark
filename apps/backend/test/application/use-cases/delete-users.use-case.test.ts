@@ -19,7 +19,11 @@ describe('DeleteUsersUseCase', () => {
   let mockUserRepository: UserRepositoryPort
   let mockLogger: LoggerPort
   let mockAuditLog: AuditLogPort
-  const auditContext = { ipAddress: '192.168.1.1', userAgent: 'Mozilla/5.0' }
+  const auditContext = {
+    userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' as UserIdType,
+    ipAddress: '192.168.1.1',
+    userAgent: 'Mozilla/5.0',
+  }
 
   beforeEach(() => {
     // Reset all mocks before each test
@@ -175,7 +179,7 @@ describe('DeleteUsersUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
-            userId: null,
+            userId: auditContext.userId,
           })
         )
       })
@@ -233,7 +237,11 @@ describe('DeleteUsersUseCase', () => {
 
       it('should handle null user agent gracefully', async () => {
         const userIds = [createMockUserId()]
-        const contextWithNullAgent = { ipAddress: '192.168.1.1', userAgent: null }
+        const contextWithNullAgent = {
+          userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' as UserIdType,
+          ipAddress: '192.168.1.1',
+          userAgent: null,
+        }
 
         await useCase.execute(userIds, contextWithNullAgent)
 
@@ -376,8 +384,8 @@ describe('DeleteUsersUseCase', () => {
 
       it('should handle different audit contexts', async () => {
         const userIds = [createMockUserId()]
-        const context1 = { ipAddress: '10.0.0.1', userAgent: 'Chrome' }
-        const context2 = { ipAddress: '10.0.0.2', userAgent: 'Firefox' }
+        const context1 = { userId: null, ipAddress: '10.0.0.1', userAgent: 'Chrome' }
+        const context2 = { userId: null, ipAddress: '10.0.0.2', userAgent: 'Firefox' }
 
         await useCase.execute(userIds, context1)
         await useCase.execute(userIds, context2)
@@ -407,6 +415,7 @@ describe('DeleteUsersUseCase', () => {
       it('should handle very long IP addresses', async () => {
         const userIds = [createMockUserId()]
         const longIpContext = {
+          userId: null,
           ipAddress: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
           userAgent: 'test',
         }
@@ -421,7 +430,7 @@ describe('DeleteUsersUseCase', () => {
       it('should handle very long user agent strings', async () => {
         const userIds = [createMockUserId()]
         const longUserAgent = 'A'.repeat(500)
-        const context = { ipAddress: '127.0.0.1', userAgent: longUserAgent }
+        const context = { userId: null, ipAddress: '127.0.0.1', userAgent: longUserAgent }
 
         await useCase.execute(userIds, context)
 

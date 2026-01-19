@@ -5,6 +5,7 @@ import type { BucketPort } from '../../../src/application/ports/bucket.service.p
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { PresignedUploadUrlUseCase } from '../../../src/application/use-cases/presigned-url-put.use-case.js'
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
+import { type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
 
 // Mock EnvConfig
@@ -24,7 +25,7 @@ describe('PresignedUploadUrlUseCase', () => {
   const auditContext = {
     ipAddress: '127.0.0.1',
     userAgent: 'test-user-agent',
-    userId: 'user-123',
+    userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' as UserIdType,
   }
 
   beforeEach(() => {
@@ -151,9 +152,9 @@ describe('PresignedUploadUrlUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: 'user-123',
+          userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
           entityType: EntityType.USER,
-          entityId: 'user-123',
+          entityId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
           action: AuditAction.CREATE,
           changes: {
             action: 'data_extraction_upload_initialized',
@@ -211,7 +212,7 @@ describe('PresignedUploadUrlUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error logging audit for data extraction upload',
           expect.any(Error),
-          { userId: 'user-123' }
+          { userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' }
         )
       })
 
@@ -272,7 +273,7 @@ describe('PresignedUploadUrlUseCase', () => {
           'Error generating presigned URLs',
           error,
           expect.objectContaining({
-            userId: 'user-123',
+            userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
             fileCount: 1,
           })
         )
@@ -387,7 +388,7 @@ describe('PresignedUploadUrlUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error logging audit for data extraction upload',
           auditError,
-          { userId: 'user-123' }
+          { userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' }
         )
       })
 
