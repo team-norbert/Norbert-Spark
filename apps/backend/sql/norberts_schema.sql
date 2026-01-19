@@ -176,8 +176,8 @@ CREATE TABLE IF NOT EXISTS chat_ai_options (
     prompt TEXT NOT NULL,
     max_tokens INTEGER CHECK (
                                  max_tokens IS NULL
-                         OR max_tokens > 0 AND max_tokens <= 100000
-                     ),
+                                 OR (max_tokens > 0 AND max_tokens <= 100000)
+                             ),
     temperature NUMERIC CHECK (
                                  temperature IS NULL
                                  OR (temperature >= 0 AND temperature <= 2)
