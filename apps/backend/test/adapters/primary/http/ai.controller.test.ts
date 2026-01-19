@@ -114,6 +114,10 @@ describe('AIController', () => {
       body: {},
       params: {},
       query: {},
+      ip: '127.0.0.1',
+      headers: {
+        'user-agent': 'test-user-agent',
+      },
       user: {
         sub: new UserId(uuidv7()).getValue(),
         email: 'user@example.com',
@@ -376,13 +380,23 @@ describe('AIController', () => {
             expect.objectContaining({ id: '1', role: 'user', parts: expect.any(Array) }),
             expect.objectContaining({ id: '2', role: 'assistant', parts: expect.any(Array) }),
             expect.objectContaining({ id: '3', role: 'user', parts: expect.any(Array) }),
-          ])
+          ]),
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
         )
         expect(mockAppendChatUseCase.execute).toHaveBeenCalledWith(
           expect.any(String), // chatId as branded type
           expect.arrayContaining([
             expect.objectContaining({ id: '3', role: 'user', parts: expect.any(Array) }),
-          ])
+          ]),
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
         )
       })
 
@@ -407,7 +421,12 @@ describe('AIController', () => {
           expect.any(String), // chatId as branded type
           expect.arrayContaining([
             expect.objectContaining({ id: '1', role: 'user', parts: expect.any(Array) }),
-          ])
+          ]),
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
         )
       })
 
@@ -598,7 +617,14 @@ describe('AIController', () => {
           success: true,
           data: mockChats,
         })
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(userId)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
+          userId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
         expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledTimes(1)
         expect(mockLogger.debug).toHaveBeenCalledWith('Received getAIChatsByUserId request')
       })
@@ -622,7 +648,14 @@ describe('AIController', () => {
           success: true,
           data: [],
         })
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(userId)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
+          userId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
       })
 
       it('should handle multiple chats for a user', async () => {
@@ -644,7 +677,14 @@ describe('AIController', () => {
           success: true,
           data: mockChats,
         })
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(userId)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
+          userId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
       })
     })
 
@@ -727,7 +767,14 @@ describe('AIController', () => {
           error: 'Internal server error',
         })
         expect(mockLogger.error).toHaveBeenCalled()
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(userId)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
+          userId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
       })
 
       it('should return 500 when repository throws error', async () => {
@@ -751,7 +798,14 @@ describe('AIController', () => {
           error: 'Internal server error',
         })
         expect(mockLogger.error).toHaveBeenCalled()
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(userId)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
+          userId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
       })
 
       it('should return 400 error for invalid userId format', async () => {
@@ -788,7 +842,14 @@ describe('AIController', () => {
           success: true,
           data: mockChats,
         })
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(userId)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
+          userId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
         expect(mockReply.code).not.toHaveBeenCalledWith(403)
       })
 
@@ -812,7 +873,14 @@ describe('AIController', () => {
           success: true,
           data: mockChats,
         })
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(targetUserId)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
+          targetUserId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
         expect(mockReply.code).not.toHaveBeenCalledWith(403)
       })
 
@@ -836,7 +904,14 @@ describe('AIController', () => {
           success: true,
           data: mockChats,
         })
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(targetUserId)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
+          targetUserId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
         expect(mockReply.code).not.toHaveBeenCalledWith(403)
       })
 
@@ -924,7 +999,14 @@ describe('AIController', () => {
           success: true,
           data: mockChats,
         })
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(targetUserId)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
+          targetUserId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
         expect(mockReply.code).not.toHaveBeenCalledWith(403)
       })
     })
@@ -1009,7 +1091,14 @@ describe('AIController', () => {
             ]),
           }),
         })
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
         expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledTimes(1)
         expect(mockLogger.debug).toHaveBeenCalledWith('Received getAIChatByChatId request')
       })
@@ -1110,7 +1199,14 @@ describe('AIController', () => {
             ]),
           }),
         })
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
       })
 
       it('should handle chat with messages without parts', async () => {
@@ -1158,7 +1254,14 @@ describe('AIController', () => {
             ]),
           }),
         })
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
       })
     })
 
@@ -1268,7 +1371,14 @@ describe('AIController', () => {
           success: false,
           error: 'Chat not found',
         })
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
       })
 
       it('should return 404 when chat has no messages', async () => {
@@ -1290,7 +1400,14 @@ describe('AIController', () => {
           success: false,
           error: 'Chat not found',
         })
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
       })
     })
 
@@ -1317,7 +1434,14 @@ describe('AIController', () => {
           error: 'Internal server error',
         })
         expect(mockLogger.error).toHaveBeenCalled()
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
       })
 
       it('should return 500 when repository throws error', async () => {
@@ -1342,7 +1466,14 @@ describe('AIController', () => {
           error: 'Internal server error',
         })
         expect(mockLogger.error).toHaveBeenCalled()
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
       })
 
       it('should handle unexpected errors gracefully', async () => {
@@ -1419,7 +1550,14 @@ describe('AIController', () => {
             messages: expect.any(Array),
           }),
         })
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
         expect(mockReply.code).not.toHaveBeenCalledWith(403)
         expect(mockReply.code).not.toHaveBeenCalledWith(404)
       })
@@ -1470,7 +1608,14 @@ describe('AIController', () => {
             messages: expect.any(Array),
           }),
         })
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
         expect(mockReply.code).not.toHaveBeenCalledWith(403)
         expect(mockReply.code).not.toHaveBeenCalledWith(404)
       })
@@ -1521,7 +1666,14 @@ describe('AIController', () => {
             messages: expect.any(Array),
           }),
         })
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
         expect(mockReply.code).not.toHaveBeenCalledWith(403)
         expect(mockReply.code).not.toHaveBeenCalledWith(404)
       })
@@ -1570,7 +1722,14 @@ describe('AIController', () => {
           success: false,
           error: 'Chat not found',
         })
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
         expect(mockLogger.warn).toHaveBeenCalled()
       })
 
@@ -1618,7 +1777,14 @@ describe('AIController', () => {
           success: false,
           error: 'Chat not found',
         })
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
       })
 
       it('should allow user with both admin and moderator roles to access any user chat', async () => {
@@ -1667,7 +1833,14 @@ describe('AIController', () => {
             messages: expect.any(Array),
           }),
         })
-        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(chatId)
+        expect(mockGetChatContentByChatIdUseCase.execute).toHaveBeenCalledWith(
+          chatId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
         expect(mockReply.code).not.toHaveBeenCalledWith(403)
       })
     })

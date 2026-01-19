@@ -3,9 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ChatResponseResult } from '../../../src/adapters/secondary/repositories/ai.repository.js'
 import type { AIServicePort } from '../../../src/application/ports/ai.port.js'
+import type { AuditLogPort } from '../../../src/application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { GetChatContentByChatIdUseCase } from '../../../src/application/use-cases/get-chat-content-by-chat-id.use-case.js'
+import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { ChatId, type ChatIdType } from '../../../src/domain/value-objects/chatID.js'
+import { UserId } from '../../../src/domain/value-objects/userID.js'
 import type {
   DBMessageSelect,
   MyDBUIMessagePartSelect,
@@ -14,9 +17,11 @@ import type {
 describe('GetChatContentByChatIdUseCase', () => {
   let useCase: GetChatContentByChatIdUseCase
   let mockLogger: LoggerPort
+  let mockAuditLog: AuditLogPort
   let mockAIService: AIServicePort
   let testChatId: ChatIdType
   let mockChat: { id: string; userId: string; createdAt: Date; updatedAt: Date }
+  let auditContext: AuditContext
 
   beforeEach(() => {
     mockLogger = {
@@ -24,6 +29,13 @@ describe('GetChatContentByChatIdUseCase', () => {
       error: vi.fn(),
       warn: vi.fn(),
       debug: vi.fn(),
+    }
+
+    mockAuditLog = {
+      log: vi.fn().mockResolvedValue(undefined),
+      getByEntity: vi.fn(),
+      getByUser: vi.fn(),
+      getByAction: vi.fn(),
     }
 
     mockAIService = {
@@ -38,7 +50,14 @@ describe('GetChatContentByChatIdUseCase', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     }
-    useCase = new GetChatContentByChatIdUseCase(mockAIService, mockLogger)
+
+    auditContext = {
+      userId: new UserId(uuidv7()).getValue(),
+      ipAddress: '127.0.0.1',
+      userAgent: 'test-user-agent',
+    }
+
+    useCase = new GetChatContentByChatIdUseCase(mockAIService, mockLogger, mockAuditLog)
   })
 
   describe('Successful scenarios', () => {
@@ -88,7 +107,7 @@ describe('GetChatContentByChatIdUseCase', () => {
 
       vi.mocked(mockAIService.getAIChatByChatId).mockResolvedValue(mockResponse)
 
-      const result = await useCase.execute(testChatId)
+      const result = await useCase.execute(testChatId, auditContext)
 
       expect(result).toEqual(mockResponse)
       expect(result![0]!.message.role).toBe('user')
@@ -174,7 +193,7 @@ describe('GetChatContentByChatIdUseCase', () => {
 
       vi.mocked(mockAIService.getAIChatByChatId).mockResolvedValue(mockResponse)
 
-      const result = await useCase.execute(testChatId)
+      const result = await useCase.execute(testChatId, auditContext)
 
       expect(result).toEqual(mockResponse)
       expect(result).toHaveLength(2)
@@ -200,7 +219,7 @@ describe('GetChatContentByChatIdUseCase', () => {
 
       vi.mocked(mockAIService.getAIChatByChatId).mockResolvedValue(mockResponse)
 
-      const result = await useCase.execute(testChatId)
+      const result = await useCase.execute(testChatId, auditContext)
 
       expect(result).toEqual(mockResponse)
       expect(result![0]!.part).toBeNull()
@@ -211,7 +230,7 @@ describe('GetChatContentByChatIdUseCase', () => {
 
       vi.mocked(mockAIService.getAIChatByChatId).mockResolvedValue(mockResponse)
 
-      const result = await useCase.execute(testChatId)
+      const result = await useCase.execute(testChatId, auditContext)
 
       expect(result).toEqual([])
       expect(result).toHaveLength(0)
@@ -259,7 +278,7 @@ describe('GetChatContentByChatIdUseCase', () => {
 
       vi.mocked(mockAIService.getAIChatByChatId).mockResolvedValue(mockResponse)
 
-      const result = await useCase.execute(testChatId)
+      const result = await useCase.execute(testChatId, auditContext)
 
       expect(result![0]!.part?.type).toBe('text')
       expect(result![0]!.part?.textText).toBe('Test message')
@@ -307,7 +326,7 @@ describe('GetChatContentByChatIdUseCase', () => {
 
       vi.mocked(mockAIService.getAIChatByChatId).mockResolvedValue(mockResponse)
 
-      const result = await useCase.execute(testChatId)
+      const result = await useCase.execute(testChatId, auditContext)
 
       expect(result![0]!.part?.type).toBe('reasoning')
       expect(result![0]!.part?.reasoningText).toBe('Thinking...')
@@ -355,7 +374,7 @@ describe('GetChatContentByChatIdUseCase', () => {
 
       vi.mocked(mockAIService.getAIChatByChatId).mockResolvedValue(mockResponse)
 
-      const result = await useCase.execute(testChatId)
+      const result = await useCase.execute(testChatId, auditContext)
 
       expect(result![0]!.part?.type).toBe('file')
       expect(result![0]!.part?.fileMediaType).toBe('application/pdf')
@@ -404,7 +423,7 @@ describe('GetChatContentByChatIdUseCase', () => {
 
       vi.mocked(mockAIService.getAIChatByChatId).mockResolvedValue(mockResponse)
 
-      const result = await useCase.execute(testChatId)
+      const result = await useCase.execute(testChatId, auditContext)
 
       expect(result![0]!.part?.type).toBe('tool-call')
       expect(result![0]!.part?.toolToolCallId).toBe('call-123')
@@ -452,7 +471,7 @@ describe('GetChatContentByChatIdUseCase', () => {
 
       vi.mocked(mockAIService.getAIChatByChatId).mockResolvedValue(mockResponse)
 
-      const result = await useCase.execute(testChatId)
+      const result = await useCase.execute(testChatId, auditContext)
 
       expect(result![0]!.part?.type).toBe('tool-result')
       expect(result![0]!.part?.toolToolCallId).toBe('call-123')
@@ -464,7 +483,7 @@ describe('GetChatContentByChatIdUseCase', () => {
     it('should return null when AI service returns null', async () => {
       vi.mocked(mockAIService.getAIChatByChatId).mockResolvedValue(null)
 
-      const result = await useCase.execute(testChatId)
+      const result = await useCase.execute(testChatId, auditContext)
 
       expect(result).toBeNull()
     })
@@ -473,27 +492,31 @@ describe('GetChatContentByChatIdUseCase', () => {
       const error = new Error('Database connection failed')
       vi.mocked(mockAIService.getAIChatByChatId).mockRejectedValue(error)
 
-      await expect(useCase.execute(testChatId)).rejects.toThrow('Database connection failed')
+      await expect(useCase.execute(testChatId, auditContext)).rejects.toThrow(
+        'Database connection failed'
+      )
     })
 
     it('should throw error on network timeout', async () => {
       const error = new Error('ETIMEDOUT')
       vi.mocked(mockAIService.getAIChatByChatId).mockRejectedValue(error)
 
-      await expect(useCase.execute(testChatId)).rejects.toThrow('ETIMEDOUT')
+      await expect(useCase.execute(testChatId, auditContext)).rejects.toThrow('ETIMEDOUT')
     })
 
     it('should throw error on database errors', async () => {
       const error = new Error('Connection pool exhausted')
       vi.mocked(mockAIService.getAIChatByChatId).mockRejectedValue(error)
 
-      await expect(useCase.execute(testChatId)).rejects.toThrow('Connection pool exhausted')
+      await expect(useCase.execute(testChatId, auditContext)).rejects.toThrow(
+        'Connection pool exhausted'
+      )
     })
   })
 
   describe('Constructor', () => {
     it('should create instance with valid dependencies', () => {
-      const instance = new GetChatContentByChatIdUseCase(mockAIService, mockLogger)
+      const instance = new GetChatContentByChatIdUseCase(mockAIService, mockLogger, mockAuditLog)
       expect(instance).toBeInstanceOf(GetChatContentByChatIdUseCase)
     })
   })

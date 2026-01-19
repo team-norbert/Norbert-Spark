@@ -2,8 +2,10 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIRepository } from '../../../src/adapters/secondary/repositories/ai.repository.js'
+import type { AuditLogPort } from '../../../src/application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { GetChatsByUserIdUseCase } from '../../../src/application/use-cases/get-chats-by-userid.use-case.js'
+import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { ChatId, type ChatIdType } from '../../../src/domain/value-objects/chatID.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
@@ -11,14 +13,23 @@ import { InternalErrorException } from '../../../src/shared/exceptions/internal-
 describe('GetChatsByUserIdUseCase', () => {
   let useCase: GetChatsByUserIdUseCase
   let mockLogger: LoggerPort
+  let mockAuditLog: AuditLogPort
   let mockAIRepository: AIRepository
   let testUserId: UserIdType
+  let auditContext: AuditContext
 
   beforeEach(() => {
     vi.clearAllMocks()
 
     // Create test user ID
     testUserId = new UserId(uuidv7()).getValue()
+
+    // Create audit context
+    auditContext = {
+      userId: testUserId,
+      ipAddress: '127.0.0.1',
+      userAgent: 'test-user-agent',
+    }
 
     // Create mock implementations
     mockLogger = {
@@ -28,12 +39,19 @@ describe('GetChatsByUserIdUseCase', () => {
       debug: vi.fn(),
     }
 
+    mockAuditLog = {
+      log: vi.fn().mockResolvedValue(undefined),
+      getByEntity: vi.fn(),
+      getByUser: vi.fn(),
+      getByAction: vi.fn(),
+    }
+
     mockAIRepository = {
       getChatsByUserId: vi.fn(),
     } as unknown as AIRepository
 
     // Create use case instance with mocks
-    useCase = new GetChatsByUserIdUseCase(mockAIRepository, mockLogger)
+    useCase = new GetChatsByUserIdUseCase(mockAIRepository, mockLogger, mockAuditLog)
   })
 
   describe('execute() - successful scenarios', () => {
@@ -46,7 +64,7 @@ describe('GetChatsByUserIdUseCase', () => {
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
-      const result = await useCase.execute(testUserId)
+      const result = await useCase.execute(testUserId, auditContext)
 
       expect(result).toEqual(mockChats)
       expect(result).toHaveLength(3)
@@ -62,7 +80,7 @@ describe('GetChatsByUserIdUseCase', () => {
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
-      const result = await useCase.execute(testUserId)
+      const result = await useCase.execute(testUserId, auditContext)
 
       expect(result).toEqual([])
       expect(result).toHaveLength(0)
@@ -75,7 +93,7 @@ describe('GetChatsByUserIdUseCase', () => {
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
-      const result = await useCase.execute(testUserId)
+      const result = await useCase.execute(testUserId, auditContext)
 
       expect(result).toEqual(mockChats)
       expect(result).toHaveLength(1)
@@ -90,7 +108,7 @@ describe('GetChatsByUserIdUseCase', () => {
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
-      const result = await useCase.execute(testUserId)
+      const result = await useCase.execute(testUserId, auditContext)
 
       expect(result).toEqual(mockChats)
       expect(result).toHaveLength(100)
@@ -104,7 +122,7 @@ describe('GetChatsByUserIdUseCase', () => {
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
-      await useCase.execute(specificUserId)
+      await useCase.execute(specificUserId, auditContext)
 
       expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${specificUserId}`)
       expect(mockLogger.info).toHaveBeenCalledWith(
@@ -118,7 +136,7 @@ describe('GetChatsByUserIdUseCase', () => {
       const repositoryError = new Error('Database connection failed')
       vi.mocked(mockAIRepository.getChatsByUserId).mockRejectedValue(repositoryError)
 
-      await expect(useCase.execute(testUserId)).rejects.toThrow()
+      await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow()
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(testUserId)
     })
 
@@ -126,7 +144,9 @@ describe('GetChatsByUserIdUseCase', () => {
       const error = new InternalErrorException('Failed to retrieve chats')
       vi.mocked(mockAIRepository.getChatsByUserId).mockRejectedValue(error)
 
-      await expect(useCase.execute(testUserId)).rejects.toThrow('Failed to retrieve chats')
+      await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow(
+        'Failed to retrieve chats'
+      )
       expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${testUserId}`)
     })
 
@@ -134,7 +154,7 @@ describe('GetChatsByUserIdUseCase', () => {
       const networkError = new Error('Network timeout')
       vi.mocked(mockAIRepository.getChatsByUserId).mockRejectedValue(networkError)
 
-      await expect(useCase.execute(testUserId)).rejects.toThrow('Network timeout')
+      await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow('Network timeout')
     })
   })
 
@@ -143,7 +163,7 @@ describe('GetChatsByUserIdUseCase', () => {
       const mockChats: ChatIdType[] = [new ChatId(uuidv7()).getValue()]
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
-      await useCase.execute(testUserId)
+      await useCase.execute(testUserId, auditContext)
 
       expect(mockLogger.info).toHaveBeenNthCalledWith(1, `Getting chats for user ID: ${testUserId}`)
       expect(mockLogger.info).toHaveBeenNthCalledWith(
@@ -156,7 +176,7 @@ describe('GetChatsByUserIdUseCase', () => {
       const error = new Error('Repository error')
       vi.mocked(mockAIRepository.getChatsByUserId).mockRejectedValue(error)
 
-      await expect(useCase.execute(testUserId)).rejects.toThrow()
+      await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow()
 
       expect(mockLogger.info).toHaveBeenCalledTimes(1)
       expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${testUserId}`)
@@ -166,7 +186,7 @@ describe('GetChatsByUserIdUseCase', () => {
       const error = new Error('Repository error')
       vi.mocked(mockAIRepository.getChatsByUserId).mockRejectedValue(error)
 
-      await expect(useCase.execute(testUserId)).rejects.toThrow()
+      await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow()
 
       expect(mockLogger.error).not.toHaveBeenCalled()
     })
@@ -180,8 +200,8 @@ describe('GetChatsByUserIdUseCase', () => {
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
-      await useCase.execute(userId1)
-      await useCase.execute(userId2)
+      await useCase.execute(userId1, auditContext)
+      await useCase.execute(userId2, auditContext)
 
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(userId1)
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(userId2)
@@ -195,7 +215,7 @@ describe('GetChatsByUserIdUseCase', () => {
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
-      const result = await useCase.execute(testUserId)
+      const result = await useCase.execute(testUserId, auditContext)
 
       expect(result).toEqual(mockChats)
       expect(Array.isArray(result)).toBe(true)
