@@ -7,9 +7,12 @@ DROP EXTENSION IF EXISTS pg_stat_statements CASCADE;
 -- Drop foreign key constraints first by dropping dependent tables
 -- AI Chat System tables
 DROP TABLE IF EXISTS "ai_options" CASCADE;
+DROP TABLE IF EXISTS "chat_ai_options" CASCADE;
 DROP TABLE IF EXISTS "parts" CASCADE;
 DROP TABLE IF EXISTS "messages" CASCADE;
 DROP TABLE IF EXISTS "audit_log" CASCADE;
+DROP TABLE IF EXISTS "data_retrieval_message_parts" CASCADE;
+DROP TABLE IF EXISTS "data_retrieval_messages" CASCADE;
 DROP TABLE IF EXISTS "chats" CASCADE;
 
 -- CRM tables
@@ -26,7 +29,9 @@ DROP INDEX IF EXISTS "parts_message_id_idx";
 DROP INDEX IF EXISTS "messages_chat_id_created_at_idx";
 DROP INDEX IF EXISTS "messages_chat_id_idx";
 DROP INDEX IF EXISTS "chats_user_id_updated_at_idx";
+DROP INDEX IF EXISTS "chats_user_id_name_idx";
 DROP INDEX IF EXISTS "chats_user_id_idx";
+DROP INDEX IF EXISTS "chat_ai_options_chat_id_idx";
 DROP INDEX IF EXISTS "ai_options_message_id_idx";
 DROP INDEX IF EXISTS "audit_log_action_idx";
 DROP INDEX IF EXISTS "audit_log_created_at_idx";
@@ -43,6 +48,6 @@ DROP FUNCTION IF EXISTS "touch_updated_at"() CASCADE;
 
 -- Verify all tables are dropped
 SELECT tablename 
-FROM pg_tables 
+FROM pg_tables chat_ai_options', 'parts', 'audit_log', 'customers', 'people', 'customer_people', 'data_retrieval_messages', 'data_retrieval_message_parts
 WHERE schemaname = 'public' 
   AND tablename IN ('users', 'chats', 'messages', 'ai_options', 'parts', 'audit_log', 'customers', 'people', 'customer_people');

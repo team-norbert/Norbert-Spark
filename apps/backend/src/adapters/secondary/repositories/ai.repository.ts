@@ -128,6 +128,10 @@ export class AIRepository implements AIServicePort {
     return result.map((row) => row.id as ChatIdType)
   }
 
+  async getChatOptions() {
+    // Placeholder implementation - replace with actual logic to fetch chat options
+  }
+
   async getChatResponse(chatId: ChatIdType): Promise<ChatResponseResult | null> {
     // Query chats table by id, then join with messages and parts
     const result = await db

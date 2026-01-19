@@ -709,6 +709,55 @@
         }
       }
     },
+    "/ai/chats/type": {
+      "get": {
+        "summary": "Get chat types",
+        "description": "Retrieves available chat types such as 'customer support', 'sales assistant', etc.",
+        "operationId": "getAIChatTypes",
+        "tags": ["ai", "chat"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Chat types retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIChatTypesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid authentication token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Authentication required"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Internal server error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ai/fetchChat/{chatId}": {
       "get": {
         "summary": "Fetch chat by chatId",
@@ -1001,6 +1050,140 @@
           },
           "500": {
             "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Internal server error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/chats/config": {
+      "get": {
+        "summary": "Get chat AI configuration",
+        "description": "Retrieves chat AI configuration parameters including prompt, temperature, and other settings",
+        "operationId": "getAIChatOptions",
+        "tags": ["ai", "chat"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Chat options retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIChatOptionsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid authentication token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Authentication required"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Internal server error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create chat type configuration",
+        "description": "Creates a new chat type with AI configuration parameters",
+        "operationId": "createChatType",
+        "tags": ["ai", "chat"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChatTypeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Chat type created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIChatTypesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Name must be between 1 and 200 characters"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid authentication token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Authentication required"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Chat type name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Chat type with this name already exists"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
@@ -1330,6 +1513,116 @@
               },
               "messages": { "type": "array", "items": { "type": "object" } }
             }
+          }
+        }
+      },
+      "AIChatTypesResponse": {
+        "type": "object",
+        "description": "Response returned when fetching chat types",
+        "required": ["success", "data"],
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "required": ["id", "name", "description", "created_at", "updated_at"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Unique identifier for the chat type",
+                "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
+              },
+              "name": {
+                "type": "string",
+                "description": "Unique name of the chat type",
+                "minLength": 1,
+                "maxLength": 200,
+                "example": "General Assistant"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the chat type's purpose",
+                "minLength": 1,
+                "maxLength": 500,
+                "example": "A general-purpose AI assistant for everyday tasks"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp when the chat type was created",
+                "example": "2024-01-15T10:30:00Z"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp when the chat type was last updated",
+                "example": "2024-01-15T10:30:00Z"
+              }
+            }
+          }
+        }
+      },
+      "AIChatOptionsResponse": {
+        "type": "object",
+        "description": "Response returned when fetching a chat",
+        "required": ["success", "data"],
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "required": ["name", "description", "prompt"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
+              },
+              "name": {
+                "type": "string",
+                "description": "Name of the chat",
+                "minLength": 1,
+                "maxLength": 200,
+                "example": "My Chat Session"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the chat purpose",
+                "minLength": 1,
+                "maxLength": 500,
+                "example": "Discussion about project requirements"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2024-01-15T10:30:00Z"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2024-01-15T10:30:00Z"
+              }
+            }
+          }
+        }
+      },
+      "CreateChatTypeRequest": {
+        "type": "object",
+        "description": "Request payload for creating a new chat type",
+        "required": ["name", "description"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique name of the chat type",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "General Assistant"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the chat type's purpose",
+            "minLength": 1,
+            "maxLength": 500,
+            "example": "A general-purpose AI assistant for everyday tasks"
           }
         }
       }
