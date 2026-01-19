@@ -74,7 +74,6 @@ export class GetChatUseCase {
         messageCount: chatData.length,
       })
 
-      // Log audit event for data extraction upload initialization
       try {
         await this.auditLog.log({
           userId: auditContext.userId,
@@ -86,7 +85,7 @@ export class GetChatUseCase {
           userAgent: auditContext.userAgent ?? undefined,
         })
       } catch (error) {
-        this.logger.error('Error logging audit for data extraction upload', error as Error, {
+        this.logger.error('Error logging audit for chat retrieval', error as Error, {
           userId: auditContext.userId,
         })
       }

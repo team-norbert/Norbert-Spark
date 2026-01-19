@@ -20,13 +20,13 @@ export class GetChatContentByChatIdUseCase {
         userId: auditContext.userId,
         entityType: EntityType.CHAT,
         entityId: chatId,
-        action: AuditAction.UPDATE,
-        changes: { reason: 'chat_successfuly_appended' },
+        action: AuditAction.FETCH,
+        changes: { reason: 'chat_successfully_retreived' },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       })
     } catch (error) {
-      this.logger.error('Error logging audit for data extraction upload', error as Error, {
+      this.logger.error('Error logging for audit chat ao ', error as Error, {
         userId: auditContext.userId,
       })
     }

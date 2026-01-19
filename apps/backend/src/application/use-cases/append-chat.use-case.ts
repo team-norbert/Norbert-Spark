@@ -47,7 +47,7 @@ export class AppendedChatUseCase {
         userAgent: auditContext.userAgent ?? undefined,
       })
     } catch (error) {
-      this.logger.error('Error logging audit for data extraction upload', error as Error, {
+      this.logger.error('Error logging audit for appending chat', error as Error, {
         userId: auditContext.userId,
       })
     }

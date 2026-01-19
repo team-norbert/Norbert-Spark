@@ -147,16 +147,20 @@ export class LoginUserUseCase {
     const user = await this.userRepository.findByEmail(dto.email)
 
     if (!user) {
-      // Log failed login attempt
-      await this.auditLog.log({
-        userId: null,
-        entityType: EntityType.USER,
-        entityId: null,
-        action: AuditAction.LOGIN_FAILED,
-        changes: { reason: 'user_not_found' },
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      })
+      try {
+        await this.auditLog.log({
+          userId: null,
+          entityType: EntityType.USER,
+          entityId: null,
+          action: AuditAction.FETCH,
+          changes: { reason: 'user_not_found' },
+          ipAddress: auditContext.ipAddress,
+          userAgent: auditContext.userAgent ?? undefined,
+        })
+      } catch (error) {
+        this.logger.error('Error logging audit for user retrieval', error as Error, { user })
+      }
+
       this.logger.warn('Login failed: User not found', { email: dto.email })
       throw new UnauthorizedException('Invalid email or password')
     }
@@ -174,16 +178,19 @@ export class LoginUserUseCase {
     const isPasswordValid = await user.verifyPassword(dto.password)
 
     if (!isPasswordValid) {
-      // Log failed login attempt with user ID
-      await this.auditLog.log({
-        userId: user.id,
-        entityType: EntityType.USER,
-        entityId: user.id,
-        action: AuditAction.LOGIN_FAILED,
-        changes: { reason: 'invalid_password' },
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      })
+      try {
+        await this.auditLog.log({
+          userId: user.id,
+          entityType: EntityType.USER,
+          entityId: user.id,
+          action: AuditAction.LOGIN_FAILED,
+          changes: { reason: 'invalid_password' },
+          ipAddress: auditContext.ipAddress,
+          userAgent: auditContext.userAgent ?? undefined,
+        })
+      } catch (error) {
+        this.logger.error('Error for passord retrieval', error as Error, { user })
+      }
       this.logger.warn('Login failed: Invalid password', { email: dto.email, userId: user.id })
       throw new UnauthorizedException('Invalid email or password')
     }
