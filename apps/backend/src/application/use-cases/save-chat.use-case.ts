@@ -32,7 +32,7 @@ export class SaveChatUseCase {
         userId: auditContext.userId,
         entityType: EntityType.CHAT,
         entityId: chatId,
-        action: AuditAction.FETCH,
+        action: AuditAction.CREATE,
         changes: { reason: 'chat_successfully_saved' },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
