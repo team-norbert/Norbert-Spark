@@ -49,7 +49,7 @@ export const contactRoleEnum = pgEnum('contact_role', [
 export const customers = pgTable(
   'customers',
   {
-    customerId: uuid('user_id')
+    customerId: uuid('customer_id')
       .primaryKey()
       .default(sql`uuidv7()`),
     legalName: text('legal_name').notNull(),
@@ -98,7 +98,7 @@ export const customers = pgTable(
 export const people = pgTable(
   'people',
   {
-    personId: uuid('user_id')
+    personId: uuid('person_id')
       .primaryKey()
       .default(sql`uuidv7()`),
     firstName: text('first_name').notNull(),
@@ -344,6 +344,8 @@ export const chats = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),
+    name: text('name').notNull().default('Untitled Chat'),
+    description: text('description').notNull().default('Explanation of purpose of chat'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
@@ -359,6 +361,15 @@ export const chats = pgTable(
     userIdUpdatedAtIdx: index('chats_user_id_updated_at_idx').on(
       table.userId,
       sql`${table.updatedAt} DESC`
+    ),
+    userIdNameIdx: index('chats_user_id_name_idx').on(table.userId, table.name),
+    nameLengthCheck: check(
+      'chats_name_length_check',
+      sql`length(${table.name}) >= 1 AND length(${table.name}) <= 200`
+    ),
+    descriptionLengthCheck: check(
+      'chats_description_length_check',
+      sql`length(${table.description}) >= 1 AND length(${table.description}) <= 500`
     ),
   })
 )
@@ -391,32 +402,36 @@ export type DBMessage = typeof messages.$inferInsert
 export type DBMessageSelect = typeof messages.$inferSelect
 
 /**
- * AI Options table: Stores AI generation parameters for each message
+ * AI options table: Stores model configuration parameters for each chat
  */
-export const aiOptions = pgTable(
-  'ai_options',
+export const chatAiOptions = pgTable(
+  'chat_ai_options',
   {
     id: uuid('id')
       .primaryKey()
       .default(sql`uuidv7()`),
-    messageId: uuid('message_id')
+    chatId: uuid('chat_id')
       .notNull()
-      .references(() => messages.id, { onDelete: 'cascade' }),
+      .unique()
+      .references(() => chats.id, { onDelete: 'cascade' }),
     prompt: text('prompt').notNull(),
-    maxOutputTokens: integer('max_tokens'),
+    maxTokens: integer('max_tokens').default(2000),
     temperature: numeric('temperature'),
     topP: numeric('top_p'),
     frequencyPenalty: numeric('frequency_penalty'),
-    presencePenalty: numeric('presence_penalty').notNull(),
+    presencePenalty: numeric('presence_penalty'),
     createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
   },
   (table) => ({
-    messageIdIdx: index('ai_options_message_id_idx').on(table.messageId),
+    chatIdIdx: uniqueIndex('chat_ai_options_chat_id_idx').on(table.chatId),
     maxTokensCheck: check(
       'max_tokens_check',
-      sql`${table.maxOutputTokens} IS NULL OR ${table.maxOutputTokens} > 0`
+      sql`${table.maxTokens} IS NULL OR (${table.maxTokens} > 0 AND ${table.maxTokens} <= 100000)`
     ),
     temperatureRange: check(
       'temperature_range',
@@ -432,13 +447,13 @@ export const aiOptions = pgTable(
     ),
     presencePenaltyRange: check(
       'presence_penalty_range',
-      sql`${table.presencePenalty} >= -2 AND ${table.presencePenalty} <= 2`
+      sql`${table.presencePenalty} IS NULL OR (${table.presencePenalty} >= -2 AND ${table.presencePenalty} <= 2)`
     ),
   })
 )
 
-export type DBAIOptions = typeof aiOptions.$inferInsert
-export type DBAIOptionsSelect = typeof aiOptions.$inferSelect
+export type DBChatAiOptions = typeof chatAiOptions.$inferInsert
+export type DBChatAiOptionsSelect = typeof chatAiOptions.$inferSelect
 
 /**
  * Parts table: Stores message parts with polymorphic structure based on type field
@@ -564,8 +579,12 @@ export const auditLog = pgTable(
 
 export type DBAuditLogSelect = typeof auditLog.$inferSelect
 
-export const chatsRelations = relations(chats, ({ many }) => ({
+export const chatsRelations = relations(chats, ({ one, many }) => ({
   messages: many(messages),
+  chatAiOptions: one(chatAiOptions, {
+    fields: [chats.id],
+    references: [chatAiOptions.chatId],
+  }),
 }))
 
 export const messagesRelations = relations(messages, ({ one, many }) => ({
@@ -574,10 +593,6 @@ export const messagesRelations = relations(messages, ({ one, many }) => ({
     references: [chats.id],
   }),
   parts: many(parts),
-  aiOptions: one(aiOptions, {
-    fields: [messages.id],
-    references: [aiOptions.messageId],
-  }),
 }))
 
 export const partsRelations = relations(parts, ({ one }) => ({
@@ -587,10 +602,10 @@ export const partsRelations = relations(parts, ({ one }) => ({
   }),
 }))
 
-export const aiOptionsRelations = relations(aiOptions, ({ one }) => ({
-  message: one(messages, {
-    fields: [aiOptions.messageId],
-    references: [messages.id],
+export const chatAiOptionsRelations = relations(chatAiOptions, ({ one }) => ({
+  chat: one(chats, {
+    fields: [chatAiOptions.chatId],
+    references: [chats.id],
   }),
 }))
 

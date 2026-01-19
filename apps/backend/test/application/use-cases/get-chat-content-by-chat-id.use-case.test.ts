@@ -20,7 +20,14 @@ describe('GetChatContentByChatIdUseCase', () => {
   let mockAuditLog: AuditLogPort
   let mockAIService: AIServicePort
   let testChatId: ChatIdType
-  let mockChat: { id: string; userId: string; createdAt: Date; updatedAt: Date }
+  let mockChat: {
+    id: string
+    userId: string
+    name: string
+    description: string
+    createdAt: Date
+    updatedAt: Date
+  }
   let auditContext: AuditContext
 
   beforeEach(() => {
@@ -47,6 +54,8 @@ describe('GetChatContentByChatIdUseCase', () => {
     mockChat = {
       id: testChatId,
       userId: 'test-user-id',
+      name: 'Test Chat',
+      description: 'Test chat description',
       createdAt: new Date(),
       updatedAt: new Date(),
     }
