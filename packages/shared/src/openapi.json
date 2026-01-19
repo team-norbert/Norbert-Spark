@@ -1628,6 +1628,16 @@
                 "type": "string",
                 "format": "date-time",
                 "example": "2024-01-15T10:30:00Z"
+              },
+              "seo_friendly_id": {
+                "type": "string",
+                "description": "SEO friendly identifier for the chat",
+                "example": "my-chat-session"
+              },
+              "seo_friendly_base64_id": {
+                "type": "string",
+                "description": "Base64 encoded SEO friendly identifier for the chat",
+                "example": "bXktY2hhdC1zZXNzaW"
               }
             }
           }
@@ -1651,7 +1661,12 @@
             "minLength": 1,
             "maxLength": 500,
             "example": "A general-purpose AI assistant for everyday tasks"
-          }
+          },
+          "seo_friendly_id": {
+            "type": "string",
+            "description": "SEO friendly identifier for the chat",
+            "example": "my-chat-session"
+          },
         }
       }
     },
