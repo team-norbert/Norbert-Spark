@@ -1,7 +1,15 @@
 import { getTableName } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 
-import { auditLog, chats, messages, parts, user } from '../src/infrastructure/database/schema.js'
+import {
+  auditLog,
+  chats,
+  dataRetrievalMessageParts,
+  dataRetrievalMessages,
+  messages,
+  parts,
+  user,
+} from '../src/infrastructure/database/schema.js'
 
 describe('Database Schema', () => {
   describe('Table exports', () => {
@@ -29,6 +37,16 @@ describe('Database Schema', () => {
       expect(auditLog).toBeDefined()
       expect(typeof auditLog).toBe('object')
     })
+
+    it('should export dataRetrievalMessages table constant', () => {
+      expect(dataRetrievalMessages).toBeDefined()
+      expect(typeof dataRetrievalMessages).toBe('object')
+    })
+
+    it('should export dataRetrievalMessageParts table constant', () => {
+      expect(dataRetrievalMessageParts).toBeDefined()
+      expect(typeof dataRetrievalMessageParts).toBe('object')
+    })
   })
 
   describe('Table names', () => {
@@ -50,6 +68,14 @@ describe('Database Schema', () => {
 
     it('should have correct table name for audit_log', () => {
       expect(getTableName(auditLog)).toBe('audit_log')
+    })
+
+    it('should have correct table name for data_retrieval_messages', () => {
+      expect(getTableName(dataRetrievalMessages)).toBe('data_retrieval_messages')
+    })
+
+    it('should have correct table name for data_retrieval_message_parts', () => {
+      expect(getTableName(dataRetrievalMessageParts)).toBe('data_retrieval_message_parts')
     })
   })
 
@@ -220,6 +246,45 @@ describe('Database Schema', () => {
         expect(auditLog.createdAt.name).toBe('created_at')
       })
     })
+
+    describe('dataRetrievalMessages table columns', () => {
+      it('should have id column', () => {
+        expect(dataRetrievalMessages.id).toBeDefined()
+        expect(dataRetrievalMessages.id.name).toBe('id')
+      })
+
+      it('should have createdAt column', () => {
+        expect(dataRetrievalMessages.createdAt).toBeDefined()
+        expect(dataRetrievalMessages.createdAt.name).toBe('created_at')
+      })
+    })
+
+    describe('dataRetrievalMessageParts table columns', () => {
+      it('should have id column', () => {
+        expect(dataRetrievalMessageParts.id).toBeDefined()
+        expect(dataRetrievalMessageParts.id.name).toBe('id')
+      })
+
+      it('should have messageId column', () => {
+        expect(dataRetrievalMessageParts.messageId).toBeDefined()
+        expect(dataRetrievalMessageParts.messageId.name).toBe('message_id')
+      })
+
+      it('should have type column', () => {
+        expect(dataRetrievalMessageParts.type).toBeDefined()
+        expect(dataRetrievalMessageParts.type.name).toBe('type')
+      })
+
+      it('should have textJson column', () => {
+        expect(dataRetrievalMessageParts.textJson).toBeDefined()
+        expect(dataRetrievalMessageParts.textJson.name).toBe('text_json')
+      })
+
+      it('should have createdAt column', () => {
+        expect(dataRetrievalMessageParts.createdAt).toBeDefined()
+        expect(dataRetrievalMessageParts.createdAt.name).toBe('created_at')
+      })
+    })
   })
 
   describe('Column properties', () => {
@@ -258,12 +323,48 @@ describe('Database Schema', () => {
     it('should have nullable auditLog.userId for system actions', () => {
       expect(auditLog.userId.notNull).toBe(false)
     })
+
+    it('should have primary key on dataRetrievalMessages.id', () => {
+      expect(dataRetrievalMessages.id.primary).toBe(true)
+    })
+
+    it('should have primary key on dataRetrievalMessageParts.id', () => {
+      expect(dataRetrievalMessageParts.id.primary).toBe(true)
+    })
+
+    it('should have not null constraint on dataRetrievalMessages.createdAt', () => {
+      expect(dataRetrievalMessages.createdAt.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on dataRetrievalMessageParts.messageId', () => {
+      expect(dataRetrievalMessageParts.messageId.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on dataRetrievalMessageParts.type', () => {
+      expect(dataRetrievalMessageParts.type.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on dataRetrievalMessageParts.createdAt', () => {
+      expect(dataRetrievalMessageParts.createdAt.notNull).toBe(true)
+    })
+
+    it('should have nullable dataRetrievalMessageParts.textJson', () => {
+      expect(dataRetrievalMessageParts.textJson.notNull).toBe(false)
+    })
   })
 
   describe('Schema structure validation', () => {
-    it('should have all five table constants exported', () => {
-      const tables = [user, chats, messages, parts, auditLog]
-      expect(tables).toHaveLength(5)
+    it('should have all seven table constants exported', () => {
+      const tables = [
+        user,
+        chats,
+        messages,
+        parts,
+        auditLog,
+        dataRetrievalMessages,
+        dataRetrievalMessageParts,
+      ]
+      expect(tables).toHaveLength(7)
       tables.forEach((table) => {
         expect(table).toBeDefined()
         expect(typeof table).toBe('object')
@@ -277,9 +378,11 @@ describe('Database Schema', () => {
         getTableName(messages),
         getTableName(parts),
         getTableName(auditLog),
+        getTableName(dataRetrievalMessages),
+        getTableName(dataRetrievalMessageParts),
       ]
       const uniqueNames = new Set(tableNames)
-      expect(uniqueNames.size).toBe(5)
+      expect(uniqueNames.size).toBe(7)
     })
 
     it('should have consistent timestamp column naming', () => {
@@ -289,6 +392,8 @@ describe('Database Schema', () => {
       expect(messages.createdAt.name).toBe('created_at')
       expect(parts.createdAt.name).toBe('created_at')
       expect(auditLog.createdAt.name).toBe('created_at')
+      expect(dataRetrievalMessages.createdAt.name).toBe('created_at')
+      expect(dataRetrievalMessageParts.createdAt.name).toBe('created_at')
     })
 
     it('should have consistent primary key naming with _id suffix or id', () => {
@@ -297,6 +402,8 @@ describe('Database Schema', () => {
       expect(messages.id.name).toBe('id')
       expect(parts.id.name).toBe('id')
       expect(auditLog.id.name).toBe('id')
+      expect(dataRetrievalMessages.id.name).toBe('id')
+      expect(dataRetrievalMessageParts.id.name).toBe('id')
     })
 
     it('should have consistent foreign key naming pattern', () => {
@@ -304,6 +411,7 @@ describe('Database Schema', () => {
       expect(messages.chatId.name).toBe('chat_id')
       expect(parts.messageId.name).toBe('message_id')
       expect(auditLog.userId.name).toBe('user_id')
+      expect(dataRetrievalMessageParts.messageId.name).toBe('message_id')
     })
   })
 })
