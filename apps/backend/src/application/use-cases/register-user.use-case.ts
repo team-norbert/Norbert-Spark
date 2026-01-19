@@ -136,7 +136,7 @@ export class RegisterUserUseCase {
 
     try {
       await this.auditLog.log({
-        userId: auditContext.userId,
+        userId: userId,
         entityType: EntityType.USER,
         entityId: userId,
         action: AuditAction.CREATE,
