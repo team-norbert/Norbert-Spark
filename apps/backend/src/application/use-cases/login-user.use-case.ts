@@ -152,7 +152,7 @@ export class LoginUserUseCase {
           userId: null,
           entityType: EntityType.USER,
           entityId: null,
-          action: AuditAction.FETCH,
+          action: AuditAction.LOGIN_FAILED,
           changes: { reason: 'user_not_found' },
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent ?? undefined,
