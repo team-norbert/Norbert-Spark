@@ -197,12 +197,9 @@ export const dataRetrievalMessages = pgTable('data_retrieval_messages', {
 
 export type DBDataRetrievalMessage = typeof dataRetrievalMessages.$inferInsert
 export type DBDataRetrievalMessageSelect = typeof dataRetrievalMessages.$inferSelect
-export const dataRetrievalMessagesRelations = relations(
-  dataRetrievalMessages,
-  ({ many }) => ({
-    parts: many(dataRetrievalMessageParts),
-  })
-)
+export const dataRetrievalMessagesRelations = relations(dataRetrievalMessages, ({ many }) => ({
+  parts: many(dataRetrievalMessageParts),
+}))
 /**
  * DATA RETRIEVAL MESSAGE PARTS
  */
