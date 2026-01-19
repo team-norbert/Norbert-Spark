@@ -192,6 +192,7 @@ export const dataRetrievalMessages = pgTable('data_retrieval_messages', {
   id: uuid('id')
     .primaryKey()
     .default(sql`uuidv7()`),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 /**
