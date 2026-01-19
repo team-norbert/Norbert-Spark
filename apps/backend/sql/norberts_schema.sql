@@ -168,7 +168,7 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE INDEX IF NOT EXISTS messages_chat_id_idx ON messages(chat_id);
 CREATE INDEX IF NOT EXISTS messages_chat_id_created_at_idx ON messages(chat_id, created_at);
 
--- AI options table: Stores model configuration parameters for each message
+-- AI options table: Stores model configuration parameters for each chat (one-to-one with chats)
 -- max_tokens INTEGER NOT NULL DEFAULT 2000 CHECK (max_tokens > 0 AND max_tokens <= 100000),
 CREATE TABLE IF NOT EXISTS chat_ai_options (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
