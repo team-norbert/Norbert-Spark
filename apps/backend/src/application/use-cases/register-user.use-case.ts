@@ -14,7 +14,7 @@ import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { AuditLogPort } from '../ports/audit-log.port.js'
 import { EntityType } from '../../domain/audit/entity-type.enum.js'
 import { AuditAction } from '../../domain/audit/entity-type.enum.js'
-import type { AuditConstantsType } from '../../shared/constants/audit-constants.js'
+import type { AuditContext } from '../../domain/audit/audit-context.js'
 
 /**
  * Use case for registering a new user in the system
@@ -95,7 +95,7 @@ export class RegisterUserUseCase {
    */
   async execute(
     dto: RegisterUserDto,
-    auditContext: AuditConstantsType
+    auditContext: AuditContext
   ): Promise<{ userId: string; access_token: string; token_type: string; expires_in: number }> {
     this.logger.info('Starting user registration', { email: dto.email })
 

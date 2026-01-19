@@ -4,7 +4,7 @@ import type { BucketPort } from '../ports/bucket.service.port.js'
 import { ExtractDataDto } from '../dtos/extract-data.dto.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { UnprocessableEntityException } from '../../shared/exceptions/unprocessable-entity.exception.js'
-import type { AuditConstantsType } from '../../shared/constants/audit-constants.js'
+import type { AuditContext } from '../../domain/audit/audit-context.js'
 /**
  * Detect file type from buffer by checking magic bytes (file signature)
  */
@@ -39,7 +39,7 @@ export class ExtractDataUseCase {
     private readonly bucketService: BucketPort
   ) {}
 
-  async execute(GetObjectCommandKeys: ExtractDataDto, auditContext: AuditConstantsType) {
+  async execute(GetObjectCommandKeys: ExtractDataDto, auditContext: AuditContext) {
     this.logger.info('Starting data extraction from file', {
       fileKey: GetObjectCommandKeys.fileKey,
     })

@@ -8,7 +8,7 @@ import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { AuditLogPort } from '../ports/audit-log.port.js'
 import { EntityType } from '../../domain/audit/entity-type.enum.js'
 import { AuditAction } from '../../domain/audit/entity-type.enum.js'
-import type { AuditConstantsType } from '../../shared/constants/audit-constants.js'
+import type { AuditContext } from '../../domain/audit/audit-context.js'
 
 /**
  * Use case for authenticating users and generating access tokens
@@ -135,7 +135,7 @@ export class LoginUserUseCase {
    */
   async execute(
     dto: LoginUserDto,
-    auditContext: AuditConstantsType
+    auditContext: AuditContext
   ): Promise<{
     userId: UserIdType
     email: string

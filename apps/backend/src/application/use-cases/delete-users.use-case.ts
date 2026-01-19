@@ -3,7 +3,7 @@ import type { UserRepositoryPort } from '../ports/user.repository.port.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { AuditLogPort } from '../ports/audit-log.port.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
-import type { AuditConstantsType } from '../../shared/constants/audit-constants.js'
+import type { AuditContext } from '../../domain/audit/audit-context.js'
 
 /**
  * Use case for deleting multiple users in a single batch operation.
@@ -107,7 +107,7 @@ export class DeleteUsersUseCase {
    * await useCase.execute([], auditContext); // Returns true immediately
    * ```
    */
-  async execute(userIds: UserIdType[], auditContext: AuditConstantsType): Promise<boolean> {
+  async execute(userIds: UserIdType[], auditContext: AuditContext): Promise<boolean> {
     this.logger.info('Deleting users', { userIds })
 
     try {
