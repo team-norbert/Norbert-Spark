@@ -166,6 +166,16 @@ describe('Database Schema', () => {
         expect(chatTypes.name.name).toBe('name')
       })
 
+      it('should have seoFriendlyId column', () => {
+        expect(chatTypes.seoFriendlyId).toBeDefined()
+        expect(chatTypes.seoFriendlyId.name).toBe('seo_friendly_id')
+      })
+
+      it('should have seoFriendlyBase64Id column', () => {
+        expect(chatTypes.seoFriendlyBase64Id).toBeDefined()
+        expect(chatTypes.seoFriendlyBase64Id.name).toBe('seo_friendly_base64_id')
+      })
+
       it('should have description column', () => {
         expect(chatTypes.description).toBeDefined()
         expect(chatTypes.description.name).toBe('description')
@@ -193,6 +203,22 @@ describe('Database Schema', () => {
 
       it('should have unique constraint on name', () => {
         expect(chatTypes.name.isUnique).toBe(true)
+      })
+
+      it('should have not null constraint on seoFriendlyId', () => {
+        expect(chatTypes.seoFriendlyId.notNull).toBe(true)
+      })
+
+      it('should have unique constraint on seoFriendlyId', () => {
+        expect(chatTypes.seoFriendlyId.isUnique).toBe(true)
+      })
+
+      it('should have not null constraint on seoFriendlyBase64Id', () => {
+        expect(chatTypes.seoFriendlyBase64Id.notNull).toBe(true)
+      })
+
+      it('should have unique constraint on seoFriendlyBase64Id', () => {
+        expect(chatTypes.seoFriendlyBase64Id.isUnique).toBe(true)
       })
 
       it('should have not null constraint on description', () => {
