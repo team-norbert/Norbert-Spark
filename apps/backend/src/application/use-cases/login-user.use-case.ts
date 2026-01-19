@@ -189,7 +189,7 @@ export class LoginUserUseCase {
           userAgent: auditContext.userAgent ?? undefined,
         })
       } catch (error) {
-        this.logger.error('Error for passord retrieval', error as Error, { user })
+        this.logger.error('Error for password retrieval', error as Error, { user })
       }
       this.logger.warn('Login failed: Invalid password', { email: dto.email, userId: user.id })
       throw new UnauthorizedException('Invalid email or password')
