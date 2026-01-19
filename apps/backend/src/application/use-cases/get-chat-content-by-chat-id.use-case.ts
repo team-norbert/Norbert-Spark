@@ -26,7 +26,7 @@ export class GetChatContentByChatIdUseCase {
         userAgent: auditContext.userAgent ?? undefined,
       })
     } catch (error) {
-      this.logger.error('Error logging for audit chat ao ', error as Error, {
+      this.logger.error('Error logging audit for chat retrieval', error as Error, {
         userId: auditContext.userId,
       })
     }
