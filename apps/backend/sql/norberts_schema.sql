@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS chats (
 -- Index for chats table
 CREATE INDEX IF NOT EXISTS chats_user_id_idx ON chats(user_id);
 CREATE INDEX IF NOT EXISTS chats_user_id_updated_at_idx ON chats(user_id, updated_at DESC);
-CREATE INDEX chats_user_id_name_idx ON chats(user_id, name);
+CREATE INDEX IF NOT EXISTS chats_user_id_name_idx ON chats(user_id, name);
 
 -- Messages table: Stores individual messages within chats
 CREATE TABLE IF NOT EXISTS messages (
