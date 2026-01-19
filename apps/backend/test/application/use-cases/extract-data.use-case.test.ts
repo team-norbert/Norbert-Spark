@@ -6,6 +6,7 @@ import type { BucketPort } from '../../../src/application/ports/bucket.service.p
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { ExtractDataUseCase } from '../../../src/application/use-cases/extract-data.use-case.js'
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
+import { type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { UnprocessableEntityException } from '../../../src/shared/exceptions/unprocessable-entity.exception.js'
 
 describe('ExtractDataUseCase', () => {
@@ -18,7 +19,7 @@ describe('ExtractDataUseCase', () => {
   const auditContext = {
     ipAddress: '127.0.0.1',
     userAgent: 'test-user-agent',
-    userId: 'user-123',
+    userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' as UserIdType,
   }
 
   // Helper function to create PDF buffer
@@ -141,7 +142,7 @@ describe('ExtractDataUseCase', () => {
         await useCase.execute(dto, auditContext)
 
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: 'user-123',
+          userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
           entityType: EntityType.DATA_EXTRACTION,
           entityId: 'path/to/document.pdf',
           action: AuditAction.FETCH,
@@ -183,13 +184,13 @@ describe('ExtractDataUseCase', () => {
         const nullAgentContext = {
           ipAddress: '127.0.0.1',
           userAgent: null,
-          userId: 'user-123',
+          userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' as UserIdType,
         }
 
         await useCase.execute(dto, nullAgentContext)
 
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: 'user-123',
+          userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
           entityType: EntityType.DATA_EXTRACTION,
           entityId: 'path/to/file.pdf',
           action: AuditAction.FETCH,
@@ -235,7 +236,7 @@ describe('ExtractDataUseCase', () => {
         await useCase.execute(dto, auditContext)
 
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: 'user-123',
+          userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
           entityType: EntityType.DATA_EXTRACTION,
           entityId: 'path/to/archive.zip',
           action: AuditAction.FETCH,
@@ -304,7 +305,7 @@ describe('ExtractDataUseCase', () => {
         }
 
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: 'user-123',
+          userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
           entityType: EntityType.DATA_EXTRACTION,
           entityId: 'path/to/missing.pdf',
           action: AuditAction.FETCH,
@@ -368,7 +369,7 @@ describe('ExtractDataUseCase', () => {
         }
 
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: 'user-123',
+          userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
           entityType: EntityType.DATA_EXTRACTION,
           entityId: 'path/to/file.txt',
           action: AuditAction.FETCH,
@@ -430,7 +431,7 @@ describe('ExtractDataUseCase', () => {
         }
 
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: 'user-123',
+          userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
           entityType: EntityType.DATA_EXTRACTION,
           entityId: 'path/to/file.pdf',
           action: AuditAction.FETCH,

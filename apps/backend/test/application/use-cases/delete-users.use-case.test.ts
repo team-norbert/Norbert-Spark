@@ -20,7 +20,7 @@ describe('DeleteUsersUseCase', () => {
   let mockLogger: LoggerPort
   let mockAuditLog: AuditLogPort
   const auditContext = {
-    userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
+    userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' as UserIdType,
     ipAddress: '192.168.1.1',
     userAgent: 'Mozilla/5.0',
   }
@@ -238,7 +238,7 @@ describe('DeleteUsersUseCase', () => {
       it('should handle null user agent gracefully', async () => {
         const userIds = [createMockUserId()]
         const contextWithNullAgent = {
-          userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234',
+          userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' as UserIdType,
           ipAddress: '192.168.1.1',
           userAgent: null,
         }

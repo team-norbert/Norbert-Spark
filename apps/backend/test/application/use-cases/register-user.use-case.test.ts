@@ -108,7 +108,7 @@ describe('RegisterUserUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: auditContext.userId,
+          userId: mockUserId,
           entityType: EntityType.USER,
           entityId: mockUserId,
           action: AuditAction.CREATE,
