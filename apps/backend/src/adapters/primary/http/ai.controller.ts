@@ -21,6 +21,9 @@ import { SYSTEM_PROMPT } from '../../../shared/constants/ai-constants.js'
 import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import type { GetChatContentByChatIdUseCase } from '../../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
+import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
+import { OAuthSyncDto } from '../../../application/dtos/oauth-sync.dto.js'
+import { BaseException } from '../../../shared/exceptions/base.exception.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -57,6 +60,13 @@ export class AIController {
         preHandler: [authMiddleware],
       },
       this.getAIChatByChatId.bind(this)
+    )
+    app.get(
+      '/ai/chats/options',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.getAIChatOptions.bind(this)
     )
   }
 
@@ -371,6 +381,66 @@ export class AIController {
         success: false,
         error: 'Internal server error',
       })
+    }
+  }
+
+  async getAIChatOptions(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
+    // Authorization check: User can only access their own chat history unless they have admin/moderator role
+    const authenticatedUserId = request.user?.sub
+    const userRoles = request.user?.roles || []
+
+    if (!authenticatedUserId) {
+      this.logger.warn('Authorization check failed: User not authenticated')
+      return reply.code(401).send({
+        success: false,
+        error: 'Authentication required',
+      })
+    }
+
+    // Check if user is accessing their own data OR has admin/moderator role
+    const isOwnData = authenticatedUserId === userId
+    const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
+
+    if (!isOwnData && !hasElevatedRole) {
+      this.logger.warn(
+        `Authorization check failed: User ${authenticatedUserId} attempted to access chats for user ${userId} without required permissions`
+      )
+      return reply.code(403).send({
+        success: false,
+        error:
+          'Access denied. You can only access your own chat history or must have admin/moderator role',
+      })
+    }
+
+    try {
+      reply.code(200).send({
+        success: true,
+        data: result,
+      })
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'OAuth sync failed'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
+
+    this.logger.debug('Received getAIChatOptions request')
+
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
     }
   }
 

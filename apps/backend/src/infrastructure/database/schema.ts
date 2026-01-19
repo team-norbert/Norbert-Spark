@@ -335,23 +335,55 @@ export type DBUser = typeof user.$inferInsert
 export type DBUserSelect = typeof user.$inferSelect
 
 /**
- * Chats table: Stores chat sessions linked to users
+ * Chat Types table: Stores reusable chat templates/configurations
+ */
+export const chatTypes = pgTable(
+  'chat_types',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    name: text('name').notNull().unique(),
+    description: text('description').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => ({
+    nameIdx: index('chat_types_name_idx').on(table.name),
+    nameLengthCheck: check(
+      'chat_types_name_length_check',
+      sql`length(${table.name}) >= 1 AND length(${table.name}) <= 200`
+    ),
+    descriptionLengthCheck: check(
+      'chat_types_description_length_check',
+      sql`length(${table.description}) >= 1 AND length(${table.description}) <= 500`
+    ),
+  })
+)
+
+export type DBChatType = typeof chatTypes.$inferInsert
+export type DBChatTypeSelect = typeof chatTypes.$inferSelect
+
+/**
+ * Chats table: Stores individual user chat sessions
  */
 export const chats = pgTable(
   'chats',
   {
-    id: uuid('id').primaryKey(),
+    id: uuid('id').primaryKey(), // Generated in frontend
     userId: uuid('user_id')
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),
-    name: text('name').notNull().default('Untitled Chat'),
-    description: text('description').notNull().default('No description'),
+    chatTypeId: uuid('chat_type_id')
+      .notNull()
+      .references(() => chatTypes.id, { onDelete: 'restrict' }),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
-    // Note: For the chats table, updatedAt must be manually updated by application code.
-    // Unlike customers and people tables, there is no database trigger for this table.
-    // The default(sql`now()`) here only sets the initial value on INSERT.
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
@@ -362,15 +394,7 @@ export const chats = pgTable(
       table.userId,
       sql`${table.updatedAt} DESC`
     ),
-    userIdNameIdx: index('chats_user_id_name_idx').on(table.userId, table.name),
-    nameLengthCheck: check(
-      'chats_name_length_check',
-      sql`length(${table.name}) >= 1 AND length(${table.name}) <= 200`
-    ),
-    descriptionLengthCheck: check(
-      'chats_description_length_check',
-      sql`length(${table.description}) >= 1 AND length(${table.description}) <= 500`
-    ),
+    chatTypeIdIdx: index('chats_chat_type_id_idx').on(table.chatTypeId),
   })
 )
 
@@ -402,7 +426,7 @@ export type DBMessage = typeof messages.$inferInsert
 export type DBMessageSelect = typeof messages.$inferSelect
 
 /**
- * AI options table: Stores model configuration parameters for each chat
+ * AI options table: Stores model configuration parameters for each chat type
  */
 export const chatAiOptions = pgTable(
   'chat_ai_options',
@@ -410,10 +434,10 @@ export const chatAiOptions = pgTable(
     id: uuid('id')
       .primaryKey()
       .default(sql`uuidv7()`),
-    chatId: uuid('chat_id')
+    chatTypeId: uuid('chat_type_id')
       .notNull()
       .unique()
-      .references(() => chats.id, { onDelete: 'cascade' }),
+      .references(() => chatTypes.id, { onDelete: 'cascade' }),
     prompt: text('prompt').notNull(),
     maxTokens: integer('max_tokens'),
     temperature: numeric('temperature'),
@@ -428,7 +452,7 @@ export const chatAiOptions = pgTable(
       .default(sql`now()`),
   },
   (table) => ({
-    chatIdIdx: uniqueIndex('chat_ai_options_chat_id_idx').on(table.chatId),
+    chatTypeIdIdx: uniqueIndex('chat_ai_options_chat_type_id_idx').on(table.chatTypeId),
     maxTokensCheck: check(
       'max_tokens_check',
       sql`${table.maxTokens} IS NULL OR (${table.maxTokens} > 0 AND ${table.maxTokens} <= 100000)`
@@ -579,11 +603,19 @@ export const auditLog = pgTable(
 
 export type DBAuditLogSelect = typeof auditLog.$inferSelect
 
+export const chatTypesRelations = relations(chatTypes, ({ one, many }) => ({
+  chatAiOptions: one(chatAiOptions, {
+    fields: [chatTypes.id],
+    references: [chatAiOptions.chatTypeId],
+  }),
+  chats: many(chats),
+}))
+
 export const chatsRelations = relations(chats, ({ one, many }) => ({
   messages: many(messages),
-  chatAiOptions: one(chatAiOptions, {
-    fields: [chats.id],
-    references: [chatAiOptions.chatId],
+  chatType: one(chatTypes, {
+    fields: [chats.chatTypeId],
+    references: [chatTypes.id],
   }),
 }))
 
@@ -603,9 +635,9 @@ export const partsRelations = relations(parts, ({ one }) => ({
 }))
 
 export const chatAiOptionsRelations = relations(chatAiOptions, ({ one }) => ({
-  chat: one(chats, {
-    fields: [chatAiOptions.chatId],
-    references: [chats.id],
+  chatType: one(chatTypes, {
+    fields: [chatAiOptions.chatTypeId],
+    references: [chatTypes.id],
   }),
 }))
 

@@ -14,6 +14,7 @@ import { RegisterUserWithProviderUseCase } from '../../application/use-cases/reg
 import { DeleteUsersUseCase } from '../../application/use-cases/delete-users.use-case.js'
 import { PresignedUploadUrlUseCase } from '../../application/use-cases/presigned-url-put.use-case.js'
 import { ExtractDataUseCase } from '../../application/use-cases/extract-data.use-case.js'
+import { GetChatOptionsUseCase } from '../../application/use-cases/get-chat-options.use-case.js'
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
@@ -87,7 +88,8 @@ export class Container {
   private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase
   private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase
   private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase
-  public readonly deleteUsersUseCase: DeleteUsersUseCase
+  private readonly deleteUsersUseCase: DeleteUsersUseCase
+  private readonly getChatOptionsUseCase: GetChatOptionsUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -202,6 +204,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.auditLog
     )
     this.getChatContentByChatIdUseCase = new GetChatContentByChatIdUseCase(
+      this.aiRepository,
+      this.logger,
+      this.auditLog
+    )
+    this.getChatOptionsUseCase = new GetChatOptionsUseCase(
       this.aiRepository,
       this.logger,
       this.auditLog

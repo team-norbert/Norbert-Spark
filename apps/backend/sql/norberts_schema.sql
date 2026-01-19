@@ -141,20 +141,31 @@ CREATE UNIQUE INDEX IF NOT EXISTS one_primary_contact_per_customer
 -- AI CHAT SYSTEM
 -- ============================================================
 
--- Chats table: Stores chat sessions
-CREATE TABLE IF NOT EXISTS chats (
-    id UUID PRIMARY KEY, -- the UUID creation is managed by the application
-    user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    name TEXT NOT NULL DEFAULT 'Untitled Chat' CHECK (length(name) >= 1 AND length(name) <= 200);
-    description TEXT NOT NULL DEFAULT 'No description' CHECK (length(description) >= 1 AND length(description) <= 500);
+-- Chat Types table: Stores reusable chat templates/configurations
+CREATE TABLE IF NOT EXISTS chat_types (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    name TEXT NOT NULL UNIQUE CHECK (length(name) >= 1 AND length(name) <= 200),
+    description TEXT NOT NULL CHECK (length(description) >= 1 AND length(description) <= 500),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Index for chats table
+-- Index for chat types
+CREATE INDEX IF NOT EXISTS chat_types_name_idx ON chat_types(name);
+
+-- Chats table: Stores individual user chat sessions
+CREATE TABLE IF NOT EXISTS chats (
+    id UUID PRIMARY KEY, -- the UUID creation is managed by the application (frontend)
+    user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    chat_type_id UUID NOT NULL REFERENCES chat_types(id) ON DELETE RESTRICT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Indexes for chats table
 CREATE INDEX IF NOT EXISTS chats_user_id_idx ON chats(user_id);
 CREATE INDEX IF NOT EXISTS chats_user_id_updated_at_idx ON chats(user_id, updated_at DESC);
-CREATE INDEX IF NOT EXISTS chats_user_id_name_idx ON chats(user_id, name);
+CREATE INDEX IF NOT EXISTS chats_chat_type_id_idx ON chats(chat_type_id);
 
 -- Messages table: Stores individual messages within chats
 CREATE TABLE IF NOT EXISTS messages (
@@ -168,10 +179,10 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE INDEX IF NOT EXISTS messages_chat_id_idx ON messages(chat_id);
 CREATE INDEX IF NOT EXISTS messages_chat_id_created_at_idx ON messages(chat_id, created_at);
 
--- AI options table: Stores model configuration parameters for each chat (one-to-one with chats)
+-- AI options table: Stores model configuration parameters for each chat type (one-to-one with chat_types)
 CREATE TABLE IF NOT EXISTS chat_ai_options (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    chat_id UUID NOT NULL UNIQUE REFERENCES chats(id) ON DELETE CASCADE,
+    chat_type_id UUID NOT NULL UNIQUE REFERENCES chat_types(id) ON DELETE CASCADE,
     prompt TEXT NOT NULL,
     max_tokens INTEGER CHECK (
                                  max_tokens IS NULL
@@ -198,7 +209,7 @@ CREATE TABLE IF NOT EXISTS chat_ai_options (
 );
 
 -- Index for efficient lookup
-CREATE UNIQUE INDEX chat_ai_options_chat_id_idx ON chat_ai_options(chat_id);
+CREATE UNIQUE INDEX chat_ai_options_chat_type_id_idx ON chat_ai_options(chat_type_id);
 
 -- Parts table: Stores message parts (text, files, tools, etc.)
 CREATE TABLE IF NOT EXISTS parts (
