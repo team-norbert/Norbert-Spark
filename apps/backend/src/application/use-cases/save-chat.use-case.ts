@@ -26,7 +26,6 @@ export class SaveChatUseCase {
     const savedChatId = await this.aiRepository.createChat(chatId, userId, messages)
     this.logger.info(`Chat saved with ID: ${savedChatId}`)
 
-    // Log audit event for data extraction upload initialization
     try {
       await this.auditLog.log({
         userId: auditContext.userId,
@@ -38,7 +37,7 @@ export class SaveChatUseCase {
         userAgent: auditContext.userAgent ?? undefined,
       })
     } catch (error) {
-      this.logger.error('Error logging audit for data extraction upload', error as Error, {
+      this.logger.error('Error logging audit for creating chat', error as Error, {
         userId: auditContext.userId,
       })
     }

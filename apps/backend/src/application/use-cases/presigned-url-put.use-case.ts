@@ -55,7 +55,6 @@ export class PresignedUploadUrlUseCase {
         })
       }
 
-      // Log audit event for data extraction upload initialization
       try {
         await this.auditLog.log({
           userId: auditContext.userId,

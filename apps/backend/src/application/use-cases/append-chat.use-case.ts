@@ -35,7 +35,6 @@ export class AppendedChatUseCase {
     this.logger.debug('Appended chat', { chatId: chatIdString, messages })
     await this.aiService.appendToChatMessages(chatIdString, messages)
 
-    // Log audit event for data extraction upload initialization
     try {
       await this.auditLog.log({
         userId: auditContext.userId,

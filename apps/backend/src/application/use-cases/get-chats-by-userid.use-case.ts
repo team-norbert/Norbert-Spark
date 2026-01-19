@@ -19,19 +19,20 @@ export class GetChatsByUserIdUseCase {
     this.logger.info(
       `Retrieved ${chats.length} chat${chats.length === 1 ? '' : 's'} for user ID: ${userId}`
     )
-    // Log audit event for data extraction upload initialization
+
     try {
       await this.auditLog.log({
         userId: auditContext.userId,
         entityType: EntityType.CHAT,
-        entityId: JSON.stringify(chats),
+        entityId: userId,
         action: AuditAction.FETCH,
-        changes: { reason: 'chat_successfully_retrieved_by_userid' },
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
+        changes: {
+          reason: 'chat_successfully_retrieved_by_userid',
+          chatIds: chats,
+        },
       })
     } catch (error) {
-      this.logger.error('Error logging audit for data extraction upload', error as Error, {
+      this.logger.error('Error logging audit for chat retrieval', error as Error, {
         userId: auditContext.userId,
       })
     }
