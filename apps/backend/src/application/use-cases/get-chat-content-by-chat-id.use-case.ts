@@ -4,6 +4,7 @@ import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { EntityType, AuditAction } from '../../domain/audit/entity-type.enum.js'
 import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { ChatResponseResult } from '../../adapters/secondary/repositories/ai.repository.js'
 
 export class GetChatContentByChatIdUseCase {
   constructor(
@@ -11,7 +12,10 @@ export class GetChatContentByChatIdUseCase {
     private readonly logger: LoggerPort,
     private readonly auditLog: AuditLogPort
   ) {}
-  async execute(chatId: ChatIdType, auditContext: AuditContext): Promise<any> {
+  async execute(
+    chatId: ChatIdType,
+    auditContext: AuditContext
+  ): Promise<ChatResponseResult | null> {
     this.logger.info('GetChatContentByChatIdUseCase.execute', chatId)
     const chatContent = await this.aiService.getAIChatByChatId(chatId)
 
