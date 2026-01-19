@@ -395,8 +395,8 @@ COMMENT ON TABLE chat_ai_options IS 'Stores default AI model configuration for e
 COMMENT ON COLUMN chat_ai_options.chat_id IS 'One-to-one relationship with chats table';
 COMMENT ON COLUMN chat_ai_options.prompt IS 'System prompt/context for this chat';
 
-COMMENT ON COLUMN chats.name IS 'Display name for the chat, user-defined (1-200 characters)';
 COMMENT ON COLUMN chats.user_id IS 'Foreign key linking chat to the user who created it';
+COMMENT ON COLUMN chats.name IS 'Display name for the chat, user-defined (1-200 characters)';
 COMMENT ON COLUMN chats.updated_at IS 'Timestamp of last activity in this chat, useful for sorting chat history';
 COMMENT ON COLUMN parts.type IS 'Discriminator field - values: text, reasoning, file, source_url, source_document, tool-getWeatherInformation, tool-getLocation, data-weather';
 COMMENT ON COLUMN parts."order" IS 'Order of parts within a message for proper sequencing';
