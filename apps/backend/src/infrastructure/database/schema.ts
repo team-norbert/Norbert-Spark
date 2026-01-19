@@ -415,7 +415,7 @@ export const chatAiOptions = pgTable(
       .unique()
       .references(() => chats.id, { onDelete: 'cascade' }),
     prompt: text('prompt').notNull(),
-    maxTokens: integer('max_tokens').default(2000),
+    maxTokens: integer('max_tokens'),
     temperature: numeric('temperature'),
     topP: numeric('top_p'),
     frequencyPenalty: numeric('frequency_penalty'),
