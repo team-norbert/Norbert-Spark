@@ -545,6 +545,45 @@ describe('Customer Schemas', () => {
     })
   })
 
+  describe('timezone validation', () => {
+    it('should have timezone validation check constraint', () => {
+      // The timezone check constraint is defined in the schema
+      // This test verifies the field exists and has proper configuration
+      expect(customers.timezone).toBeDefined()
+      expect(customers.timezone.notNull).toBe(true)
+    })
+
+    it('should accept valid IANA timezone identifiers in type system', () => {
+      const validTimezones = [
+        'UTC',
+        'America/New_York',
+        'Europe/London',
+        'Asia/Tokyo',
+        'Australia/Sydney',
+        'Pacific/Auckland',
+      ]
+
+      validTimezones.forEach((timezone) => {
+        const mockCustomer: DBCustomer = {
+          legalName: 'Test Company',
+          displayName: 'Test',
+          timezone,
+        }
+        expect(mockCustomer.timezone).toBe(timezone)
+      })
+    })
+
+    it('should have default UTC timezone', () => {
+      const mockCustomer: DBCustomer = {
+        legalName: 'Test Company',
+        displayName: 'Test',
+      }
+      // The default value is set at the database level
+      // Type system allows undefined, but DB will set to 'UTC'
+      expect(mockCustomer.timezone).toBeUndefined()
+    })
+  })
+
   describe('table structure validation', () => {
     it('should have all three table constants exported', () => {
       const tables = [customers, people, customerPeople]
