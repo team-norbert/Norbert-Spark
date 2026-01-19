@@ -390,7 +390,7 @@ COMMENT ON TABLE chats IS 'Stores chat sessions linked to users';
 COMMENT ON TABLE messages IS 'Stores individual messages within chats';
 COMMENT ON TABLE parts IS 'Stores message parts with polymorphic structure based on type field';
 
-COMMENT ON TABLE chat_ai_options IS 'Stores default AI model configuration for each chat';
+COMMENT ON TABLE chat_ai_options IS 'Stores AI model configuration parameters for each chat';
 COMMENT ON COLUMN chat_ai_options.chat_id IS 'One-to-one relationship with chats table';
 COMMENT ON COLUMN chat_ai_options.prompt IS 'System prompt/context for this chat';
 
