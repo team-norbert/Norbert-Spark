@@ -195,6 +195,12 @@ export const dataRetrievalMessages = pgTable('data_retrieval_messages', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+export const dataRetrievalMessagesRelations = relations(
+  dataRetrievalMessages,
+  ({ many }) => ({
+    parts: many(dataRetrievalMessageParts),
+  })
+)
 /**
  * DATA RETRIEVAL MESSAGE PARTS
  */
