@@ -9,17 +9,8 @@ import {
   jsonb,
   index,
   check,
-  customType,
 } from 'drizzle-orm/pg-core'
 import { user } from './user.js'
-
-// Define CITEXT custom type for case-insensitive text
-const citext = customType<{ data: string }>({
-  dataType() {
-    return 'citext'
-  },
-})
-
 /**
  * Chats table: Stores chat sessions linked to users
  */
