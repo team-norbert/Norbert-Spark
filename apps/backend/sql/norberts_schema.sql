@@ -288,6 +288,11 @@ Constraints	parts has many irrelevant columns
 Performance	Narrow tables + JSONB GIN index
 */
 
+CREATE TABLE IF NOT EXISTS data_retrieval_messages (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS data_retrieval_message_parts (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     message_id UUID NOT NULL
