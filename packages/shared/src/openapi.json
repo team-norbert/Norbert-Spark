@@ -1097,6 +1097,20 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden - User does not have required role (admin or moderator)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Access denied. Admin role required to access chat configuration"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -1164,6 +1178,20 @@
                 "example": {
                   "success": false,
                   "error": "Authentication required"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have required role (admin or moderator)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Access denied. Admin role required to access chat configuration"
                 }
               }
             }

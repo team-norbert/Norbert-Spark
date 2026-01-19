@@ -404,18 +404,14 @@ export class AIController {
       })
     }
 
-    // Check if user is accessing their own data OR has admin/moderator role
-    const isOwnData = authenticatedUserId === userId
+    // Check if user is accessing is moderator or admin
     const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
 
-    if (!isOwnData && !hasElevatedRole) {
-      this.logger.warn(
-        `Authorization check failed: User ${authenticatedUserId} attempted to access chats for user ${userId} without required permissions`
-      )
+    if (!hasElevatedRole) {
+      this.logger.warn('You must be an admin or moderator to access chat options')
       return reply.code(403).send({
         success: false,
-        error:
-          'Access denied. You can only access your own chat history or must have admin/moderator role',
+        error: 'Access denied. You must have admin/moderator role to access chat options',
       })
     }
 
