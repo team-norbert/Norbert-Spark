@@ -192,7 +192,8 @@ CREATE TABLE IF NOT EXISTS chat_ai_options (
                                     ),
     presence_penalty NUMERIC CHECK (
                                         presence_penalty IS NULL
-                                        presence_penalty >= -2 AND presence_penalty <= 2),
+                                        OR (presence_penalty >= -2 AND presence_penalty <= 2)
+                                    ),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
