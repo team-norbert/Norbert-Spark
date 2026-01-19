@@ -30,6 +30,8 @@ export class GetChatsByUserIdUseCase {
           reason: 'chat_successfully_retrieved_by_userid',
           chatIds: chats,
         },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent,
       })
     } catch (error) {
       this.logger.error('Error logging audit for chat retrieval', error as Error, {
