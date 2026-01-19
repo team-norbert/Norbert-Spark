@@ -1,16 +1,40 @@
 import type { AIServicePort } from '../ports/ai.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
 import type { ChatIdType } from '../../domain/value-objects/chatID.js'
+import type { AuditContext } from '../../domain/audit/audit-context.js'
+import { EntityType, AuditAction } from '../../domain/audit/entity-type.enum.js'
+import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { ChatResponseResult } from '../../adapters/secondary/repositories/ai.repository.js'
 
-//TODO: use an existing use case like GetChatUseCase and delete this
 export class GetChatContentByChatIdUseCase {
   constructor(
     private readonly aiService: AIServicePort,
-    private readonly logger: LoggerPort
+    private readonly logger: LoggerPort,
+    private readonly auditLog: AuditLogPort
   ) {}
-  async execute(chatId: ChatIdType) {
+  async execute(
+    chatId: ChatIdType,
+    auditContext: AuditContext
+  ): Promise<ChatResponseResult | null> {
     this.logger.info('GetChatContentByChatIdUseCase.execute', chatId)
     const chatContent = await this.aiService.getAIChatByChatId(chatId)
+
+    try {
+      await this.auditLog.log({
+        userId: auditContext.userId,
+        entityType: EntityType.CHAT,
+        entityId: chatId,
+        action: AuditAction.FETCH,
+        changes: { reason: 'chat_successfully_retrieved' },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
+      })
+    } catch (error) {
+      this.logger.error('Error logging audit for chat retrieval', error as Error, {
+        userId: auditContext.userId,
+      })
+    }
+
     return chatContent
   }
 }

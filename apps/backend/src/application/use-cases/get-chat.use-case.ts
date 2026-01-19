@@ -3,6 +3,9 @@ import type { LoggerPort } from '../ports/logger.port.js'
 import type { ChatResponseResult } from '../../adapters/secondary/repositories/ai.repository.js'
 import type { MessageSchemaType } from '@norberts-spark/shared'
 import type { ChatIdType } from '../../domain/value-objects/chatID.js'
+import type { AuditContext } from '../../domain/audit/audit-context.js'
+import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
+import type { AuditLogPort } from '../ports/audit-log.port.js'
 /**
  * Use case for retrieving chat messages for a specific user
  *
@@ -21,10 +24,12 @@ export class GetChatUseCase {
    * Creates an instance of GetChatUseCase
    * @param {AIServicePort} aiService - Service for handling AI-related operations
    * @param {LoggerPort} logger - Logger for tracking operations
+   * @param {AuditLogPort} auditLog - Audit logging service for recording user registration events
    */
   constructor(
     private readonly aiService: AIServicePort,
-    private readonly logger: LoggerPort
+    private readonly logger: LoggerPort,
+    private readonly auditLog: AuditLogPort
   ) {}
 
   /**
@@ -33,8 +38,9 @@ export class GetChatUseCase {
    * Validates the user ID format (must be UUID v7) and retrieves all chat messages
    * and their associated parts for the given user.
    *
-   * @param {string} userId - The user ID (must be a valid UUID v7)
+   * @param chatID
    * @param messages
+   * @param auditContext
    * @returns {Promise<ChatResponseResult | null>} Chat messages with parts, or null if not found
    * @throws {ValidationException} If the userId is not a valid UUID v7
    * @example
@@ -53,7 +59,8 @@ export class GetChatUseCase {
    */
   async execute(
     chatID: ChatIdType,
-    messages: MessageSchemaType[] = []
+    messages: MessageSchemaType[] = [],
+    auditContext: AuditContext
   ): Promise<ChatResponseResult | null> {
     this.logger.info('Getting chat', { chatID })
 
@@ -66,6 +73,22 @@ export class GetChatUseCase {
         chatID,
         messageCount: chatData.length,
       })
+
+      try {
+        await this.auditLog.log({
+          userId: auditContext.userId,
+          entityType: EntityType.CHAT,
+          entityId: chatID,
+          action: AuditAction.FETCH,
+          changes: { reason: 'chat_successfully_retrieved' },
+          ipAddress: auditContext.ipAddress,
+          userAgent: auditContext.userAgent ?? undefined,
+        })
+      } catch (error) {
+        this.logger.error('Error logging audit for chat retrieval', error as Error, {
+          userId: auditContext.userId,
+        })
+      }
     } else {
       this.logger.info('No chat data found for user', { chatID })
       return null

@@ -78,6 +78,13 @@ export class AIController {
   async chat(request: FastifyRequest, reply: FastifyReply) {
     this.logger.debug('Received chat request')
 
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
     let messages: UIMessage[]
     let id: string
     let trigger: string
@@ -154,7 +161,7 @@ export class AIController {
       (msg) => msg.role === 'user' || msg.role === 'assistant'
     ) as any[]
 
-    const chat = await this.getChatUseCase.execute(chatId, userAndAssistantMessages)
+    const chat = await this.getChatUseCase.execute(chatId, userAndAssistantMessages, auditContext)
 
     this.logger.info('Received chat', { chat: chat ?? null })
 
@@ -176,9 +183,9 @@ export class AIController {
 
     if (!chat) {
       this.logger.info('Chat does not exist, creating new chat', { id })
-      await this.saveChatUseCase.execute(chatId, userId, messages)
+      await this.saveChatUseCase.execute(chatId, userId, messages, auditContext)
     } else {
-      await this.appendChatUseCase.execute(chatId, [mostRecentMessage as UIMessage])
+      await this.appendChatUseCase.execute(chatId, [mostRecentMessage as UIMessage], auditContext)
       this.logger.info('Chat exists, appending most recent message', { id })
     }
 
@@ -252,7 +259,7 @@ export class AIController {
         // Just the newly generated assistant message
         // Good for persisting only the latest response
         this.logger.debug('Response message', { responseMessage })
-        await this.appendChatUseCase.execute(chatId, [responseMessage])
+        await this.appendChatUseCase.execute(chatId, [responseMessage], auditContext)
       },
     })
   }
@@ -288,6 +295,13 @@ export class AIController {
 
   async getAIChatsByUserId(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received getAIChatsByUserId request')
+
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
 
     const params = request.params as Record<string, unknown>
     const userIdParam = params.userId as string
@@ -341,7 +355,7 @@ export class AIController {
     }
 
     try {
-      const chatIds = await this.getChatsByUserIdUseCase.execute(userId)
+      const chatIds = await this.getChatsByUserIdUseCase.execute(userId, auditContext)
       reply.code(200).send({
         success: true,
         data: chatIds,
@@ -381,6 +395,13 @@ export class AIController {
   async getAIChatByChatId(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received getAIChatByChatId request')
 
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
     const params = request.params as Record<string, unknown>
     const chatIdParam = params.chatId as string
 
@@ -417,7 +438,7 @@ export class AIController {
 
     try {
       // Fetch the chat data which includes the userId
-      const chatData = await this.getChatContentByChatIdUseCase.execute(chatId)
+      const chatData = await this.getChatContentByChatIdUseCase.execute(chatId, auditContext)
 
       if (!chatData || chatData.length === 0) {
         return reply.code(404).send({
