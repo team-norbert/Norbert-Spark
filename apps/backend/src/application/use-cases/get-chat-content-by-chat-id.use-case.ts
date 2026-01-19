@@ -21,7 +21,7 @@ export class GetChatContentByChatIdUseCase {
         entityType: EntityType.CHAT,
         entityId: chatId,
         action: AuditAction.FETCH,
-        changes: { reason: 'chat_successfully_retreived' },
+        changes: { reason: 'chat_successfully_retrieved' },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       })
