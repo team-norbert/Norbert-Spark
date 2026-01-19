@@ -225,4 +225,211 @@ describe('GetChatsByUserIdUseCase', () => {
       expect((result as ChatIdType[])[1]).toBe(chatId2)
     })
   })
+
+  describe('execute() - audit logging', () => {
+    it('should log audit event with correct parameters when chats are retrieved successfully', async () => {
+      const mockChats: ChatIdType[] = [
+        new ChatId(uuidv7()).getValue(),
+        new ChatId(uuidv7()).getValue(),
+      ]
+      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
+
+      await useCase.execute(testUserId, auditContext)
+
+      expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
+      expect(mockAuditLog.log).toHaveBeenCalledWith({
+        userId: auditContext.userId,
+        entityType: 'chat',
+        entityId: testUserId,
+        action: 'fetch',
+        changes: {
+          reason: 'chat_successfully_retrieved_by_userid',
+          chatIds: mockChats,
+        },
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-user-agent',
+      })
+    })
+
+    it('should log audit event with empty chatIds when no chats found', async () => {
+      const mockChats: ChatIdType[] = []
+      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
+
+      await useCase.execute(testUserId, auditContext)
+
+      expect(mockAuditLog.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          changes: {
+            reason: 'chat_successfully_retrieved_by_userid',
+            chatIds: [],
+          },
+        })
+      )
+    })
+
+    it('should log audit event with null userAgent when not provided', async () => {
+      const mockChats: ChatIdType[] = [new ChatId(uuidv7()).getValue()]
+      const auditContextWithoutAgent = {
+        userId: testUserId,
+        ipAddress: '192.168.1.1',
+        userAgent: null,
+      }
+      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
+
+      await useCase.execute(testUserId, auditContextWithoutAgent)
+
+      expect(mockAuditLog.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: testUserId,
+          ipAddress: '192.168.1.1',
+          userAgent: undefined,
+        })
+      )
+    })
+
+    it('should still return chats successfully even if audit logging fails', async () => {
+      const mockChats: ChatIdType[] = [
+        new ChatId(uuidv7()).getValue(),
+        new ChatId(uuidv7()).getValue(),
+      ]
+      const auditError = new Error('Audit service unavailable')
+      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
+      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
+
+      const result = await useCase.execute(testUserId, auditContext)
+
+      expect(result).toEqual(mockChats)
+      expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledTimes(1)
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Error logging audit for chat retrieval',
+        auditError,
+        { userId: auditContext.userId }
+      )
+    })
+
+    it('should log error when audit log throws exception', async () => {
+      const mockChats: ChatIdType[] = []
+      const auditError = new Error('Database connection failed')
+      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
+      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
+
+      await useCase.execute(testUserId, auditContext)
+
+      expect(mockLogger.error).toHaveBeenCalledTimes(1)
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Error logging audit for chat retrieval',
+        expect.any(Error),
+        expect.objectContaining({
+          userId: testUserId,
+        })
+      )
+    })
+
+    it('should include correct entityId and entityType in audit log', async () => {
+      const mockChats: ChatIdType[] = [new ChatId(uuidv7()).getValue()]
+      const specificUserId = new UserId(uuidv7()).getValue()
+      const specificAuditContext = {
+        userId: specificUserId,
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-agent',
+      }
+      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
+
+      await useCase.execute(specificUserId, specificAuditContext)
+
+      expect(mockAuditLog.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entityType: 'chat',
+          entityId: specificUserId,
+          action: 'fetch',
+        })
+      )
+    })
+
+    it('should not call audit log if repository fails', async () => {
+      const repositoryError = new Error('Database error')
+      vi.mocked(mockAIRepository.getChatsByUserId).mockRejectedValue(repositoryError)
+
+      await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow('Database error')
+
+      expect(mockAuditLog.log).not.toHaveBeenCalled()
+    })
+
+    it('should log audit with correct changes structure', async () => {
+      const mockChats: ChatIdType[] = [
+        new ChatId(uuidv7()).getValue(),
+        new ChatId(uuidv7()).getValue(),
+        new ChatId(uuidv7()).getValue(),
+      ]
+      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
+
+      await useCase.execute(testUserId, auditContext)
+
+      expect(mockAuditLog.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          changes: {
+            reason: 'chat_successfully_retrieved_by_userid',
+            chatIds: mockChats,
+          },
+        })
+      )
+    })
+
+    it('should pass complete auditContext to audit log', async () => {
+      const mockChats: ChatIdType[] = [new ChatId(uuidv7()).getValue()]
+      const customAuditContext = {
+        userId: new UserId(uuidv7()).getValue(),
+        ipAddress: '10.0.0.1',
+        userAgent: 'Custom-Agent/1.0',
+      }
+      const customUserId = new UserId(uuidv7()).getValue()
+      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
+
+      await useCase.execute(customUserId, customAuditContext)
+
+      expect(mockAuditLog.log).toHaveBeenCalledWith({
+        userId: customAuditContext.userId,
+        entityType: 'chat',
+        entityId: customUserId,
+        action: 'fetch',
+        changes: {
+          reason: 'chat_successfully_retrieved_by_userid',
+          chatIds: mockChats,
+        },
+        ipAddress: customAuditContext.ipAddress,
+        userAgent: customAuditContext.userAgent,
+      })
+    })
+
+    it('should include all retrieved chatIds in audit log changes', async () => {
+      const chatId1 = new ChatId(uuidv7()).getValue()
+      const chatId2 = new ChatId(uuidv7()).getValue()
+      const chatId3 = new ChatId(uuidv7()).getValue()
+      const mockChats: ChatIdType[] = [chatId1, chatId2, chatId3]
+      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
+
+      await useCase.execute(testUserId, auditContext)
+
+      expect(mockAuditLog.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          changes: expect.objectContaining({
+            chatIds: [chatId1, chatId2, chatId3],
+          }),
+        })
+      )
+    })
+
+    it('should log audit with fetch action for retrieval operation', async () => {
+      const mockChats: ChatIdType[] = [new ChatId(uuidv7()).getValue()]
+      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
+
+      await useCase.execute(testUserId, auditContext)
+
+      expect(mockAuditLog.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'fetch',
+        })
+      )
+    })
+  })
 })
