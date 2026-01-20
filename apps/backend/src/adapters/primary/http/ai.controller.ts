@@ -122,8 +122,6 @@ export class AIController {
 
       trigger = body?.trigger
 
-      chatTypeId = body?.chatTypeId
-
       if (!id || !trigger) {
         return reply.code(400).send({
           success: false,
