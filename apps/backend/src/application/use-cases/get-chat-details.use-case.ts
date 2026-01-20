@@ -76,7 +76,13 @@ export class GetChatDetailsUseCase {
       }
       if (!seoFriendlyBase64Id && chatType.id) {
         const base64Id = Uuid7Util.toBase64(chatType.id)
-        seoFriendlyBase64Id = base64Id ?? ''
+        if (!base64Id) {
+          this.logger.error(
+            `Failed to generate seoFriendlyBase64Id from chatType.id=${chatType.id}`
+          )
+          throw new Error('Failed to generate seoFriendlyBase64Id from chat type ID')
+        }
+        seoFriendlyBase64Id = base64Id
       }
 
       return {
