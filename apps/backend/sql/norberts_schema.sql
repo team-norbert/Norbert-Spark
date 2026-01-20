@@ -145,8 +145,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS one_primary_contact_per_customer
 CREATE TABLE IF NOT EXISTS chat_types (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     name TEXT NOT NULL UNIQUE CHECK (length(name) >= 1 AND length(name) <= 200),
-    seo_friendly_id TEXT UNIQUE CHECK (length(seo_friendly_id) >= 1 AND length(seo_friendly_id) <= 200),
-    seo_friendly_base64_id TEXT UNIQUE CHECK (length(seo_friendly_base64_id) = 22),
+    seo_friendly_id TEXT UNIQUE CHECK (seo_friendly_id IS NULL OR (length(seo_friendly_id) >= 1 AND length(seo_friendly_id) <= 200)),
+    seo_friendly_base64_id TEXT UNIQUE CHECK (seo_friendly_base64_id IS NULL OR length(seo_friendly_base64_id) = 22),
     description TEXT NOT NULL CHECK (length(description) >= 1 AND length(description) <= 500),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
