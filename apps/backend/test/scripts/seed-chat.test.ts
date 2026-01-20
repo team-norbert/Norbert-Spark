@@ -15,6 +15,8 @@ describe('Chat Types Seed Script', () => {
       name: 'The Heart of Darkness',
       description:
         'Ask questions about the novella "The Heart of Darkness" by Joseph Conrad. Get insights into its themes, characters, and plot.',
+      prompt:
+        'You are a knowledgeable literary assistant specializing in Joseph Conrad\'s "Heart of Darkness". Help users understand the themes, characters, plot, and historical context of this novella. Provide insightful analysis while being clear and accessible.',
     },
   ]
 
@@ -27,8 +29,10 @@ describe('Chat Types Seed Script', () => {
       const chatType = chatTypesData[0]!
       expect(chatType).toHaveProperty('name')
       expect(chatType).toHaveProperty('description')
+      expect(chatType).toHaveProperty('prompt')
       expect(chatType.name).toBeTruthy()
       expect(chatType.description).toBeTruthy()
+      expect(chatType.prompt).toBeTruthy()
     })
 
     it('should have name "The Heart of Darkness"', () => {
@@ -239,6 +243,54 @@ describe('Chat Types Seed Script', () => {
       const base64Id = Uuid7Util.toBase64(v4Uuid)
 
       expect(base64Id).toBeUndefined()
+    })
+  })
+
+  describe('AI Options Preparation', () => {
+    it('should create AI options with chat type ID and prompt', () => {
+      const chatTypeId = Uuid7Util.createUuidv7()
+      const aiOption = {
+        chatTypeId,
+        prompt: chatTypesData[0]!.prompt,
+        maxTokens: null,
+        temperature: null,
+        topP: null,
+        frequencyPenalty: null,
+        presencePenalty: null,
+      }
+
+      expect(aiOption).toHaveProperty('chatTypeId')
+      expect(aiOption).toHaveProperty('prompt')
+      expect(aiOption.chatTypeId).toBe(chatTypeId)
+      expect(aiOption.prompt).toBe(chatTypesData[0]!.prompt)
+    })
+
+    it('should have null values for optional parameters', () => {
+      const aiOption = {
+        chatTypeId: Uuid7Util.createUuidv7(),
+        prompt: chatTypesData[0]!.prompt,
+        maxTokens: null,
+        temperature: null,
+        topP: null,
+        frequencyPenalty: null,
+        presencePenalty: null,
+      }
+
+      expect(aiOption.maxTokens).toBeNull()
+      expect(aiOption.temperature).toBeNull()
+      expect(aiOption.topP).toBeNull()
+      expect(aiOption.frequencyPenalty).toBeNull()
+      expect(aiOption.presencePenalty).toBeNull()
+    })
+
+    it('should have a prompt that mentions Heart of Darkness', () => {
+      const prompt = chatTypesData[0]!.prompt
+      expect(prompt).toContain('Heart of Darkness')
+    })
+
+    it('should have a prompt that mentions Joseph Conrad', () => {
+      const prompt = chatTypesData[0]!.prompt
+      expect(prompt).toContain('Joseph Conrad')
     })
   })
 })

@@ -13,7 +13,7 @@
  */
 
 import { db } from '../src/infrastructure/database/index.js'
-import { chatTypes } from '../src/infrastructure/database/schema.js'
+import { chatAiOptions, chatTypes } from '../src/infrastructure/database/schema.js'
 import { SEO } from '../src/shared/utils/SEO.util.js'
 import { Uuid7Util } from '../src/shared/utils/uuid7.util.js'
 
@@ -23,6 +23,8 @@ const chatTypesData = [
     name: 'The Heart of Darkness',
     description:
       'Ask questions about the novella "The Heart of Darkness" by Joseph Conrad. Get insights into its themes, characters, and plot.',
+    prompt:
+      'You are a knowledgeable literary assistant specializing in Joseph Conrad\'s "Heart of Darkness". Help users understand the themes, characters, plot, and historical context of this novella. Provide insightful analysis while being clear and accessible.',
   },
 ]
 
@@ -32,9 +34,12 @@ async function seedChats() {
 
     // Check if chat types already exist
     const existingChatTypes = await db.select().from(chatTypes)
+    const existingAiOptions = await db.select().from(chatAiOptions)
 
-    if (existingChatTypes.length > 0) {
-      console.log(`⚠️  Warning: Found ${existingChatTypes.length} existing chat types.`)
+    if (existingChatTypes.length > 0 || existingAiOptions.length > 0) {
+      console.log(
+        `⚠️  Warning: Found ${existingChatTypes.length} existing chat types and ${existingAiOptions.length} AI options.`
+      )
       console.log('   Skipping seed to avoid duplicates.')
       console.log('   Run "pnpm db:reset" first if you want to reseed.\n')
       return
@@ -69,10 +74,29 @@ async function seedChats() {
     const insertedChatTypes = await db.insert(chatTypes).values(chatTypesToInsert).returning()
 
     console.log(`\n✅ Successfully created ${insertedChatTypes.length} chat types!`)
+
+    // Create AI options for each chat type
+    console.log('\n💾 Inserting AI options for chat types...')
+    const aiOptionsToInsert = insertedChatTypes.map((chatType, index) => ({
+      chatTypeId: chatType.id,
+      prompt: chatTypesData[index].prompt,
+      // Optional fields can be left null
+      maxTokens: null,
+      temperature: null,
+      topP: null,
+      frequencyPenalty: null,
+      presencePenalty: null,
+    }))
+
+    const insertedAiOptions = await db.insert(chatAiOptions).values(aiOptionsToInsert).returning()
+
+    console.log(`\n✅ Successfully created ${insertedAiOptions.length} AI options!`)
+
     console.log('\n📋 Summary:')
     insertedChatTypes.forEach((ct, index) => {
       console.log(`   ${index + 1}. ${ct.name}`)
       console.log(`      → ${ct.seoFriendlyId}`)
+      console.log(`      → AI Options: prompt configured`)
     })
 
     console.log('\n💡 Usage:')
