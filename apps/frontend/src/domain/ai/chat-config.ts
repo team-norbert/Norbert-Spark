@@ -11,7 +11,10 @@ export const ChatTypeSchema = z.object({
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   seoFriendlyId: z.string().min(1).max(200),
-  seoFriendlyBase64Id: z.string().length(22),
+  // URL-safe Base64-encoded UUID without padding; always 22 characters
+  seoFriendlyBase64Id: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{22}$/, 'URL-safe Base64 (22 chars, no padding)'),
 })
 
 export type ChatType = z.infer<typeof ChatTypeSchema>
