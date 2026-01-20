@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { SEO } from '../../src/shared/utils/SEO.util.js'
 import { Uuid7Util } from '../../src/shared/utils/uuid7.util.js'
