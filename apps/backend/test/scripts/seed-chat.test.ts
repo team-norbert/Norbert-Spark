@@ -246,7 +246,7 @@ describe('Chat Types Seed Script', () => {
     })
   })
 
-  describe('AI Options Preparation', () => {
+  describe('AI Options Data Validation', () => {
     it('should create AI options with chat type ID and prompt', () => {
       const chatTypeId = Uuid7Util.createUuidv7()
       const aiOption = {
