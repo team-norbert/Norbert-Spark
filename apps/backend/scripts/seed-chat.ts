@@ -77,16 +77,27 @@ async function seedChats() {
 
     // Create AI options for each chat type
     console.log('\n💾 Inserting AI options for chat types...')
-    const aiOptionsToInsert = insertedChatTypes.map((chatType, index) => ({
-      chatTypeId: chatType.id,
-      prompt: chatTypesData[index].prompt,
-      // Optional fields can be left null
-      maxTokens: null,
-      temperature: null,
-      topP: null,
-      frequencyPenalty: null,
-      presencePenalty: null,
-    }))
+
+    const promptByName = new Map(chatTypesData.map((chatType) => [chatType.name, chatType.prompt]))
+
+    const aiOptionsToInsert = insertedChatTypes.map((chatType) => {
+      const prompt = promptByName.get(chatType.name)
+
+      if (!prompt) {
+        throw new Error(`No prompt found for chat type with name: ${chatType.name}`)
+      }
+
+      return {
+        chatTypeId: chatType.id,
+        prompt,
+        // Optional fields can be left null
+        maxTokens: null,
+        temperature: null,
+        topP: null,
+        frequencyPenalty: null,
+        presencePenalty: null,
+      }
+    })
 
     const insertedAiOptions = await db.insert(chatAiOptions).values(aiOptionsToInsert).returning()
 
