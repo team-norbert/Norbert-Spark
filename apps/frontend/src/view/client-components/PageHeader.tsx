@@ -44,7 +44,7 @@ export function PageHeader({ onNavigateHome, onSignOut, title }: PageHeaderProps
       </Box>
       <Button
         variant="outlined"
-        color="primary"
+        color="secondary"
         startIcon={<LogoutIcon />}
         onClick={onSignOut}
         data-testid="sign-out-button"

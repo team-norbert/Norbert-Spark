@@ -206,6 +206,13 @@ CREATE TABLE IF NOT EXISTS chat_ai_options (
                                         presence_penalty IS NULL
                                         OR (presence_penalty >= -2 AND presence_penalty <= 2)
                                     ),
+    top_k INTEGER CHECK (
+                                 top_k IS NULL
+                                 OR (top_k > 0 AND top_k <= 100)
+                             ),
+    stop_sequences TEXT[],
+    seed INTEGER CHECK (seed IS NULL OR (seed >= 0 AND seed <= 2147483647)),
+    max_retries INTEGER CHECK (max_retries IS NULL OR (max_retries >= 0 AND max_retries <= 10)),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

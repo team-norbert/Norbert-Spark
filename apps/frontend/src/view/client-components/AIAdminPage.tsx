@@ -1,7 +1,8 @@
 'use client'
 
-import { Alert, Box, Container, TextField, Typography } from '@mui/material'
+import { Alert, Box, Button, Container, TextField, Typography } from '@mui/material'
 import { DataGrid, type GridColDef, type GridPaginationModel } from '@mui/x-data-grid'
+import { useRouter } from 'next/navigation.js'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
 
@@ -33,6 +34,7 @@ export function AIAdminPage({
   rowCount,
   searchQuery,
 }: AIAdminPageProps) {
+  const router = useRouter()
   // Define columns for the DataGrid
   const columns: GridColDef<ChatType>[] = [
     {
@@ -77,6 +79,28 @@ export function AIAdminPage({
         const date = new Date(value)
         return isNaN(date.getTime()) ? '' : date.toLocaleDateString()
       },
+    },
+    {
+      field: 'actions',
+      headerName: 'Click to change options',
+      width: 200,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <>
+          <Button
+            data-testid={`change-options-${params.row.id}`}
+            variant="outlined"
+            size="small"
+            color="primary"
+            onClick={() => {
+              router.push(`/ai-admin/${params.row.id}`)
+            }}
+          >
+            Change Options
+          </Button>
+        </>
+      ),
     },
   ]
 

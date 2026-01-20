@@ -452,6 +452,10 @@ export const chatAiOptions = pgTable(
     topP: numeric('top_p'),
     frequencyPenalty: numeric('frequency_penalty'),
     presencePenalty: numeric('presence_penalty'),
+    topK: integer('top_k'),
+    stopSequences: text('stop_sequences').array(),
+    seed: integer('seed'),
+    maxRetries: integer('max_retries'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
@@ -480,6 +484,18 @@ export const chatAiOptions = pgTable(
     presencePenaltyRange: check(
       'presence_penalty_range',
       sql`${table.presencePenalty} IS NULL OR (${table.presencePenalty} >= -2 AND ${table.presencePenalty} <= 2)`
+    ),
+    topKCheck: check(
+      'top_k_check',
+      sql`${table.topK} IS NULL OR (${table.topK} > 0 AND ${table.topK} <= 100)`
+    ),
+    seedCheck: check(
+      'seed_check',
+      sql`${table.seed} IS NULL OR (${table.seed} >= 0 AND ${table.seed} <= 2147483647)`
+    ),
+    maxRetriesCheck: check(
+      'max_retries_check',
+      sql`${table.maxRetries} IS NULL OR (${table.maxRetries} >= 0 AND ${table.maxRetries} <= 10)`
     ),
   })
 )

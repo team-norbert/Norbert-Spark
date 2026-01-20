@@ -81,7 +81,7 @@ export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardPr
                 textAlign: 'center',
               }}
             >
-              <ChatIcon sx={{ fontSize: 64, mb: 2, color: 'primary.main' }} />
+              <ChatIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
               <Typography variant="h5" component="h2" gutterBottom>
                 Chat
               </Typography>
@@ -116,7 +116,7 @@ export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardPr
                 textAlign: 'center',
               }}
             >
-              <PersonIcon sx={{ fontSize: 64, mb: 2, color: 'primary.main' }} />
+              <PersonIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
               <Typography variant="h5" component="h2" gutterBottom>
                 Profile
               </Typography>
@@ -151,7 +151,7 @@ export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardPr
                 textAlign: 'center',
               }}
             >
-              <DescriptionIcon sx={{ fontSize: 64, mb: 2, color: 'primary.main' }} />
+              <DescriptionIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
               <Typography variant="h5" component="h2" gutterBottom>
                 Extract Data
               </Typography>
@@ -187,7 +187,7 @@ export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardPr
                   textAlign: 'center',
                 }}
               >
-                <AdminPanelSettingsIcon sx={{ fontSize: 64, mb: 2, color: 'primary.main' }} />
+                <AdminPanelSettingsIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
                 <Typography variant="h5" component="h2" gutterBottom>
                   Admin
                 </Typography>
@@ -224,7 +224,7 @@ export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardPr
                   textAlign: 'center',
                 }}
               >
-                <SettingsIcon sx={{ fontSize: 64, mb: 2, color: 'primary.main' }} />
+                <SettingsIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
                 <Typography variant="h5" component="h2" gutterBottom>
                   AI Config
                 </Typography>
