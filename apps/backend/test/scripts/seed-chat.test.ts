@@ -283,13 +283,9 @@ describe('Chat Types Seed Script', () => {
       expect(aiOption.presencePenalty).toBeNull()
     })
 
-    it('should have a prompt that mentions Heart of Darkness', () => {
+    it('should have a prompt that mentions Heart of Darkness and Joseph Conrad', () => {
       const prompt = chatTypesData[0]!.prompt
       expect(prompt).toContain('Heart of Darkness')
-    })
-
-    it('should have a prompt that mentions Joseph Conrad', () => {
-      const prompt = chatTypesData[0]!.prompt
       expect(prompt).toContain('Joseph Conrad')
     })
   })
