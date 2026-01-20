@@ -99,7 +99,6 @@ export class AIController {
     let messages: UIMessage[]
     let id: string
     let trigger: string
-    let chatTypeId: string
 
     try {
       const body = request.body as any
