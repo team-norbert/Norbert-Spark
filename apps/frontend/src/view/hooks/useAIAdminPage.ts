@@ -60,8 +60,6 @@ export function useAIAdminPage(): UseAIAdminPageReturn {
       })
     : chatTypes
 
-  console.log('searchQuery', filteredChatTypes)
-
   // Calculate pagination
   const startIndex = paginationModel.page * paginationModel.pageSize
   const endIndex = startIndex + paginationModel.pageSize
