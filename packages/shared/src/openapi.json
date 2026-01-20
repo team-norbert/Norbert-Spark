@@ -713,7 +713,7 @@
       "get": {
         "summary": "Get chat types",
         "description": "Retrieves available chat types such as 'customer support', 'sales assistant', etc.",
-        "operationId": "getAIChatTypes",
+        "operationId": "getAIChatDetails",
         "tags": ["ai", "chat"],
         "security": [{ "bearerAuth": [] }],
         "responses": {
