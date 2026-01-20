@@ -362,11 +362,11 @@ export const chatTypes = pgTable(
     ),
     seoFriendlyIdLengthCheck: check(
       'chat_types_seo_friendly_id_length_check',
-      sql`length(${table.seoFriendlyId}) >= 1 AND length(${table.seoFriendlyId}) <= 200`
+      sql`${table.seoFriendlyId} IS NULL OR (length(${table.seoFriendlyId}) >= 1 AND length(${table.seoFriendlyId}) <= 200)`
     ),
     seoFriendlyBase64IdLengthCheck: check(
       'chat_types_seo_friendly_base64_id_length_check',
-      sql`length(${table.seoFriendlyBase64Id}) = 22`
+      sql`${table.seoFriendlyBase64Id} IS NULL OR length(${table.seoFriendlyBase64Id}) = 22`
     ),
     descriptionLengthCheck: check(
       'chat_types_description_length_check',
