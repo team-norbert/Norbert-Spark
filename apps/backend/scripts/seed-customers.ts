@@ -448,15 +448,19 @@ async function seedCustomers() {
     console.log(`   • Customers: ${insertedCustomers.length}`)
     console.log(`   • People: ${insertedPeople.length}`)
     console.log(`   • Relationships: ${allRelationships.length}`)
-
-    process.exit(0)
   } catch (error) {
     console.error('\n❌ Error seeding customers and people:', error)
     if (error instanceof Error) {
       console.error('Error details:', error.message)
       console.error('Stack trace:', error.stack)
     }
-    process.exit(1)
+    process.exitCode = 1
+  } finally {
+    // Ensure the database connection/pool is closed so the script can exit cleanly
+    const anyDb = db as unknown as { end?: () => Promise<void> | void }
+    if (typeof anyDb.end === 'function') {
+      await anyDb.end()
+    }
   }
 }
 
