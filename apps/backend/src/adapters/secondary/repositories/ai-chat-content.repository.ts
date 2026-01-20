@@ -45,7 +45,7 @@ export class AIChatContentRepository implements AIContentPort {
    * ```
    */
   async fetchChatContent(): Promise<DBChatType[]> {
-    this.logger.debug('Fetches chatContent from chat_types table')
+    this.logger.debug('Fetching chatContent from chat_types table')
     return db.select().from(chatTypes).orderBy(desc(chatTypes.createdAt))
   }
 }
