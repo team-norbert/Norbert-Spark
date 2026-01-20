@@ -391,8 +391,8 @@ export class AIController {
    *
    * This endpoint fetches all chat type options from the database, ensuring each has
    * complete SEO-friendly fields (slug and base64 ID). The chat types are returned
-   * in descending order by creation date. This endpoint does not require authentication
-   * and is typically used to populate chat type selection interfaces.
+   * in descending order by creation date. This endpoint requires authentication and
+   * admin or moderator role and is typically used to populate chat type selection interfaces.
    *
    * The response includes:
    * - Chat type ID (UUIDv7)
