@@ -141,20 +141,33 @@ CREATE UNIQUE INDEX IF NOT EXISTS one_primary_contact_per_customer
 -- AI CHAT SYSTEM
 -- ============================================================
 
--- Chats table: Stores chat sessions
-CREATE TABLE IF NOT EXISTS chats (
-    id UUID PRIMARY KEY, -- the UUID creation is managed by the application
-    user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    name TEXT NOT NULL DEFAULT 'Untitled Chat' CHECK (length(name) >= 1 AND length(name) <= 200);
-    description TEXT NOT NULL DEFAULT 'No description' CHECK (length(description) >= 1 AND length(description) <= 500);
+-- Chat Types table: Stores reusable chat templates/configurations
+CREATE TABLE IF NOT EXISTS chat_types (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    name TEXT NOT NULL UNIQUE CHECK (length(name) >= 1 AND length(name) <= 200),
+    seo_friendly_id TEXT UNIQUE CHECK (seo_friendly_id IS NULL OR (length(seo_friendly_id) >= 1 AND length(seo_friendly_id) <= 200)),
+    seo_friendly_base64_id TEXT UNIQUE CHECK (seo_friendly_base64_id IS NULL OR length(seo_friendly_base64_id) = 22),
+    description TEXT NOT NULL CHECK (length(description) >= 1 AND length(description) <= 500),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Index for chats table
+-- Index for chat types
+CREATE INDEX IF NOT EXISTS chat_types_name_idx ON chat_types(name);
+
+-- Chats table: Stores individual user chat sessions
+CREATE TABLE IF NOT EXISTS chats (
+    id UUID PRIMARY KEY, -- the UUID creation is managed by the application (frontend)
+    user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    chat_type_id UUID REFERENCES chat_types(id) ON DELETE RESTRICT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Indexes for chats table
 CREATE INDEX IF NOT EXISTS chats_user_id_idx ON chats(user_id);
 CREATE INDEX IF NOT EXISTS chats_user_id_updated_at_idx ON chats(user_id, updated_at DESC);
-CREATE INDEX IF NOT EXISTS chats_user_id_name_idx ON chats(user_id, name);
+CREATE INDEX IF NOT EXISTS chats_chat_type_id_idx ON chats(chat_type_id);
 
 -- Messages table: Stores individual messages within chats
 CREATE TABLE IF NOT EXISTS messages (
@@ -168,10 +181,10 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE INDEX IF NOT EXISTS messages_chat_id_idx ON messages(chat_id);
 CREATE INDEX IF NOT EXISTS messages_chat_id_created_at_idx ON messages(chat_id, created_at);
 
--- AI options table: Stores model configuration parameters for each chat (one-to-one with chats)
+-- AI options table: Stores model configuration parameters for each chat type (one-to-one with chat_types)
 CREATE TABLE IF NOT EXISTS chat_ai_options (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    chat_id UUID NOT NULL UNIQUE REFERENCES chats(id) ON DELETE CASCADE,
+    chat_type_id UUID NOT NULL UNIQUE REFERENCES chat_types(id) ON DELETE CASCADE,
     prompt TEXT NOT NULL,
     max_tokens INTEGER CHECK (
                                  max_tokens IS NULL
@@ -198,7 +211,7 @@ CREATE TABLE IF NOT EXISTS chat_ai_options (
 );
 
 -- Index for efficient lookup
-CREATE UNIQUE INDEX chat_ai_options_chat_id_idx ON chat_ai_options(chat_id);
+CREATE UNIQUE INDEX chat_ai_options_chat_type_id_idx ON chat_ai_options(chat_type_id);
 
 -- Parts table: Stores message parts (text, files, tools, etc.)
 CREATE TABLE IF NOT EXISTS parts (
@@ -390,13 +403,12 @@ COMMENT ON TABLE chats IS 'Stores chat sessions linked to users';
 COMMENT ON TABLE messages IS 'Stores individual messages within chats';
 COMMENT ON TABLE parts IS 'Stores message parts with polymorphic structure based on type field';
 
-COMMENT ON TABLE chat_ai_options IS 'Stores AI model configuration parameters for each chat';
-COMMENT ON COLUMN chat_ai_options.chat_id IS 'One-to-one relationship with chats table';
-COMMENT ON COLUMN chat_ai_options.prompt IS 'System prompt/context for this chat';
+COMMENT ON TABLE chat_ai_options IS 'Stores default AI model configuration for each chat type';
+COMMENT ON COLUMN chat_ai_options.chat_type_id IS 'One-to-one relationship with chat_types table';
+COMMENT ON COLUMN chat_ai_options.prompt IS 'System prompt/context for this chat type';
 
 COMMENT ON COLUMN chats.user_id IS 'Foreign key linking chat to the user who created it';
-COMMENT ON COLUMN chats.name IS 'Display name for the chat, user-defined (1-200 characters)';
-COMMENT ON COLUMN chats.description IS 'Optional longer description or notes about the chat, user-defined';
+COMMENT ON COLUMN chats.chat_type_id IS 'Foreign key linking chat to a chat type configuration';
 COMMENT ON COLUMN chats.updated_at IS 'Timestamp of last activity in this chat, useful for sorting chat history';
 COMMENT ON COLUMN parts.type IS 'Discriminator field - values: text, reasoning, file, source_url, source_document, tool-getWeatherInformation, tool-getLocation, data-weather';
 COMMENT ON COLUMN parts."order" IS 'Order of parts within a message for proper sequencing';

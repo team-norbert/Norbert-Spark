@@ -14,13 +14,16 @@ import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
+import { GetChatDetailsUseCase } from '../../../application/use-cases/get-chat-details.use-case.js'
+import { GetChatContentByChatIdUseCase } from '../../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
 import type { UserIdType } from '../../../domain/value-objects/userID.js'
 import { UserId } from '../../../domain/value-objects/userID.js'
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
 import { SYSTEM_PROMPT } from '../../../shared/constants/ai-constants.js'
 import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
-import type { GetChatContentByChatIdUseCase } from '../../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
+import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
+import { BaseException } from '../../../shared/exceptions/base.exception.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -31,7 +34,8 @@ export class AIController {
     private readonly appendChatUseCase: AppendedChatUseCase,
     private readonly saveChatUseCase: SaveChatUseCase,
     private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase,
-    private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase
+    private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase,
+    private readonly getChatDetailsUseCase: GetChatDetailsUseCase
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
@@ -57,6 +61,13 @@ export class AIController {
         preHandler: [authMiddleware],
       },
       this.getAIChatByChatId.bind(this)
+    )
+    app.get(
+      '/ai/chats/config',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.getAIChatDetails.bind(this)
     )
   }
 
@@ -95,6 +106,7 @@ export class AIController {
       this.logger.info('Request body:', {
         id: body?.id,
         trigger: body?.trigger,
+        chatTypeId: body?.chatTypeId,
         messages: body?.messages,
       })
 
@@ -370,6 +382,74 @@ export class AIController {
       return reply.code(500).send({
         success: false,
         error: 'Internal server error',
+      })
+    }
+  }
+
+  /**
+   * Retrieves all available chat types with their details and SEO-friendly identifiers.
+   *
+   * This endpoint fetches all chat type options from the database, ensuring each has
+   * complete SEO-friendly fields (slug and base64 ID). The chat types are returned
+   * in descending order by creation date. This endpoint requires authentication and
+   * admin or moderator role and is typically used to populate chat type selection interfaces.
+   *
+   * The response includes:
+   * - Chat type ID (UUIDv7)
+   * - Name and description
+   * - SEO-friendly ID (URL-safe slug)
+   * - SEO-friendly base64 ID (22-character encoded UUID)
+   * - Creation and update timestamps
+   *
+   * @param {FastifyRequest} request - The Fastify request object containing optional user information
+   * @param {FastifyReply} reply - The Fastify reply object for sending responses
+   *
+   * @returns {Promise<void>} A promise that resolves when the response is sent
+   *
+   * @example
+   * Response format:
+   * ```json
+   * {
+   *   "success": true,
+   *   "data": [
+   *     {
+   *       "id": "019bda39-6197-7557-9071-d7ed1c719138",
+   *       "name": "General Assistant",
+   *       "description": "A general purpose AI assistant",
+   *       "seoFriendlyId": "general-assistant",
+   *       "seoFriendlyBase64Id": "AbCdEfGhIjKlMnOpQrStUv",
+   *       "createdAt": "2024-01-01T00:00:00.000Z",
+   *       "updatedAt": "2024-01-01T00:00:00.000Z"
+   *     }
+   *   ]
+   * }
+   * ```
+   *
+   * @throws {BaseException} When a domain-specific error occurs (returns appropriate status code)
+   * @throws {Error} When an unexpected error occurs (returns 500 status code)
+   */
+  async getAIChatDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.debug('Received getAIChatDetails request')
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
+    try {
+      const result = await this.getChatDetailsUseCase.execute(auditContext)
+      reply.code(200).send({
+        success: true,
+        data: result,
+      })
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'Failed to fetch chat details'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
       })
     }
   }

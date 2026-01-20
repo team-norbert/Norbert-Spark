@@ -14,6 +14,7 @@ import { RegisterUserWithProviderUseCase } from '../../application/use-cases/reg
 import { DeleteUsersUseCase } from '../../application/use-cases/delete-users.use-case.js'
 import { PresignedUploadUrlUseCase } from '../../application/use-cases/presigned-url-put.use-case.js'
 import { ExtractDataUseCase } from '../../application/use-cases/extract-data.use-case.js'
+import { GetChatDetailsUseCase } from '../../application/use-cases/get-chat-details.use-case.js'
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
@@ -26,6 +27,7 @@ import { AIController } from '../../adapters/primary/http/ai.controller.js'
 import { BucketService } from '../../adapters/secondary/external/bucket.service.js'
 import { AIExtractDataController } from '../../adapters/primary/http/ai.extract-data.js'
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
+import { AIChatContentRepository } from '../../adapters/secondary/repositories/ai-chat-content.repository.js'
 // Utils
 import { PDFUtils } from '../../shared/utils/pdf.utils.js'
 
@@ -74,6 +76,7 @@ export class Container {
   public readonly userRepository: PostgresUserRepository
   public readonly aiRepository: AIRepository
   public readonly bucketService: BucketService
+  public readonly aiChatContentRepository: AIChatContentRepository
 
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
@@ -87,7 +90,8 @@ export class Container {
   private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase
   private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase
   private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase
-  public readonly deleteUsersUseCase: DeleteUsersUseCase
+  private readonly deleteUsersUseCase: DeleteUsersUseCase
+  private readonly getChatDetailsUseCase: GetChatDetailsUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -176,6 +180,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     // Initialize repositories (secondary adapters)
     this.userRepository = new PostgresUserRepository()
     this.aiRepository = new AIRepository(this.logger)
+    this.aiChatContentRepository = new AIChatContentRepository(this.logger)
     this.auditLog = new AuditLogRepository(this.logger)
     this.bucketService = new BucketService(this.logger)
     // Initialize use cases
@@ -205,6 +210,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.aiRepository,
       this.logger,
       this.auditLog
+    )
+    this.getChatDetailsUseCase = new GetChatDetailsUseCase(
+      this.logger,
+      this.auditLog,
+      this.aiChatContentRepository
     )
     this.registerUserWithProviderUseCase = new RegisterUserWithProviderUseCase(
       this.userRepository,
@@ -240,7 +250,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.appendChatUseCase,
       this.saveChatUseCase,
       this.getChatsByUserIdUseCase,
-      this.getChatContentByChatIdUseCase
+      this.getChatContentByChatIdUseCase,
+      this.getChatDetailsUseCase
     )
     this.aiExtractDataController = new AIExtractDataController(
       this.logger,

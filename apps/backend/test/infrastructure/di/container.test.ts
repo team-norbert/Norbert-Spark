@@ -237,6 +237,7 @@ describe('Container', () => {
       expect(UserController).toHaveBeenCalledWith(
         container.registerUserUseCase,
         container.getAllUsersUseCase,
+        // @ts-expect-error - Accessing private property for testing
         container.deleteUsersUseCase
       )
     })

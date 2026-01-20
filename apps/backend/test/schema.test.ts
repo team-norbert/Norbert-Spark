@@ -5,6 +5,7 @@ import {
   auditLog,
   chatAiOptions,
   chats,
+  chatTypes,
   dataRetrievalMessageParts,
   dataRetrievalMessages,
   messages,
@@ -22,6 +23,11 @@ describe('Database Schema', () => {
     it('should export chats table constant', () => {
       expect(chats).toBeDefined()
       expect(typeof chats).toBe('object')
+    })
+
+    it('should export chatTypes table constant', () => {
+      expect(chatTypes).toBeDefined()
+      expect(typeof chatTypes).toBe('object')
     })
 
     it('should export messages table constant', () => {
@@ -62,6 +68,10 @@ describe('Database Schema', () => {
 
     it('should have correct table name for chats', () => {
       expect(getTableName(chats)).toBe('chats')
+    })
+
+    it('should have correct table name for chat_types', () => {
+      expect(getTableName(chatTypes)).toBe('chat_types')
     })
 
     it('should have correct table name for messages', () => {
@@ -129,14 +139,9 @@ describe('Database Schema', () => {
         expect(chats.userId.name).toBe('user_id')
       })
 
-      it('should have name column', () => {
-        expect(chats.name).toBeDefined()
-        expect(chats.name.name).toBe('name')
-      })
-
-      it('should have description column', () => {
-        expect(chats.description).toBeDefined()
-        expect(chats.description.name).toBe('description')
+      it('should have chatTypeId column', () => {
+        expect(chats.chatTypeId).toBeDefined()
+        expect(chats.chatTypeId.name).toBe('chat_type_id')
       })
 
       it('should have createdAt column', () => {
@@ -147,6 +152,77 @@ describe('Database Schema', () => {
       it('should have updatedAt column', () => {
         expect(chats.updatedAt).toBeDefined()
         expect(chats.updatedAt.name).toBe('updated_at')
+      })
+    })
+
+    describe('chatTypes table columns', () => {
+      it('should have id column', () => {
+        expect(chatTypes.id).toBeDefined()
+        expect(chatTypes.id.name).toBe('id')
+      })
+
+      it('should have name column', () => {
+        expect(chatTypes.name).toBeDefined()
+        expect(chatTypes.name.name).toBe('name')
+      })
+
+      it('should have seoFriendlyId column', () => {
+        expect(chatTypes.seoFriendlyId).toBeDefined()
+        expect(chatTypes.seoFriendlyId.name).toBe('seo_friendly_id')
+      })
+
+      it('should have seoFriendlyBase64Id column', () => {
+        expect(chatTypes.seoFriendlyBase64Id).toBeDefined()
+        expect(chatTypes.seoFriendlyBase64Id.name).toBe('seo_friendly_base64_id')
+      })
+
+      it('should have description column', () => {
+        expect(chatTypes.description).toBeDefined()
+        expect(chatTypes.description.name).toBe('description')
+      })
+
+      it('should have createdAt column', () => {
+        expect(chatTypes.createdAt).toBeDefined()
+        expect(chatTypes.createdAt.name).toBe('created_at')
+      })
+
+      it('should have updatedAt column', () => {
+        expect(chatTypes.updatedAt).toBeDefined()
+        expect(chatTypes.updatedAt.name).toBe('updated_at')
+      })
+    })
+
+    describe('chatTypes table properties', () => {
+      it('should have primary key on id', () => {
+        expect(chatTypes.id.primary).toBe(true)
+      })
+
+      it('should have not null constraint on name', () => {
+        expect(chatTypes.name.notNull).toBe(true)
+      })
+
+      it('should have unique constraint on name', () => {
+        expect(chatTypes.name.isUnique).toBe(true)
+      })
+
+      it('should have unique constraint on seoFriendlyId', () => {
+        expect(chatTypes.seoFriendlyId.isUnique).toBe(true)
+      })
+
+      it('should have unique constraint on seoFriendlyBase64Id', () => {
+        expect(chatTypes.seoFriendlyBase64Id.isUnique).toBe(true)
+      })
+
+      it('should have not null constraint on description', () => {
+        expect(chatTypes.description.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on createdAt', () => {
+        expect(chatTypes.createdAt.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on updatedAt', () => {
+        expect(chatTypes.updatedAt.notNull).toBe(true)
       })
     })
 
@@ -178,9 +254,9 @@ describe('Database Schema', () => {
         expect(chatAiOptions.id.name).toBe('id')
       })
 
-      it('should have chatId column', () => {
-        expect(chatAiOptions.chatId).toBeDefined()
-        expect(chatAiOptions.chatId.name).toBe('chat_id')
+      it('should have chatTypeId column', () => {
+        expect(chatAiOptions.chatTypeId).toBeDefined()
+        expect(chatAiOptions.chatTypeId.name).toBe('chat_type_id')
       })
 
       it('should have prompt column', () => {
@@ -229,12 +305,12 @@ describe('Database Schema', () => {
         expect(chatAiOptions.id.primary).toBe(true)
       })
 
-      it('should have not null constraint on chatId', () => {
-        expect(chatAiOptions.chatId.notNull).toBe(true)
+      it('should have not null constraint on chatTypeId', () => {
+        expect(chatAiOptions.chatTypeId.notNull).toBe(true)
       })
 
-      it('should have unique constraint on chatId', () => {
-        expect(chatAiOptions.chatId.isUnique).toBe(true)
+      it('should have unique constraint on chatTypeId', () => {
+        expect(chatAiOptions.chatTypeId.isUnique).toBe(true)
       })
 
       it('should have not null constraint on prompt', () => {
@@ -468,17 +544,19 @@ describe('Database Schema', () => {
   })
 
   describe('Schema structure validation', () => {
-    it('should have all seven table constants exported', () => {
+    it('should have all nine table constants exported', () => {
       const tables = [
         user,
         chats,
+        chatTypes,
         messages,
         parts,
+        chatAiOptions,
         auditLog,
         dataRetrievalMessages,
         dataRetrievalMessageParts,
       ]
-      expect(tables).toHaveLength(7)
+      expect(tables).toHaveLength(9)
       tables.forEach((table) => {
         expect(table).toBeDefined()
         expect(typeof table).toBe('object')
@@ -489,6 +567,7 @@ describe('Database Schema', () => {
       const tableNames = [
         getTableName(user),
         getTableName(chats),
+        getTableName(chatTypes),
         getTableName(messages),
         getTableName(chatAiOptions),
         getTableName(parts),
@@ -497,13 +576,15 @@ describe('Database Schema', () => {
         getTableName(dataRetrievalMessageParts),
       ]
       const uniqueNames = new Set(tableNames)
-      expect(uniqueNames.size).toBe(8)
+      expect(uniqueNames.size).toBe(9)
     })
 
     it('should have consistent timestamp column naming', () => {
       expect(user.createdAt.name).toBe('created_at')
       expect(chats.createdAt.name).toBe('created_at')
       expect(chats.updatedAt.name).toBe('updated_at')
+      expect(chatTypes.createdAt.name).toBe('created_at')
+      expect(chatTypes.updatedAt.name).toBe('updated_at')
       expect(messages.createdAt.name).toBe('created_at')
       expect(parts.createdAt.name).toBe('created_at')
       expect(auditLog.createdAt.name).toBe('created_at')
@@ -514,6 +595,7 @@ describe('Database Schema', () => {
     it('should have consistent primary key naming with _id suffix or id', () => {
       expect(user.userId.name).toBe('user_id')
       expect(chats.id.name).toBe('id')
+      expect(chatTypes.id.name).toBe('id')
       expect(messages.id.name).toBe('id')
       expect(chatAiOptions.id.name).toBe('id')
       expect(parts.id.name).toBe('id')
@@ -524,8 +606,9 @@ describe('Database Schema', () => {
 
     it('should have consistent foreign key naming pattern', () => {
       expect(chats.userId.name).toBe('user_id')
+      expect(chats.chatTypeId.name).toBe('chat_type_id')
       expect(messages.chatId.name).toBe('chat_id')
-      expect(chatAiOptions.chatId.name).toBe('chat_id')
+      expect(chatAiOptions.chatTypeId.name).toBe('chat_type_id')
       expect(parts.messageId.name).toBe('message_id')
       expect(auditLog.userId.name).toBe('user_id')
       expect(dataRetrievalMessageParts.messageId.name).toBe('message_id')

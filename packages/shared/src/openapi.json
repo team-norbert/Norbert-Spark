@@ -1015,6 +1015,69 @@
           }
         }
       }
+    },
+    "/ai/chats/config": {
+      "get": {
+        "summary": "Get chat AI configuration",
+        "description": "Retrieves all available chat types with their details and SEO-friendly identifiers",
+        "operationId": "getAIChatDetails",
+        "tags": ["ai", "chat"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Chat options retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIChatOptionsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid authentication token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Authentication required"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have required role (admin or moderator)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Access denied. Admin role required to access chat configuration"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Internal server error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1329,6 +1392,72 @@
                 "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
               },
               "messages": { "type": "array", "items": { "type": "object" } }
+            }
+          }
+        }
+      },
+      "AIChatOptionsResponse": {
+        "type": "object",
+        "description": "Response returned when fetching AI chat options",
+        "required": ["success", "data"],
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "description",
+                "created_at",
+                "updated_at",
+                "seo_friendly_id",
+                "seo_friendly_base64_id"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name of the chat type",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "example": "General Assistant"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Description of the chat type purpose",
+                  "minLength": 1,
+                  "maxLength": 500,
+                  "example": "A general-purpose AI assistant for everyday tasks"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2024-01-15T10:30:00Z"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2024-01-15T10:30:00Z"
+                },
+                "seo_friendly_id": {
+                  "type": "string",
+                  "description": "SEO friendly slug for the chat type",
+                  "example": "general-assistant"
+                },
+                "seo_friendly_base64_id": {
+                  "type": "string",
+                  "description": "Base64url encoded UUID for the chat type (22 characters)",
+                  "minLength": 22,
+                  "maxLength": 22,
+                  "example": "AbCdEfGhIjKlMnOpQrStUv"
+                }
+              }
             }
           }
         }

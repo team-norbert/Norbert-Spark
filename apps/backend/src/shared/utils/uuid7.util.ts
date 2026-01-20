@@ -87,4 +87,37 @@ export class Uuid7Util {
   static createUuidv7(): string {
     return uuidv7()
   }
+
+  /**
+   * Converts a valid UUIDv7 to a base64url-encoded string.
+   *
+   * This method validates that the input is a string and a valid UUIDv7 before
+   * converting it to base64url format. The base64url encoding uses URL-safe
+   * characters (A-Z, a-z, 0-9, -, _) without padding, making it suitable for
+   * use in URLs, filenames, and compact identifiers.
+   *
+   * @param uuid - The UUIDv7 string to convert. Must be a valid version 7 UUID.
+   * @returns The base64url-encoded string (22 characters) if the input is a valid
+   *          UUIDv7, or `undefined` if the input is not a string, not a valid UUID,
+   *          or not version 7.
+   *
+   * @example
+   * ```typescript
+   * const uuid = Uuid7Util.createUuidv7()
+   * // '018d3f78-1234-7abc-def0-123456789abc'
+   *
+   * const base64 = Uuid7Util.toBase64(uuid)
+   * // 'AY0_eBI0erze8BI0VniavA'
+   *
+   * Uuid7Util.toBase64('not-a-uuid') // undefined
+   * Uuid7Util.toBase64('550e8400-e29b-41d4-a716-446655440000') // undefined (v4 UUID)
+   * ```
+   */
+  static toBase64(uuid: Uuid7UtilInputType): string | undefined {
+    if (!isString(uuid)) return undefined
+    if (this.uuidVersionValidation(uuid) !== 'v7') return undefined
+    const hex = uuid.replace(/-/g, '')
+    const buffer = Buffer.from(hex, 'hex')
+    return buffer.toString('base64url')
+  }
 }
