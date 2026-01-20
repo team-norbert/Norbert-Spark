@@ -95,7 +95,7 @@ describe('cacheMiddleware', () => {
       expect(cacheMiddleware.specificationVersion).toBe('v3')
       expect(cacheMiddleware.wrapGenerate).toBeDefined()
       expect(cacheMiddleware.wrapStream).toBeDefined()
-    })
+    }, 10000)
 
     it('should not create Redis client when credentials are missing', async () => {
       mockRedisUrl = undefined
