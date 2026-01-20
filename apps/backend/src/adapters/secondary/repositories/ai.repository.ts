@@ -64,6 +64,7 @@ export class AIRepository implements AIServicePort {
       await db.insert(parts).values(partsRecords)
     }
   }
+  //user_id
 
   async createChat(
     chatId: ChatIdType,
@@ -128,7 +129,8 @@ export class AIRepository implements AIServicePort {
     return result.map((row) => row.id as ChatIdType)
   }
 
-  async getChatOptions() {
+  async getChatDetails(): Promise<void> {
+    throw new Error('Method not implemented.')
     // Placeholder implementation - replace with actual logic to fetch chat options
   }
 

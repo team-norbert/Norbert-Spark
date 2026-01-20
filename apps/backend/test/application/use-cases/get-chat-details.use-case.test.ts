@@ -43,7 +43,10 @@ describe('GetChatDetailsUseCase', () => {
     }
 
     mockAuditLog = {
-      log: vi.fn(),
+      log: vi.fn().mockResolvedValue(undefined),
+      getByEntity: vi.fn(),
+      getByUser: vi.fn(),
+      getByAction: vi.fn(),
     }
 
     mockAiChatContent = {
@@ -51,12 +54,9 @@ describe('GetChatDetailsUseCase', () => {
     }
 
     mockAuditContext = {
-      userId: uuidv7(),
-      action: 'GET_CHAT_DETAILS',
-      entityType: 'chat_types',
+      userId: uuidv7() as any, // Cast to UserIdType for testing
       ipAddress: '127.0.0.1',
       userAgent: 'test-agent',
-      timestamp: new Date(),
     }
 
     useCase = new GetChatDetailsUseCase(mockLogger, mockAuditLog, mockAiChatContent)
@@ -92,9 +92,9 @@ describe('GetChatDetailsUseCase', () => {
       expect(mockAiChatContent.fetchChatContent).toHaveBeenCalledTimes(1)
       expect(mockLogger.info).toHaveBeenCalledWith('Fetched 2 chat types from AIContentPort')
       expect(result).toHaveLength(2)
-      expect(result[0].seoFriendlyId).toBe('general-assistant')
-      expect(result[0].seoFriendlyBase64Id).toBe('AbCdEfGhIjKlMnOpQrStUv')
-      expect(result[1].seoFriendlyId).toBe('code-helper')
+      expect(result[0]!.seoFriendlyId).toBe('general-assistant')
+      expect(result[0]!.seoFriendlyBase64Id).toBe('AbCdEfGhIjKlMnOpQrStUv')
+      expect(result[1]!.seoFriendlyId).toBe('code-helper')
     })
 
     it('should generate seoFriendlyId when missing', async () => {
@@ -116,7 +116,7 @@ describe('GetChatDetailsUseCase', () => {
       const result = await useCase.execute(mockAuditContext)
 
       expect(result).toHaveLength(1)
-      expect(result[0].seoFriendlyId).toBe('test-chat-type')
+      expect(result[0]!.seoFriendlyId).toBe('test-chat-type')
       expect(mockLogger.info).toHaveBeenCalledWith('Fetched 1 chat types from AIContentPort')
     })
 
@@ -139,8 +139,8 @@ describe('GetChatDetailsUseCase', () => {
       const result = await useCase.execute(mockAuditContext)
 
       expect(result).toHaveLength(1)
-      expect(result[0].seoFriendlyBase64Id).toBeTruthy()
-      expect(typeof result[0].seoFriendlyBase64Id).toBe('string')
+      expect(result[0]!.seoFriendlyBase64Id).toBeTruthy()
+      expect(typeof result[0]!.seoFriendlyBase64Id).toBe('string')
     })
 
     it('should generate both SEO fields when both are missing', async () => {
@@ -162,10 +162,10 @@ describe('GetChatDetailsUseCase', () => {
       const result = await useCase.execute(mockAuditContext)
 
       expect(result).toHaveLength(1)
-      expect(result[0].seoFriendlyId).toBe('new-chat-type')
-      expect(result[0].seoFriendlyBase64Id).toBeTruthy()
-      expect(result[0].name).toBe('New Chat Type')
-      expect(result[0].description).toBe('New chat type without SEO fields')
+      expect(result[0]!.seoFriendlyId).toBe('new-chat-type')
+      expect(result[0]!.seoFriendlyBase64Id).toBeTruthy()
+      expect(result[0]!.name).toBe('New Chat Type')
+      expect(result[0]!.description).toBe('New chat type without SEO fields')
     })
 
     it('should return empty array when no chat types exist', async () => {
@@ -220,16 +220,16 @@ describe('GetChatDetailsUseCase', () => {
       expect(result).toHaveLength(3)
 
       // First item keeps existing fields
-      expect(result[0].seoFriendlyId).toBe('complete-type')
-      expect(result[0].seoFriendlyBase64Id).toBe('AbCdEfGhIjKlMnOpQrStUv')
+      expect(result[0]!.seoFriendlyId).toBe('complete-type')
+      expect(result[0]!.seoFriendlyBase64Id).toBe('AbCdEfGhIjKlMnOpQrStUv')
 
       // Second item keeps seoFriendlyId and generates seoFriendlyBase64Id
-      expect(result[1].seoFriendlyId).toBe('missing-base64')
-      expect(result[1].seoFriendlyBase64Id).toBeTruthy()
+      expect(result[1]!.seoFriendlyId).toBe('missing-base64')
+      expect(result[1]!.seoFriendlyBase64Id).toBeTruthy()
 
       // Third item generates both
-      expect(result[2].seoFriendlyId).toBe('missing-both')
-      expect(result[2].seoFriendlyBase64Id).toBeTruthy()
+      expect(result[2]!.seoFriendlyId).toBe('missing-both')
+      expect(result[2]!.seoFriendlyBase64Id).toBeTruthy()
     })
 
     it('should preserve all original chat type properties', async () => {
@@ -253,11 +253,11 @@ describe('GetChatDetailsUseCase', () => {
 
       const result = await useCase.execute(mockAuditContext)
 
-      expect(result[0].id).toBe(chatTypeId)
-      expect(result[0].name).toBe('Test Type')
-      expect(result[0].description).toBe('Test description with details')
-      expect(result[0].createdAt).toBe(createdAt)
-      expect(result[0].updatedAt).toBe(updatedAt)
+      expect(result[0]!.id).toBe(chatTypeId)
+      expect(result[0]!.name).toBe('Test Type')
+      expect(result[0]!.description).toBe('Test description with details')
+      expect(result[0]!.createdAt).toBe(createdAt)
+      expect(result[0]!.updatedAt).toBe(updatedAt)
     })
   })
 

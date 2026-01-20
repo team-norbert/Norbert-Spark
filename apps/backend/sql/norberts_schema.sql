@@ -159,7 +159,7 @@ CREATE INDEX IF NOT EXISTS chat_types_name_idx ON chat_types(name);
 CREATE TABLE IF NOT EXISTS chats (
     id UUID PRIMARY KEY, -- the UUID creation is managed by the application (frontend)
     user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    chat_type_id UUID NOT NULL REFERENCES chat_types(id) ON DELETE RESTRICT,
+    chat_type_id UUID REFERENCES chat_types(id) ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

@@ -91,7 +91,7 @@ export class Container {
   private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase
   private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase
   private readonly deleteUsersUseCase: DeleteUsersUseCase
-  private readonly getChatOptionsUseCase: GetChatDetailsUseCase
+  private readonly getChatDetailsUseCase: GetChatDetailsUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -211,7 +211,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.logger,
       this.auditLog
     )
-    this.getChatOptionsUseCase = new GetChatDetailsUseCase(
+    this.getChatDetailsUseCase = new GetChatDetailsUseCase(
       this.logger,
       this.auditLog,
       this.aiChatContentRepository
@@ -250,7 +250,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.appendChatUseCase,
       this.saveChatUseCase,
       this.getChatsByUserIdUseCase,
-      this.getChatContentByChatIdUseCase
+      this.getChatContentByChatIdUseCase,
+      this.getChatDetailsUseCase
     )
     this.aiExtractDataController = new AIExtractDataController(
       this.logger,

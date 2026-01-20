@@ -1,5 +1,5 @@
 import { SEO } from '@norberts-spark/shared'
-import { beforeEach,describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Uuid7Util } from '../../src/shared/utils/uuid7.util.js'
 
@@ -24,7 +24,7 @@ describe('Chat Types Seed Script', () => {
     })
 
     it('should have required fields for chat type', () => {
-      const chatType = chatTypesData[0]
+      const chatType = chatTypesData[0]!
       expect(chatType).toHaveProperty('name')
       expect(chatType).toHaveProperty('description')
       expect(chatType.name).toBeTruthy()
@@ -32,23 +32,23 @@ describe('Chat Types Seed Script', () => {
     })
 
     it('should have name "The Heart of Darkness"', () => {
-      expect(chatTypesData[0].name).toBe('The Heart of Darkness')
+      expect(chatTypesData[0]!.name).toBe('The Heart of Darkness')
     })
 
     it('should have name within length constraints (1-200 characters)', () => {
-      const name = chatTypesData[0].name
+      const name = chatTypesData[0]!.name
       expect(name.length).toBeGreaterThanOrEqual(1)
       expect(name.length).toBeLessThanOrEqual(200)
     })
 
     it('should have description within length constraints (1-500 characters)', () => {
-      const description = chatTypesData[0].description
+      const description = chatTypesData[0]!.description
       expect(description.length).toBeGreaterThanOrEqual(1)
       expect(description.length).toBeLessThanOrEqual(500)
     })
 
     it('should have description mentioning Joseph Conrad', () => {
-      expect(chatTypesData[0].description).toContain('Joseph Conrad')
+      expect(chatTypesData[0]!.description).toContain('Joseph Conrad')
     })
   })
 
@@ -63,7 +63,7 @@ describe('Chat Types Seed Script', () => {
     })
 
     it('should generate SEO-friendly ID from name', () => {
-      const name = chatTypesData[0].name
+      const name = chatTypesData[0]!.name
       const seoFriendlyId = SEO.generateSeoFriendlyTitle(name)
 
       expect(seoFriendlyId).toBeTruthy()
@@ -84,15 +84,15 @@ describe('Chat Types Seed Script', () => {
 
     it('should create complete chat type object', () => {
       const id = Uuid7Util.createUuidv7()
-      const seoFriendlyId = SEO.generateSeoFriendlyTitle(chatTypesData[0].name)
+      const seoFriendlyId = SEO.generateSeoFriendlyTitle(chatTypesData[0]!.name)
       const seoFriendlyBase64Id = Uuid7Util.toBase64(id)
 
       const chatType = {
         id,
-        name: chatTypesData[0].name,
+        name: chatTypesData[0]!.name,
         seoFriendlyId,
         seoFriendlyBase64Id,
-        description: chatTypesData[0].description,
+        description: chatTypesData[0]!.description,
       }
 
       expect(chatType).toHaveProperty('id')
@@ -171,12 +171,12 @@ describe('Chat Types Seed Script', () => {
       expect(mapped[0]).toHaveProperty('seoFriendlyId', 'heart-darkness')
       expect(mapped[0]).toHaveProperty('seoFriendlyBase64Id')
       expect(mapped[0]).toHaveProperty('description')
-      expect(mapped[0].seoFriendlyBase64Id.length).toBe(22)
+      expect(mapped[0]!.seoFriendlyBase64Id.length).toBe(22)
     })
 
     it('should preserve original name and description', () => {
-      const originalName = chatTypesData[0].name
-      const originalDescription = chatTypesData[0].description
+      const originalName = chatTypesData[0]!.name
+      const originalDescription = chatTypesData[0]!.description
 
       const id = Uuid7Util.createUuidv7()
       const seoFriendlyId = SEO.generateSeoFriendlyTitle(originalName)
