@@ -342,8 +342,8 @@ describe('Chat Types Seed Script', () => {
       const insertedChatTypes = [
         {
           id: Uuid7Util.createUuidv7(),
-          name: 'The Heart of Darkness', // This matches the first item in chatTypesData
-          seoFriendlyId: SEO.generateSeoFriendlyTitle('The Heart of Darkness'),
+          name: chatTypesData[0]!.name,
+          seoFriendlyId: SEO.generateSeoFriendlyTitle(chatTypesData[0]!.name),
           seoFriendlyBase64Id: Uuid7Util.toBase64(Uuid7Util.createUuidv7())!,
           description: chatTypesData[0]!.description,
           createdAt: new Date(),
@@ -384,12 +384,14 @@ describe('Chat Types Seed Script', () => {
 
       const aiOptionsToInsert = mapAiOptions(insertedChatTypes)
 
-      // Verify each AI option is correctly linked to its chat type
-      aiOptionsToInsert.forEach((aiOption, index) => {
-        const correspondingChatType = insertedChatTypes[index]!
-        const correspondingOriginalData = chatTypesData.find((ct) => ct.name === correspondingChatType.name)
+      // Verify each AI option is correctly linked to its chat type using name-based lookup
+      aiOptionsToInsert.forEach((aiOption) => {
+        const correspondingChatType = insertedChatTypes.find((ct) => ct.id === aiOption.chatTypeId)
+        const correspondingOriginalData = chatTypesData.find((ct) => ct.name === correspondingChatType!.name)
 
-        expect(aiOption.chatTypeId).toBe(correspondingChatType.id)
+        expect(correspondingChatType).toBeDefined()
+        expect(correspondingOriginalData).toBeDefined()
+        expect(aiOption.chatTypeId).toBe(correspondingChatType!.id)
         expect(aiOption.prompt).toBe(correspondingOriginalData!.prompt)
       })
     })
