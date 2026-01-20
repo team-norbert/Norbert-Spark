@@ -56,7 +56,7 @@ To seed the database with initial data, run:
 
 ```bash
 pnpm run seed:users
-pnpm run seed:chats
+pnpm run seed:chat
 pnpm run seed:customers
 ```
 
