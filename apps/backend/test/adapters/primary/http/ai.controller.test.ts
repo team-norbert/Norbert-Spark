@@ -255,7 +255,7 @@ describe('AIController', () => {
 
       expect(mockApp.get).toHaveBeenCalledTimes(3)
       expect(mockApp.get).toHaveBeenCalledWith(
-        '/ai/chats/options',
+        '/ai/chats/config',
         expect.objectContaining({ preHandler: expect.any(Array) }),
         expect.any(Function)
       )
