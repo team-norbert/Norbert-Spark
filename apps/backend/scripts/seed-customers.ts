@@ -337,6 +337,7 @@ async function seedCustomers() {
     if (existingCustomers.length > 0) {
       console.log(`⚠️  Found ${existingCustomers.length} existing customers`)
       console.log('🗑️  Clearing existing data...')
+      await db.delete(customerPeople)
       await db.delete(people)
       await db.delete(customers)
       console.log('✅ Existing data cleared\n')
