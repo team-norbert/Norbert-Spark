@@ -439,6 +439,7 @@ export class AIController {
 
     try {
       const result = await this.getChatDetailsUseCase.execute(auditContext)
+      this.logger.debug(JSON.stringify(result))
       reply.code(200).send({
         success: true,
         data: result,
