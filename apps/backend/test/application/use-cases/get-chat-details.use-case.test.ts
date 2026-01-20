@@ -261,6 +261,36 @@ describe('GetChatDetailsUseCase', () => {
     })
   })
 
+  describe('execute() - edge cases', () => {
+    it('should preserve null seoFriendlyBase64Id when Uuid7Util.toBase64() returns undefined', async () => {
+      const { Uuid7Util } = await import('../../../src/shared/utils/uuid7.util.js')
+      
+      // Mock toBase64 to return undefined (invalid UUID case)
+      vi.spyOn(Uuid7Util, 'toBase64').mockReturnValue(undefined)
+
+      const mockChatTypes: DBChatType[] = [
+        {
+          id: 'invalid-uuid-format' as any,
+          name: 'Test Type',
+          seoFriendlyId: 'test-type',
+          seoFriendlyBase64Id: null as any,
+          description: 'Test description',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]
+
+      vi.mocked(mockAiChatContent.fetchChatContent).mockResolvedValue(mockChatTypes)
+
+      const result = await useCase.execute(mockAuditContext)
+
+      expect(result).toHaveLength(1)
+      expect(result[0]!.seoFriendlyId).toBe('test-type')
+      // Should preserve null when toBase64 returns undefined
+      expect(result[0]!.seoFriendlyBase64Id).toBeNull()
+    })
+  })
+
   describe('execute() - error scenarios', () => {
     it('should propagate errors from AIContentPort', async () => {
       const error = new Error('Database connection failed')

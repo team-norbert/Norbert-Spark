@@ -75,7 +75,10 @@ export class GetChatDetailsUseCase {
         seoFriendlyId = SEO.generateSeoFriendlyTitle(chatType.name)
       }
       if (!seoFriendlyBase64Id && chatType.id) {
-        seoFriendlyBase64Id = Uuid7Util.toBase64(chatType.id)
+        const base64Result = Uuid7Util.toBase64(chatType.id)
+        if (base64Result) {
+          seoFriendlyBase64Id = base64Result
+        }
       }
 
       return {
