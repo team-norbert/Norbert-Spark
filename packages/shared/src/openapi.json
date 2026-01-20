@@ -1499,7 +1499,15 @@
           "success": { "type": "boolean", "example": true },
           "data": {
             "type": "object",
-            "required": ["name", "description", "prompt"],
+            "required": [
+              "id",
+              "name",
+              "description",
+              "created_at",
+              "updated_at",
+              "seo_friendly_id",
+              "seo_friendly_base64_id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -1541,32 +1549,6 @@
                 "example": "bXktY2hhdC1zZXNzaW"
               }
             }
-          }
-        }
-      },
-      "CreateChatTypeRequest": {
-        "type": "object",
-        "description": "Request payload for creating a new chat type",
-        "required": ["name", "description"],
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Unique name of the chat type",
-            "minLength": 1,
-            "maxLength": 200,
-            "example": "General Assistant"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the chat type's purpose",
-            "minLength": 1,
-            "maxLength": 500,
-            "example": "A general-purpose AI assistant for everyday tasks"
-          },
-          "seo_friendly_id": {
-            "type": "string",
-            "description": "SEO friendly identifier for the chat",
-            "example": "my-chat-session"
           }
         }
       }
