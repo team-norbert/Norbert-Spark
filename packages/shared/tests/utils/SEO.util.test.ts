@@ -1,5 +1,6 @@
-import { SEO } from 'src/utils/SEO.util.js'
 import { describe, expect, it } from 'vitest'
+
+import { SEO } from '../../src/utils/SEO.util.js'
 
 describe('SEO', () => {
   describe('removeUnnecessaryWords', () => {

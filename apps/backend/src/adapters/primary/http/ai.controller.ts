@@ -66,7 +66,7 @@ export class AIController {
       {
         preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
       },
-      this.getAIChatOptions.bind(this)
+      this.getAIChatDetails.bind(this)
     )
   }
 
@@ -384,7 +384,7 @@ export class AIController {
     }
   }
 
-  async getAIChatOptions(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  async getAIChatDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     // Extract audit context from request
     const auditContext = {
       userId: request.user?.sub ?? null,
