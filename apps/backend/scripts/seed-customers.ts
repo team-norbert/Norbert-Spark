@@ -15,6 +15,7 @@
 
 import { db } from '../src/infrastructure/database/index.js'
 import { customers, people, customerPeople } from '../src/infrastructure/database/schema.js'
+import { SeedHelpers } from '../src/shared/utils/seed-helpers.util.js'
 
 // Get the number of customers to create
 const getCustomerCount = (): number => {
@@ -42,55 +43,6 @@ const getCustomerCount = (): number => {
 }
 
 const TOTAL_CUSTOMERS = getCustomerCount()
-
-// Company name parts
-const companyPrefixes = [
-  'Tech',
-  'Global',
-  'Digital',
-  'Smart',
-  'Cloud',
-  'Quantum',
-  'Cyber',
-  'Data',
-  'Next',
-  'Future',
-  'Prime',
-  'Alpha',
-  'Beta',
-  'Summit',
-  'Apex',
-  'Vertex',
-  'Zenith',
-  'Core',
-  'Elite',
-  'Pro',
-]
-
-const companyRoots = [
-  'Solutions',
-  'Systems',
-  'Innovations',
-  'Ventures',
-  'Dynamics',
-  'Networks',
-  'Services',
-  'Labs',
-  'Works',
-  'Tech',
-  'Soft',
-  'Wave',
-  'Bridge',
-  'Path',
-  'Link',
-  'Flow',
-  'Shift',
-  'Forge',
-  'Craft',
-  'Build',
-]
-
-const companySuffixes = ['Inc', 'LLC', 'Corp', 'Ltd', 'Group', 'Partners', 'Technologies', 'Co']
 
 // Industries
 const industries = [
@@ -275,57 +227,14 @@ const jobTitles = [
   'Co-Founder',
 ]
 
-// Helper functions
-function randomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
-
-function randomElement<T>(array: T[]): T {
-  return array[Math.floor(Math.random() * array.length)]!
-}
-
-function randomBoolean(probability = 0.5): boolean {
-  return Math.random() < probability
-}
-
-function generateCompanyName(): { legal: string; display: string } {
-  const prefix = randomElement(companyPrefixes)
-  const root = randomElement(companyRoots)
-  const suffix = randomElement(companySuffixes)
-
-  const legalName = `${prefix}${root} ${suffix}.`
-  const displayName = randomBoolean(0.7) ? `${prefix}${root}` : legalName.replace('.', '')
-
-  return { legal: legalName, display: displayName }
-}
-
-function generateWebsiteUrl(companyName: string): string {
-  const domain = companyName
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-    .substring(0, 20)
-  const tld = randomElement(['com', 'io', 'co', 'tech', 'ai', 'net'])
-  return `https://www.${domain}.${tld}`
-}
-
-function generatePhoneNumber(country: string): string {
-  if (country === 'US' || country === 'CA') {
-    return `+1-${randomInt(200, 999)}-${randomInt(200, 999)}-${randomInt(1000, 9999)}`
-  } else if (country === 'GB') {
-    return `+44-20-${randomInt(1000, 9999)}-${randomInt(1000, 9999)}`
-  } else if (country === 'DE') {
-    return `+49-30-${randomInt(1000, 9999)}-${randomInt(1000, 9999)}`
-  } else if (country === 'AU') {
-    return `+61-2-${randomInt(1000, 9999)}-${randomInt(1000, 9999)}`
-  } else {
-    return `+${randomInt(1, 999)}-${randomInt(100, 999)}-${randomInt(100, 999)}-${randomInt(1000, 9999)}`
-  }
-}
-
-function generateEmail(firstName: string, lastName: string, companyDomain: string): string {
-  const domain = companyDomain.replace('https://www.', '').replace('http://', '')
-  return `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`
-}
+// Contact roles
+const contactRoles = [
+  'primary_contact',
+  'decision_maker',
+  'billing_contact',
+  'technical_contact',
+  'stakeholder',
+] as const
 
 async function seedCustomers() {
   console.log('🌱 Starting customer and people seed script...')
@@ -337,7 +246,6 @@ async function seedCustomers() {
     if (existingCustomers.length > 0) {
       console.log(`⚠️  Found ${existingCustomers.length} existing customers`)
       console.log('🗑️  Clearing existing data...')
-      await db.delete(customerPeople)
       await db.delete(people)
       await db.delete(customers)
       console.log('✅ Existing data cleared\n')
@@ -351,13 +259,13 @@ async function seedCustomers() {
     console.log('📝 Generating customer data...')
 
     for (let i = 0; i < TOTAL_CUSTOMERS; i++) {
-      const { legal, display } = generateCompanyName()
-      const industry = randomElement(industries)
-      const country = randomElement(countries)
-      const websiteUrl = generateWebsiteUrl(display)
-      const companySize = randomInt(10, 10000)
-      const status = randomElement(statuses)
-      const timezone = randomElement(timezones)
+      const { legal, display } = SeedHelpers.generateCompanyName()
+      const industry = SeedHelpers.randomElement(industries)
+      const country = SeedHelpers.randomElement(countries)
+      const websiteUrl = SeedHelpers.generateWebsiteUrl(display)
+      const companySize = SeedHelpers.randomInt(10, 10000)
+      const status = SeedHelpers.randomElement(statuses)
+      const timezone = SeedHelpers.randomElement(timezones)
 
       const customer = {
         legalName: legal,
@@ -385,12 +293,12 @@ async function seedCustomers() {
     for (const customer of insertedCustomers) {
       const customerDomain = customer.websiteUrl
 
-      const firstName = randomElement(firstNames)
-      const lastName = randomElement(lastNames)
-      const email = generateEmail(firstName, lastName, customerDomain)
-      const phone = generatePhoneNumber(customer.billingCountry)
-      const jobTitle = randomElement(jobTitles)
-      const isActive = randomBoolean(0.95)
+      const firstName = SeedHelpers.randomElement(firstNames)
+      const lastName = SeedHelpers.randomElement(lastNames)
+      const email = SeedHelpers.generateEmail(firstName, lastName, customerDomain)
+      const phone = SeedHelpers.generatePhoneNumber(customer.billingCountry)
+      const jobTitle = SeedHelpers.randomElement(jobTitles)
+      const isActive = SeedHelpers.randomBoolean(0.95)
 
       const person = {
         firstName,
@@ -449,19 +357,15 @@ async function seedCustomers() {
     console.log(`   • Customers: ${insertedCustomers.length}`)
     console.log(`   • People: ${insertedPeople.length}`)
     console.log(`   • Relationships: ${allRelationships.length}`)
+
+    process.exit(0)
   } catch (error) {
     console.error('\n❌ Error seeding customers and people:', error)
     if (error instanceof Error) {
       console.error('Error details:', error.message)
       console.error('Stack trace:', error.stack)
     }
-    process.exitCode = 1
-  } finally {
-    // Ensure the database connection/pool is closed so the script can exit cleanly
-    const anyDb = db as unknown as { end?: () => Promise<void> | void }
-    if (typeof anyDb.end === 'function') {
-      await anyDb.end()
-    }
+    process.exit(1)
   }
 }
 
