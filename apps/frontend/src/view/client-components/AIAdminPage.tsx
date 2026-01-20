@@ -88,7 +88,6 @@ export function AIAdminPage({
       filterable: false,
       renderCell: (params) => (
         <>
-          <input type="hidden" value={params.row.id} />
           <Button
             data-testid={`change-options-${params.row.id}`}
             variant="outlined"
