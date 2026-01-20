@@ -16,10 +16,10 @@ interface AIOptions {
   chatTypeId: string
   prompt: string
   maxTokens: number | null
-  temperature: string | null
-  topP: string | null
-  frequencyPenalty: string | null
-  presencePenalty: string | null
+  temperature: number | null
+  topP: number | null
+  frequencyPenalty: number | null
+  presencePenalty: number | null
   topK: number | null
   stopSequences: string[] | null
   seed: number | null
@@ -178,7 +178,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           type="number"
           inputProps={{ step: '0.01', min: 0, max: 2 }}
           value={formData.temperature ?? ''}
-          onChange={handleChange('temperature')}
+          onChange={handleNumberChange('temperature')}
           helperText="This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, a value of 0 produces nearly deterministic output, while higher values introduce more randomness. It is recommended to configure either temperature or topP, but not both."
           sx={{ mb: 3 }}
         />
@@ -189,7 +189,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           type="number"
           inputProps={{ step: '0.01', min: 0, max: 1 }}
           value={formData.topP ?? ''}
-          onChange={handleChange('topP')}
+          onChange={handleNumberChange('topP')}
           helperText="Nucleus sampling. This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, nucleus sampling (topP) is a number between 0 and 1. For example, a value of 0.1 means that only tokens within the top 10% of the probability mass are considered. It is recommended to configure either temperature or topP, but not both."
           sx={{ mb: 3 }}
         />
@@ -200,7 +200,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           type="number"
           inputProps={{ step: '0.01', min: -2, max: 2 }}
           value={formData.frequencyPenalty ?? ''}
-          onChange={handleChange('frequencyPenalty')}
+          onChange={handleNumberChange('frequencyPenalty')}
           helperText="The frequency penalty controls how likely the model is to repeat the same words or phrases. This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, a value of 0 means no penalty is applied."
           sx={{ mb: 3 }}
         />
@@ -211,7 +211,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           type="number"
           inputProps={{ step: '0.01', min: -2, max: 2 }}
           value={formData.presencePenalty ?? ''}
-          onChange={handleChange('presencePenalty')}
+          onChange={handleNumberChange('presencePenalty')}
           helperText="The presence penalty controls how likely the model is to repeat information already present in the prompt. This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, a value of 0 means no penalty is applied."
           sx={{ mb: 3 }}
         />
