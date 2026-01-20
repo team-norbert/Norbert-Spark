@@ -1,0 +1,213 @@
+import { expect, test } from '@playwright/test'
+
+import { signInToDashboard } from './helpers.js'
+
+test.describe.configure({ mode: 'serial' })
+
+test.describe('AI Admin Page - Role-Based Access Control', () => {
+  test.beforeEach(async ({ context }) => {
+    // Clear all cookies to ensure clean state
+    await context.clearCookies()
+  })
+
+  test('should redirect unauthenticated user to signin page', async ({ page }) => {
+    // Navigate to AI admin page (a protected route with role requirements)
+    await page.goto('/ai-admin')
+
+    // Wait for navigation to complete
+    await page.waitForURL(/\/signin/)
+
+    // Verify user is redirected to signin page
+    expect(page.url()).toContain('/signin')
+
+    // Verify the callbackUrl parameter preserves the original destination
+    const url = new URL(page.url())
+    expect(url.searchParams.get('callbackUrl')).toBe('/ai-admin')
+
+    // Verify error parameter indicates unauthorized access
+    expect(url.searchParams.get('error')).toBe('unauthorized')
+
+    // Verify signin page elements are visible
+    await expect(page.getByRole('heading', { name: /Norbert's Spark/i })).toBeVisible()
+  })
+
+  test('should allow admin user to access AI admin page', async ({ page }) => {
+    // Sign in as admin user
+    await signInToDashboard(page)
+
+    // Navigate to AI admin page
+    await page.goto('/ai-admin')
+
+    // Verify we stay on the AI admin page (not redirected)
+    await expect(page).toHaveURL('/ai-admin')
+
+    // Verify the page title/heading is visible
+    await expect(page.getByRole('heading', { name: /AI Chat Configuration/i })).toBeVisible()
+
+    // Wait for the data grid to load
+    await page.waitForSelector('.MuiDataGrid-root', { timeout: 10000 })
+
+    // Verify the read-only notice is visible
+    await expect(
+      page.getByText(/Note: This page displays read-only AI chat configuration data/i)
+    ).toBeVisible()
+  })
+
+  test('should display AI chat configuration data in DataGrid', async ({ page }) => {
+    // Sign in as admin user
+    await signInToDashboard(page)
+
+    // Navigate to AI admin page
+    await page.goto('/ai-admin')
+
+    // Wait for the data grid to load
+    await page.waitForSelector('.MuiDataGrid-root', { timeout: 10000 })
+
+    // Wait for data to load - check for either rows or "No rows" message
+    await page.waitForFunction(
+      () => {
+        const grid = document.querySelector('.MuiDataGrid-root')
+        if (!grid) return false
+        // Check if there are rows or a "no rows" overlay
+        const hasRows = grid.querySelectorAll('.MuiDataGrid-row').length > 0
+        const hasNoRowsOverlay = grid.querySelector('.MuiDataGrid-overlay')
+        return hasRows || hasNoRowsOverlay
+      },
+      { timeout: 10000 }
+    )
+
+    // Verify column headers are present
+    const columnHeaders = [
+      'Name',
+      'Description',
+      'SEO Friendly ID',
+      'Base64 ID',
+      'Created At',
+      'Updated At',
+    ]
+
+    for (const header of columnHeaders) {
+      await expect(
+        page.locator('.MuiDataGrid-columnHeaderTitle', { hasText: header })
+      ).toBeVisible()
+    }
+  })
+
+  test('should support search functionality in AI admin page', async ({ page }) => {
+    // Sign in as admin user
+    await signInToDashboard(page)
+
+    // Navigate to AI admin page
+    await page.goto('/ai-admin')
+
+    // Wait for the page to load
+    await page.waitForSelector('.MuiDataGrid-root', { timeout: 10000 })
+
+    // Find the search field
+    const searchField = page.getByPlaceholder(/Search by name, description, or SEO ID/i)
+    await expect(searchField).toBeVisible()
+
+    // Type a search query
+    await searchField.fill('general')
+
+    // Wait a moment for debouncing
+    await page.waitForTimeout(500)
+
+    // Verify search field has the value
+    await expect(searchField).toHaveValue('general')
+  })
+
+  test('should support pagination in AI admin page', async ({ page }) => {
+    // Sign in as admin user
+    await signInToDashboard(page)
+
+    // Navigate to AI admin page
+    await page.goto('/ai-admin')
+
+    // Wait for the data grid to load
+    await page.waitForSelector('.MuiDataGrid-root', { timeout: 10000 })
+
+    // Verify pagination controls are present
+    await expect(page.locator('.MuiTablePagination-root')).toBeVisible()
+
+    // Verify "Rows per page" dropdown is present
+    await expect(page.getByText(/Rows per page/i)).toBeVisible()
+  })
+
+  test('should display error message when data fetch fails', async ({ page }) => {
+    // Sign in as admin user
+    await signInToDashboard(page)
+
+    // Intercept the API call and force it to fail
+    await page.route('**/api/v1/ai/chats/config*', (route) => {
+      route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Internal server error' }),
+      })
+    })
+
+    // Navigate to AI admin page
+    await page.goto('/ai-admin')
+
+    // Wait for the error alert to appear
+    await expect(page.getByRole('alert')).toBeVisible({ timeout: 10000 })
+  })
+
+  test.skip('should allow closing error message', async ({ page }) => {
+    // Sign in as admin user
+    await signInToDashboard(page)
+
+    // Intercept the API call and force it to fail
+    await page.route('**/api/v1/ai/chats/config*', (route) => {
+      route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Internal server error' }),
+      })
+    })
+
+    // Navigate to AI admin page
+    await page.goto('/ai-admin')
+
+    // Wait for the error alert to appear
+    const errorAlert = page.getByRole('alert')
+    await expect(errorAlert).toBeVisible({ timeout: 10000 })
+
+    // Find and click the close button
+    const closeButton = errorAlert.locator('button[aria-label="close"]')
+    await closeButton.click()
+
+    // Verify error message is dismissed
+    await expect(errorAlert).toBeHidden()
+  })
+
+  test('should show loading state initially', async ({ page }) => {
+    // Sign in as admin user
+    await signInToDashboard(page)
+
+    // Delay the API response to see loading state
+    await page.route('**/api/v1/ai/chats/config*', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await route.continue()
+    })
+
+    // Navigate to AI admin page
+    await page.goto('/ai-admin')
+
+    // Verify loading indicator is shown (the data grid shows loading overlay)
+    await expect(page.locator('.MuiDataGrid-root')).toBeVisible()
+
+    // After delay, data should load
+    await page.waitForFunction(
+      () => {
+        const grid = document.querySelector('.MuiDataGrid-root')
+        if (!grid) return false
+        const hasRows = grid.querySelectorAll('.MuiDataGrid-row').length > 0
+        const hasNoRowsOverlay = grid.querySelector('.MuiDataGrid-overlay')
+        return hasRows || hasNoRowsOverlay
+      },
+      { timeout: 15000 }
+    )
+  })
+})

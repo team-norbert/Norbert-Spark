@@ -3,6 +3,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import ChatIcon from '@mui/icons-material/Chat'
 import DescriptionIcon from '@mui/icons-material/Description'
 import PersonIcon from '@mui/icons-material/Person'
+import SettingsIcon from '@mui/icons-material/Settings'
 import { Box, Card, CardActionArea, CardContent, Container, Typography } from '@mui/material'
 
 import { PageHeader } from './PageHeader.js'
@@ -192,6 +193,43 @@ export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardPr
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Manage users and settings
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+          </Card>
+        )}
+
+        {/* AI Admin Card - Only visible to admin/moderator */}
+        {canAccessAdmin && (
+          <Card
+            sx={{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: 6,
+              },
+            }}
+          >
+            <CardActionArea sx={{ flexGrow: 1 }} onClick={() => onNavigate('/ai-admin')}>
+              <CardContent
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: 200,
+                  textAlign: 'center',
+                }}
+              >
+                <SettingsIcon sx={{ fontSize: 64, mb: 2, color: 'primary.main' }} />
+                <Typography variant="h5" component="h2" gutterBottom>
+                  AI Config
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Manage AI chat configuration
                 </Typography>
               </CardContent>
             </CardActionArea>

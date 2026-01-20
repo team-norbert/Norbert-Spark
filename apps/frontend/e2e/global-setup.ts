@@ -59,10 +59,33 @@ async function globalSetup() {
     await migrationClient.end()
     console.warn('✅ Migrations completed')
 
+    // Seed chat types
+    console.warn('🌱 Seeding chat types...')
+    const backendSeedPath = path.join(process.cwd(), '..', 'backend')
+    const seedChatProcess = spawn('pnpm', ['seed:chat'], {
+      cwd: backendSeedPath,
+      env: {
+        ...process.env,
+        DATABASE_URL: connectionString,
+      },
+      stdio: 'inherit',
+    })
+
+    await new Promise<void>((resolve, reject) => {
+      seedChatProcess.on('close', (code) => {
+        if (code === 0) {
+          console.warn('✅ Chat types seeded')
+          resolve()
+        } else {
+          reject(new Error(`Seed chat process exited with code ${code}`))
+        }
+      })
+      seedChatProcess.on('error', reject)
+    })
+
     // Seed test users
     console.warn('🌱 Seeding test users...')
-    const backendSeedPath = path.join(process.cwd(), '..', 'backend')
-    const seedProcess = spawn('pnpm', ['seed:users', '3'], {
+    const seedUsersProcess = spawn('pnpm', ['seed:users', '3'], {
       cwd: backendSeedPath,
       env: {
         ...process.env,
@@ -73,15 +96,15 @@ async function globalSetup() {
     })
 
     await new Promise<void>((resolve, reject) => {
-      seedProcess.on('close', (code) => {
+      seedUsersProcess.on('close', (code) => {
         if (code === 0) {
           console.warn('✅ Test users seeded')
           resolve()
         } else {
-          reject(new Error(`Seed process exited with code ${code}`))
+          reject(new Error(`Seed users process exited with code ${code}`))
         }
       })
-      seedProcess.on('error', reject)
+      seedUsersProcess.on('error', reject)
     })
 
     // Save connection info to a file that tests can read

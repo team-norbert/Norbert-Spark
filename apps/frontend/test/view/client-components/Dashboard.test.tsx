@@ -183,13 +183,13 @@ describe('Dashboard Component', () => {
       expect(cards).toHaveLength(3) // Chat, Profile, Extract Data
     })
 
-    it('should render exactly 3 cards when canAccessAdmin is true', () => {
+    it('should render exactly 5 cards when canAccessAdmin is true', () => {
       const { container } = render(
         <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
       )
 
       const cards = container.querySelectorAll('.MuiCard-root')
-      expect(cards).toHaveLength(4) // Chat, Profile, Extract Data, Admin
+      expect(cards).toHaveLength(5) // Chat, Profile, Extract Data, Admin, AI Config
     })
   })
 
