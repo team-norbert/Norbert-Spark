@@ -79,7 +79,7 @@ describe('SEO', () => {
     it('should handle leading and trailing spaces', () => {
       const result = SEO.removeUnnecessaryWords('  Best Practices Guide  ')
 
-      expect(result).toBe(' best practices guide ')
+      expect(result).toBe('best practices guide')
     })
 
     it('should handle single word input', () => {
