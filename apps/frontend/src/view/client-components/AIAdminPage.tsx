@@ -97,7 +97,7 @@ export function AIAdminPage({
               router.push(`/ai-admin/${params.row.id}`)
             }}
           >
-            Change Options{' '}
+            Change Options
           </Button>
         </>
       ),
