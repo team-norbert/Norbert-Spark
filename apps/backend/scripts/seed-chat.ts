@@ -14,7 +14,7 @@
 
 import { db } from '../src/infrastructure/database/index.js'
 import { chatTypes } from '../src/infrastructure/database/schema.js'
-import { SEO } from '@norberts-spark/shared'
+import { SEO } from '../src/shared/utils/SEO.util.js'
 import { Uuid7Util } from '../src/shared/utils/uuid7.util.js'
 
 // Predefined chat types to seed
