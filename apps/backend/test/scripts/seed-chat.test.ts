@@ -387,7 +387,9 @@ describe('Chat Types Seed Script', () => {
       // Verify each AI option is correctly linked to its chat type using name-based lookup
       aiOptionsToInsert.forEach((aiOption) => {
         const correspondingChatType = insertedChatTypes.find((ct) => ct.id === aiOption.chatTypeId)
-        const correspondingOriginalData = chatTypesData.find((ct) => ct.name === correspondingChatType!.name)
+        const correspondingOriginalData = chatTypesData.find(
+          (ct) => ct.name === correspondingChatType!.name
+        )
 
         expect(correspondingChatType).toBeDefined()
         expect(correspondingOriginalData).toBeDefined()
