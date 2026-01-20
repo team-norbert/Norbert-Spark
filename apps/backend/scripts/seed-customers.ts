@@ -290,7 +290,7 @@ function randomInt(min: number, max: number): number {
 }
 
 function randomElement<T>(array: T[]): T {
-  return array[Math.floor(Math.random() * array.length)]
+  return array[Math.floor(Math.random() * array.length)]!
 }
 
 function randomBoolean(probability = 0.5): boolean {
