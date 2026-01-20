@@ -23,6 +23,7 @@
     "db:reset": "pnpm db:drop && pnpm db:create",
     "seed:users": "tsx scripts/seed-users.ts",
     "seed:chat": "tsx scripts/seed-chat.ts",
+    "seed:customers": "tsx scripts/seed-customers.ts",
     "mermaid": "tsx scripts/serve-mermaid.ts",
     "mermaid:di": "tsx scripts/serve-mermaid.ts di:container.md",
     "eval": "evalite run",

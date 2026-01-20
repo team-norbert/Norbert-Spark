@@ -106,7 +106,6 @@ export const people = pgTable(
     email: text('email'),
     phone: text('phone'),
     jobTitle: text('job_title'),
-    linkedinUrl: text('linkedin_url'),
     isActive: boolean('is_active').default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     // Note: updatedAt is automatically maintained by a database trigger (see norberts_schema.sql).
@@ -135,10 +134,6 @@ export const people = pgTable(
     jobTitleLengthCheck: check(
       'people_job_title_length_check',
       sql`${table.jobTitle} IS NULL OR length(${table.jobTitle}) <= 100`
-    ),
-    linkedinUrlFormatCheck: check(
-      'people_linkedin_url_format_check',
-      sql`${table.linkedinUrl} IS NULL OR ${table.linkedinUrl} ~* '^https?://(www\\.)?linkedin\\.com/.*$'`
     ),
   })
 )

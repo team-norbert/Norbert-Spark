@@ -102,11 +102,6 @@ CREATE TABLE IF NOT EXISTS people (
         CHECK (phone IS NULL OR length(phone) <= 30),
     job_title TEXT
         CHECK (job_title IS NULL OR length(job_title) <= 100),
-    linkedin_url TEXT
-        CHECK (
-            linkedin_url IS NULL
-            OR linkedin_url ~* '^https?://(www\\.)?linkedin\\.com/.*$'
-        ),
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
