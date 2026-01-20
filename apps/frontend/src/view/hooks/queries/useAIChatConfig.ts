@@ -26,7 +26,6 @@ export function useAIChatConfig(): UseAIChatConfigReturn {
     queryKey: ['ai-chat-config'],
     queryFn: async () => {
       const response = await getAIChatConfig()
-      console.log('response', response)
       return response.data
     },
     staleTime: 5 * 60 * 1000, // 5 minutes - config doesn't change often
