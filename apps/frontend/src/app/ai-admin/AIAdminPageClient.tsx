@@ -1,8 +1,7 @@
 'use client'
 
+import { AIAdminPage } from '@/view/client-components/AIAdminPage.js'
 import { useAIAdminPage } from '@/view/hooks/useAIAdminPage.js'
-
-import { AIAdminPage } from '../../view/client-components/AIAdminPage.js'
 
 /**
  * Client component wrapper for AI Admin page
