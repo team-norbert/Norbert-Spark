@@ -109,6 +109,7 @@ export class SEO {
       .split(/\s+/)
       .filter((word) => !SEO.unnecessaryWords.has(word))
       .join(' ')
+      .trim()
   }
 
   static generateSeoFriendlyTitle(title: string): string {
