@@ -9,7 +9,7 @@ import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import type { DBChatType } from '../../../src/infrastructure/database/schema.js'
 
 // Mock the SEO utility
-vi.mock('@norberts-spark/shared', () => ({
+vi.mock('../../shared/utils/SEO.util.js', () => ({
   SEO: {
     generateSeoFriendlyTitle: vi.fn((name: string) => name.toLowerCase().replace(/\s+/g, '-')),
   },
