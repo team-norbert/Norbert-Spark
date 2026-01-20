@@ -15,6 +15,8 @@ describe('Chat Types Seed Script', () => {
       name: 'The Heart of Darkness',
       description:
         'Ask questions about the novella "The Heart of Darkness" by Joseph Conrad. Get insights into its themes, characters, and plot.',
+      prompt:
+        'You are a knowledgeable literary assistant specializing in Joseph Conrad\'s "Heart of Darkness". Help users understand the themes, characters, plot, and historical context of this novella. Provide insightful analysis while being clear and accessible.',
     },
   ]
 
@@ -27,8 +29,10 @@ describe('Chat Types Seed Script', () => {
       const chatType = chatTypesData[0]!
       expect(chatType).toHaveProperty('name')
       expect(chatType).toHaveProperty('description')
+      expect(chatType).toHaveProperty('prompt')
       expect(chatType.name).toBeTruthy()
       expect(chatType.description).toBeTruthy()
+      expect(chatType.prompt).toBeTruthy()
     })
 
     it('should have name "The Heart of Darkness"', () => {
@@ -239,6 +243,159 @@ describe('Chat Types Seed Script', () => {
       const base64Id = Uuid7Util.toBase64(v4Uuid)
 
       expect(base64Id).toBeUndefined()
+    })
+  })
+
+  describe('AI Options Data Validation', () => {
+    it('should create AI options with chat type ID and prompt', () => {
+      const chatTypeId = Uuid7Util.createUuidv7()
+      const aiOption = {
+        chatTypeId,
+        prompt: chatTypesData[0]!.prompt,
+        maxTokens: null,
+        temperature: null,
+        topP: null,
+        frequencyPenalty: null,
+        presencePenalty: null,
+      }
+
+      expect(aiOption).toHaveProperty('chatTypeId')
+      expect(aiOption).toHaveProperty('prompt')
+      expect(aiOption.chatTypeId).toBe(chatTypeId)
+      expect(aiOption.prompt).toBe(chatTypesData[0]!.prompt)
+    })
+
+    it('should have null values for optional parameters', () => {
+      const aiOption = {
+        chatTypeId: Uuid7Util.createUuidv7(),
+        prompt: chatTypesData[0]!.prompt,
+        maxTokens: null,
+        temperature: null,
+        topP: null,
+        frequencyPenalty: null,
+        presencePenalty: null,
+      }
+
+      expect(aiOption.maxTokens).toBeNull()
+      expect(aiOption.temperature).toBeNull()
+      expect(aiOption.topP).toBeNull()
+      expect(aiOption.frequencyPenalty).toBeNull()
+      expect(aiOption.presencePenalty).toBeNull()
+    })
+
+    it('should have a prompt that mentions Heart of Darkness and Joseph Conrad', () => {
+      const prompt = chatTypesData[0]!.prompt
+      expect(prompt).toContain('Heart of Darkness')
+      expect(prompt).toContain('Joseph Conrad')
+    })
+  })
+
+  describe('AI Options Mapping Logic', () => {
+    // Helper function to create prompt map
+    const createPromptMap = () =>
+      new Map(chatTypesData.map((chatType) => [chatType.name, chatType.prompt]))
+
+    // Helper function to map AI options from inserted chat types
+    const mapAiOptions = (insertedChatTypes: Array<{ id: string; name: string }>) => {
+      const promptByName = createPromptMap()
+
+      return insertedChatTypes.map((chatType) => {
+        const prompt = promptByName.get(chatType.name)
+
+        if (!prompt) {
+          throw new Error(`No prompt found for chat type with name: ${chatType.name}`)
+        }
+
+        return {
+          chatTypeId: chatType.id,
+          prompt,
+          maxTokens: null,
+          temperature: null,
+          topP: null,
+          frequencyPenalty: null,
+          presencePenalty: null,
+        }
+      })
+    }
+
+    it('should map prompts using a name-based lookup', () => {
+      // Simulate inserted chat types (as returned from database)
+      const insertedChatTypes = chatTypesData.map((chatType) => ({
+        id: Uuid7Util.createUuidv7(),
+        name: chatType.name,
+        seoFriendlyId: SEO.generateSeoFriendlyTitle(chatType.name),
+        seoFriendlyBase64Id: Uuid7Util.toBase64(Uuid7Util.createUuidv7())!,
+        description: chatType.description,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }))
+
+      const aiOptionsToInsert = mapAiOptions(insertedChatTypes)
+
+      expect(aiOptionsToInsert).toHaveLength(1)
+      expect(aiOptionsToInsert[0]!.prompt).toBe(chatTypesData[0]!.prompt)
+      expect(aiOptionsToInsert[0]!.chatTypeId).toBe(insertedChatTypes[0]!.id)
+    })
+
+    it('should correctly map prompts regardless of database return order', () => {
+      // Simulate inserted chat types in a different order than the seed data
+      const insertedChatTypes = [
+        {
+          id: Uuid7Util.createUuidv7(),
+          name: chatTypesData[0]!.name,
+          seoFriendlyId: SEO.generateSeoFriendlyTitle(chatTypesData[0]!.name),
+          seoFriendlyBase64Id: Uuid7Util.toBase64(Uuid7Util.createUuidv7())!,
+          description: chatTypesData[0]!.description,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]
+
+      const aiOptionsToInsert = mapAiOptions(insertedChatTypes)
+
+      // Verify the correct prompt is used
+      expect(aiOptionsToInsert[0]!.prompt).toBe(chatTypesData[0]!.prompt)
+      expect(aiOptionsToInsert[0]!.prompt).toContain('Heart of Darkness')
+    })
+
+    it('should throw error when prompt not found for chat type name', () => {
+      const insertedChatTypes = [
+        {
+          id: Uuid7Util.createUuidv7(),
+          name: 'Non-existent Chat Type',
+        },
+      ]
+
+      expect(() => {
+        mapAiOptions(insertedChatTypes)
+      }).toThrow('No prompt found for chat type with name: Non-existent Chat Type')
+    })
+
+    it('should maintain relationship between chat type and its prompt', () => {
+      const insertedChatTypes = chatTypesData.map((chatType) => ({
+        id: Uuid7Util.createUuidv7(),
+        name: chatType.name,
+        seoFriendlyId: SEO.generateSeoFriendlyTitle(chatType.name),
+        seoFriendlyBase64Id: Uuid7Util.toBase64(Uuid7Util.createUuidv7())!,
+        description: chatType.description,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }))
+
+      const aiOptionsToInsert = mapAiOptions(insertedChatTypes)
+
+      // Verify each AI option is correctly linked to its chat type using name-based lookup
+      aiOptionsToInsert.forEach((aiOption) => {
+        const correspondingChatType = insertedChatTypes.find((ct) => ct.id === aiOption.chatTypeId)
+        const correspondingOriginalData = chatTypesData.find(
+          (ct) => ct.name === correspondingChatType!.name
+        )
+
+        expect(correspondingChatType).toBeDefined()
+        expect(correspondingOriginalData).toBeDefined()
+        expect(aiOption.chatTypeId).toBe(correspondingChatType!.id)
+        expect(aiOption.prompt).toBe(correspondingOriginalData!.prompt)
+      })
     })
   })
 })
