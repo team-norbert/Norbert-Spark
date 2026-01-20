@@ -5,7 +5,7 @@ import { z } from 'zod'
  * Matches the backend response structure (camelCase from Drizzle ORM)
  */
 export const ChatTypeSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string().min(1).max(200),
   description: z.string().min(1).max(500),
   createdAt: z.string().datetime(),
