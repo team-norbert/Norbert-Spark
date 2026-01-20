@@ -291,22 +291,15 @@ describe('Chat Types Seed Script', () => {
   })
 
   describe('AI Options Mapping Logic', () => {
-    it('should map prompts using a name-based lookup', () => {
-      // Simulate inserted chat types (as returned from database)
-      const insertedChatTypes = chatTypesData.map((chatType) => ({
-        id: Uuid7Util.createUuidv7(),
-        name: chatType.name,
-        seoFriendlyId: SEO.generateSeoFriendlyTitle(chatType.name),
-        seoFriendlyBase64Id: Uuid7Util.toBase64(Uuid7Util.createUuidv7())!,
-        description: chatType.description,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }))
+    // Helper function to create prompt map
+    const createPromptMap = () =>
+      new Map(chatTypesData.map((chatType) => [chatType.name, chatType.prompt]))
 
-      // Create a map for name-based lookup
-      const promptByName = new Map(chatTypesData.map((chatType) => [chatType.name, chatType.prompt]))
+    // Helper function to map AI options from inserted chat types
+    const mapAiOptions = (insertedChatTypes: Array<{ id: string; name: string }>) => {
+      const promptByName = createPromptMap()
 
-      const aiOptionsToInsert = insertedChatTypes.map((chatType) => {
+      return insertedChatTypes.map((chatType) => {
         const prompt = promptByName.get(chatType.name)
 
         if (!prompt) {
@@ -323,6 +316,21 @@ describe('Chat Types Seed Script', () => {
           presencePenalty: null,
         }
       })
+    }
+
+    it('should map prompts using a name-based lookup', () => {
+      // Simulate inserted chat types (as returned from database)
+      const insertedChatTypes = chatTypesData.map((chatType) => ({
+        id: Uuid7Util.createUuidv7(),
+        name: chatType.name,
+        seoFriendlyId: SEO.generateSeoFriendlyTitle(chatType.name),
+        seoFriendlyBase64Id: Uuid7Util.toBase64(Uuid7Util.createUuidv7())!,
+        description: chatType.description,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }))
+
+      const aiOptionsToInsert = mapAiOptions(insertedChatTypes)
 
       expect(aiOptionsToInsert).toHaveLength(1)
       expect(aiOptionsToInsert[0]!.prompt).toBe(chatTypesData[0]!.prompt)
@@ -343,25 +351,7 @@ describe('Chat Types Seed Script', () => {
         },
       ]
 
-      const promptByName = new Map(chatTypesData.map((chatType) => [chatType.name, chatType.prompt]))
-
-      const aiOptionsToInsert = insertedChatTypes.map((chatType) => {
-        const prompt = promptByName.get(chatType.name)
-
-        if (!prompt) {
-          throw new Error(`No prompt found for chat type with name: ${chatType.name}`)
-        }
-
-        return {
-          chatTypeId: chatType.id,
-          prompt,
-          maxTokens: null,
-          temperature: null,
-          topP: null,
-          frequencyPenalty: null,
-          presencePenalty: null,
-        }
-      })
+      const aiOptionsToInsert = mapAiOptions(insertedChatTypes)
 
       // Verify the correct prompt is used
       expect(aiOptionsToInsert[0]!.prompt).toBe(chatTypesData[0]!.prompt)
@@ -373,34 +363,11 @@ describe('Chat Types Seed Script', () => {
         {
           id: Uuid7Util.createUuidv7(),
           name: 'Non-existent Chat Type',
-          seoFriendlyId: 'non-existent-chat-type',
-          seoFriendlyBase64Id: Uuid7Util.toBase64(Uuid7Util.createUuidv7())!,
-          description: 'This does not exist in chatTypesData',
-          createdAt: new Date(),
-          updatedAt: new Date(),
         },
       ]
 
-      const promptByName = new Map(chatTypesData.map((chatType) => [chatType.name, chatType.prompt]))
-
       expect(() => {
-        insertedChatTypes.map((chatType) => {
-          const prompt = promptByName.get(chatType.name)
-
-          if (!prompt) {
-            throw new Error(`No prompt found for chat type with name: ${chatType.name}`)
-          }
-
-          return {
-            chatTypeId: chatType.id,
-            prompt,
-            maxTokens: null,
-            temperature: null,
-            topP: null,
-            frequencyPenalty: null,
-            presencePenalty: null,
-          }
-        })
+        mapAiOptions(insertedChatTypes)
       }).toThrow('No prompt found for chat type with name: Non-existent Chat Type')
     })
 
@@ -415,25 +382,7 @@ describe('Chat Types Seed Script', () => {
         updatedAt: new Date(),
       }))
 
-      const promptByName = new Map(chatTypesData.map((chatType) => [chatType.name, chatType.prompt]))
-
-      const aiOptionsToInsert = insertedChatTypes.map((chatType) => {
-        const prompt = promptByName.get(chatType.name)
-
-        if (!prompt) {
-          throw new Error(`No prompt found for chat type with name: ${chatType.name}`)
-        }
-
-        return {
-          chatTypeId: chatType.id,
-          prompt,
-          maxTokens: null,
-          temperature: null,
-          topP: null,
-          frequencyPenalty: null,
-          presencePenalty: null,
-        }
-      })
+      const aiOptionsToInsert = mapAiOptions(insertedChatTypes)
 
       // Verify each AI option is correctly linked to its chat type
       aiOptionsToInsert.forEach((aiOption, index) => {
