@@ -386,6 +386,48 @@ export class AIController {
     }
   }
 
+  /**
+   * Retrieves all available chat types with their details and SEO-friendly identifiers.
+   *
+   * This endpoint fetches all chat type options from the database, ensuring each has
+   * complete SEO-friendly fields (slug and base64 ID). The chat types are returned
+   * in descending order by creation date. This endpoint does not require authentication
+   * and is typically used to populate chat type selection interfaces.
+   *
+   * The response includes:
+   * - Chat type ID (UUIDv7)
+   * - Name and description
+   * - SEO-friendly ID (URL-safe slug)
+   * - SEO-friendly base64 ID (22-character encoded UUID)
+   * - Creation and update timestamps
+   *
+   * @param {FastifyRequest} request - The Fastify request object containing optional user information
+   * @param {FastifyReply} reply - The Fastify reply object for sending responses
+   *
+   * @returns {Promise<void>} A promise that resolves when the response is sent
+   *
+   * @example
+   * Response format:
+   * ```json
+   * {
+   *   "success": true,
+   *   "data": [
+   *     {
+   *       "id": "019bda39-6197-7557-9071-d7ed1c719138",
+   *       "name": "General Assistant",
+   *       "description": "A general purpose AI assistant",
+   *       "seoFriendlyId": "general-assistant",
+   *       "seoFriendlyBase64Id": "AbCdEfGhIjKlMnOpQrStUv",
+   *       "createdAt": "2024-01-01T00:00:00.000Z",
+   *       "updatedAt": "2024-01-01T00:00:00.000Z"
+   *     }
+   *   ]
+   * }
+   * ```
+   *
+   * @throws {BaseException} When a domain-specific error occurs (returns appropriate status code)
+   * @throws {Error} When an unexpected error occurs (returns 500 status code)
+   */
   async getAIChatDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received getAIChatDetails request')
     // Extract audit context from request
