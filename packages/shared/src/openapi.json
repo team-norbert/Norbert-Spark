@@ -1067,14 +1067,14 @@
     },
     "/ai/chats/config": {
       "get": {
-        "summary": "Get chat AI configuration",
-        "description": "Retrieves chat AI configuration parameters including prompt, temperature, and other settings",
+        "summary": "Get available chat types",
+        "description": "Retrieves all available chat types with their configuration details",
         "operationId": "getAIChatDetails",
         "tags": ["ai", "chat"],
         "security": [{ "bearerAuth": [] }],
         "responses": {
           "200": {
-            "description": "Chat options retrieved successfully",
+            "description": "Chat types retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -1592,52 +1592,58 @@
       },
       "AIChatOptionsResponse": {
         "type": "object",
-        "description": "Response returned when fetching a chat",
+        "description": "Response returned when fetching chat types",
         "required": ["success", "data"],
         "properties": {
           "success": { "type": "boolean", "example": true },
           "data": {
-            "type": "object",
-            "required": ["name", "description", "prompt"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "format": "uuid",
-                "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
-              },
-              "name": {
-                "type": "string",
-                "description": "Name of the chat",
-                "minLength": 1,
-                "maxLength": 200,
-                "example": "My Chat Session"
-              },
-              "description": {
-                "type": "string",
-                "description": "Description of the chat purpose",
-                "minLength": 1,
-                "maxLength": 500,
-                "example": "Discussion about project requirements"
-              },
-              "created_at": {
-                "type": "string",
-                "format": "date-time",
-                "example": "2024-01-15T10:30:00Z"
-              },
-              "updated_at": {
-                "type": "string",
-                "format": "date-time",
-                "example": "2024-01-15T10:30:00Z"
-              },
-              "seo_friendly_id": {
-                "type": "string",
-                "description": "SEO friendly identifier for the chat",
-                "example": "my-chat-session"
-              },
-              "seo_friendly_base64_id": {
-                "type": "string",
-                "description": "Base64 encoded SEO friendly identifier for the chat",
-                "example": "bXktY2hhdC1zZXNzaW"
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "name", "description", "created_at", "updated_at"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Unique identifier for the chat type",
+                  "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Unique name of the chat type",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "example": "General Assistant"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Description of the chat type's purpose",
+                  "minLength": 1,
+                  "maxLength": 500,
+                  "example": "A general-purpose AI assistant for everyday tasks"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp when the chat type was created",
+                  "example": "2024-01-15T10:30:00Z"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp when the chat type was last updated",
+                  "example": "2024-01-15T10:30:00Z"
+                },
+                "seo_friendly_id": {
+                  "type": "string",
+                  "description": "SEO friendly identifier for the chat type",
+                  "example": "general-assistant"
+                },
+                "seo_friendly_base64_id": {
+                  "type": "string",
+                  "description": "Base64 encoded UUID for the chat type",
+                  "example": "AZtlmi2t1/iZ8jVi"
+                }
               }
             }
           }
