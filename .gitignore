@@ -187,3 +187,5 @@ apps/frontend/e2e/.test-db-config.json
 .husky_disabled/
 .husky_backup/
 .husky_final/
+# Turborepo
+.turbo
