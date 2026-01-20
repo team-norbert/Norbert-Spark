@@ -59,8 +59,11 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           throw new Error('Failed to fetch AI settings')
         }
         const result = (await response.json()) as { success: boolean; data: AIOptions }
-        if (!result.success || !result.data) {
-          throw new Error('Invalid response from server')
+        if (!result.success) {
+          throw new Error('Server returned an error')
+        }
+        if (!result.data) {
+          throw new Error('Invalid response data from server')
         }
         setFormData(result.data)
       } catch (err) {
