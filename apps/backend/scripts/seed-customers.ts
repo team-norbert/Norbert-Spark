@@ -227,15 +227,6 @@ const jobTitles = [
   'Co-Founder',
 ]
 
-// Contact roles
-const contactRoles = [
-  'primary_contact',
-  'decision_maker',
-  'billing_contact',
-  'technical_contact',
-  'stakeholder',
-] as const
-
 async function seedCustomers() {
   console.log('🌱 Starting customer and people seed script...')
   console.log(`📊 Will create ${TOTAL_CUSTOMERS} customers with associated contacts\n`)
