@@ -50,7 +50,23 @@ Verify the database is running:
 docker compose ps
 ```
 
-### 3. Development
+### 3. Seed the Database (Optional)
+
+To seed the database with initial data, run:
+
+```bash
+pnpm run seed:users
+pnpm run seed:chat
+pnpm run seed:customers
+```
+
+You can delete all data and reset the DB by running:
+
+```bash
+pnpm run db:reset
+```
+
+### 4. Development
 
 Start the development server:
 
@@ -62,7 +78,7 @@ The server will start on `http://localhost:3000` (or `https://localhost:3000` if
 
 **API Documentation**: Visit `http://localhost:3000/docs` for interactive Swagger UI.
 
-### 4. API-First Workflow
+### 5. API-First Workflow
 
 This project follows API-first development:
 
