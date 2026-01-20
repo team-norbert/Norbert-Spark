@@ -41,34 +41,34 @@ export class AIController {
   }
 
   registerRoutes(app: FastifyInstance): void {
-    ;(app.post(
+    app.post(
       '/ai/chat',
       {
         preHandler: [authMiddleware],
       },
       this.chat.bind(this)
-    ),
-      app.get(
-        '/ai/chats/:userId',
-        {
-          preHandler: [authMiddleware],
-        },
-        this.getAIChatsByUserId.bind(this)
-      ),
-      app.get(
-        '/ai/fetchChat/:chatId',
-        {
-          preHandler: [authMiddleware],
-        },
-        this.getAIChatByChatId.bind(this)
-      ),
-      app.get(
-        '/ai/chats/options',
-        {
-          preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
-        },
-        this.getAIChatDetails.bind(this)
-      ))
+    )
+    app.get(
+      '/ai/chats/:userId',
+      {
+        preHandler: [authMiddleware],
+      },
+      this.getAIChatsByUserId.bind(this)
+    )
+    app.get(
+      '/ai/fetchChat/:chatId',
+      {
+        preHandler: [authMiddleware],
+      },
+      this.getAIChatByChatId.bind(this)
+    )
+    app.get(
+      '/ai/chats/options',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.getAIChatDetails.bind(this)
+    )
   }
 
   /**
