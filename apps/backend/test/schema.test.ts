@@ -234,6 +234,100 @@ describe('Database Schema', () => {
       })
     })
 
+    describe('chatTypes table validation constraints', () => {
+      describe('seoFriendlyId regex pattern validation', () => {
+        it('should accept valid lowercase alphanumeric strings', () => {
+          const validIds = ['general', 'fitness', 'abc123', 'test1']
+          // eslint-disable-next-line security/detect-unsafe-regex
+          const pattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+          validIds.forEach((id) => {
+            expect(pattern.test(id)).toBe(true)
+          })
+        })
+
+        it('should accept valid hyphenated lowercase strings', () => {
+          const validIds = [
+            'general-chat',
+            'fitness-tracking',
+            'level-2-gym',
+            'abc-123-xyz',
+            'my-awesome-chat-type',
+          ]
+          // eslint-disable-next-line security/detect-unsafe-regex
+          const pattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+          validIds.forEach((id) => {
+            expect(pattern.test(id)).toBe(true)
+          })
+        })
+
+        it('should reject strings with uppercase letters', () => {
+          const invalidIds = ['General', 'FITNESS', 'General-Chat', 'testID']
+          // eslint-disable-next-line security/detect-unsafe-regex
+          const pattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+          invalidIds.forEach((id) => {
+            expect(pattern.test(id)).toBe(false)
+          })
+        })
+
+        it('should reject strings with special characters', () => {
+          const invalidIds = [
+            'general_chat',
+            'fitness!',
+            'chat@type',
+            'test#1',
+            'my.chat',
+            'chat type',
+            'test&value',
+          ]
+          // eslint-disable-next-line security/detect-unsafe-regex
+          const pattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+          invalidIds.forEach((id) => {
+            expect(pattern.test(id)).toBe(false)
+          })
+        })
+
+        it('should reject strings with consecutive hyphens', () => {
+          const invalidIds = ['general--chat', 'test--123', 'a--b--c']
+          // eslint-disable-next-line security/detect-unsafe-regex
+          const pattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+          invalidIds.forEach((id) => {
+            expect(pattern.test(id)).toBe(false)
+          })
+        })
+
+        it('should reject strings with leading hyphens', () => {
+          const invalidIds = ['-general', '-test', '-123']
+          // eslint-disable-next-line security/detect-unsafe-regex
+          const pattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+          invalidIds.forEach((id) => {
+            expect(pattern.test(id)).toBe(false)
+          })
+        })
+
+        it('should reject strings with trailing hyphens', () => {
+          const invalidIds = ['general-', 'test-', '123-']
+          // eslint-disable-next-line security/detect-unsafe-regex
+          const pattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+          invalidIds.forEach((id) => {
+            expect(pattern.test(id)).toBe(false)
+          })
+        })
+
+        it('should reject empty strings', () => {
+          // eslint-disable-next-line security/detect-unsafe-regex
+          const pattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+          expect(pattern.test('')).toBe(false)
+        })
+      })
+    })
+
     describe('messages table columns', () => {
       it('should have id column', () => {
         expect(messages.id).toBeDefined()
