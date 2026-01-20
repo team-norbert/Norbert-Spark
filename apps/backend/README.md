@@ -60,10 +60,10 @@ pnpm run seed:chats
 pnpm run seed:customers
 ```
 
-You delete all data and reset them DB by running:
+You can delete all data and reset the DB by running:
 
 ```bash
-pnpm run reset:db
+pnpm run db:reset
 ```
 
 ### 4. Development
