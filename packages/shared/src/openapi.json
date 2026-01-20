@@ -1398,7 +1398,7 @@
       },
       "AIChatOptionsResponse": {
         "type": "object",
-        "description": "Response returned when fetching chat type configuration options",
+        "description": "Response returned when fetching AI chat options",
         "required": ["success", "data"],
         "properties": {
           "success": { "type": "boolean", "example": true },
