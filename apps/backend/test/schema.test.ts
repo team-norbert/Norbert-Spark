@@ -209,8 +209,16 @@ describe('Database Schema', () => {
         expect(chatTypes.seoFriendlyId.isUnique).toBe(true)
       })
 
+      it('should have not null constraint on seoFriendlyId', () => {
+        expect(chatTypes.seoFriendlyId.notNull).toBe(true)
+      })
+
       it('should have unique constraint on seoFriendlyBase64Id', () => {
         expect(chatTypes.seoFriendlyBase64Id.isUnique).toBe(true)
+      })
+
+      it('should have not null constraint on seoFriendlyBase64Id', () => {
+        expect(chatTypes.seoFriendlyBase64Id.notNull).toBe(true)
       })
 
       it('should have not null constraint on description', () => {
