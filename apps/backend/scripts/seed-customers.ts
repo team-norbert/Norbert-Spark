@@ -275,15 +275,6 @@ const jobTitles = [
   'Co-Founder',
 ]
 
-// Contact roles
-const contactRoles = [
-  'primary_contact',
-  'decision_maker',
-  'billing_contact',
-  'technical_contact',
-  'stakeholder',
-] as const
-
 // Helper functions
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min
