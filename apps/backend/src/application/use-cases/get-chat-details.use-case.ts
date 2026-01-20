@@ -13,7 +13,7 @@ export class GetChatDetailsUseCase {
     private readonly aiChatContent: AIContentPort
   ) {}
 
-  public async execute(_auditContext: AuditContext): Promise<DBChatType[]> {
+  public async execute(auditContext: AuditContext): Promise<DBChatType[]> {
     const result = await this.aiChatContent.fetchChatContent()
     this.logger.info(`Fetched ${result.length} chat types from AIContentPort`)
     return result.map((chatType: DBChatType) => {

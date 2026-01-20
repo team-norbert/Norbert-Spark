@@ -14,13 +14,14 @@ import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
+import { GetChatDetailsUseCase } from '../../../application/use-cases/get-chat-details.use-case.js'
+import { GetChatContentByChatIdUseCase } from '../../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
 import type { UserIdType } from '../../../domain/value-objects/userID.js'
 import { UserId } from '../../../domain/value-objects/userID.js'
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
 import { SYSTEM_PROMPT } from '../../../shared/constants/ai-constants.js'
 import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
-import type { GetChatContentByChatIdUseCase } from '../../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { OAuthSyncDto } from '../../../application/dtos/oauth-sync.dto.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
@@ -34,40 +35,41 @@ export class AIController {
     private readonly appendChatUseCase: AppendedChatUseCase,
     private readonly saveChatUseCase: SaveChatUseCase,
     private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase,
-    private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase
+    private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase,
+    private readonly getChatDetailsUseCase: GetChatDetailsUseCase
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
 
   registerRoutes(app: FastifyInstance): void {
-    app.post(
+    ;(app.post(
       '/ai/chat',
       {
         preHandler: [authMiddleware],
       },
       this.chat.bind(this)
-    )
-    app.get(
-      '/ai/chats/:userId',
-      {
-        preHandler: [authMiddleware],
-      },
-      this.getAIChatsByUserId.bind(this)
-    )
-    app.get(
-      '/ai/fetchChat/:chatId',
-      {
-        preHandler: [authMiddleware],
-      },
-      this.getAIChatByChatId.bind(this)
-    )
-    app.get(
-      '/ai/chats/options',
-      {
-        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
-      },
-      this.getAIChatDetails.bind(this)
-    )
+    ),
+      app.get(
+        '/ai/chats/:userId',
+        {
+          preHandler: [authMiddleware],
+        },
+        this.getAIChatsByUserId.bind(this)
+      ),
+      app.get(
+        '/ai/fetchChat/:chatId',
+        {
+          preHandler: [authMiddleware],
+        },
+        this.getAIChatByChatId.bind(this)
+      ),
+      app.get(
+        '/ai/chats/options',
+        {
+          preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+        },
+        this.getAIChatDetails.bind(this)
+      ))
   }
 
   /**
@@ -98,6 +100,7 @@ export class AIController {
     let messages: UIMessage[]
     let id: string
     let trigger: string
+    let chatTypeId: string
 
     try {
       const body = request.body as any
@@ -105,6 +108,7 @@ export class AIController {
       this.logger.info('Request body:', {
         id: body?.id,
         trigger: body?.trigger,
+        chatTypeId: body?.chatTypeId,
         messages: body?.messages,
       })
 
@@ -117,6 +121,8 @@ export class AIController {
       id = body?.id
 
       trigger = body?.trigger
+
+      chatTypeId = body?.chatTypeId
 
       if (!id || !trigger) {
         return reply.code(400).send({
@@ -385,6 +391,7 @@ export class AIController {
   }
 
   async getAIChatDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.debug('Received getAIChatDetails request')
     // Extract audit context from request
     const auditContext = {
       userId: request.user?.sub ?? null,
@@ -392,30 +399,8 @@ export class AIController {
       userAgent: request.headers['user-agent'] ?? null,
     }
 
-    // Authorization check: User can only access their own chat history unless they have admin/moderator role
-    const authenticatedUserId = request.user?.sub
-    const userRoles = request.user?.roles || []
-
-    if (!authenticatedUserId) {
-      this.logger.warn('Authorization check failed: User not authenticated')
-      return reply.code(401).send({
-        success: false,
-        error: 'Authentication required',
-      })
-    }
-
-    // Check if user is accessing is moderator or admin
-    const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
-
-    if (!hasElevatedRole) {
-      this.logger.warn('You must be an admin or moderator to access chat options')
-      return reply.code(403).send({
-        success: false,
-        error: 'Access denied. You must have admin/moderator role to access chat options',
-      })
-    }
-
     try {
+      const result = await this.getChatDetailsUseCase.execute(auditContext)
       reply.code(200).send({
         success: true,
         data: result,
@@ -423,20 +408,11 @@ export class AIController {
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'OAuth sync failed'
+      const errorMessage = err?.message || 'Failed to fetch chat details'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
       })
-    }
-
-    this.logger.debug('Received getAIChatOptions request')
-
-    // Extract audit context from request
-    const auditContext = {
-      userId: request.user?.sub ?? null,
-      ipAddress: request.ip,
-      userAgent: request.headers['user-agent'] ?? null,
     }
   }
 
