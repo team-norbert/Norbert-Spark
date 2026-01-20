@@ -1408,10 +1408,10 @@
               "id",
               "name",
               "description",
-              "created_at",
-              "updated_at",
-              "seo_friendly_id",
-              "seo_friendly_base64_id"
+              "createdAt",
+              "updatedAt",
+              "seoFriendlyId",
+              "seoFriendlyBase64Id"
             ],
             "properties": {
               "id": {
@@ -1433,22 +1433,22 @@
                 "maxLength": 500,
                 "example": "Discussion about project requirements"
               },
-              "created_at": {
+              "createdAt": {
                 "type": "string",
                 "format": "date-time",
                 "example": "2024-01-15T10:30:00Z"
               },
-              "updated_at": {
+              "updatedAt": {
                 "type": "string",
                 "format": "date-time",
                 "example": "2024-01-15T10:30:00Z"
               },
-              "seo_friendly_id": {
+              "seoFriendlyId": {
                 "type": "string",
                 "description": "SEO friendly identifier for the chat",
                 "example": "my-chat-session"
               },
-              "seo_friendly_base64_id": {
+              "seoFriendlyBase64Id": {
                 "type": "string",
                 "description": "Base64 encoded SEO friendly identifier for the chat",
                 "example": "bXktY2hhdC1zZXNzaW"
