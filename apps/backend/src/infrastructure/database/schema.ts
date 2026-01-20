@@ -344,8 +344,8 @@ export const chatTypes = pgTable(
       .primaryKey()
       .default(sql`uuidv7()`),
     name: text('name').notNull().unique(),
-    seoFriendlyId: text('seo_friendly_id').notNull().unique(),
-    seoFriendlyBase64Id: text('seo_friendly_base64_id').notNull().unique(),
+    seoFriendlyId: text('seo_friendly_id').unique(),
+    seoFriendlyBase64Id: text('seo_friendly_base64_id').unique(),
     description: text('description').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()

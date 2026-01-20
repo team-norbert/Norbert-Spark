@@ -1069,7 +1069,7 @@
       "get": {
         "summary": "Get chat AI configuration",
         "description": "Retrieves chat AI configuration parameters including prompt, temperature, and other settings",
-        "operationId": "getAIChatOptions",
+        "operationId": "getAIChatDetails",
         "tags": ["ai", "chat"],
         "security": [{ "bearerAuth": [] }],
         "responses": {
@@ -1666,7 +1666,7 @@
             "type": "string",
             "description": "SEO friendly identifier for the chat",
             "example": "my-chat-session"
-          },
+          }
         }
       }
     },

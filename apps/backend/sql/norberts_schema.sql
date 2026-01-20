@@ -145,8 +145,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS one_primary_contact_per_customer
 CREATE TABLE IF NOT EXISTS chat_types (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     name TEXT NOT NULL UNIQUE CHECK (length(name) >= 1 AND length(name) <= 200),
-    seo_friendly_id TEXT NOT NULL UNIQUE CHECK (length(seo_friendly_id) >= 1 AND length(seo_friendly_id) <= 200),
-    seo_friendly_base64_id TEXT NOT NULL UNIQUE CHECK (length(seo_friendly_base64_id) = 22),
+    seo_friendly_id TEXT UNIQUE CHECK (length(seo_friendly_id) >= 1 AND length(seo_friendly_id) <= 200),
+    seo_friendly_base64_id TEXT UNIQUE CHECK (length(seo_friendly_base64_id) = 22),
     description TEXT NOT NULL CHECK (length(description) >= 1 AND length(description) <= 500),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -403,13 +403,12 @@ COMMENT ON TABLE chats IS 'Stores chat sessions linked to users';
 COMMENT ON TABLE messages IS 'Stores individual messages within chats';
 COMMENT ON TABLE parts IS 'Stores message parts with polymorphic structure based on type field';
 
-COMMENT ON TABLE chat_ai_options IS 'Stores default AI model configuration for each chat';
-COMMENT ON COLUMN chat_ai_options.chat_id IS 'One-to-one relationship with chats table';
-COMMENT ON COLUMN chat_ai_options.prompt IS 'System prompt/context for this chat';
+COMMENT ON TABLE chat_ai_options IS 'Stores default AI model configuration for each chat type';
+COMMENT ON COLUMN chat_ai_options.chat_type_id IS 'One-to-one relationship with chat_types table';
+COMMENT ON COLUMN chat_ai_options.prompt IS 'System prompt/context for this chat type';
 
 COMMENT ON COLUMN chats.user_id IS 'Foreign key linking chat to the user who created it';
-COMMENT ON COLUMN chats.name IS 'Display name for the chat, user-defined (1-200 characters)';
-COMMENT ON COLUMN chats.description IS 'Optional longer description or notes about the chat, user-defined';
+COMMENT ON COLUMN chats.chat_type_id IS 'Foreign key linking chat to a chat type configuration';
 COMMENT ON COLUMN chats.updated_at IS 'Timestamp of last activity in this chat, useful for sorting chat history';
 COMMENT ON COLUMN parts.type IS 'Discriminator field - values: text, reasoning, file, source_url, source_document, tool-getWeatherInformation, tool-getLocation, data-weather';
 COMMENT ON COLUMN parts."order" IS 'Order of parts within a message for proper sequencing';
