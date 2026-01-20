@@ -1396,67 +1396,6 @@
           }
         }
       },
-      "AIChatTypesResponse": {
-        "type": "object",
-        "description": "Response returned when fetching chat types",
-        "required": ["success", "data"],
-        "properties": {
-          "success": { "type": "boolean", "example": true },
-          "data": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["id", "name", "description", "created_at", "updated_at"],
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "description": "Unique identifier for the chat type",
-                  "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
-                },
-                "name": {
-                  "type": "string",
-                  "description": "Unique name of the chat type",
-                  "minLength": 1,
-                  "maxLength": 200,
-                  "example": "General Assistant"
-                },
-                "description": {
-                  "type": "string",
-                  "description": "Description of the chat type's purpose",
-                  "minLength": 1,
-                  "maxLength": 500,
-                  "example": "A general-purpose AI assistant for everyday tasks"
-                },
-                "seo_friendly_id": {
-                  "type": "string",
-                  "description": "SEO friendly slug for the chat type",
-                  "example": "general-assistant"
-                },
-                "seo_friendly_base64_id": {
-                  "type": "string",
-                  "description": "Base64url encoded UUID for the chat type (22 characters)",
-                  "minLength": 22,
-                  "maxLength": 22,
-                  "example": "AbCdEfGhIjKlMnOpQrStUv"
-                },
-                "created_at": {
-                  "type": "string",
-                  "format": "date-time",
-                  "description": "Timestamp when the chat type was created",
-                  "example": "2024-01-15T10:30:00Z"
-                },
-                "updated_at": {
-                  "type": "string",
-                  "format": "date-time",
-                  "description": "Timestamp when the chat type was last updated",
-                  "example": "2024-01-15T10:30:00Z"
-                }
-              }
-            }
-          }
-        }
-      },
       "AIChatOptionsResponse": {
         "type": "object",
         "description": "Response returned when fetching chat type configuration options",
