@@ -1600,7 +1600,7 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["id", "name", "description", "created_at", "updated_at"],
+              "required": ["id", "name", "description", "createdAt", "updatedAt"],
               "properties": {
                 "id": {
                   "type": "string",
@@ -1622,24 +1622,24 @@
                   "maxLength": 500,
                   "example": "A general-purpose AI assistant for everyday tasks"
                 },
-                "created_at": {
+                "createdAt": {
                   "type": "string",
                   "format": "date-time",
                   "description": "Timestamp when the chat type was created",
                   "example": "2024-01-15T10:30:00Z"
                 },
-                "updated_at": {
+                "updatedAt": {
                   "type": "string",
                   "format": "date-time",
                   "description": "Timestamp when the chat type was last updated",
                   "example": "2024-01-15T10:30:00Z"
                 },
-                "seo_friendly_id": {
+                "seoFriendlyId": {
                   "type": "string",
                   "description": "SEO friendly identifier for the chat type",
                   "example": "general-assistant"
                 },
-                "seo_friendly_base64_id": {
+                "seoFriendlyBase64Id": {
                   "type": "string",
                   "description": "Base64 encoded UUID for the chat type",
                   "example": "AZtlmi2t1/iZ8jVi"
