@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { PostgresUserRepository } from '../../../../src/adapters/secondary/repositories/user.repository.js'
 import { User } from '../../../../src/domain/entities/user.js'
-import { Email } from '../../../../src/domain/value-objects/email.js'
+import { Email, type EmailType } from '../../../../src/domain/value-objects/email.js'
 import { Password } from '../../../../src/domain/value-objects/password.js'
 import { Role } from '../../../../src/domain/value-objects/role.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
@@ -25,7 +25,7 @@ vi.mock('../../../../src/infrastructure/database/index.js', () => ({
 
 describe('PostgresUserRepository', () => {
   let repository: PostgresUserRepository
-  let testEmail: Email
+  let testEmail: EmailType
   let testPassword: Password
   let testRole: Role
   let testUser: User
@@ -35,7 +35,7 @@ describe('PostgresUserRepository', () => {
     vi.clearAllMocks()
 
     repository = new PostgresUserRepository()
-    testEmail = new Email('test@example.com')
+    testEmail = new Email('test@example.com').getValue()
     testPassword = await Password.create('password123')
     testRole = new Role('user')
     const testUserId = new UserId(uuidv7()).getValue()
@@ -91,7 +91,7 @@ describe('PostgresUserRepository', () => {
       const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
       vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
 
-      const email = new Email('newemail@example.com')
+      const email = new Email('newemail@example.com').getValue()
       const password = await Password.create('newpass123')
       const role = new Role('admin')
       const user = new User(userId, email, 'Jane Doe', role, password)
@@ -109,7 +109,7 @@ describe('PostgresUserRepository', () => {
   describe('saveUserWithProvider', () => {
     it('should insert a new OAuth user without password', async () => {
       const userId = new UserId(uuidv7()).getValue()
-      const email = new Email('oauth@example.com')
+      const email = new Email('oauth@example.com').getValue()
       const role = new Role('user')
       const oauthUser = new User(userId, email, 'OAuth User', role, undefined, undefined, 'google')
 
@@ -139,7 +139,7 @@ describe('PostgresUserRepository', () => {
 
     it('should save OAuth user with correct provider', async () => {
       const userId = new UserId(uuidv7()).getValue()
-      const email = new Email('google.user@example.com')
+      const email = new Email('google.user@example.com').getValue()
       const role = new Role('user')
       const googleUser = new User(
         userId,
@@ -166,7 +166,7 @@ describe('PostgresUserRepository', () => {
 
     it('should generate user ID when not provided', async () => {
       const generatedUserId = uuidv7()
-      const email = new Email('newuser@example.com')
+      const email = new Email('newuser@example.com').getValue()
       const role = new Role('user')
       const userWithoutId = new User(
         undefined,
@@ -192,7 +192,7 @@ describe('PostgresUserRepository', () => {
 
     it('should throw ConflictException on duplicate email', async () => {
       const userId = new UserId(uuidv7()).getValue()
-      const email = new Email('duplicate@example.com')
+      const email = new Email('duplicate@example.com').getValue()
       const role = new Role('user')
       const oauthUser = new User(
         userId,
@@ -220,7 +220,7 @@ describe('PostgresUserRepository', () => {
 
     it('should throw DatabaseException on general database error', async () => {
       const userId = new UserId(uuidv7()).getValue()
-      const email = new Email('error@example.com')
+      const email = new Email('error@example.com').getValue()
       const role = new Role('user')
       const oauthUser = new User(userId, email, 'Error User', role, undefined, undefined, 'google')
 
@@ -238,7 +238,7 @@ describe('PostgresUserRepository', () => {
 
     it('should throw DatabaseException if no user ID is returned', async () => {
       const userId = new UserId(uuidv7()).getValue()
-      const email = new Email('test@example.com')
+      const email = new Email('test@example.com').getValue()
       const role = new Role('user')
       const oauthUser = new User(userId, email, 'Test User', role, undefined, undefined, 'google')
 
@@ -258,7 +258,7 @@ describe('PostgresUserRepository', () => {
     describe('Scenario 1: Existing OAuth user with same provider', () => {
       it('should return existing userId with isNewUser: false when user previously registered with same provider', async () => {
         const existingUserId = uuidv7()
-        const email = new Email('existing@example.com')
+        const email = new Email('existing@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -295,7 +295,7 @@ describe('PostgresUserRepository', () => {
 
       it('should return existing userId when password is empty string', async () => {
         const existingUserId = uuidv7()
-        const email = new Email('existing@example.com')
+        const email = new Email('existing@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -330,7 +330,7 @@ describe('PostgresUserRepository', () => {
 
       it('should not call insert when returning existing user', async () => {
         const existingUserId = uuidv7()
-        const email = new Email('existing@example.com')
+        const email = new Email('existing@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -364,7 +364,7 @@ describe('PostgresUserRepository', () => {
 
     describe('Scenario 2: Email exists with password (non-OAuth)', () => {
       it('should throw ConflictException when email exists with password', async () => {
-        const email = new Email('password-user@example.com')
+        const email = new Email('password-user@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -398,7 +398,7 @@ describe('PostgresUserRepository', () => {
       })
 
       it('should include email in ConflictException context', async () => {
-        const email = new Email('password-user@example.com')
+        const email = new Email('password-user@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -440,7 +440,7 @@ describe('PostgresUserRepository', () => {
 
     describe('Scenario 2b: Email exists with different provider', () => {
       it('should throw ConflictException when email registered with different OAuth provider', async () => {
-        const email = new Email('github-user@example.com')
+        const email = new Email('github-user@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -473,7 +473,7 @@ describe('PostgresUserRepository', () => {
       })
 
       it('should include both email and provider in exception context', async () => {
-        const email = new Email('github-user@example.com')
+        const email = new Email('github-user@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -517,7 +517,7 @@ describe('PostgresUserRepository', () => {
     describe('Scenario 3: New user registration', () => {
       it('should create new user and return userId with isNewUser: true', async () => {
         const newUserId = uuidv7()
-        const email = new Email('newuser@example.com')
+        const email = new Email('newuser@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -551,7 +551,7 @@ describe('PostgresUserRepository', () => {
       })
 
       it('should insert user with correct OAuth data', async () => {
-        const email = new Email('newuser@example.com')
+        const email = new Email('newuser@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -591,7 +591,7 @@ describe('PostgresUserRepository', () => {
       })
 
       it('should set password to null for OAuth users', async () => {
-        const email = new Email('newuser@example.com')
+        const email = new Email('newuser@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -622,7 +622,7 @@ describe('PostgresUserRepository', () => {
 
       it('should include userId in insert when provided', async () => {
         const providedUserId = new UserId(uuidv7()).getValue()
-        const email = new Email('newuser@example.com')
+        const email = new Email('newuser@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           providedUserId,
@@ -652,7 +652,7 @@ describe('PostgresUserRepository', () => {
       })
 
       it('should throw DatabaseException when insert returns no userId', async () => {
-        const email = new Email('newuser@example.com')
+        const email = new Email('newuser@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -684,7 +684,7 @@ describe('PostgresUserRepository', () => {
 
     describe('Error handling', () => {
       it('should throw ConflictException on duplicate key error', async () => {
-        const email = new Email('duplicate@example.com')
+        const email = new Email('duplicate@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -718,7 +718,7 @@ describe('PostgresUserRepository', () => {
       })
 
       it('should throw DatabaseException on generic database error during select', async () => {
-        const email = new Email('error@example.com')
+        const email = new Email('error@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -744,7 +744,7 @@ describe('PostgresUserRepository', () => {
       })
 
       it('should throw DatabaseException on generic database error during insert', async () => {
-        const email = new Email('error@example.com')
+        const email = new Email('error@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -775,7 +775,7 @@ describe('PostgresUserRepository', () => {
       })
 
       it('should re-throw ConflictException without wrapping', async () => {
-        const email = new Email('conflict@example.com')
+        const email = new Email('conflict@example.com').getValue()
         const role = new Role('user')
         const oauthUser = new User(
           undefined,
@@ -1064,7 +1064,7 @@ describe('PostgresUserRepository', () => {
       const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
       vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
 
-      const newEmail = new Email('updated@example.com')
+      const newEmail = new Email('updated@example.com').getValue()
       const userId = new UserId(uuidv7()).getValue()
       const updatedUser = new User(userId, newEmail, 'Updated Name', testRole, testPassword)
 

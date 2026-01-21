@@ -21,6 +21,10 @@ CREATE TABLE "chat_ai_options" (
 	"top_p" numeric,
 	"frequency_penalty" numeric,
 	"presence_penalty" numeric,
+	"top_k" integer,
+	"stop_sequences" text[],
+	"seed" integer,
+	"max_retries" integer,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "chat_ai_options_chat_type_id_unique" UNIQUE("chat_type_id"),
@@ -28,7 +32,10 @@ CREATE TABLE "chat_ai_options" (
 	CONSTRAINT "temperature_range" CHECK ("chat_ai_options"."temperature" IS NULL OR ("chat_ai_options"."temperature" >= 0 AND "chat_ai_options"."temperature" <= 2)),
 	CONSTRAINT "top_p_range" CHECK ("chat_ai_options"."top_p" IS NULL OR ("chat_ai_options"."top_p" >= 0 AND "chat_ai_options"."top_p" <= 1)),
 	CONSTRAINT "frequency_penalty_range" CHECK ("chat_ai_options"."frequency_penalty" IS NULL OR ("chat_ai_options"."frequency_penalty" >= -2 AND "chat_ai_options"."frequency_penalty" <= 2)),
-	CONSTRAINT "presence_penalty_range" CHECK ("chat_ai_options"."presence_penalty" IS NULL OR ("chat_ai_options"."presence_penalty" >= -2 AND "chat_ai_options"."presence_penalty" <= 2))
+	CONSTRAINT "presence_penalty_range" CHECK ("chat_ai_options"."presence_penalty" IS NULL OR ("chat_ai_options"."presence_penalty" >= -2 AND "chat_ai_options"."presence_penalty" <= 2)),
+	CONSTRAINT "top_k_check" CHECK ("chat_ai_options"."top_k" IS NULL OR ("chat_ai_options"."top_k" > 0 AND "chat_ai_options"."top_k" <= 100)),
+	CONSTRAINT "seed_check" CHECK ("chat_ai_options"."seed" IS NULL OR ("chat_ai_options"."seed" >= 0 AND "chat_ai_options"."seed" <= 2147483647)),
+	CONSTRAINT "max_retries_check" CHECK ("chat_ai_options"."max_retries" IS NULL OR ("chat_ai_options"."max_retries" >= 0 AND "chat_ai_options"."max_retries" <= 10))
 );
 --> statement-breakpoint
 CREATE TABLE "chat_types" (

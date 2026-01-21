@@ -33,7 +33,7 @@ describe('GetAllUsersUseCase', () => {
     const password = await Password.create('TestPassword123!')
     const roleObj = new Role(role)
     const userId = new UserId(id || uuidv7()).getValue()
-    return new User(userId, emailObj, name, roleObj, password, new Date('2024-01-01'))
+    return new User(userId, emailObj.getValue(), name, roleObj, password, new Date('2024-01-01'))
   }
 
   beforeEach(() => {
@@ -258,7 +258,7 @@ describe('GetAllUsersUseCase', () => {
       const email = new Email('test@example.com')
       const password = await Password.create('TestPass123!')
       const role = new Role('user')
-      const userWithoutId = new User(undefined, email, 'Test', role, password)
+      const userWithoutId = new User(undefined, email.getValue(), 'Test', role, password)
 
       vi.mocked(mockUserRepository.findAll).mockResolvedValue({
         data: [userWithoutId],
@@ -275,7 +275,7 @@ describe('GetAllUsersUseCase', () => {
       const email = new Email('missing-id@example.com')
       const password = await Password.create('TestPass123!')
       const role = new Role('user')
-      const userWithoutId = new User(undefined, email, 'Test', role, password)
+      const userWithoutId = new User(undefined, email.getValue(), 'Test', role, password)
 
       vi.mocked(mockUserRepository.findAll).mockResolvedValue({
         data: [userWithoutId],
@@ -336,7 +336,7 @@ describe('GetAllUsersUseCase', () => {
       const email = new Email('invalid@example.com')
       const password = await Password.create('TestPass123!')
       const role = new Role('user')
-      const invalidUser = new User(undefined, email, 'Invalid', role, password)
+      const invalidUser = new User(undefined, email.getValue(), 'Invalid', role, password)
 
       vi.mocked(mockUserRepository.findAll).mockResolvedValue({
         data: [invalidUser, validUser],

@@ -152,7 +152,7 @@ export class User {
    * ```
    */
   getEmail(): string {
-    return this.email.getValue()
+    return this.email
   }
 
   /**

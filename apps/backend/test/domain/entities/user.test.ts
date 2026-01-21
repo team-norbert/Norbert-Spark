@@ -2,7 +2,7 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { User } from '../../../src/domain/entities/user.js'
-import { Email } from '../../../src/domain/value-objects/email.js'
+import { Email, type EmailType } from '../../../src/domain/value-objects/email.js'
 import { Password } from '../../../src/domain/value-objects/password.js'
 import { Role } from '../../../src/domain/value-objects/role.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
@@ -14,13 +14,13 @@ function createUserId(id?: string): UserIdType {
 }
 
 describe('User Entity', () => {
-  let testEmail: Email
+  let testEmail: EmailType
   let testPassword: Password
   let testRole: Role
   let testUser: User
 
   beforeEach(async () => {
-    testEmail = new Email('test@example.com')
+    testEmail = new Email('test@example.com').getValue()
     testPassword = await Password.create('password123')
     testRole = new Role('user')
     testUser = new User(createUserId(), testEmail, 'John Doe', testRole, testPassword)
@@ -71,7 +71,7 @@ describe('User Entity', () => {
     })
 
     it('should return normalized lowercase email', () => {
-      const upperEmail = new Email('TEST@EXAMPLE.COM')
+      const upperEmail = new Email('TEST@EXAMPLE.COM').getValue()
       const user = new User(createUserId(), upperEmail, 'Test User', testRole, testPassword)
 
       expect(user.getEmail()).toBe('test@example.com')
@@ -137,7 +137,7 @@ describe('User Entity', () => {
 
   describe('updateEmail()', () => {
     it('should update email when email is verified', () => {
-      const newEmail = new Email('newemail@example.com')
+      const newEmail = new Email('newemail@example.com').getValue()
 
       testUser.updateEmail(newEmail)
 
@@ -145,14 +145,14 @@ describe('User Entity', () => {
     })
 
     it('should accept EmailType branded type', () => {
-      const newEmail = new Email('another@example.com')
+      const newEmail = new Email('another@example.com').getValue()
 
       expect(() => testUser.updateEmail(newEmail)).not.toThrow()
       expect(testUser.getEmail()).toBe('another@example.com')
     })
 
     it('should maintain email normalization after update', () => {
-      const newEmail = new Email('  UPPERCASE@EXAMPLE.COM  ')
+      const newEmail = new Email('  UPPERCASE@EXAMPLE.COM  ').getValue()
 
       testUser.updateEmail(newEmail)
 
@@ -160,9 +160,9 @@ describe('User Entity', () => {
     })
 
     it('should handle multiple email updates', () => {
-      const email1 = new Email('first@example.com')
-      const email2 = new Email('second@example.com')
-      const email3 = new Email('third@example.com')
+      const email1 = new Email('first@example.com').getValue()
+      const email2 = new Email('second@example.com').getValue()
+      const email3 = new Email('third@example.com').getValue()
 
       testUser.updateEmail(email1)
       expect(testUser.getEmail()).toBe('first@example.com')
@@ -241,7 +241,7 @@ describe('User Entity', () => {
     it('should enforce email verification for email updates', () => {
       // Since isEmailVerified() always returns true in simplified implementation,
       // email updates should always succeed
-      const newEmail = new Email('verified@example.com')
+      const newEmail = new Email('verified@example.com').getValue()
 
       expect(() => testUser.updateEmail(newEmail)).not.toThrow()
     })
@@ -259,7 +259,7 @@ describe('User Entity', () => {
 
   describe('Type Safety', () => {
     it('should accept Email type for email parameter', () => {
-      const email = new Email('typed@example.com')
+      const email = new Email('typed@example.com').getValue()
       const user = new User(createUserId(), email, 'Test User', testRole, testPassword)
 
       expect(user.getEmail()).toBe('typed@example.com')
@@ -327,7 +327,7 @@ describe('User Entity', () => {
 
     it('should handle rapid email updates', () => {
       for (let i = 0; i < 10; i++) {
-        const email = new Email(`test${i}@example.com`)
+        const email = new Email(`test${i}@example.com`).getValue()
         testUser.updateEmail(email)
       }
 
@@ -337,7 +337,7 @@ describe('User Entity', () => {
 
   describe('Integration with Value Objects', () => {
     it('should work with Email value object normalization', () => {
-      const mixedCaseEmail = new Email('TeSt@ExAmPlE.CoM')
+      const mixedCaseEmail = new Email('TeSt@ExAmPlE.CoM').getValue()
       const user = new User(createUserId(), mixedCaseEmail, 'Test User', testRole, testPassword)
 
       expect(user.getEmail()).toBe('test@example.com')
@@ -356,8 +356,8 @@ describe('User Entity', () => {
     })
 
     it('should maintain email equality semantics', () => {
-      const email1 = new Email('same@example.com')
-      const email2 = new Email('same@example.com')
+      const email1 = new Email('same@example.com').getValue()
+      const email2 = new Email('same@example.com').getValue()
 
       const user1 = new User(createUserId(), email1, 'User 1', testRole, testPassword)
       const user2 = new User(createUserId(), email2, 'User 2', testRole, testPassword)
@@ -624,7 +624,7 @@ describe('User Entity', () => {
     it('should maintain creation date after email updates', () => {
       const originalCreatedAt = testUser.getCreatedAt()
 
-      const newEmail = new Email('newemail@example.com')
+      const newEmail = new Email('newemail@example.com').getValue()
       testUser.updateEmail(newEmail)
 
       const updatedCreatedAt = testUser.getCreatedAt()

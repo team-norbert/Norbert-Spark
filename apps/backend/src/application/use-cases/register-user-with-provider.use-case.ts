@@ -103,7 +103,7 @@ export class RegisterUserWithProviderUseCase {
     this.logger.info('Starting user registration', { email: dto.email })
 
     // Create domain objects
-    const email = new Email(dto.email)
+    const email = new Email(dto.email).getValue()
     const role = new Role(dto.role)
 
     // Create user entity without ID - PostgreSQL will generate UUIDv7 via uuidv7() function
