@@ -31,9 +31,8 @@ packages/shared/src/openapi/
 │   ├── ai_extract-data_{fileId}.json
 │   ├── ai_chats_config.json
 │   └── ai_chats_config_{id}_settings.json
-└── components/            # Reusable schemas, security schemes
-    ├── schemas/
-    └── securitySchemes/
+└── components/            # Reusable schemas
+    └── schemas/
 ```
 
 ## New Workflow
