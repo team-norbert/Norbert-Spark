@@ -71,7 +71,7 @@ describe('GetAIAdminUseCase', () => {
 
       expect(mockAiAdminPort.getAllChatAIOptions).toHaveBeenCalledTimes(1)
       expect(mockAiAdminPort.getAllChatAIOptions).toHaveBeenCalledWith(chatTypeId)
-      expect(mockLogger.info).toHaveBeenCalledWith('Executing GetAirAdminUseCase')
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing GetAIAdminUseCase')
       expect(result).toEqual(mockOptions)
     })
 
@@ -84,7 +84,7 @@ describe('GetAIAdminUseCase', () => {
 
       expect(mockAiAdminPort.getAllChatAIOptions).toHaveBeenCalledWith(chatTypeId)
       expect(result).toBeNull()
-      expect(mockLogger.info).toHaveBeenCalledWith('Executing GetAirAdminUseCase')
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing GetAIAdminUseCase')
     })
 
     it('should handle options with null values for optional fields', async () => {
@@ -303,7 +303,7 @@ describe('GetAIAdminUseCase', () => {
         'Database connection failed'
       )
 
-      expect(mockLogger.info).toHaveBeenCalledWith('Executing GetAirAdminUseCase')
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing GetAIAdminUseCase')
     })
 
     it('should not attempt audit logging if port throws error', async () => {
