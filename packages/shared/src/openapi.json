@@ -1224,6 +1224,16 @@
               }
             }
           },
+          "404": {
+            "description": "Not found - Chat configuration not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Server error",
             "content": {
