@@ -14,7 +14,7 @@ export class GetAIAdminUseCase {
   ) {}
 
   async execute(id: UUIDType, auditContext: AuditContext): Promise<DBChatAiOptions | null> {
-    this.logger.info('Executing GetAirAdminUseCase')
+    this.logger.info('Executing GetAIAdminUseCase')
 
     const result: DBChatAiOptions | null = await this.aiAdminPort.getAllChatAIOptions(id)
 
