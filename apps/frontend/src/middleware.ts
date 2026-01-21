@@ -147,12 +147,11 @@ export function extractClientIp(request: Request): string {
 
     // Find the rightmost IP that is NOT a trusted proxy
     // This represents the real client IP when behind trusted proxies
-    // Iterate from right to left
-    for (let i = ips.length - 1; i >= 0; i--) {
-      // eslint-disable-next-line security/detect-object-injection -- Safe: i is a controlled loop index
-      const ip = ips[i]
-      if (ip && !TRUSTED_PROXIES.includes(ip)) {
-        return ip
+    // Iterate from right to left - use reverse() to avoid object injection warning
+    const reversedIps = [...ips].reverse()
+    for (const currentIp of reversedIps) {
+      if (currentIp && !TRUSTED_PROXIES.includes(currentIp)) {
+        return currentIp
       }
     }
   }

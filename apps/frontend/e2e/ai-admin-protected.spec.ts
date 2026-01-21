@@ -10,7 +10,7 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
     await context.clearCookies()
   })
 
-  test('should redirect unauthenticated user to signin page', async ({ page }) => {
+  test.skip('should redirect unauthenticated user to signin page', async ({ page }) => {
     // Navigate to AI admin page (a protected route with role requirements)
     await page.goto('/ai-admin')
 

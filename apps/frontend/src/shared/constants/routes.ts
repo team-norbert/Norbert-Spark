@@ -2,7 +2,14 @@
  * Protected route patterns that require authentication
  * @constant
  */
-export const PROTECTED_ROUTES = ['/admin', '/dashboard', '/profile', '/ai', '/extract-data']
+export const PROTECTED_ROUTES = [
+  '/admin',
+  '/dashboard',
+  '/profile',
+  '/ai',
+  '/ai-admin',
+  '/extract-data',
+]
 
 /**
  * Authentication route patterns that redirect authenticated users
