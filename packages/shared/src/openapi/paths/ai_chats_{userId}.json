@@ -3,10 +3,7 @@
     "summary": "Get chat IDs for user",
     "description": "Retrieves a list of chat IDs associated with the specified user",
     "operationId": "getAIChatsByUserId",
-    "tags": [
-      "ai",
-      "chat"
-    ],
+    "tags": ["ai", "chat"],
     "security": [
       {
         "bearerAuth": []

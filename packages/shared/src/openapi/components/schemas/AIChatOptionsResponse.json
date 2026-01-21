@@ -1,10 +1,7 @@
 {
   "type": "object",
   "description": "Response returned when fetching AI chat options",
-  "required": [
-    "success",
-    "data"
-  ],
+  "required": ["success", "data"],
   "properties": {
     "success": {
       "type": "boolean",

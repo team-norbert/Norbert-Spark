@@ -3,10 +3,7 @@
     "summary": "Get specific chat AI settings by ID",
     "description": "Retrieves AI configuration settings for a specific chat type using its unique identifier",
     "operationId": "getAIChatSettingsById",
-    "tags": [
-      "ai",
-      "chat"
-    ],
+    "tags": ["ai", "chat"],
     "security": [
       {
         "bearerAuth": []
@@ -91,10 +88,7 @@
     "summary": "Update specific chat AI settings by ID",
     "description": "Updates (replaces) AI configuration settings for a specific chat type using its unique identifier. Returns 404 if the chat configuration does not exist.",
     "operationId": "putAIChatSettingsById",
-    "tags": [
-      "ai",
-      "chat"
-    ],
+    "tags": ["ai", "chat"],
     "security": [
       {
         "bearerAuth": []

@@ -3,9 +3,7 @@
     "summary": "Synchronize OAuth user data",
     "description": "Creates or updates user records for OAuth-authenticated users (Google, GitHub, etc.). This endpoint is called by the frontend NextAuth callback to ensure OAuth users are stored in the backend database for consistency with credentials users. Protected by a shared secret header to prevent unauthorized access.",
     "operationId": "oauthSync",
-    "tags": [
-      "auth"
-    ],
+    "tags": ["auth"],
     "security": [
       {
         "oauthSyncSecret": []

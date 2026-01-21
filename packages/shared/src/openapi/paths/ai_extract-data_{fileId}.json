@@ -3,10 +3,7 @@
     "summary": "Fetch data extracted from PDFs",
     "description": "Retrieves the data from the PDF file previously uploaded to bucket",
     "operationId": "extractData",
-    "tags": [
-      "ai",
-      "chat"
-    ],
+    "tags": ["ai", "chat"],
     "security": [
       {
         "bearerAuth": []

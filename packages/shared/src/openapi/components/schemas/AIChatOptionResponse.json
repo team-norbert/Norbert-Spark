@@ -1,10 +1,7 @@
 {
   "type": "object",
   "description": "Response returned when fetching a specific chat AI option configuration",
-  "required": [
-    "success",
-    "data"
-  ],
+  "required": ["success", "data"],
   "properties": {
     "success": {
       "type": "boolean",
@@ -12,13 +9,7 @@
     },
     "data": {
       "type": "object",
-      "required": [
-        "id",
-        "chatTypeId",
-        "prompt",
-        "createdAt",
-        "updatedAt"
-      ],
+      "required": ["id", "chatTypeId", "prompt", "createdAt", "updatedAt"],
       "properties": {
         "id": {
           "type": "string",
@@ -91,11 +82,7 @@
           "items": {
             "type": "string"
           },
-          "example": [
-            "###",
-            "END",
-            "\n\n\n"
-          ],
+          "example": ["###", "END", "\n\n\n"],
           "description": "Array of sequences that stop text generation"
         },
         "seed": {

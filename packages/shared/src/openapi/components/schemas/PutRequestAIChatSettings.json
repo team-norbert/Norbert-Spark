@@ -1,8 +1,6 @@
 {
   "type": "object",
-  "required": [
-    "prompt"
-  ],
+  "required": ["prompt"],
   "properties": {
     "prompt": {
       "type": "string",
@@ -63,11 +61,7 @@
       "items": {
         "type": "string"
       },
-      "example": [
-        "###",
-        "END",
-        "\n\n\n"
-      ],
+      "example": ["###", "END", "\n\n\n"],
       "description": "Array of sequences that stop text generation"
     },
     "seed": {

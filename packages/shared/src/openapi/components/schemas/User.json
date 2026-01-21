@@ -1,13 +1,7 @@
 {
   "type": "object",
   "description": "User profile information",
-  "required": [
-    "id",
-    "email",
-    "name",
-    "role",
-    "createdAt"
-  ],
+  "required": ["id", "email", "name", "role", "createdAt"],
   "properties": {
     "id": {
       "type": "string",
@@ -25,11 +19,7 @@
     },
     "role": {
       "type": "string",
-      "enum": [
-        "user",
-        "admin",
-        "moderator"
-      ],
+      "enum": ["user", "admin", "moderator"],
       "example": "user",
       "description": "User's role in the system"
     },
