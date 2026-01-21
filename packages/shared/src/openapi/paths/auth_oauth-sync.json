@@ -1,0 +1,89 @@
+{
+  "post": {
+    "summary": "Synchronize OAuth user data",
+    "description": "Creates or updates user records for OAuth-authenticated users (Google, GitHub, etc.). This endpoint is called by the frontend NextAuth callback to ensure OAuth users are stored in the backend database for consistency with credentials users. Protected by a shared secret header to prevent unauthorized access.",
+    "operationId": "oauthSync",
+    "tags": ["auth"],
+    "security": [
+      {
+        "oauthSyncSecret": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/OAuthSyncRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "OAuth user sync completed successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/OAuthSyncResponse.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request data - validation failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "examples": {
+              "missingProvider": {
+                "summary": "Missing provider field",
+                "value": {
+                  "success": false,
+                  "error": "Provider is required and must be a non-empty string"
+                }
+              },
+              "invalidEmail": {
+                "summary": "Invalid email format",
+                "value": {
+                  "success": false,
+                  "error": "Email must be a valid email address"
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - invalid or missing shared secret",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Unauthorized access to OAuth sync endpoint"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "OAuth sync failed"
+            }
+          }
+        }
+      }
+    }
+  }
+}

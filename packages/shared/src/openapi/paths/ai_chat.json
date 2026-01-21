@@ -1,0 +1,127 @@
+{
+  "post": {
+    "summary": "Get AI-generated response",
+    "description": "Sends a prompt to the AI service and retrieves the generated response",
+    "operationId": "getAIResponse",
+    "tags": ["ai"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/AIRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "AI response stream using Server-Sent Events (SSE)",
+        "content": {
+          "text/event-stream": {
+            "schema": {
+              "type": "string",
+              "format": "event-stream",
+              "description": "Server-Sent Events (SSE) stream following the AI SDK stream protocol. Each line starts with 'data: ' followed by a JSON object. The stream includes various event types: start, text-delta (incremental text chunks), tool calls, finish, etc. Stream ends with 'data: [DONE]'. Full protocol: https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol"
+            },
+            "examples": {
+              "simpleTextResponse": {
+                "summary": "Simple text response",
+                "description": "Basic streaming response with text only",
+                "value": "data: {\"type\":\"start\"}\n\ndata: {\"type\":\"start-step\"}\n\ndata: {\"type\":\"text-start\",\"id\":\"0\"}\n\ndata: {\"type\":\"text-delta\",\"id\":\"0\",\"delta\":\"Hello\"}\n\ndata: {\"type\":\"text-delta\",\"id\":\"0\",\"delta\":\" world\"}\n\ndata: {\"type\":\"text-delta\",\"id\":\"0\",\"delta\":\"!\"}\n\ndata: {\"type\":\"text-end\",\"id\":\"0\"}\n\ndata: {\"type\":\"finish-step\"}\n\ndata: {\"type\":\"finish\",\"finishReason\":\"stop\"}\n\ndata: [DONE]"
+              },
+              "responseWithToolCall": {
+                "summary": "Response with tool invocation",
+                "description": "Streaming response that includes an AI tool call and subsequent response",
+                "value": "data: {\"type\":\"start\"}\n\ndata: {\"type\":\"start-step\"}\n\ndata: {\"type\":\"text-start\",\"id\":\"0\"}\n\ndata: {\"type\":\"text-delta\",\"id\":\"0\",\"delta\":\"Let me check that for you\"}\n\ndata: {\"type\":\"text-end\",\"id\":\"0\"}\n\ndata: {\"type\":\"tool-input-start\",\"toolCallId\":\"abc123\",\"toolName\":\"myTool\"}\n\ndata: {\"type\":\"tool-input-delta\",\"toolCallId\":\"abc123\",\"inputTextDelta\":\"{\\\"param\\\":\\\"value\\\"}\"}\n\ndata: {\"type\":\"tool-input-available\",\"toolCallId\":\"abc123\",\"toolName\":\"myTool\",\"input\":{\"param\":\"value\"}}\n\ndata: {\"type\":\"tool-output-available\",\"toolCallId\":\"abc123\",\"output\":{\"result\":\"data\"}}\n\ndata: {\"type\":\"finish-step\"}\n\ndata: {\"type\":\"start-step\"}\n\ndata: {\"type\":\"text-start\",\"id\":\"1\"}\n\ndata: {\"type\":\"text-delta\",\"id\":\"1\",\"delta\":\"Based on the result...\"}\n\ndata: {\"type\":\"text-end\",\"id\":\"1\"}\n\ndata: {\"type\":\"finish-step\"}\n\ndata: {\"type\":\"finish\",\"finishReason\":\"stop\"}\n\ndata: [DONE]"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "examples": {
+              "missingFields": {
+                "summary": "Missing required fields",
+                "value": {
+                  "success": false,
+                  "error": "Invalid request body",
+                  "details": "id and trigger are required"
+                }
+              },
+              "invalidIdFormat": {
+                "summary": "Invalid chat ID format",
+                "value": {
+                  "success": false,
+                  "error": "Invalid id format",
+                  "details": "incorrect ChatId format"
+                }
+              },
+              "invalidMessages": {
+                "summary": "Invalid messages format",
+                "value": {
+                  "success": false,
+                  "error": "Invalid request body",
+                  "details": "validation error message"
+                }
+              },
+              "noMessages": {
+                "summary": "No messages provided",
+                "value": {
+                  "success": false,
+                  "error": "No messages provided"
+                }
+              },
+              "lastMessageNotUser": {
+                "summary": "Last message not from user",
+                "value": {
+                  "success": false,
+                  "error": "Last message must be from the user"
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - Missing or invalid authentication token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "User not authenticated"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "AI service configuration error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

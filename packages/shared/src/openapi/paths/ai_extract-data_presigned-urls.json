@@ -1,0 +1,129 @@
+{
+  "post": {
+    "summary": "Generate presigned URLs for direct R2 upload",
+    "description": "Accepts file metadata (filename and mimetype) and returns presigned URLs for direct upload to Cloudflare R2 storage. The client can then use these URLs to upload files directly without going through the backend.",
+    "operationId": "generatePresignedUrls",
+    "tags": ["ai", "data"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "files": {
+                "type": "array",
+                "description": "Array of file metadata objects",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "filename": {
+                      "type": "string",
+                      "description": "Name of the file",
+                      "example": "document.pdf"
+                    },
+                    "mimetype": {
+                      "type": "string",
+                      "description": "MIME type of the file",
+                      "example": "application/pdf"
+                    }
+                  },
+                  "required": ["filename", "mimetype"]
+                }
+              }
+            },
+            "required": ["files"]
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Presigned URLs generated successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "uploadUrls": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "filename": {
+                            "type": "string",
+                            "description": "Original filename",
+                            "example": "document.pdf"
+                          },
+                          "uploadUrl": {
+                            "type": "string",
+                            "description": "Presigned URL for direct upload to R2",
+                            "example": "https://r2.example.com/bucket/data-extraction/uuid/document.pdf?signature=..."
+                          },
+                          "fileKey": {
+                            "type": "string",
+                            "description": "Storage key for the file in R2",
+                            "example": "data-extraction/01HXYZ123/document.pdf"
+                          }
+                        },
+                        "required": ["filename", "uploadUrl", "fileKey"]
+                      }
+                    }
+                  },
+                  "required": ["uploadUrls"]
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Presigned URLs generated successfully"
+                }
+              },
+              "required": ["success", "data"]
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - Missing or invalid authentication token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "422": {
+        "description": "Unprocessable Entity - Invalid file type or missing file metadata",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

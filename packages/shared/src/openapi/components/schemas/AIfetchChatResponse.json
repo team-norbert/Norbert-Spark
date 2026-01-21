@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "description": "Response returned when fetching a chat",
+  "required": ["success", "data"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "example": true
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

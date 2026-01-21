@@ -1,0 +1,51 @@
+{
+  "post": {
+    "summary": "Register a new user",
+    "description": "Creates a new user account",
+    "operationId": "registerUser",
+    "tags": ["users"],
+    "security": [],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/RegisterUserRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "User successfully registered",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/RegisterUserResponse.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "User already exists",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

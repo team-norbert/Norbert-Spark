@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "description": "User profile information",
+  "required": ["id", "email", "name", "role", "createdAt"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "example": "john.doe@example.com"
+    },
+    "name": {
+      "type": "string",
+      "example": "John Doe"
+    },
+    "role": {
+      "type": "string",
+      "enum": ["user", "admin", "moderator"],
+      "example": "user",
+      "description": "User's role in the system"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2035-01-01T00:00:00.000Z"
+    }
+  }
+}

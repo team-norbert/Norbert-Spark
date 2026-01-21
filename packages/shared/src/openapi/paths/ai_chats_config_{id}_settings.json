@@ -1,0 +1,179 @@
+{
+  "get": {
+    "summary": "Get specific chat AI settings by ID",
+    "description": "Retrieves AI configuration settings for a specific chat type using its unique identifier",
+    "operationId": "getAIChatSettingsById",
+    "tags": ["ai", "chat"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "The unique identifier for the chat option",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Chat option retrieved successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/AIChatOptionResponse.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Bad Request - Invalid UUID format",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - Insufficient permissions",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Not Found - Chat option does not exist",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      }
+    }
+  },
+  "put": {
+    "summary": "Update specific chat AI settings by ID",
+    "description": "Updates (replaces) AI configuration settings for a specific chat type using its unique identifier. Returns 404 if the chat configuration does not exist.",
+    "operationId": "putAIChatSettingsById",
+    "tags": ["ai", "chat"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "The unique identifier for the chat option",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/PutRequestAIChatSettings.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "204": {
+        "description": "AI chat settings successfully updated"
+      },
+      "400": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - Insufficient permissions",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Not found - Chat configuration not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Internal server error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "description": "Response returned after successful user authentication",
+  "required": ["success", "data"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "example": true
+    },
+    "data": {
+      "type": "object",
+      "description": "Authentication result data",
+      "required": ["userId", "email", "access_token", "roles"],
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uuid",
+          "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a",
+          "description": "The authenticated user's unique identifier"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "john.doe@example.com",
+          "description": "The authenticated user's email address"
+        },
+        "access_token": {
+          "type": "string",
+          "description": "JWT access token for authenticated requests",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        },
+        "roles": {
+          "type": "array",
+          "description": "User's assigned roles",
+          "items": {
+            "type": "string",
+            "enum": ["user", "admin", "moderator"]
+          },
+          "example": ["user"]
+        }
+      }
+    }
+  }
+}

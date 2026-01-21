@@ -148,7 +148,11 @@
         "description": "Retrieves a user's profile information",
         "operationId": "getUserById",
         "tags": ["users"],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
@@ -192,7 +196,11 @@
         "description": "Retrieves all users in date order. Requires authentication with admin or moderator role.",
         "operationId": "getAllUsers",
         "tags": ["users"],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Users found",
@@ -234,7 +242,11 @@
         "description": "Deletes multiple user accounts by their IDs. Requires authentication with admin role.",
         "operationId": "deleteUsers",
         "tags": ["users"],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -405,7 +417,11 @@
         "description": "Creates or updates user records for OAuth-authenticated users (Google, GitHub, etc.). This endpoint is called by the frontend NextAuth callback to ensure OAuth users are stored in the backend database for consistency with credentials users. Protected by a shared secret header to prevent unauthorized access.",
         "operationId": "oauthSync",
         "tags": ["auth"],
-        "security": [{ "oauthSyncSecret": [] }],
+        "security": [
+          {
+            "oauthSyncSecret": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -490,7 +506,11 @@
         "description": "Sends a prompt to the AI service and retrieves the generated response",
         "operationId": "getAIResponse",
         "tags": ["ai"],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -613,7 +633,11 @@
         "description": "Retrieves a list of chat IDs associated with the specified user",
         "operationId": "getAIChatsByUserId",
         "tags": ["ai", "chat"],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "userId",
@@ -715,14 +739,21 @@
         "description": "Retrieves the chat object for the specified chatId",
         "operationId": "getAIFetchChatByChatId",
         "tags": ["ai", "chat"],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "chatId",
             "in": "path",
             "required": true,
             "description": "The chat's unique identifier",
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -813,7 +844,11 @@
         "description": "Accepts file metadata (filename and mimetype) and returns presigned URLs for direct upload to Cloudflare R2 storage. The client can then use these URLs to upload files directly without going through the backend.",
         "operationId": "generatePresignedUrls",
         "tags": ["ai", "data"],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -855,7 +890,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -935,14 +973,21 @@
         "description": "Retrieves the data from the PDF file previously uploaded to bucket",
         "operationId": "extractData",
         "tags": ["ai", "chat"],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "fileId",
             "in": "path",
             "required": true,
             "description": "The unique identifier for the file in the bucket",
-            "schema": { "type": "string", "format": "string" }
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
           }
         ],
         "responses": {
@@ -1022,7 +1067,11 @@
         "description": "Retrieves all available chat types with their details and SEO-friendly identifiers",
         "operationId": "getAIChatDetails",
         "tags": ["ai", "chat"],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Chat options retrieved successfully",
@@ -1085,14 +1134,21 @@
         "description": "Retrieves AI configuration settings for a specific chat type using its unique identifier",
         "operationId": "getAIChatSettingsById",
         "tags": ["ai", "chat"],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "description": "The unique identifier for the chat option",
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -1163,14 +1219,21 @@
         "description": "Updates (replaces) AI configuration settings for a specific chat type using its unique identifier. Returns 404 if the chat configuration does not exist.",
         "operationId": "putAIChatSettingsById",
         "tags": ["ai", "chat"],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "description": "The unique identifier for the chat option",
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "requestBody": {
@@ -1246,7 +1309,133 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token for authenticated requests"
+      },
+      "oauthSyncSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-OAuth-Sync-Secret",
+        "description": "Shared secret for OAuth sync endpoint authentication. Must match OAUTH_SYNC_SECRET environment variable."
+      }
+    },
     "schemas": {
+      "RegisterUserRequest": {
+        "type": "object",
+        "description": "Request payload for registering a new user",
+        "required": ["email", "password", "name"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com",
+            "description": "User's email address"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 12,
+            "example": "SecurePass123!",
+            "description": "User's password (minimum 12 characters)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "example": "John Doe",
+            "description": "User's full name"
+          }
+        }
+      },
+      "RegisterUserResponse": {
+        "type": "object",
+        "description": "Response returned after successful user registration",
+        "required": ["success", "data"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "object",
+            "description": "Registration result data",
+            "required": ["userId", "access_token"],
+            "properties": {
+              "userId": {
+                "type": "string",
+                "format": "uuid",
+                "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
+              },
+              "access_token": {
+                "type": "string",
+                "description": "JWT access token",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              },
+              "token_type": {
+                "type": "string",
+                "description": "Type of the token",
+                "example": "Bearer"
+              },
+              "expires_in": {
+                "type": "integer",
+                "description": "How long the user token lasts for",
+                "example": 3600
+              }
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "description": "Standard error response object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "example": "Invalid request data"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "description": "User profile information",
+        "required": ["id", "email", "name", "role", "createdAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "admin", "moderator"],
+            "example": "user",
+            "description": "User's role in the system"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2035-01-01T00:00:00.000Z"
+          }
+        }
+      },
       "UserLoginRequest": {
         "type": "object",
         "description": "Request payload for user authentication",
@@ -1355,92 +1544,6 @@
           }
         }
       },
-      "RegisterUserRequest": {
-        "type": "object",
-        "description": "Request payload for registering a new user",
-        "required": ["email", "password", "name"],
-        "properties": {
-          "email": {
-            "type": "string",
-            "format": "email",
-            "example": "john.doe@example.com",
-            "description": "User's email address"
-          },
-          "password": {
-            "type": "string",
-            "format": "password",
-            "minLength": 12,
-            "example": "SecurePass123!",
-            "description": "User's password (minimum 12 characters)"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 2,
-            "maxLength": 100,
-            "example": "John Doe",
-            "description": "User's full name"
-          }
-        }
-      },
-      "RegisterUserResponse": {
-        "type": "object",
-        "description": "Response returned after successful user registration",
-        "required": ["success", "data"],
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "data": {
-            "type": "object",
-            "description": "Registration result data",
-            "required": ["userId", "access_token"],
-            "properties": {
-              "userId": {
-                "type": "string",
-                "format": "uuid",
-                "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
-              },
-              "access_token": {
-                "type": "string",
-                "description": "JWT access token",
-                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-              },
-              "token_type": {
-                "type": "string",
-                "description": "Type of the token",
-                "example": "Bearer"
-              },
-              "expires_in": {
-                "type": "integer",
-                "description": "How long the user token lasts for",
-                "example": 3600
-              }
-            }
-          }
-        }
-      },
-      "AIUserIdResponse": {
-        "type": "object",
-        "description": "Structured response containing array of chat IDs for a user",
-        "required": ["success", "data"],
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "description": "Indicates if the request was successful",
-            "example": true
-          },
-          "data": {
-            "type": "array",
-            "description": "Array of UUID strings for previous AI chats",
-            "items": {
-              "type": "string",
-              "format": "uuid",
-              "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
-            }
-          }
-        }
-      },
       "AIRequest": {
         "type": "object",
         "description": "AI-generated response object",
@@ -1495,50 +1598,24 @@
           }
         }
       },
-      "User": {
+      "AIUserIdResponse": {
         "type": "object",
-        "description": "User profile information",
-        "required": ["id", "email", "name", "role", "createdAt"],
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "example": "john.doe@example.com"
-          },
-          "name": {
-            "type": "string",
-            "example": "John Doe"
-          },
-          "role": {
-            "type": "string",
-            "enum": ["user", "admin", "moderator"],
-            "example": "user",
-            "description": "User's role in the system"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2035-01-01T00:00:00.000Z"
-          }
-        }
-      },
-      "Error": {
-        "type": "object",
-        "description": "Standard error response object",
-        "required": ["success", "error"],
+        "description": "Structured response containing array of chat IDs for a user",
+        "required": ["success", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "example": false
+            "description": "Indicates if the request was successful",
+            "example": true
           },
-          "error": {
-            "type": "string",
-            "example": "Invalid request data"
+          "data": {
+            "type": "array",
+            "description": "Array of UUID strings for previous AI chats",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
+            }
           }
         }
       },
@@ -1547,7 +1624,10 @@
         "description": "Response returned when fetching a chat",
         "required": ["success", "data"],
         "properties": {
-          "success": { "type": "boolean", "example": true },
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
           "data": {
             "type": "object",
             "properties": {
@@ -1556,7 +1636,12 @@
                 "format": "uuid",
                 "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
               },
-              "messages": { "type": "array", "items": { "type": "object" } }
+              "messages": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
             }
           }
         }
@@ -1566,7 +1651,10 @@
         "description": "Response returned when fetching AI chat options",
         "required": ["success", "data"],
         "properties": {
-          "success": { "type": "boolean", "example": true },
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
           "data": {
             "type": "array",
             "items": {
@@ -1632,7 +1720,10 @@
         "description": "Response returned when fetching a specific chat AI option configuration",
         "required": ["success", "data"],
         "properties": {
-          "success": { "type": "boolean", "example": true },
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
           "data": {
             "type": "object",
             "required": ["id", "chatTypeId", "prompt", "createdAt", "updatedAt"],
@@ -1826,20 +1917,6 @@
             "description": "Maximum number of retries for transient errors"
           }
         }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "description": "JWT token for authenticated requests"
-      },
-      "oauthSyncSecret": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-OAuth-Sync-Secret",
-        "description": "Shared secret for OAuth sync endpoint authentication. Must match OAUTH_SYNC_SECRET environment variable."
       }
     }
   }

@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "description": "Request payload for registering a new user",
+  "required": ["email", "password", "name"],
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "example": "john.doe@example.com",
+      "description": "User's email address"
+    },
+    "password": {
+      "type": "string",
+      "format": "password",
+      "minLength": 12,
+      "example": "SecurePass123!",
+      "description": "User's password (minimum 12 characters)"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 100,
+      "example": "John Doe",
+      "description": "User's full name"
+    }
+  }
+}

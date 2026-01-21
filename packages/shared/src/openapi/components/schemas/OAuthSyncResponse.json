@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "description": "Response returned after successful OAuth user synchronization",
+  "required": ["success", "message"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "example": true
+    },
+    "message": {
+      "type": "string",
+      "example": "OAuth user sync completed",
+      "description": "Success message confirming the sync operation"
+    }
+  }
+}
