@@ -303,7 +303,7 @@ describe('GetAIAdminUseCase', () => {
         'Database connection failed'
       )
 
-      expect(mockLogger.info).toHaveBeenCalledWith('Executing GetAirAdminUseCase')
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing GetAIAdminUseCase')
     })
 
     it('should not attempt audit logging if port throws error', async () => {
