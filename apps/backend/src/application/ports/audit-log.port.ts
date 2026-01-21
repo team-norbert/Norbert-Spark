@@ -2,6 +2,7 @@ import { AuditLog } from '../../domain/audit/audit-log.entity.js'
 import { EntityType } from '../../domain/audit/entity-type.enum.js'
 import { AuditAction } from '../../domain/audit/entity-type.enum.js'
 import type { AuditChanges } from '../../domain/audit/audit-changes.types.js'
+import type { UUIDType } from '../../domain/value-objects/uuid.js'
 
 export interface AuditLogPort {
   /**
@@ -28,7 +29,7 @@ export interface AuditLogPort {
 export interface CreateAuditLogDTO {
   userId: string | null
   entityType: EntityType
-  entityId: string | null
+  entityId: string | null | UUIDType
   action: AuditAction
   changes?: AuditChanges
   ipAddress?: string
