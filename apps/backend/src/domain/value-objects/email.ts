@@ -43,7 +43,7 @@ function brandEmail<T extends string>(value: string): EmailType<T> {
  * const emailValue: EmailType = email.getValue()
  *
  * @example
- * const email1 = new Email('test@example.com').
+ * const email1 = new Email('test@example.com')
  * const email2 = new Email('TEST@EXAMPLE.COM')
  * email1.equals(email2) // true (case-insensitive comparison)
  */
