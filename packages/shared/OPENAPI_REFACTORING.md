@@ -69,7 +69,7 @@ packages/shared/src/openapi/
 
 ## Tools Added
 
-- `@redocly/openapi-cli@1.0.0-beta.95` - For bundling/splitting OpenAPI specs
+- `@redocly/cli@^2.14.3` - For bundling/splitting OpenAPI specs
 - `js-yaml@^4.1.1` - For YAML parsing (supporting future YAML conversion if needed)
 
 ## Verification
