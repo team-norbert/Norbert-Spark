@@ -63,9 +63,7 @@
         "summary": "Health check",
         "description": "Returns the current health status of the API",
         "operationId": "getHealth",
-        "tags": [
-          "health"
-        ],
+        "tags": ["health"],
         "responses": {
           "200": {
             "description": "Service is healthy",
@@ -76,11 +74,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "ok",
-                        "degraded",
-                        "down"
-                      ],
+                      "enum": ["ok", "degraded", "down"],
                       "example": "ok"
                     },
                     "timestamp": {
@@ -89,10 +83,7 @@
                       "example": "2035-01-01T00:00:00.000Z"
                     }
                   },
-                  "required": [
-                    "status",
-                    "timestamp"
-                  ]
+                  "required": ["status", "timestamp"]
                 }
               }
             }
@@ -105,9 +96,7 @@
         "summary": "Register a new user",
         "description": "Creates a new user account",
         "operationId": "registerUser",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "security": [],
         "requestBody": {
           "required": true,
@@ -158,9 +147,7 @@
         "summary": "Get user by ID",
         "description": "Retrieves a user's profile information",
         "operationId": "getUserById",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "security": [
           {
             "bearerAuth": []
@@ -208,9 +195,7 @@
         "summary": "Get all users",
         "description": "Retrieves all users in date order. Requires authentication with admin or moderator role.",
         "operationId": "getAllUsers",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "security": [
           {
             "bearerAuth": []
@@ -256,9 +241,7 @@
         "summary": "Delete users",
         "description": "Deletes multiple user accounts by their IDs. Requires authentication with admin role.",
         "operationId": "deleteUsers",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "security": [
           {
             "bearerAuth": []
@@ -280,14 +263,10 @@
                     "minItems": 1,
                     "maxItems": 10,
                     "description": "Array of user IDs to delete (1-10 items)",
-                    "example": [
-                      "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
-                    ]
+                    "example": ["01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"]
                   }
                 },
-                "required": [
-                  "userIds"
-                ]
+                "required": ["userIds"]
               }
             }
           }
@@ -309,10 +288,7 @@
                       "example": "Users deleted successfully"
                     }
                   },
-                  "required": [
-                    "success",
-                    "message"
-                  ]
+                  "required": ["success", "message"]
                 }
               }
             }
@@ -375,9 +351,7 @@
         "summary": "Authenticate a user",
         "description": "Authenticates a user and returns a JWT access token",
         "operationId": "loginUser",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "security": [],
         "requestBody": {
           "required": true,
@@ -442,9 +416,7 @@
         "summary": "Synchronize OAuth user data",
         "description": "Creates or updates user records for OAuth-authenticated users (Google, GitHub, etc.). This endpoint is called by the frontend NextAuth callback to ensure OAuth users are stored in the backend database for consistency with credentials users. Protected by a shared secret header to prevent unauthorized access.",
         "operationId": "oauthSync",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "security": [
           {
             "oauthSyncSecret": []
@@ -533,9 +505,7 @@
         "summary": "Get AI-generated response",
         "description": "Sends a prompt to the AI service and retrieves the generated response",
         "operationId": "getAIResponse",
-        "tags": [
-          "ai"
-        ],
+        "tags": ["ai"],
         "security": [
           {
             "bearerAuth": []
@@ -662,10 +632,7 @@
         "summary": "Get chat IDs for user",
         "description": "Retrieves a list of chat IDs associated with the specified user",
         "operationId": "getAIChatsByUserId",
-        "tags": [
-          "ai",
-          "chat"
-        ],
+        "tags": ["ai", "chat"],
         "security": [
           {
             "bearerAuth": []
@@ -771,10 +738,7 @@
         "summary": "Fetch chat by chatId",
         "description": "Retrieves the chat object for the specified chatId",
         "operationId": "getAIFetchChatByChatId",
-        "tags": [
-          "ai",
-          "chat"
-        ],
+        "tags": ["ai", "chat"],
         "security": [
           {
             "bearerAuth": []
@@ -879,10 +843,7 @@
         "summary": "Generate presigned URLs for direct R2 upload",
         "description": "Accepts file metadata (filename and mimetype) and returns presigned URLs for direct upload to Cloudflare R2 storage. The client can then use these URLs to upload files directly without going through the backend.",
         "operationId": "generatePresignedUrls",
-        "tags": [
-          "ai",
-          "data"
-        ],
+        "tags": ["ai", "data"],
         "security": [
           {
             "bearerAuth": []
@@ -912,16 +873,11 @@
                           "example": "application/pdf"
                         }
                       },
-                      "required": [
-                        "filename",
-                        "mimetype"
-                      ]
+                      "required": ["filename", "mimetype"]
                     }
                   }
                 },
-                "required": [
-                  "files"
-                ]
+                "required": ["files"]
               }
             }
           }
@@ -962,27 +918,18 @@
                                 "example": "data-extraction/01HXYZ123/document.pdf"
                               }
                             },
-                            "required": [
-                              "filename",
-                              "uploadUrl",
-                              "fileKey"
-                            ]
+                            "required": ["filename", "uploadUrl", "fileKey"]
                           }
                         }
                       },
-                      "required": [
-                        "uploadUrls"
-                      ]
+                      "required": ["uploadUrls"]
                     },
                     "message": {
                       "type": "string",
                       "example": "Presigned URLs generated successfully"
                     }
                   },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
+                  "required": ["success", "data"]
                 }
               }
             }
@@ -1025,10 +972,7 @@
         "summary": "Fetch data extracted from PDFs",
         "description": "Retrieves the data from the PDF file previously uploaded to bucket",
         "operationId": "extractData",
-        "tags": [
-          "ai",
-          "chat"
-        ],
+        "tags": ["ai", "chat"],
         "security": [
           {
             "bearerAuth": []
@@ -1122,10 +1066,7 @@
         "summary": "Get chat AI configuration",
         "description": "Retrieves all available chat types with their details and SEO-friendly identifiers",
         "operationId": "getAIChatDetails",
-        "tags": [
-          "ai",
-          "chat"
-        ],
+        "tags": ["ai", "chat"],
         "security": [
           {
             "bearerAuth": []
@@ -1192,10 +1133,7 @@
         "summary": "Get specific chat AI settings by ID",
         "description": "Retrieves AI configuration settings for a specific chat type using its unique identifier",
         "operationId": "getAIChatSettingsById",
-        "tags": [
-          "ai",
-          "chat"
-        ],
+        "tags": ["ai", "chat"],
         "security": [
           {
             "bearerAuth": []
@@ -1280,10 +1218,7 @@
         "summary": "Update specific chat AI settings by ID",
         "description": "Updates (replaces) AI configuration settings for a specific chat type using its unique identifier. Returns 404 if the chat configuration does not exist.",
         "operationId": "putAIChatSettingsById",
-        "tags": [
-          "ai",
-          "chat"
-        ],
+        "tags": ["ai", "chat"],
         "security": [
           {
             "bearerAuth": []
@@ -1392,11 +1327,7 @@
       "RegisterUserRequest": {
         "type": "object",
         "description": "Request payload for registering a new user",
-        "required": [
-          "email",
-          "password",
-          "name"
-        ],
+        "required": ["email", "password", "name"],
         "properties": {
           "email": {
             "type": "string",
@@ -1423,10 +1354,7 @@
       "RegisterUserResponse": {
         "type": "object",
         "description": "Response returned after successful user registration",
-        "required": [
-          "success",
-          "data"
-        ],
+        "required": ["success", "data"],
         "properties": {
           "success": {
             "type": "boolean",
@@ -1435,10 +1363,7 @@
           "data": {
             "type": "object",
             "description": "Registration result data",
-            "required": [
-              "userId",
-              "access_token"
-            ],
+            "required": ["userId", "access_token"],
             "properties": {
               "userId": {
                 "type": "string",
@@ -1467,10 +1392,7 @@
       "Error": {
         "type": "object",
         "description": "Standard error response object",
-        "required": [
-          "success",
-          "error"
-        ],
+        "required": ["success", "error"],
         "properties": {
           "success": {
             "type": "boolean",
@@ -1485,13 +1407,7 @@
       "User": {
         "type": "object",
         "description": "User profile information",
-        "required": [
-          "id",
-          "email",
-          "name",
-          "role",
-          "createdAt"
-        ],
+        "required": ["id", "email", "name", "role", "createdAt"],
         "properties": {
           "id": {
             "type": "string",
@@ -1509,11 +1425,7 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "user",
-              "admin",
-              "moderator"
-            ],
+            "enum": ["user", "admin", "moderator"],
             "example": "user",
             "description": "User's role in the system"
           },
@@ -1527,10 +1439,7 @@
       "UserLoginRequest": {
         "type": "object",
         "description": "Request payload for user authentication",
-        "required": [
-          "email",
-          "password"
-        ],
+        "required": ["email", "password"],
         "properties": {
           "email": {
             "type": "string",
@@ -1550,10 +1459,7 @@
       "UserLoginResponse": {
         "type": "object",
         "description": "Response returned after successful user authentication",
-        "required": [
-          "success",
-          "data"
-        ],
+        "required": ["success", "data"],
         "properties": {
           "success": {
             "type": "boolean",
@@ -1562,12 +1468,7 @@
           "data": {
             "type": "object",
             "description": "Authentication result data",
-            "required": [
-              "userId",
-              "email",
-              "access_token",
-              "roles"
-            ],
+            "required": ["userId", "email", "access_token", "roles"],
             "properties": {
               "userId": {
                 "type": "string",
@@ -1591,15 +1492,9 @@
                 "description": "User's assigned roles",
                 "items": {
                   "type": "string",
-                  "enum": [
-                    "user",
-                    "admin",
-                    "moderator"
-                  ]
+                  "enum": ["user", "admin", "moderator"]
                 },
-                "example": [
-                  "user"
-                ]
+                "example": ["user"]
               }
             }
           }
@@ -1608,11 +1503,7 @@
       "OAuthSyncRequest": {
         "type": "object",
         "description": "Request payload for OAuth user synchronization",
-        "required": [
-          "provider",
-          "providerId",
-          "email"
-        ],
+        "required": ["provider", "providerId", "email"],
         "properties": {
           "provider": {
             "type": "string",
@@ -1640,10 +1531,7 @@
       "OAuthSyncResponse": {
         "type": "object",
         "description": "Response returned after successful OAuth user synchronization",
-        "required": [
-          "success",
-          "message"
-        ],
+        "required": ["success", "message"],
         "properties": {
           "success": {
             "type": "boolean",
@@ -1659,11 +1547,7 @@
       "AIRequest": {
         "type": "object",
         "description": "AI-generated response object",
-        "required": [
-          "id",
-          "messages",
-          "trigger"
-        ],
+        "required": ["id", "messages", "trigger"],
         "properties": {
           "id": {
             "type": "string",
@@ -1674,11 +1558,7 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": [
-                "id",
-                "role",
-                "parts"
-              ],
+              "required": ["id", "role", "parts"],
               "properties": {
                 "id": {
                   "type": "string",
@@ -1686,34 +1566,24 @@
                 },
                 "role": {
                   "type": "string",
-                  "enum": [
-                    "user",
-                    "assistant"
-                  ]
+                  "enum": ["user", "assistant"]
                 },
                 "parts": {
                   "type": "array",
                   "items": {
                     "type": "object",
-                    "required": [
-                      "type"
-                    ],
+                    "required": ["type"],
                     "properties": {
                       "type": {
                         "type": "string",
-                        "enum": [
-                          "text",
-                          "step-start"
-                        ]
+                        "enum": ["text", "step-start"]
                       },
                       "text": {
                         "type": "string"
                       },
                       "state": {
                         "type": "string",
-                        "enum": [
-                          "done"
-                        ]
+                        "enum": ["done"]
                       }
                     }
                   }
@@ -1731,10 +1601,7 @@
       "AIUserIdResponse": {
         "type": "object",
         "description": "Structured response containing array of chat IDs for a user",
-        "required": [
-          "success",
-          "data"
-        ],
+        "required": ["success", "data"],
         "properties": {
           "success": {
             "type": "boolean",
@@ -1755,10 +1622,7 @@
       "AIfetchChatResponse": {
         "type": "object",
         "description": "Response returned when fetching a chat",
-        "required": [
-          "success",
-          "data"
-        ],
+        "required": ["success", "data"],
         "properties": {
           "success": {
             "type": "boolean",
@@ -1785,10 +1649,7 @@
       "AIChatOptionsResponse": {
         "type": "object",
         "description": "Response returned when fetching AI chat options",
-        "required": [
-          "success",
-          "data"
-        ],
+        "required": ["success", "data"],
         "properties": {
           "success": {
             "type": "boolean",
@@ -1857,10 +1718,7 @@
       "AIChatOptionResponse": {
         "type": "object",
         "description": "Response returned when fetching a specific chat AI option configuration",
-        "required": [
-          "success",
-          "data"
-        ],
+        "required": ["success", "data"],
         "properties": {
           "success": {
             "type": "boolean",
@@ -1868,13 +1726,7 @@
           },
           "data": {
             "type": "object",
-            "required": [
-              "id",
-              "chatTypeId",
-              "prompt",
-              "createdAt",
-              "updatedAt"
-            ],
+            "required": ["id", "chatTypeId", "prompt", "createdAt", "updatedAt"],
             "properties": {
               "id": {
                 "type": "string",
@@ -1947,11 +1799,7 @@
                 "items": {
                   "type": "string"
                 },
-                "example": [
-                  "###",
-                  "END",
-                  "\n\n\n"
-                ],
+                "example": ["###", "END", "\n\n\n"],
                 "description": "Array of sequences that stop text generation"
               },
               "seed": {
@@ -1988,9 +1836,7 @@
       },
       "PutRequestAIChatSettings": {
         "type": "object",
-        "required": [
-          "prompt"
-        ],
+        "required": ["prompt"],
         "properties": {
           "prompt": {
             "type": "string",
@@ -2051,11 +1897,7 @@
             "items": {
               "type": "string"
             },
-            "example": [
-              "###",
-              "END",
-              "\n\n\n"
-            ],
+            "example": ["###", "END", "\n\n\n"],
             "description": "Array of sequences that stop text generation"
           },
           "seed": {
