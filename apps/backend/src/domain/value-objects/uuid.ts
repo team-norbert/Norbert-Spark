@@ -39,7 +39,7 @@ export class Uuid<T extends string = string> {
     return brandUUIDId<T>(userUUID)
   }
 
-  getValue(): UUIDType {
+  getValue(): UUIDType<T> {
     return this.value
   }
 }
