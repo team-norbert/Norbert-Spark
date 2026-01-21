@@ -1159,8 +1159,8 @@
         }
       },
       "put": {
-        "summary": "Add specific chat AI settings by ID",
-        "description": "Adds or updates AI configuration settings for a specific chat type using its unique identifier",
+        "summary": "Update or create chat AI settings by ID",
+        "description": "Creates new AI configuration settings if none exist for the chat type, or updates existing settings. Returns 201 (Created) when new settings are created, or 200 (OK) when existing settings are updated.",
         "operationId": "putAIChatSettingsById",
         "tags": ["ai", "chat"],
         "security": [{ "bearerAuth": [] }],
@@ -1184,8 +1184,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "AI settings successfully updated (existing settings modified)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterUserResponse"
+                }
+              }
+            }
+          },
           "201": {
-            "description": "AI Options table successfully updated",
+            "description": "AI settings successfully created (new settings added)",
             "content": {
               "application/json": {
                 "schema": {
