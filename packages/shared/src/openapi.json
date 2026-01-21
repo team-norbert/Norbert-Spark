@@ -1159,8 +1159,8 @@
         }
       },
       "put": {
-        "summary": "Add specific chat AI settings by ID",
-        "description": "Adds or updates AI configuration settings for a specific chat type using its unique identifier",
+        "summary": "Update specific chat AI settings by ID",
+        "description": "Updates (replaces) AI configuration settings for a specific chat type using its unique identifier. Returns 404 if the chat configuration does not exist.",
         "operationId": "putAIChatSettingsById",
         "tags": ["ai", "chat"],
         "security": [{ "bearerAuth": [] }],
