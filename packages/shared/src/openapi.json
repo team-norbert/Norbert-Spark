@@ -1185,7 +1185,7 @@
         },
         "responses": {
           "204": {
-            "description": "AI Options table successfully updated"
+            "description": "AI chat settings successfully updated"
           },
           "400": {
             "description": "Invalid request data",
