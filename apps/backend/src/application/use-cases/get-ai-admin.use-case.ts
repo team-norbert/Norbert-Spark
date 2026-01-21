@@ -4,6 +4,7 @@ import type { AuditLogPort } from '../ports/audit-log.port.js'
 import type { AIAdminPort } from '../ports/ai-admin.port.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { UUIDType } from '../../domain/value-objects/uuid.js'
+import type { DBChatAiOptions } from '../../infrastructure/database/schema.js'
 
 export class GetAIAdminUseCase {
   constructor(
@@ -12,10 +13,10 @@ export class GetAIAdminUseCase {
     private readonly aiAdminPort: AIAdminPort
   ) {}
 
-  async execute(id: UUIDType, auditContext: AuditContext) {
+  async execute(id: UUIDType, auditContext: AuditContext): Promise<DBChatAiOptions | null> {
     this.logger.info('Executing GetAirAdminUseCase')
 
-    const result = this.aiAdminPort.getAllChatAIOptions(id)
+    const result: DBChatAiOptions | null = await this.aiAdminPort.getAllChatAIOptions(id)
 
     try {
       await this.auditLog.log({
@@ -34,6 +35,7 @@ export class GetAIAdminUseCase {
         userId: auditContext.userId,
       })
     }
-    //
+
+    return result
   }
 }
