@@ -27,7 +27,7 @@ export class Uuid<T extends string = string> {
     this.value = this.processUserUUID(value)
   }
 
-  private processUserUUID<T extends string = string>(userUUID: string): UUIDType<T> {
+  private processUserUUID(userUUID: string): UUIDType<T> {
     if (!Uuid7Util.isValidUUID(userUUID)) {
       throw new Error('Invalid userID UUID format provided')
     }
