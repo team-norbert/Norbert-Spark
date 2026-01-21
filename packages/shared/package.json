@@ -18,11 +18,13 @@
     "test:watch": "vitest watch --config vitest.config.node.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "lint:api": "spectral lint --verbose ./src/openapi.json --ruleset ./src/.spectral.yaml",
-    "lint:api:json": "spectral lint ./src/openapi.json --ruleset ./src/.spectral.yaml --format json",
-    "docs:api": "redoc-cli serve ./src/openapi.json --watch --port 8080",
+    "lint:api": "pnpm run bundle:api && spectral lint --verbose ./src/openapi.json --ruleset ./src/.spectral.yaml",
+    "lint:api:json": "pnpm run bundle:api && spectral lint ./src/openapi.json --ruleset ./src/.spectral.yaml --format json",
+    "docs:api": "pnpm run bundle:api && redoc-cli serve ./src/openapi.json --watch --port 8080",
     "typecheck": "tsc --noEmit",
-    "build:openapi": "openapi-typescript ./src/openapi.json --output ./dist/generated/openapi-types.ts"
+    "build:openapi": "pnpm run bundle:api && openapi-typescript ./src/openapi.json --output ./dist/generated/openapi-types.ts",
+    "bundle:api": "redocly bundle ./src/openapi/openapi.json --output ./src/openapi.json",
+    "split:api": "redocly split ./src/openapi.json --outDir ./src/openapi"
   },
   "dependencies": {
     "ai": "^6.0.11",
@@ -43,6 +45,7 @@
     "@stoplight/spectral-cli": "^6.15.0",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/eslint-plugin": "^1.6.6",
+    "js-yaml": "^4.1.1",
     "jsdom": "^27.4.0",
     "openapi-typescript": "^7.10.1",
     "redoc-cli": "^0.13.21",

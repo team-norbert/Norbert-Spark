@@ -1,0 +1,84 @@
+{
+  "type": "object",
+  "required": ["prompt"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "example": "You are a helpful AI assistant...",
+      "description": "The prompt template for the AI model"
+    },
+    "maxTokens": {
+      "type": "integer",
+      "nullable": true,
+      "minimum": 1,
+      "maximum": 100000,
+      "example": 4096,
+      "description": "Maximum number of tokens to generate"
+    },
+    "temperature": {
+      "type": "number",
+      "nullable": true,
+      "minimum": 0,
+      "maximum": 2,
+      "example": 0.7,
+      "description": "Sampling temperature for randomness (0 = deterministic, 2 = very random)"
+    },
+    "topP": {
+      "type": "number",
+      "nullable": true,
+      "minimum": 0,
+      "maximum": 1,
+      "example": 0.9,
+      "description": "Nucleus sampling threshold (0-1)"
+    },
+    "frequencyPenalty": {
+      "type": "number",
+      "nullable": true,
+      "minimum": -2,
+      "maximum": 2,
+      "example": 0,
+      "description": "Penalty for repeating words/phrases (-2 to 2)"
+    },
+    "presencePenalty": {
+      "type": "number",
+      "nullable": true,
+      "minimum": -2,
+      "maximum": 2,
+      "example": 0,
+      "description": "Penalty for repeating information from prompt (-2 to 2)"
+    },
+    "topK": {
+      "type": "integer",
+      "nullable": true,
+      "minimum": 1,
+      "maximum": 100,
+      "example": 40,
+      "description": "Top-K sampling parameter"
+    },
+    "stopSequences": {
+      "type": "array",
+      "nullable": true,
+      "items": {
+        "type": "string"
+      },
+      "example": ["###", "END", "\n\n\n"],
+      "description": "Array of sequences that stop text generation"
+    },
+    "seed": {
+      "type": "integer",
+      "nullable": true,
+      "minimum": 0,
+      "maximum": 2147483647,
+      "example": 12345,
+      "description": "Random seed for deterministic results"
+    },
+    "maxRetries": {
+      "type": "integer",
+      "nullable": true,
+      "minimum": 0,
+      "maximum": 10,
+      "example": 2,
+      "description": "Maximum number of retries for transient errors"
+    }
+  }
+}

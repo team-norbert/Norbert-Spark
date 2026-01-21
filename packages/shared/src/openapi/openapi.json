@@ -1,0 +1,117 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Norbert's Spark API",
+    "description": "API for Norbert's Spark AI CRM application",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Norbert's Spark API",
+      "email": "api@example.com"
+    },
+    "license": {
+      "name": "AGPLv3",
+      "url": "https://www.gnu.org/licenses/agpl-3.0.en.html"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001/api/v1",
+      "description": "Development server (HTTP) - API v1"
+    },
+    {
+      "url": "https://127.0.0.1:3001/api/v1",
+      "description": "Development server (HTTPS) - API v1"
+    },
+    {
+      "url": "http://localhost:3001",
+      "description": "Development server (HTTP) - Root"
+    },
+    {
+      "url": "https://127.0.0.1:3001",
+      "description": "Development server (HTTPS) - Root"
+    }
+  ],
+  "tags": [
+    {
+      "name": "health",
+      "description": "Health check endpoints"
+    },
+    {
+      "name": "auth",
+      "description": "Authentication operations"
+    },
+    {
+      "name": "users",
+      "description": "User management operations"
+    },
+    {
+      "name": "ai",
+      "description": "AI-generated response operations"
+    },
+    {
+      "name": "chat",
+      "description": "Chat-related operations"
+    },
+    {
+      "name": "data",
+      "description": "Data extraction operations"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "$ref": "paths/health.json"
+    },
+    "/users/register": {
+      "$ref": "paths/users_register.json"
+    },
+    "/users/{id}": {
+      "$ref": "paths/users_{id}.json"
+    },
+    "/users": {
+      "$ref": "paths/users.json"
+    },
+    "/auth/login": {
+      "$ref": "paths/auth_login.json"
+    },
+    "/auth/oauth-sync": {
+      "$ref": "paths/auth_oauth-sync.json"
+    },
+    "/ai/chat": {
+      "$ref": "paths/ai_chat.json"
+    },
+    "/ai/chats/{userId}": {
+      "$ref": "paths/ai_chats_{userId}.json"
+    },
+    "/ai/fetchChat/{chatId}": {
+      "$ref": "paths/ai_fetchChat_{chatId}.json"
+    },
+    "/ai/extract-data/presigned-urls": {
+      "$ref": "paths/ai_extract-data_presigned-urls.json"
+    },
+    "/ai/extract-data/{fileId}": {
+      "$ref": "paths/ai_extract-data_{fileId}.json"
+    },
+    "/ai/chats/config": {
+      "$ref": "paths/ai_chats_config.json"
+    },
+    "/ai/chats/config/{id}/settings": {
+      "$ref": "paths/ai_chats_config_{id}_settings.json"
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token for authenticated requests"
+      },
+      "oauthSyncSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-OAuth-Sync-Secret",
+        "description": "Shared secret for OAuth sync endpoint authentication. Must match OAUTH_SYNC_SECRET environment variable."
+      }
+    }
+  }
+}

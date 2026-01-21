@@ -1,0 +1,94 @@
+{
+  "get": {
+    "summary": "Fetch data extracted from PDFs",
+    "description": "Retrieves the data from the PDF file previously uploaded to bucket",
+    "operationId": "extractData",
+    "tags": ["ai", "chat"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "name": "fileId",
+        "in": "path",
+        "required": true,
+        "description": "The unique identifier for the file in the bucket",
+        "schema": {
+          "type": "string",
+          "format": "string"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Streaming text response with extracted data",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string",
+              "description": "Streamed text response containing the extracted data from the PDF"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Authentication required"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - User does not have required role (user, moderator or admin)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Access denied. You can only access your own extracted data or must have admin/moderator role"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Data not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Extracted data not found for the specified file"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Internal server error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

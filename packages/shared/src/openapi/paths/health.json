@@ -1,0 +1,33 @@
+{
+  "get": {
+    "summary": "Health check",
+    "description": "Returns the current health status of the API",
+    "operationId": "getHealth",
+    "tags": ["health"],
+    "responses": {
+      "200": {
+        "description": "Service is healthy",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": ["ok", "degraded", "down"],
+                  "example": "ok"
+                },
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2035-01-01T00:00:00.000Z"
+                }
+              },
+              "required": ["status", "timestamp"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

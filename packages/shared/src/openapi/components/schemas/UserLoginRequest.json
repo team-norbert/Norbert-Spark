@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "description": "Request payload for user authentication",
+  "required": ["email", "password"],
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "example": "john.doe@example.com",
+      "description": "User's email address"
+    },
+    "password": {
+      "type": "string",
+      "format": "password",
+      "minLength": 12,
+      "example": "SecurePass123!",
+      "description": "User's password"
+    }
+  }
+}

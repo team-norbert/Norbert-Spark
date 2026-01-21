@@ -1,0 +1,106 @@
+{
+  "get": {
+    "summary": "Get chat IDs for user",
+    "description": "Retrieves a list of chat IDs associated with the specified user",
+    "operationId": "getAIChatsByUserId",
+    "tags": ["ai", "chat"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "name": "userId",
+        "in": "path",
+        "required": true,
+        "description": "The user's unique identifier whose chat history is being retrieved",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "AI response found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/AIUserIdResponse.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "examples": {
+              "invalidUserId": {
+                "summary": "Invalid userId parameter",
+                "value": {
+                  "success": false,
+                  "error": "Invalid userId parameter"
+                }
+              },
+              "invalidFormat": {
+                "summary": "Invalid userId format",
+                "value": {
+                  "success": false,
+                  "error": "Invalid userId format"
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Authentication required"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - User does not have required role (user, moderator or admin)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Access denied. You can only access your own chat history or must have admin/moderator role"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Internal server error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

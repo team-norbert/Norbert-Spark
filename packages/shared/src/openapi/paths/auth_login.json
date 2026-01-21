@@ -1,0 +1,65 @@
+{
+  "post": {
+    "summary": "Authenticate a user",
+    "description": "Authenticates a user and returns a JWT access token",
+    "operationId": "loginUser",
+    "tags": ["auth"],
+    "security": [],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/UserLoginRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "User successfully authenticated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/UserLoginResponse.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Invalid credentials",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Invalid email or password"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

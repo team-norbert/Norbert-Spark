@@ -1,0 +1,156 @@
+{
+  "get": {
+    "summary": "Get all users",
+    "description": "Retrieves all users in date order. Requires authentication with admin or moderator role.",
+    "operationId": "getAllUsers",
+    "tags": ["users"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Users found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../components/schemas/User.json"
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - Missing or invalid authentication token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - User does not have required role (admin or moderator)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      }
+    }
+  },
+  "delete": {
+    "summary": "Delete users",
+    "description": "Deletes multiple user accounts by their IDs. Requires authentication with admin role.",
+    "operationId": "deleteUsers",
+    "tags": ["users"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "userIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "minItems": 1,
+                "maxItems": 10,
+                "description": "Array of user IDs to delete (1-10 items)",
+                "example": ["01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"]
+              }
+            },
+            "required": ["userIds"]
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Users successfully deleted",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Users deleted successfully"
+                }
+              },
+              "required": ["success", "message"]
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Bad Request - Invalid request data (empty array or invalid UUID format)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - Missing or invalid authentication token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - User does not have required role (admin)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Not Found - One or more user IDs do not exist",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

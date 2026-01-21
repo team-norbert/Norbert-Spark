@@ -189,3 +189,4 @@ apps/frontend/e2e/.test-db-config.json
 .husky_final/
 # Turborepo
 .turbo
+packages/shared/src/openapi.json
