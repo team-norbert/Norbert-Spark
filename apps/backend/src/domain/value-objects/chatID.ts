@@ -147,7 +147,7 @@ export class ChatId<T extends string = string> {
    * // Returns the same string but typed as ChatIdType
    * ```
    */
-  private processChatUUID<T extends string = string>(userUUID: string): ChatIdType<T> {
+  private processChatUUID(userUUID: string): ChatIdType<T> {
     if (!Uuid7Util.isValidUUID(userUUID)) {
       throw new Error('Invalid chatId UUID format provided')
     }
@@ -184,7 +184,7 @@ export class ChatId<T extends string = string> {
    * requiresChatId('some-string'); // Error - type mismatch
    * ```
    */
-  getValue(): ChatIdType {
+  getValue(): ChatIdType<T> {
     return this.value
   }
 }

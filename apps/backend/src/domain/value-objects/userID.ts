@@ -148,7 +148,7 @@ export class UserId<T extends string = string> {
    * // Returns the same string but typed as UserIdType
    * ```
    */
-  private processUserIdUUID<T extends string = string>(userUUID: string): UserIdType<T> {
+  private processUserIdUUID(userUUID: string): UserIdType<T> {
     if (!Uuid7Util.isValidUUID(userUUID)) {
       throw new Error('Invalid userID UUID format provided')
     }
@@ -185,7 +185,7 @@ export class UserId<T extends string = string> {
    * requiresUserId('some-string'); // Error - type mismatch
    * ```
    */
-  getValue(): UserIdType {
+  getValue(): UserIdType<T> {
     return this.value
   }
 }
