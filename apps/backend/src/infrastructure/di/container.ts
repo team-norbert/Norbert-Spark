@@ -15,6 +15,7 @@ import { DeleteUsersUseCase } from '../../application/use-cases/delete-users.use
 import { PresignedUploadUrlUseCase } from '../../application/use-cases/presigned-url-put.use-case.js'
 import { ExtractDataUseCase } from '../../application/use-cases/extract-data.use-case.js'
 import { GetChatDetailsUseCase } from '../../application/use-cases/get-chat-details.use-case.js'
+import { GetAIAdminUseCase } from '../../application/use-cases/get-ai-admin.use-case.js'
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
@@ -28,6 +29,8 @@ import { BucketService } from '../../adapters/secondary/external/bucket.service.
 import { AIExtractDataController } from '../../adapters/primary/http/ai.extract-data.js'
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
 import { AIChatContentRepository } from '../../adapters/secondary/repositories/ai-chat-content.repository.js'
+import { AIAdminController } from '../../adapters/primary/http/ai-admin.controller.js'
+import { AIAdminRepository } from '../../adapters/secondary/repositories/ai-admin.repository.js'
 // Utils
 import { PDFUtils } from '../../shared/utils/pdf.utils.js'
 
@@ -77,6 +80,7 @@ export class Container {
   public readonly aiRepository: AIRepository
   public readonly bucketService: BucketService
   public readonly aiChatContentRepository: AIChatContentRepository
+  public readonly aiAdminRepository: AIAdminRepository
 
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
@@ -92,6 +96,7 @@ export class Container {
   private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase
   private readonly deleteUsersUseCase: DeleteUsersUseCase
   private readonly getChatDetailsUseCase: GetChatDetailsUseCase
+  private readonly getAIAdminUseCase: GetAIAdminUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -101,6 +106,7 @@ export class Container {
   public readonly authController: AuthController
   public readonly aiController: AIController
   public readonly aiExtractDataController: AIExtractDataController
+  public readonly aiAdminController: AIAdminController
 
   // Audit log
   public readonly auditLog: AuditLogRepository
@@ -181,6 +187,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.userRepository = new PostgresUserRepository()
     this.aiRepository = new AIRepository(this.logger)
     this.aiChatContentRepository = new AIChatContentRepository(this.logger)
+    this.aiAdminRepository = new AIAdminRepository(this.logger)
     this.auditLog = new AuditLogRepository(this.logger)
     this.bucketService = new BucketService(this.logger)
     // Initialize use cases
@@ -234,6 +241,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.bucketService
     )
     this.extractDataUseCase = new ExtractDataUseCase(this.logger, this.auditLog, this.bucketService)
+    this.getAIAdminUseCase = new GetAIAdminUseCase(
+      this.logger,
+      this.auditLog,
+      this.aiAdminRepository
+    )
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
       this.registerUserUseCase,
@@ -259,6 +271,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.extractDataUseCase,
       this.pdfUtils
     )
+    this.aiAdminController = new AIAdminController(this.logger, this.getAIAdminUseCase)
     // Register routes
     this.registerRoutes()
   }

@@ -12,24 +12,34 @@ declare const UUIDBrand: unique symbol
  *
  * @template T - The string literal type of the uuid (defaults to string)
  */
-export type UUIDType<T extends string = string> = Uuid<T> & { readonly [UUIDBrand]: T }
 
-export class Uuid<T> {
-  private readonly value: string | undefined
+export type UUIDType<T extends string = string> = string & { readonly [UUIDBrand]: T }
+
+function brandUserId<T extends string>(value: string): UUIDType<T> {
+  return value as UUIDType<T>
+}
+
+export class Uuid<T extends string = string> {
+  private readonly value: UUIDType<T>
   declare readonly [UUIDBrand]: T
 
   constructor(value: string) {
     this.value = this.processUserUUID(value)
   }
 
-  private processUserUUID(userUUID: string): string | undefined {
+  private processUserUUID<T extends string = string>(userUUID: string): UUIDType<T> {
     if (!Uuid7Util.isValidUUID(userUUID)) {
-      throw new Error('Invalid UUID format provided')
+      throw new Error('Invalid userID UUID format provided')
     }
-    return Uuid7Util.uuidVersionValidation(userUUID)
+    // Validate the UUID version but return the UUID itself, not the version string
+    const version = Uuid7Util.uuidVersionValidation(userUUID)
+    if (version !== 'v7') {
+      throw new Error(`Invalid userID UUID version: ${version}`)
+    }
+    return brandUserId<T>(userUUID)
   }
 
-  getValue(): string | undefined {
+  getValue(): UUIDType {
     return this.value
   }
 }

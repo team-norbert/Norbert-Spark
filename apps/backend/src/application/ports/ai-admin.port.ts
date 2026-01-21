@@ -1,0 +1,6 @@
+import type { DBChatAiOptions } from '../../infrastructure/database/schema.js'
+import type { UUIDType } from '../../domain/value-objects/uuid.js'
+
+export interface AIAdminPort {
+  getAllChatAIOptions(id: UUIDType): Promise<DBChatAiOptions | null>
+}
