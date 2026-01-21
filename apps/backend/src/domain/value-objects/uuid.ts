@@ -15,7 +15,7 @@ declare const UUIDBrand: unique symbol
 
 export type UUIDType<T extends string = string> = string & { readonly [UUIDBrand]: T }
 
-function brandUserId<T extends string>(value: string): UUIDType<T> {
+function brandUUIDId<T extends string>(value: string): UUIDType<T> {
   return value as UUIDType<T>
 }
 
@@ -36,7 +36,7 @@ export class Uuid<T extends string = string> {
     if (version !== 'v7') {
       throw new Error(`Invalid userID UUID version: ${version}`)
     }
-    return brandUserId<T>(userUUID)
+    return brandUUIDId<T>(userUUID)
   }
 
   getValue(): UUIDType {
