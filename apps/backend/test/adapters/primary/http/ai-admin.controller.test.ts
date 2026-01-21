@@ -136,6 +136,21 @@ describe('AIAdminController', () => {
       })
     })
 
+    it('should return 404 when result is null', async () => {
+      const chatTypeId = uuidv7()
+      mockRequest.params = { id: chatTypeId }
+
+      vi.mocked(mockGetAIAdminUseCase.execute).mockResolvedValue(null)
+
+      await controller.getAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(404)
+      expect(mockReply.send).toHaveBeenCalledWith({
+        success: false,
+        error: 'AI Chat Configuration not found',
+      })
+    })
+
     it('should handle NotFoundException with 404 status', async () => {
       const chatTypeId = uuidv7()
       mockRequest.params = { id: chatTypeId }

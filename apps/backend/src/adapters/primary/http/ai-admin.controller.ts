@@ -37,6 +37,13 @@ export class AIAdminController {
       const uuidID = new Uuid(id).getValue()
       const result = await this.getAIAdminUseCase.execute(uuidID, auditContext)
 
+      if (!result) {
+        reply.code(404).send({
+          success: false,
+          error: 'AI Chat Configuration not found',
+        })
+        return
+      }
       reply.code(200).send({
         success: true,
         data: result,
