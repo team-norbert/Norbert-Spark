@@ -3,7 +3,9 @@
     "summary": "Get user by ID",
     "description": "Retrieves a user's profile information",
     "operationId": "getUserById",
-    "tags": ["users"],
+    "tags": [
+      "users"
+    ],
     "security": [
       {
         "bearerAuth": []

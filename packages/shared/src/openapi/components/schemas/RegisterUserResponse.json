@@ -1,7 +1,10 @@
 {
   "type": "object",
   "description": "Response returned after successful user registration",
-  "required": ["success", "data"],
+  "required": [
+    "success",
+    "data"
+  ],
   "properties": {
     "success": {
       "type": "boolean",
@@ -10,7 +13,10 @@
     "data": {
       "type": "object",
       "description": "Registration result data",
-      "required": ["userId", "access_token"],
+      "required": [
+        "userId",
+        "access_token"
+      ],
       "properties": {
         "userId": {
           "type": "string",

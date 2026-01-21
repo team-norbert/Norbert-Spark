@@ -1,7 +1,11 @@
 {
   "type": "object",
   "description": "AI-generated response object",
-  "required": ["id", "messages", "trigger"],
+  "required": [
+    "id",
+    "messages",
+    "trigger"
+  ],
   "properties": {
     "id": {
       "type": "string",
@@ -12,7 +16,11 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "role", "parts"],
+        "required": [
+          "id",
+          "role",
+          "parts"
+        ],
         "properties": {
           "id": {
             "type": "string",
@@ -20,24 +28,34 @@
           },
           "role": {
             "type": "string",
-            "enum": ["user", "assistant"]
+            "enum": [
+              "user",
+              "assistant"
+            ]
           },
           "parts": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["type"],
+              "required": [
+                "type"
+              ],
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": ["text", "step-start"]
+                  "enum": [
+                    "text",
+                    "step-start"
+                  ]
                 },
                 "text": {
                   "type": "string"
                 },
                 "state": {
                   "type": "string",
-                  "enum": ["done"]
+                  "enum": [
+                    "done"
+                  ]
                 }
               }
             }

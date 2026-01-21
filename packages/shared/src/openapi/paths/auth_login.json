@@ -3,7 +3,9 @@
     "summary": "Authenticate a user",
     "description": "Authenticates a user and returns a JWT access token",
     "operationId": "loginUser",
-    "tags": ["auth"],
+    "tags": [
+      "auth"
+    ],
     "security": [],
     "requestBody": {
       "required": true,

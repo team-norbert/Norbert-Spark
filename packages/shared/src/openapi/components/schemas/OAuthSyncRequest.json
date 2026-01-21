@@ -1,7 +1,11 @@
 {
   "type": "object",
   "description": "Request payload for OAuth user synchronization",
-  "required": ["provider", "providerId", "email"],
+  "required": [
+    "provider",
+    "providerId",
+    "email"
+  ],
   "properties": {
     "provider": {
       "type": "string",

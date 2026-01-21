@@ -3,7 +3,10 @@
     "summary": "Get chat AI configuration",
     "description": "Retrieves all available chat types with their details and SEO-friendly identifiers",
     "operationId": "getAIChatDetails",
-    "tags": ["ai", "chat"],
+    "tags": [
+      "ai",
+      "chat"
+    ],
     "security": [
       {
         "bearerAuth": []

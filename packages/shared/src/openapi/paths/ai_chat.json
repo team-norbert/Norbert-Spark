@@ -3,7 +3,9 @@
     "summary": "Get AI-generated response",
     "description": "Sends a prompt to the AI service and retrieves the generated response",
     "operationId": "getAIResponse",
-    "tags": ["ai"],
+    "tags": [
+      "ai"
+    ],
     "security": [
       {
         "bearerAuth": []

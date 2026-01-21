@@ -3,7 +3,10 @@
     "summary": "Fetch chat by chatId",
     "description": "Retrieves the chat object for the specified chatId",
     "operationId": "getAIFetchChatByChatId",
-    "tags": ["ai", "chat"],
+    "tags": [
+      "ai",
+      "chat"
+    ],
     "security": [
       {
         "bearerAuth": []

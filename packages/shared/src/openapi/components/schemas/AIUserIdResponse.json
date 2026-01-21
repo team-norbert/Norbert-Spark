@@ -1,7 +1,10 @@
 {
   "type": "object",
   "description": "Structured response containing array of chat IDs for a user",
-  "required": ["success", "data"],
+  "required": [
+    "success",
+    "data"
+  ],
   "properties": {
     "success": {
       "type": "boolean",

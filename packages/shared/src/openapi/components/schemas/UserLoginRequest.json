@@ -1,7 +1,10 @@
 {
   "type": "object",
   "description": "Request payload for user authentication",
-  "required": ["email", "password"],
+  "required": [
+    "email",
+    "password"
+  ],
   "properties": {
     "email": {
       "type": "string",

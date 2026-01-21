@@ -3,7 +3,9 @@
     "summary": "Get all users",
     "description": "Retrieves all users in date order. Requires authentication with admin or moderator role.",
     "operationId": "getAllUsers",
-    "tags": ["users"],
+    "tags": [
+      "users"
+    ],
     "security": [
       {
         "bearerAuth": []
@@ -49,7 +51,9 @@
     "summary": "Delete users",
     "description": "Deletes multiple user accounts by their IDs. Requires authentication with admin role.",
     "operationId": "deleteUsers",
-    "tags": ["users"],
+    "tags": [
+      "users"
+    ],
     "security": [
       {
         "bearerAuth": []
@@ -71,10 +75,14 @@
                 "minItems": 1,
                 "maxItems": 10,
                 "description": "Array of user IDs to delete (1-10 items)",
-                "example": ["01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"]
+                "example": [
+                  "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
+                ]
               }
             },
-            "required": ["userIds"]
+            "required": [
+              "userIds"
+            ]
           }
         }
       }
@@ -96,7 +104,10 @@
                   "example": "Users deleted successfully"
                 }
               },
-              "required": ["success", "message"]
+              "required": [
+                "success",
+                "message"
+              ]
             }
           }
         }

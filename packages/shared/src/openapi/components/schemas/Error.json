@@ -1,7 +1,10 @@
 {
   "type": "object",
   "description": "Standard error response object",
-  "required": ["success", "error"],
+  "required": [
+    "success",
+    "error"
+  ],
   "properties": {
     "success": {
       "type": "boolean",

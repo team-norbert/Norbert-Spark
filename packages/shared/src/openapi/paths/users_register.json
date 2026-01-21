@@ -3,7 +3,9 @@
     "summary": "Register a new user",
     "description": "Creates a new user account",
     "operationId": "registerUser",
-    "tags": ["users"],
+    "tags": [
+      "users"
+    ],
     "security": [],
     "requestBody": {
       "required": true,

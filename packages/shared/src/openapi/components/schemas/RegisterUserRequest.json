@@ -1,7 +1,11 @@
 {
   "type": "object",
   "description": "Request payload for registering a new user",
-  "required": ["email", "password", "name"],
+  "required": [
+    "email",
+    "password",
+    "name"
+  ],
   "properties": {
     "email": {
       "type": "string",

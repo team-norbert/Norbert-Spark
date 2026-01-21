@@ -3,7 +3,9 @@
     "summary": "Health check",
     "description": "Returns the current health status of the API",
     "operationId": "getHealth",
-    "tags": ["health"],
+    "tags": [
+      "health"
+    ],
     "responses": {
       "200": {
         "description": "Service is healthy",
@@ -14,7 +16,11 @@
               "properties": {
                 "status": {
                   "type": "string",
-                  "enum": ["ok", "degraded", "down"],
+                  "enum": [
+                    "ok",
+                    "degraded",
+                    "down"
+                  ],
                   "example": "ok"
                 },
                 "timestamp": {
@@ -23,7 +29,10 @@
                   "example": "2035-01-01T00:00:00.000Z"
                 }
               },
-              "required": ["status", "timestamp"]
+              "required": [
+                "status",
+                "timestamp"
+              ]
             }
           }
         }
