@@ -100,7 +100,7 @@ export class RegisterUserUseCase {
     this.logger.info('Starting user registration', { email: dto.email })
 
     // Create domain objects
-    const email = new Email(dto.email)
+    const email = new Email(dto.email).getValue()
     const role = new Role(dto.role)
 
     // Create password value object if provided (for credentials-based registration)

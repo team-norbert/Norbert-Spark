@@ -19,6 +19,7 @@ import {
   unique,
   char,
 } from 'drizzle-orm/pg-core'
+import type { EmailType } from '../../domain/value-objects/email.js'
 
 // Define CITEXT custom type for case-insensitive text
 const citext = customType<{ data: string }>({

@@ -564,7 +564,7 @@ export class PostgresUserRepository implements UserRepositoryPort {
    * ```
    */
   private toDomain(record: DBUserSelect): User {
-    const email = new Email(record.email)
+    const email = new Email(record.email).getValue()
     const password = record.password ? Password.fromHash(record.password) : undefined
     const role = new Role(record.role)
     const userId = new UserId(record.userId).getValue()

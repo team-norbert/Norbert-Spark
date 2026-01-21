@@ -36,7 +36,13 @@ describe('LoginUserUseCase', () => {
     name: string = 'Test User'
   ): Promise<User> => {
     const userId = new UserId(uuidv7()).getValue()
-    return new User(userId, new Email(email), name, new Role(role), await Password.create(password))
+    return new User(
+      userId,
+      new Email(email).getValue(),
+      name,
+      new Role(role),
+      await Password.create(password)
+    )
   }
 
   beforeEach(() => {
