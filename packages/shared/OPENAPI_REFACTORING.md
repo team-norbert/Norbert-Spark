@@ -84,7 +84,7 @@ All existing functionality works:
 ## Next Steps
 
 1. **Team onboarding**: Share `src/openapi/README.md` with the team
-2. **Git workflow**: Commit both split files AND bundled `openapi.json`
+2. **Git workflow**: Commit only the split files under `src/openapi/`; the bundled `src/openapi.json` is generated and ignored by Git
 3. **Future conversion**: Can easily convert to YAML format if desired (Redocly supports both)
 
 ## Documentation
