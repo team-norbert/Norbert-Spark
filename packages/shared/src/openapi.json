@@ -1745,20 +1745,8 @@
       },
       "PutRequestAIChatSettings": {
         "type": "object",
-        "required": ["id", "chatTypeId", "prompt", "createdAt", "updatedAt"],
+        "required": ["prompt"],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "example": "019b659a-2ad2-7fd8-9f32-35624caef900",
-            "description": "Unique identifier for the AI options record"
-          },
-          "chatTypeId": {
-            "type": "string",
-            "format": "uuid",
-            "example": "019b659a-2ad2-7fd8-9f32-35624caef901",
-            "description": "Foreign key reference to chat_types table"
-          },
           "prompt": {
             "type": "string",
             "example": "You are a helpful AI assistant...",
