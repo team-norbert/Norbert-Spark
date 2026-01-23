@@ -106,7 +106,7 @@ describe('RegistrationPage', () => {
       expect(props?.togglePasswordVisibility).toBe(mockHookReturn.togglePasswordVisibility)
       expect(typeof props?.togglePasswordVisibility).toBe('function')
       expect(props?.toggleConfirmPasswordVisibility).toBe(
-        mockHookReturn.toggleConfirmPasswordVisibility,
+        mockHookReturn.toggleConfirmPasswordVisibility
       )
       expect(typeof props?.toggleConfirmPasswordVisibility).toBe('function')
     })
