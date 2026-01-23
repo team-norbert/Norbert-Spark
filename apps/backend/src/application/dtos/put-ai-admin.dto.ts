@@ -39,8 +39,8 @@ export class PutAIAdminDTO {
     if (maxTokens && !isNumber(maxTokens)) {
       throw new ValidationException('Invalid maxTokens: must be a number')
     }
-    if (isNumber(maxTokens) && (maxTokens < 0 || maxTokens > 100000)) {
-      throw new ValidationException('Invalid temperature: must be between 0 and 100000')
+    if (isNumber(maxTokens) && (maxTokens < 1 || maxTokens > 100000)) {
+      throw new ValidationException('Invalid maxTokens: must be between 1 and 100000')
     }
     if (temperature && !isNumber(temperature)) {
       throw new ValidationException('Invalid temperature: must be a number')
