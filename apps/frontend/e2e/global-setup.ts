@@ -13,15 +13,29 @@ const execAsync = promisify(exec)
 const PID_REGEX = /^\d+$/
 
 /**
+ * Type guard to check if error has a code property
+ */
+function hasErrorCode(error: unknown): error is { code: string | number } {
+  return typeof error === 'object' && error !== null && 'code' in error
+}
+
+/**
+ * Extract a readable error message from an unknown error
+ */
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
+/**
  * Check if an error from exec is expected (exit code 1 or command not found).
  * Exit code 1 typically means "no process found" for lsof/netstat.
  * ENOENT means the command itself was not found.
  */
 function isExpectedExecError(error: unknown): boolean {
-  if (typeof error !== 'object' || error === null) {
+  if (!hasErrorCode(error)) {
     return false
   }
-  const errCode = (error as { code?: string | number }).code
+  const errCode = error.code
   return errCode === 1 || errCode === '1' || errCode === 'ENOENT'
 }
 
@@ -91,9 +105,7 @@ async function killInterferingProcesses() {
         } catch (error) {
           // Ignore exit code 1 (no matching process found) and ENOENT (command not found)
           if (!isExpectedExecError(error)) {
-            console.warn(
-              `   ⚠ Could not check port ${port}: ${error instanceof Error ? error.message : String(error)}`
-            )
+            console.warn(`   ⚠ Could not check port ${port}: ${getErrorMessage(error)}`)
           }
         }
       } else {
@@ -115,9 +127,7 @@ async function killInterferingProcesses() {
           // lsof exits with code 1 if no process found, which is fine
           // Also ignore ENOENT (command not found)
           if (!isExpectedExecError(error)) {
-            console.warn(
-              `   ⚠ Could not check port ${port}: ${error instanceof Error ? error.message : String(error)}`
-            )
+            console.warn(`   ⚠ Could not check port ${port}: ${getErrorMessage(error)}`)
           }
         }
       }
