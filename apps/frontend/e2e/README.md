@@ -17,28 +17,46 @@ cd apps/frontend
 pnpm run test:e2e
 ```
 
-**✨ Automatic Process Cleanup**: The E2E test suite automatically kills interfering Node.js processes before starting. No manual intervention required!
+**✨ Optional Process Cleanup**: Set `E2E_CLEANUP_PROCESSES=true` to automatically kill processes on port 3000 before starting tests.
 
 ## Troubleshooting: Process Conflicts
 
-### Automated Solution (Default)
+### Automated Solution (Opt-In)
 
-The E2E test suite now **automatically handles process cleanup** in `global-setup.ts`:
+The E2E test suite can **automatically handle process cleanup** in `global-setup.ts` when you set `E2E_CLEANUP_PROCESSES=true`:
 
-1. **Kills interfering processes** matching these patterns:
-   - `tsx watch` - Backend TypeScript dev server
-   - `drizzle-kit studio` - Database GUI tool
-   - **Note**: `next dev` is NOT killed - Playwright's webServer manages the Next.js dev server
+1. **Kills processes on port 3000** (backend server port)
+   - Uses cross-platform approach: `lsof` on Unix/Linux/macOS, `netstat` + `taskkill` on Windows
+   - **Note**: Port 4321 is NOT killed - Playwright's webServer manages the Next.js dev server
 
 2. **Waits for cleanup**: 1-second delay to ensure processes fully terminate
 
-You should see this output when tests start:
+**To enable automatic cleanup:**
+
+```bash
+# Linux/macOS
+E2E_CLEANUP_PROCESSES=true pnpm run test:e2e
+
+# Windows PowerShell
+$env:E2E_CLEANUP_PROCESSES="true"; pnpm run test:e2e
+
+# Or add to your shell profile for persistent use
+export E2E_CLEANUP_PROCESSES=true  # Add to ~/.bashrc or ~/.zshrc
+```
+
+With cleanup enabled, you'll see this output when tests start:
 
 ```
-🧹 Checking for interfering Node.js processes...
-   ⚠ Warning killing tsx watch: Command failed (process not running - this is fine)
-   ⚠ Warning killing drizzle-kit studio: Command failed (process not running - this is fine)
+🧹 Checking for processes on ports 3000...
+   ✓ Killed process 12345 on port 3000
 ✅ Process cleanup complete
+📦 Starting PostgreSQL container...
+```
+
+If cleanup is disabled (default), you'll see:
+
+```
+ℹ️  Process cleanup skipped (set E2E_CLEANUP_PROCESSES=true to enable)
 📦 Starting PostgreSQL container...
 ```
 
