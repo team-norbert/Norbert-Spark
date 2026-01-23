@@ -116,7 +116,7 @@ This should return `0` or a very low number (VSCode language services are OK).
 #### Step 5: Run E2E Tests
 
 ```bash
-cd /Applications/MAMP/htdocs/norberts-spark
+# From project root of this repo
 pnpm run test:e2e
 ```
 
