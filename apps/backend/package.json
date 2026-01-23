@@ -27,6 +27,7 @@
     "mermaid": "tsx scripts/serve-mermaid.ts",
     "mermaid:di": "tsx scripts/serve-mermaid.ts di:container.md",
     "eval": "evalite run",
+    "eval:single": "evalite run",
     "eval:view": "evalite view"
   },
   "dependencies": {
