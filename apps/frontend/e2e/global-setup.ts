@@ -10,6 +10,9 @@ import postgres from 'postgres'
 
 const execAsync = promisify(exec)
 
+const EXIT_CODE_NO_MATCH = 'exit code 1'
+const PID_REGEX = /^\d+$/
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -23,8 +26,8 @@ export { backendProcess, postgresContainer }
  * Kill processes listening on specific ports before E2E tests.
  *
  * This is opt-in via E2E_CLEANUP_PROCESSES=true environment variable to avoid
- * accidentally killing unrelated processes. When enabled, it frees up ports 3000
- * (backend) and 4321 (frontend) by killing processes bound to those ports.
+ * accidentally killing unrelated processes. When enabled, it frees up port 3000
+ * (backend) by killing processes bound to that port.
  *
  * Uses cross-platform approach:
  * - Windows: netstat + taskkill
@@ -75,7 +78,7 @@ async function killInterferingProcesses() {
           }
         } catch (error) {
           // Ignore errors - port might not be in use or command not available
-          if (error instanceof Error && !error.message.includes('exit code 1')) {
+          if (error instanceof Error && !error.message.includes(EXIT_CODE_NO_MATCH)) {
             console.warn(`   ⚠ Could not check port ${port}: ${error.message}`)
           }
         }
@@ -85,14 +88,14 @@ async function killInterferingProcesses() {
           const { stdout } = await execAsync(`lsof -ti :${port}`)
           pid = stdout.trim()
 
-          if (pid && pid.match(/^\d+$/)) {
+          if (pid && PID_REGEX.test(pid)) {
             await execAsync(`kill -9 ${pid}`)
             console.warn(`   ✓ Killed process ${pid} on port ${port}`)
             killedAny = true
           }
         } catch (error) {
           // lsof exits with code 1 if no process found, which is fine
-          if (error instanceof Error && !error.message.includes('exit code 1')) {
+          if (error instanceof Error && !error.message.includes(EXIT_CODE_NO_MATCH)) {
             console.warn(`   ⚠ Could not check port ${port}: ${error.message}`)
           }
         }
