@@ -299,7 +299,7 @@ describe('AIAdminPageClient', () => {
     })
 
     it('should handle special characters in search query', () => {
-      const specialSearchQuery = 'C++ & Python!@#$%'
+      const specialSearchQuery = 'JS & Python!@#$%'
       vi.mocked(useAIAdminPage).mockReturnValue({
         ...mockHookReturnValue,
         searchQuery: specialSearchQuery,
