@@ -36,11 +36,7 @@ export class PutAIAdminUseCase {
     }
   }
 
-  private async logAudit(
-    id: UUIDType,
-    auditContext: AuditContext,
-    reason: string
-  ): Promise<void> {
+  private async logAudit(id: UUIDType, auditContext: AuditContext, reason: string): Promise<void> {
     try {
       await this.auditLog.log({
         userId: auditContext.userId,

@@ -617,10 +617,7 @@ describe('AIAdminRepository', () => {
       vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
 
       await expect(
-        repository.putChatAIOptions(
-          new Uuid(chatTypeId).getValue(),
-          mockDto as any
-        )
+        repository.putChatAIOptions(new Uuid(chatTypeId).getValue(), mockDto as any)
       ).rejects.toThrow('Database connection failed')
 
       expect(mockLogger.error).toHaveBeenCalledWith('Error updating chat AI options', mockError, {
@@ -644,10 +641,7 @@ describe('AIAdminRepository', () => {
       vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
 
       await expect(
-        repository.putChatAIOptions(
-          new Uuid(chatTypeId).getValue(),
-          mockDto as any
-        )
+        repository.putChatAIOptions(new Uuid(chatTypeId).getValue(), mockDto as any)
       ).rejects.toThrow('Database connection failed')
 
       expect(mockLogger.error).toHaveBeenCalledWith(
