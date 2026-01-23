@@ -8,7 +8,11 @@ export default async function AIAdminDetailPage({ params }: { params: Promise<{ 
 
   const isAuthorized = await hasAnyRole(['admin', 'ai-admin'])
   if (!isAuthorized) {
-    redirect('/signin?callbackUrl=/ai-admin/' + id + '&error=unauthorized')
+    const searchParams = new URLSearchParams({
+      callbackUrl: `/ai-admin/${id}`,
+      error: 'unauthorized',
+    })
+    redirect(`/signin?${searchParams.toString()}`)
   }
   return <AIOptionsForm chatTypeId={id} />
 }
