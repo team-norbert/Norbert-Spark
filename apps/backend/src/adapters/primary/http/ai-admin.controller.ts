@@ -12,7 +12,7 @@ export class AIAdminController {
   constructor(
     private readonly logger: LoggerPort,
     private readonly getAIAdminUseCase: GetAIAdminUseCase,
-    private readonly putAIAdminUseCse: PutAIAdminUseCase
+    private readonly putAIAdminUseCase: PutAIAdminUseCase
   ) {}
 
   registerRoutes(app: FastifyInstance): void {
@@ -45,7 +45,7 @@ export class AIAdminController {
       const id = params.id as string
       const uuidID = new Uuid(id).getValue()
       const dto = PutAIAdminDTO.validate(request.body)
-      const result = await this.putAIAdminUseCse.execute(uuidID, dto, auditContext)
+      const result = await this.putAIAdminUseCase.execute(uuidID, dto, auditContext)
 
       if (!result) {
         reply.code(404).send({
