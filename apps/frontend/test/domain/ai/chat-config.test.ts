@@ -62,7 +62,7 @@ describe('ChatTypeSchema', () => {
         description: 'Expert JS & Python programming!',
         createdAt: '2024-01-15T10:30:00Z',
         updatedAt: '2024-01-15T10:30:00Z',
-        seoFriendlyId: 'cpp-developer',
+        seoFriendlyId: 'js-developer',
         seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
       }
 
