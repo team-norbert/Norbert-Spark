@@ -20,11 +20,13 @@ let backendProcess: ChildProcess | null = null
 export { backendProcess, postgresContainer }
 
 /**
- * Kill interfering Node.js development processes before E2E tests
- * This ensures ports 3000 and 4321 are free and no conflicting servers are running
+ * Kill common long-running Node.js development processes before E2E tests.
  *
- * NOTE: We DON'T kill "next dev" because Playwright's webServer has already started
- * the Next.js dev server before global-setup runs. We only kill other interfering processes.
+ * This attempts to stop previously started backend dev servers and Drizzle Studio
+ * instances so they don't conflict with the processes managed by the test runner.
+ *
+ * NOTE: We intentionally do NOT kill "next dev" because Playwright's webServer is
+ * responsible for starting and managing the Next.js dev server (typically on port 4321).
  */
 async function killInterferingProcesses() {
   console.warn('🧹 Checking for interfering Node.js processes...')
