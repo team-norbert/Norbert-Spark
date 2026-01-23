@@ -610,10 +610,10 @@ You can also use glob patterns to run multiple related tests:
 
 ```bash
 # Run all evals in the HeartOfDarknessTool directory
-pnpm run eval:single "evals/HeartOfDarknessTool/**/*.eval.ts"
+pnpm run eval "evals/HeartOfDarknessTool/**/*.eval.ts"
 
 # Run all data-extraction evals
-pnpm run eval:single "evals/data-extraction/**/*.eval.ts"
+pnpm run eval "evals/data-extraction/**/*.eval.ts"
 ```
 
 #### View Eval Results
