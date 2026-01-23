@@ -45,6 +45,20 @@
             }
           }
         }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "OAuth sync failed"
+            }
+          }
+        }
       }
     }
   }

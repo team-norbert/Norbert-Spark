@@ -19,7 +19,7 @@
           "type": "string",
           "format": "uuid"
         },
-        "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
+        "example": "019bc2f3-7b6a-7c2e-9c4a-9b5f3e2a1d87"
       }
     ],
     "responses": {
