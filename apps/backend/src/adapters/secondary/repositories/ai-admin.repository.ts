@@ -46,6 +46,10 @@ export class AIAdminRepository implements AIAdminPort {
         updatedAt: new Date(),
       }
 
+      if (isDefined(dto.maxTokens)) {
+        updateData.maxTokens = dto.maxTokens
+      }
+
       if (isDefined(dto.temperature)) {
         updateData.temperature = dto.temperature.toString()
       }

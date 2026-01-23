@@ -326,6 +326,7 @@ describe('AIAdminRepository', () => {
       const chatTypeId = uuidv7()
       const mockDto = {
         prompt: 'Updated prompt',
+        maxTokens: 4000,
         temperature: 1.5,
         topP: 0.8,
         frequencyPenalty: -0.5,
@@ -340,7 +341,7 @@ describe('AIAdminRepository', () => {
         id: uuidv7(),
         chatTypeId,
         prompt: 'Updated prompt',
-        maxTokens: 1000,
+        maxTokens: 4000,
         temperature: '1.5',
         topP: '0.8',
         frequencyPenalty: '-0.5',
@@ -371,6 +372,7 @@ describe('AIAdminRepository', () => {
       expect(mockSet).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: 'Updated prompt',
+          maxTokens: 4000,
           temperature: '1.5',
           topP: '0.8',
           frequencyPenalty: '-0.5',
@@ -434,6 +436,7 @@ describe('AIAdminRepository', () => {
       })
       // Verify no optional fields were included
       const setCallArg = mockSet.mock.calls[0]?.[0]
+      expect(setCallArg).not.toHaveProperty('maxTokens')
       expect(setCallArg).not.toHaveProperty('temperature')
       expect(setCallArg).not.toHaveProperty('topP')
       expect(setCallArg).not.toHaveProperty('frequencyPenalty')
@@ -497,10 +500,11 @@ describe('AIAdminRepository', () => {
       expect(typeof setCallArg?.presencePenalty).toBe('string')
     })
 
-    it('should keep integer fields as numbers (topK, seed, maxRetries)', async () => {
+    it('should keep integer fields as numbers (maxTokens, topK, seed, maxRetries)', async () => {
       const chatTypeId = uuidv7()
       const mockDto = {
         prompt: 'Test',
+        maxTokens: 5000,
         topK: 75,
         seed: 99999,
         maxRetries: 8,
@@ -510,7 +514,7 @@ describe('AIAdminRepository', () => {
         id: uuidv7(),
         chatTypeId,
         prompt: 'Test',
-        maxTokens: 1000,
+        maxTokens: 5000,
         temperature: null,
         topP: null,
         frequencyPenalty: null,
@@ -539,9 +543,11 @@ describe('AIAdminRepository', () => {
       expect(result).toEqual(mockUpdatedOptions)
       // Verify integer fields remain as numbers
       const setCallArg = mockSet.mock.calls[0]?.[0]
+      expect(setCallArg?.maxTokens).toBe(5000)
       expect(setCallArg?.topK).toBe(75)
       expect(setCallArg?.seed).toBe(99999)
       expect(setCallArg?.maxRetries).toBe(8)
+      expect(typeof setCallArg?.maxTokens).toBe('number')
       expect(typeof setCallArg?.topK).toBe('number')
       expect(typeof setCallArg?.seed).toBe('number')
       expect(typeof setCallArg?.maxRetries).toBe('number')
@@ -684,7 +690,7 @@ describe('AIAdminRepository', () => {
       ).rejects.toThrow('Database connection failed')
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for chat admin retrieval',
+        'Error logging audit for chat AI options update',
         mockAuditError,
         { userId: new UserId(testUserId).getValue() }
       )

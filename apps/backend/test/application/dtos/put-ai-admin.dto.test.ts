@@ -12,6 +12,7 @@ describe('PutAIAdminDTO', () => {
       const dto = new PutAIAdminDTO(prompt)
 
       expect(dto.prompt).toBe(prompt)
+      expect(dto.maxTokens).toBeUndefined()
       expect(dto.temperature).toBeUndefined()
       expect(dto.topP).toBeUndefined()
       expect(dto.frequencyPenalty).toBeUndefined()
@@ -24,6 +25,7 @@ describe('PutAIAdminDTO', () => {
 
     it('should create a PutAIAdminDTO with all fields', () => {
       const prompt = 'You are a helpful assistant'
+      const maxTokens = 2000
       const temperature = 0.7
       const topP = 0.9
       const frequencyPenalty = 0.5
@@ -35,6 +37,7 @@ describe('PutAIAdminDTO', () => {
 
       const dto = new PutAIAdminDTO(
         prompt,
+        maxTokens,
         temperature,
         topP,
         frequencyPenalty,
@@ -46,6 +49,7 @@ describe('PutAIAdminDTO', () => {
       )
 
       expect(dto.prompt).toBe(prompt)
+      expect(dto.maxTokens).toBe(maxTokens)
       expect(dto.temperature).toBe(temperature)
       expect(dto.topP).toBe(topP)
       expect(dto.frequencyPenalty).toBe(frequencyPenalty)
@@ -119,6 +123,59 @@ describe('PutAIAdminDTO', () => {
 
         expect(result).toBeInstanceOf(PutAIAdminDTO)
         expect(result.prompt).toBe('Valid prompt')
+      })
+    })
+
+    describe('maxTokens validation', () => {
+      it('should throw ValidationException when maxTokens is not a number', () => {
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: 'many' })).toThrow(
+          ValidationException
+        )
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: 'many' })).toThrow(
+          'Invalid maxTokens: must be a number'
+        )
+      })
+
+      it('should throw ValidationException when maxTokens is below 0', () => {
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: -1 })).toThrow(
+          ValidationException
+        )
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: -1 })).toThrow(
+          'Invalid temperature: must be between 0 and 100000'
+        )
+      })
+
+      it('should throw ValidationException when maxTokens is above 100000', () => {
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: 100001 })).toThrow(
+          ValidationException
+        )
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: 100001 })).toThrow(
+          'Invalid temperature: must be between 0 and 100000'
+        )
+      })
+
+      it('should accept maxTokens at lower boundary (0)', () => {
+        const result = PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: 0 })
+
+        expect(result.maxTokens).toBe(0)
+      })
+
+      it('should accept maxTokens at upper boundary (100000)', () => {
+        const result = PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: 100000 })
+
+        expect(result.maxTokens).toBe(100000)
+      })
+
+      it('should accept valid maxTokens in range', () => {
+        const result = PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: 2000 })
+
+        expect(result.maxTokens).toBe(2000)
+      })
+
+      it('should accept undefined maxTokens', () => {
+        const result = PutAIAdminDTO.validate({ prompt: 'Test' })
+
+        expect(result.maxTokens).toBeUndefined()
       })
     })
 
@@ -521,6 +578,7 @@ describe('PutAIAdminDTO', () => {
       it('should validate all fields together', () => {
         const data = {
           prompt: 'You are a helpful assistant',
+          maxTokens: 2000,
           temperature: 0.7,
           topP: 0.9,
           frequencyPenalty: 0.5,
@@ -535,6 +593,7 @@ describe('PutAIAdminDTO', () => {
 
         expect(result).toBeInstanceOf(PutAIAdminDTO)
         expect(result.prompt).toBe(data.prompt)
+        expect(result.maxTokens).toBe(data.maxTokens)
         expect(result.temperature).toBe(data.temperature)
         expect(result.topP).toBe(data.topP)
         expect(result.frequencyPenalty).toBe(data.frequencyPenalty)
@@ -552,6 +611,7 @@ describe('PutAIAdminDTO', () => {
 
         expect(result).toBeInstanceOf(PutAIAdminDTO)
         expect(result.prompt).toBe(data.prompt)
+        expect(result.maxTokens).toBeUndefined()
         expect(result.temperature).toBeUndefined()
         expect(result.topP).toBeUndefined()
         expect(result.frequencyPenalty).toBeUndefined()
@@ -565,6 +625,7 @@ describe('PutAIAdminDTO', () => {
       it('should validate with mix of defined and undefined optional fields', () => {
         const data = {
           prompt: 'Test prompt',
+          maxTokens: 1500,
           temperature: 0.7,
           topK: 50,
           maxRetries: 5,
@@ -574,6 +635,7 @@ describe('PutAIAdminDTO', () => {
 
         expect(result).toBeInstanceOf(PutAIAdminDTO)
         expect(result.prompt).toBe(data.prompt)
+        expect(result.maxTokens).toBe(data.maxTokens)
         expect(result.temperature).toBe(data.temperature)
         expect(result.topP).toBeUndefined()
         expect(result.frequencyPenalty).toBeUndefined()
@@ -587,6 +649,7 @@ describe('PutAIAdminDTO', () => {
       it('should handle extra properties in data object', () => {
         const data = {
           prompt: 'Test prompt',
+          maxTokens: 1000,
           temperature: 0.7,
           extraField: 'should be ignored',
           anotherExtra: 123,
@@ -596,6 +659,7 @@ describe('PutAIAdminDTO', () => {
 
         expect(result).toBeInstanceOf(PutAIAdminDTO)
         expect(result.prompt).toBe(data.prompt)
+        expect(result.maxTokens).toBe(data.maxTokens)
         expect(result.temperature).toBe(data.temperature)
         // Extra fields should not be in the DTO
         expect((result as any).extraField).toBeUndefined()

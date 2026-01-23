@@ -302,7 +302,22 @@ describe('AIAdminController', () => {
 
       mockRequest.params = { id: chatTypeId }
       mockRequest.body = requestBody
-      vi.mocked(mockPutAIAdminUseCase.execute).mockResolvedValue(true)
+      vi.mocked(mockPutAIAdminUseCase.execute).mockResolvedValue({
+        id: chatTypeId,
+        chatTypeId,
+        prompt: 'You are a helpful AI assistant',
+        maxTokens: 2000,
+        temperature: '0.7',
+        topP: '0.9',
+        frequencyPenalty: '0.0',
+        presencePenalty: '0.0',
+        topK: 40,
+        stopSequences: ['END', 'STOP'],
+        seed: 12345,
+        maxRetries: 3,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
 
       await controller.putAIChatSettingsById(mockRequest, mockReply)
 
@@ -338,7 +353,22 @@ describe('AIAdminController', () => {
 
       mockRequest.params = { id: chatTypeId }
       mockRequest.body = requestBody
-      vi.mocked(mockPutAIAdminUseCase.execute).mockResolvedValue(true)
+      vi.mocked(mockPutAIAdminUseCase.execute).mockResolvedValue({
+        id: chatTypeId,
+        chatTypeId,
+        prompt: 'Updated prompt',
+        maxTokens: null,
+        temperature: null,
+        topP: null,
+        frequencyPenalty: null,
+        presencePenalty: null,
+        topK: null,
+        stopSequences: null,
+        seed: null,
+        maxRetries: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
 
       await controller.putAIChatSettingsById(mockRequest, mockReply)
 
@@ -422,7 +452,22 @@ describe('AIAdminController', () => {
       mockRequest.params = { id: chatTypeId }
       mockRequest.body = { prompt: 'Test prompt' }
       mockRequest.user = undefined
-      vi.mocked(mockPutAIAdminUseCase.execute).mockResolvedValue(true)
+      vi.mocked(mockPutAIAdminUseCase.execute).mockResolvedValue({
+        id: chatTypeId,
+        chatTypeId,
+        prompt: 'Test prompt',
+        maxTokens: null,
+        temperature: null,
+        topP: null,
+        frequencyPenalty: null,
+        presencePenalty: null,
+        topK: null,
+        stopSequences: null,
+        seed: null,
+        maxRetries: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
 
       await controller.putAIChatSettingsById(mockRequest, mockReply)
 

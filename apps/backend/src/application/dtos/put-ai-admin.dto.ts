@@ -5,6 +5,7 @@ import { ValidationException } from '../../shared/exceptions/validation.exceptio
 export class PutAIAdminDTO {
   constructor(
     public readonly prompt: string,
+    public readonly maxTokens?: number,
     public readonly temperature?: number,
     public readonly topP?: number,
     public readonly frequencyPenalty?: number,
@@ -21,6 +22,7 @@ export class PutAIAdminDTO {
 
     const {
       prompt,
+      maxTokens,
       temperature,
       topP,
       frequencyPenalty,
@@ -33,6 +35,12 @@ export class PutAIAdminDTO {
 
     if (!prompt || !isString(prompt)) {
       throw new ValidationException('Invalid prompt: must be a non-empty string')
+    }
+    if (maxTokens && !isNumber(maxTokens)) {
+      throw new ValidationException('Invalid maxTokens: must be a number')
+    }
+    if (isNumber(maxTokens) && (maxTokens < 0 || maxTokens > 100000)) {
+      throw new ValidationException('Invalid temperature: must be between 0 and 100000')
     }
     if (temperature && !isNumber(temperature)) {
       throw new ValidationException('Invalid temperature: must be a number')
@@ -85,6 +93,7 @@ export class PutAIAdminDTO {
 
     return new PutAIAdminDTO(
       prompt,
+      maxTokens as number | undefined,
       temperature as number | undefined,
       topP as number | undefined,
       frequencyPenalty as number | undefined,

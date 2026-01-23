@@ -56,6 +56,7 @@ describe('PutAIAdminUseCase', () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
       const dto = new PutAIAdminDTO(
         'You are a helpful assistant',
+        2000,
         0.7,
         0.9,
         0.5,
@@ -162,6 +163,7 @@ describe('PutAIAdminUseCase', () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
       const dto = new PutAIAdminDTO(
         'Test',
+        100000, // Max maxTokens
         2, // Max temperature
         1, // Max topP
         2, // Max frequencyPenalty
