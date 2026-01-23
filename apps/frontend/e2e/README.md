@@ -22,6 +22,7 @@ pnpm run test:e2e
 ### Problem
 
 E2E tests may show inconsistent results if development servers are running simultaneously. The tests are designed to run in complete isolation with their own:
+
 - PostgreSQL database container (Testcontainers)
 - Backend API server (port 3000)
 - Frontend Next.js dev server (port 4321)
@@ -39,6 +40,7 @@ ps aux | grep -i node | grep -v grep
 ```
 
 This will show all Node.js processes, including:
+
 - Next.js dev servers (`next dev`)
 - Backend servers (`tsx watch`)
 - Webpack loaders
@@ -48,6 +50,7 @@ This will show all Node.js processes, including:
 #### Step 2: Identify Development Processes
 
 Look for processes matching these patterns:
+
 - `next dev` - Frontend Next.js dev server
 - `tsx watch` - Backend TypeScript dev server
 - `playwright` - Running E2E tests
@@ -173,6 +176,7 @@ pkill -f "next dev" && pkill -f "tsx watch" && pnpm run test:e2e
 ### 2. Use Separate Terminal Sessions
 
 Keep dev servers and test runs in different terminal sessions:
+
 - **Terminal 1**: `pnpm dev` (frontend dev)
 - **Terminal 2**: `pnpm --filter @norberts-spark/backend dev` (backend dev)
 - **Terminal 3**: E2E tests (only when dev servers are stopped)
@@ -210,6 +214,7 @@ This opens the HTML report with detailed test results, screenshots, and traces.
 **Symptom**: Tests fail with "EADDRINUSE" error
 
 **Solution**: Kill processes using the conflicting port
+
 ```bash
 lsof -i :3000  # Find process
 kill -9 <PID>  # Kill by process ID
@@ -219,7 +224,8 @@ kill -9 <PID>  # Kill by process ID
 
 **Symptom**: Tests fail with connection refused or timeout errors
 
-**Solution**: 
+**Solution**:
+
 1. Ensure Docker is running (Testcontainers requires Docker)
 2. Check Docker daemon status: `docker info`
 3. Verify no orphaned containers: `docker ps -a`
@@ -229,6 +235,7 @@ kill -9 <PID>  # Kill by process ID
 **Symptom**: Tests pass sometimes, fail other times
 
 **Solution**:
+
 1. **Always** stop dev servers before running tests
 2. Run tests from clean state
 3. Check for database state pollution (global-setup creates fresh DB each time)
@@ -238,6 +245,7 @@ kill -9 <PID>  # Kill by process ID
 **Symptom**: Old PostgreSQL containers accumulating
 
 **Solution**:
+
 ```bash
 # List all containers
 docker ps -a
@@ -267,6 +275,7 @@ pnpm exec playwright test --ui
 ### View Test Logs
 
 Backend and frontend logs are visible during test execution:
+
 - `[Backend]` - Backend server logs
 - `[WebServer]` - Frontend Next.js logs
 
@@ -277,6 +286,7 @@ For detailed debugging, traces are automatically captured on test failure.
 ## Test Statistics
 
 Last successful run (23 January 2026):
+
 - ✅ 93 tests passed
 - ⏭️ 3 tests skipped
 - ⏱️ Duration: 1m 43.6s
