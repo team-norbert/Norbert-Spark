@@ -15,7 +15,11 @@ export default async function AIAdminPage() {
 
   // Redirect to signin if user doesn't have required role
   if (!hasAccess) {
-    redirect('/signin?callbackUrl=/ai-admin&error=unauthorized')
+    const searchParams = new URLSearchParams({
+      callbackUrl: `/ai-admin`,
+      error: 'unauthorized',
+    })
+    redirect(`/signin?${searchParams.toString()}`)
   }
 
   return <AIAdminPageClient />

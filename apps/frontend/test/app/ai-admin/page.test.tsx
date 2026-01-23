@@ -68,7 +68,7 @@ describe('AIAdminPage', () => {
 
       expect(hasAnyRole).toHaveBeenCalledTimes(1)
       expect(redirect).toHaveBeenCalledTimes(1)
-      expect(redirect).toHaveBeenCalledWith('/signin?callbackUrl=/ai-admin&error=unauthorized')
+      expect(redirect).toHaveBeenCalledWith('/signin?callbackUrl=%2Fai-admin&error=unauthorized')
     })
 
     it('should not render AIAdminPageClient when user is not authorized', async () => {
@@ -118,8 +118,8 @@ describe('AIAdminPage', () => {
       await expect(AIAdminPage()).rejects.toThrow('NEXT_REDIRECT')
 
       const redirectUrl = vi.mocked(redirect).mock.calls[0]?.[0]
-      expect(redirectUrl).toBe('/signin?callbackUrl=/ai-admin&error=unauthorized')
-      expect(redirectUrl).toContain('callbackUrl=/ai-admin')
+      expect(redirectUrl).toBe('/signin?callbackUrl=%2Fai-admin&error=unauthorized')
+      expect(redirectUrl).toContain('callbackUrl=%2Fai-admin')
       expect(redirectUrl).toContain('error=unauthorized')
     })
   })
@@ -153,7 +153,7 @@ describe('AIAdminPage', () => {
       expect(hasAnyRole).toHaveBeenCalledWith(['admin', 'ai-admin'])
 
       // Step 2: Redirect to signin with callback
-      expect(redirect).toHaveBeenCalledWith('/signin?callbackUrl=/ai-admin&error=unauthorized')
+      expect(redirect).toHaveBeenCalledWith('/signin?callbackUrl=%2Fai-admin&error=unauthorized')
     })
   })
 
@@ -162,18 +162,18 @@ describe('AIAdminPage', () => {
       vi.mocked(hasAnyRole).mockResolvedValueOnce(false)
 
       await expect(AIAdminPage()).rejects.toThrow(
-        'NEXT_REDIRECT: /signin?callbackUrl=/ai-admin&error=unauthorized'
+        'NEXT_REDIRECT: /signin?callbackUrl=%2Fai-admin&error=unauthorized'
       )
 
       expect(redirect).toHaveBeenCalledWith(expect.stringContaining('error=unauthorized'))
     })
 
-    it('should include callbackUrl=/ai-admin in redirect URL', async () => {
+    it('should include URL-encoded callbackUrl in redirect URL', async () => {
       vi.mocked(hasAnyRole).mockResolvedValueOnce(false)
 
       await expect(AIAdminPage()).rejects.toThrow('NEXT_REDIRECT')
 
-      expect(redirect).toHaveBeenCalledWith(expect.stringContaining('callbackUrl=/ai-admin'))
+      expect(redirect).toHaveBeenCalledWith(expect.stringContaining('callbackUrl=%2Fai-admin'))
     })
 
     it('should redirect to /signin path', async () => {

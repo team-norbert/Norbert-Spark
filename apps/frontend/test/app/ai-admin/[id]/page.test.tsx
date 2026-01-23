@@ -76,7 +76,7 @@ describe('AIAdminDetailPage', () => {
       expect(hasAnyRole).toHaveBeenCalledTimes(1)
       expect(redirect).toHaveBeenCalledTimes(1)
       expect(redirect).toHaveBeenCalledWith(
-        `/signin?callbackUrl=/ai-admin/${mockId}&error=unauthorized`
+        `/signin?callbackUrl=%2Fai-admin%2F${mockId}&error=unauthorized`
       )
     })
 
@@ -121,7 +121,7 @@ describe('AIAdminDetailPage', () => {
       await expect(AIAdminDetailPage({ params })).rejects.toThrow('NEXT_REDIRECT')
 
       expect(redirect).toHaveBeenCalledWith(
-        `/signin?callbackUrl=/ai-admin/${specificId}&error=unauthorized`
+        `/signin?callbackUrl=%2Fai-admin%2F${specificId}&error=unauthorized`
       )
     })
   })
@@ -195,7 +195,7 @@ describe('AIAdminDetailPage', () => {
 
       // Step 2: Redirect to signin with callback
       expect(redirect).toHaveBeenCalledWith(
-        `/signin?callbackUrl=/ai-admin/${mockId}&error=unauthorized`
+        `/signin?callbackUrl=%2Fai-admin%2F${mockId}&error=unauthorized`
       )
     })
   })
@@ -230,7 +230,7 @@ describe('AIAdminDetailPage', () => {
       const params = Promise.resolve({ id: mockId })
 
       await expect(AIAdminDetailPage({ params })).rejects.toThrow(
-        `NEXT_REDIRECT: /signin?callbackUrl=/ai-admin/${mockId}&error=unauthorized`
+        `NEXT_REDIRECT: /signin?callbackUrl=%2Fai-admin%2F${mockId}&error=unauthorized`
       )
     })
   })
