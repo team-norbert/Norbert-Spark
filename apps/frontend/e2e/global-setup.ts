@@ -18,7 +18,10 @@ const PID_REGEX = /^\d+$/
  * ENOENT means the command itself was not found.
  */
 function isExpectedExecError(error: unknown): boolean {
-  const errCode = (error as { code?: string | number })?.code
+  if (typeof error !== 'object' || error === null) {
+    return false
+  }
+  const errCode = (error as { code?: string | number }).code
   return errCode === 1 || errCode === '1' || errCode === 'ENOENT'
 }
 
