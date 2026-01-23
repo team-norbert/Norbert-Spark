@@ -45,7 +45,7 @@ async function globalSetup() {
     const sqlSchema = fs.readFileSync(schemaPath, 'utf-8')
 
     // Execute SQL schema
-    const schemaClient = postgres(connectionString, { max: 1 })
+    const schemaClient = postgres(connectionString, { max: 1, prepare: false })
     await schemaClient.unsafe(sqlSchema)
     await schemaClient.end()
     console.warn('✅ Database schema created')
