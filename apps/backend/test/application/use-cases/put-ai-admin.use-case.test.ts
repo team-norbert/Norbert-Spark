@@ -326,7 +326,7 @@ describe('PutAIAdminUseCase', () => {
 
       expect(result).toEqual(mockUpdatedOptions)
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for chat admin retrieval',
+        'Error logging audit for chat AI options update',
         auditError,
         { userId: mockAuditContext.userId }
       )
@@ -359,7 +359,7 @@ describe('PutAIAdminUseCase', () => {
 
       expect(mockLogger.error).toHaveBeenCalledTimes(1)
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for chat admin retrieval',
+        'Error logging audit for chat AI options update',
         auditError,
         { userId: mockAuditContext.userId }
       )
