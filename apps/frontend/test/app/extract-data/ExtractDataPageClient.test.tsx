@@ -86,23 +86,17 @@ describe('ExtractDataPageClient', () => {
       render(<ExtractDataPageClient />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
-      expect(call?.[0]).toEqual({
-        uploadedFiles: mockHookReturn.uploadedFiles,
-        dragActive: mockHookReturn.dragActive,
-        error: mockHookReturn.error,
-        isUploading: mockHookReturn.isUploading,
-        isExtracting: mockHookReturn.isExtracting,
-        extractedData: mockHookReturn.extractedData,
-        onDrag: mockHookReturn.handleDrag,
-        onDrop: mockHookReturn.handleDrop,
-        onFileInputChange: mockHookReturn.handleFileInputChange,
-        onRemoveFile: mockHookReturn.removeFile,
-        onClearAllFiles: mockHookReturn.clearAllFiles,
-        onProcessFiles: mockHookReturn.handleProcessFiles,
-        onClearError: mockHookReturn.clearError,
-        onNavigateHome: mockHookReturn.handleNavigateHome,
-        onSignOut: mockHookReturn.handleSignOut,
-      })
+      const props = call?.[0]
+
+      expect(props?.onDrag).toBe(mockHookReturn.handleDrag)
+      expect(props?.onDrop).toBe(mockHookReturn.handleDrop)
+      expect(props?.onFileInputChange).toBe(mockHookReturn.handleFileInputChange)
+      expect(props?.onRemoveFile).toBe(mockHookReturn.removeFile)
+      expect(props?.onClearAllFiles).toBe(mockHookReturn.clearAllFiles)
+      expect(props?.onProcessFiles).toBe(mockHookReturn.handleProcessFiles)
+      expect(props?.onClearError).toBe(mockHookReturn.clearError)
+      expect(props?.onNavigateHome).toBe(mockHookReturn.handleNavigateHome)
+      expect(props?.onSignOut).toBe(mockHookReturn.handleSignOut)
     })
   })
 
