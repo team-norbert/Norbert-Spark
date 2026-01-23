@@ -66,25 +66,25 @@ export class PutAIAdminDTO {
     if (isNumber(presencePenalty) && (presencePenalty < -2 || presencePenalty > 2)) {
       throw new ValidationException('Invalid presencePenalty: must be between -2 and 2')
     }
-    if (topK && !isNumber(topK)) {
+    if (isDefined(topK) && !isNumber(topK)) {
       throw new ValidationException('Invalid topK: must be a number')
     }
     if (isNumber(topK) && (topK <= 0 || topK > 100)) {
       throw new ValidationException('Invalid topK: must be between 1 and 100')
     }
-    if (stopSequences && !Array.isArray(stopSequences)) {
+    if (isDefined(stopSequences) && !Array.isArray(stopSequences)) {
       throw new ValidationException('Invalid stopSequences: must be an array')
     }
     if (Array.isArray(stopSequences) && !stopSequences.every((item) => isString(item))) {
       throw new ValidationException('Invalid stopSequences: all items must be strings')
     }
-    if (seed && !isNumber(seed)) {
+    if (isDefined(seed) && !isNumber(seed)) {
       throw new ValidationException('Invalid seed: must be a number')
     }
     if (isNumber(seed) && (seed < 0 || seed > 2147483647)) {
       throw new ValidationException('Invalid seed: must be between 0 and 2147483647')
     }
-    if (maxRetries && !isNumber(maxRetries)) {
+    if (isDefined(maxRetries) && !isNumber(maxRetries)) {
       throw new ValidationException('Invalid maxRetries: must be a number')
     }
     if (isNumber(maxRetries) && (maxRetries < 0 || maxRetries > 10)) {
