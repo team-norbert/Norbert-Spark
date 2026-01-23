@@ -385,7 +385,7 @@ describe('AIAdminController', () => {
 
     it('should handle use case errors correctly', async () => {
       const chatTypeId = uuidv7()
-      const error = new NotFoundException('Chat configuration not found')
+      const error = new NotFoundException('Chat configuration')
 
       mockRequest.params = { id: chatTypeId }
       mockRequest.body = { prompt: 'Test prompt' }
@@ -442,11 +442,20 @@ describe('AIAdminController', () => {
     it('should register GET route with authentication middleware', () => {
       const mockApp = {
         get: vi.fn(),
+        put: vi.fn(),
       } as any
 
       controller.registerRoutes(mockApp)
 
       expect(mockApp.get).toHaveBeenCalledWith(
+        '/ai/chats/config/:id/settings',
+        expect.objectContaining({
+          preHandler: expect.any(Array),
+        }),
+        expect.any(Function)
+      )
+
+      expect(mockApp.put).toHaveBeenCalledWith(
         '/ai/chats/config/:id/settings',
         expect.objectContaining({
           preHandler: expect.any(Array),
