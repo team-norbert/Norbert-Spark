@@ -98,7 +98,7 @@ export class AIAdminRepository implements AIAdminPort {
           userAgent: auditContext.userAgent ?? undefined,
         })
       } catch (error) {
-        this.logger.error('Error logging audit for chat admin retrieval', error as Error, {
+        this.logger.error('Error logging audit for chat AI options update', error as Error, {
           userId: auditContext.userId,
         })
       }
