@@ -211,4 +211,70 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
       { timeout: 15000 }
     )
   })
+
+  test('should navigate to AI options form and verify all form elements', async ({ page }) => {
+    // 1. Sign in as admin user
+    await signInToDashboard(page)
+
+    // 2. Navigate to AI admin page
+    await page.goto('/ai-admin')
+
+    // Wait for the data grid to load
+    await page.waitForSelector('.MuiDataGrid-root', { timeout: 10000 })
+
+    // Wait for data rows with data-id attribute to appear
+    await page.waitForFunction(
+      () => {
+        const grid = document.querySelector('.MuiDataGrid-root')
+        if (!grid) return false
+        const rows = grid.querySelectorAll('.MuiDataGrid-row[data-id]')
+        return rows.length > 0
+      },
+      { timeout: 10000 }
+    )
+
+    // 3. Get the first row's ID and click the 'change options' button
+    const firstRowId = await page.evaluate(() => {
+      const firstRow = document.querySelector('.MuiDataGrid-row[data-id]')
+      return firstRow?.getAttribute('data-id')
+    })
+
+    expect(firstRowId).toBeTruthy()
+
+    const changeOptionsButton = page.getByTestId(`change-options-${firstRowId}`)
+    await expect(changeOptionsButton).toBeVisible()
+    await changeOptionsButton.click()
+
+    // 4. Verify navigation to the dynamic AI options form page
+    await expect(page).toHaveURL(`/ai-admin/${firstRowId}`, { timeout: 10000 })
+
+    // Wait for form to load (check for page title)
+    await expect(page.getByRole('heading', { name: /AI Chat Options Configuration/i })).toBeVisible(
+      { timeout: 10000 }
+    )
+
+    // 5. Verify all form elements are present using data-testid attributes
+    const formElements = [
+      'prompt-input',
+      'max-tokens-input',
+      'temperature-input',
+      'top-p-input',
+      'frequency-penalty-input',
+      'presence-penalty-input',
+      'top-k-input',
+      'stop-sequences-input',
+      'seed-input',
+      'max-retries-input',
+      'save-button',
+    ]
+
+    for (const testId of formElements) {
+      await expect(page.getByTestId(testId)).toBeVisible({ timeout: 5000 })
+    }
+
+    // Verify the prompt field has content (should be pre-filled from API)
+    const promptInput = page.getByTestId('prompt-input').locator('textarea')
+    const promptValue = await promptInput.inputValue()
+    expect(promptValue.length).toBeGreaterThan(0)
+  })
 })

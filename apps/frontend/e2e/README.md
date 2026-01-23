@@ -17,21 +17,54 @@ cd apps/frontend
 pnpm run test:e2e
 ```
 
+**✨ Optional Process Cleanup**: Set `E2E_CLEANUP_PROCESSES=true` to automatically kill processes on port 3000 before starting tests.
+
 ## Troubleshooting: Process Conflicts
 
-### Problem
+### Automated Solution (Opt-In)
 
-E2E tests may show inconsistent results if development servers are running simultaneously. The tests are designed to run in complete isolation with their own:
+The E2E test suite can **automatically handle process cleanup** in `global-setup.ts` when you set `E2E_CLEANUP_PROCESSES=true`:
 
-- PostgreSQL database container (Testcontainers)
-- Backend API server (port 3000)
-- Frontend Next.js dev server (port 4321)
+1. **Kills processes on port 3000** (backend server port)
+   - Uses cross-platform approach: `lsof` on Unix/Linux/macOS, `netstat` + `taskkill` on Windows
+   - **Note**: Port 4321 is NOT killed - Playwright's webServer manages the Next.js dev server
 
-If dev servers are already running on these ports, tests can fail or produce unpredictable results.
+2. **Waits for cleanup**: 1-second delay to ensure processes fully terminate
 
-### Solution: Clean Process Shutdown
+**To enable automatic cleanup:**
 
-Before running E2E tests, ensure all Node.js development processes are stopped.
+```bash
+# Linux/macOS
+E2E_CLEANUP_PROCESSES=true pnpm run test:e2e
+
+# Windows PowerShell
+$env:E2E_CLEANUP_PROCESSES="true"; pnpm run test:e2e
+
+# Or add to your shell profile for persistent use
+export E2E_CLEANUP_PROCESSES=true  # Add to ~/.bashrc or ~/.zshrc
+```
+
+The default in the codebase is set to `true` to help avoid common port conflicts.
+
+With cleanup enabled (default), you'll see this output when tests start:
+
+```
+🧹 Checking for processes on ports 3000...
+   ✓ Killed process 12345 on port 3000
+✅ Process cleanup complete
+📦 Starting PostgreSQL container...
+```
+
+If cleanup is disabled, you'll see:
+
+```
+ℹ️  Process cleanup skipped (set E2E_CLEANUP_PROCESSES=true to enable)
+📦 Starting PostgreSQL container...
+```
+
+### Manual Cleanup (If Needed)
+
+If you encounter persistent issues or want to manually verify:
 
 #### Step 1: Check for Running Node Processes
 
@@ -39,86 +72,45 @@ Before running E2E tests, ensure all Node.js development processes are stopped.
 ps aux | grep -i node | grep -v grep
 ```
 
-This will show all Node.js processes, including:
+#### Step 2: Manual Kill Commands
 
-- Next.js dev servers (`next dev`)
-- Backend servers (`tsx watch`)
-- Webpack loaders
-- Playwright test processes
-- Other Node.js processes
-
-#### Step 2: Identify Development Processes
-
-Look for processes matching these patterns:
-
-- `next dev` - Frontend Next.js dev server
-- `tsx watch` - Backend TypeScript dev server
-- `playwright` - Running E2E tests
-- `test:e2e` - Test runner processes
-- `webpack-loaders` - Next.js webpack workers
-
-#### Step 3: Kill Development Processes
-
-**Option A: Graceful Shutdown (Recommended)**
-
-Stop dev servers in their respective terminals using `Ctrl+C`.
-
-**Option B: Force Kill Specific Processes**
+**Option A: Kill by Port (Recommended)**
 
 ```bash
-# Kill Next.js dev server
-pkill -f "next dev"
+# Kill process on backend port 3000
+lsof -ti :3000 | xargs kill -9
 
-# Kill backend tsx watch server
-pkill -f "tsx watch"
-
-# Kill any running Playwright processes
-pkill -f "playwright"
-
-# Kill E2E test processes
-pkill -f "test:e2e"
-
-# Kill webpack loaders
-pkill -f "webpack-loaders"
+# On Windows PowerShell:
+# Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess | Stop-Process -Force
 ```
 
-**Option C: Kill All at Once**
+**Note**: You generally don't need to kill port 4321 manually, as Playwright manages the Next.js dev server automatically.
+
+**Option B: Kill by Process Name**
 
 ```bash
-pkill -f "next dev" && \
+# Alternative: Kill specific development processes by name
 pkill -f "tsx watch" && \
-pkill -f "playwright" && \
-pkill -f "test:e2e" && \
-pkill -f "webpack-loaders"
+pkill -f "drizzle-kit studio"
 ```
 
-**Option D: Force Kill (Last Resort)**
-
-If processes don't respond to graceful shutdown:
+**Option C: Force Kill by PID**
 
 ```bash
-pkill -9 -f "turbo test:e2e"
-pkill -9 -f "@playwright/test"
-pkill -9 -f "test-server"
+# Find PIDs on specific ports
+lsof -i :3000
+
+# Kill specific PIDs
+kill -9 <PID1> <PID2> <PID3>
 ```
 
-⚠️ **Note**: The `-9` flag force kills processes without cleanup. Use only when necessary.
-
-#### Step 4: Verify Cleanup
+#### Step 3: Verify Ports Are Free
 
 ```bash
-# Check remaining development processes
-ps aux | grep -E "(next dev|tsx|playwright|webpack)" | grep -v grep | wc -l
+lsof -i :3000 -i :4321 || echo "Ports 3000 and 4321 are free"
 ```
 
-This should return `0` or a very low number (VSCode language services are OK).
-
-#### Step 5: Run E2E Tests
-
-```bash
-# From project root of this repo
-pnpm run test:e2e
-```
+This should return "Ports 3000 and 4321 are free" if successful.
 
 ## Test Environment Architecture
 
@@ -166,10 +158,16 @@ Cleanup Complete
 
 ### 1. Always Run in Clean Environment
 
-Stop all dev servers before running E2E tests:
+Use the automated cleanup or manually stop dev servers before running E2E tests:
 
 ```bash
-# Kill processes, then run tests
+# Option 1: Use automated cleanup (recommended)
+E2E_CLEANUP_PROCESSES=true pnpm run test:e2e
+
+# Option 2: Manually kill processes by port
+lsof -ti :3000 | xargs kill -9 && pnpm run test:e2e
+
+# Option 3: Kill by process name
 pkill -f "next dev" && pkill -f "tsx watch" && pnpm run test:e2e
 ```
 

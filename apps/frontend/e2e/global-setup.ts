@@ -1,11 +1,43 @@
 import type { ChildProcess } from 'node:child_process'
-import { spawn } from 'node:child_process'
+import { exec, spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
 
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql'
 import postgres from 'postgres'
+
+const execAsync = promisify(exec)
+
+const PID_REGEX = /^\d+$/
+
+/**
+ * Type guard to check if error has a code property
+ */
+function hasErrorCode(error: unknown): error is { code: string | number } {
+  return typeof error === 'object' && error !== null && 'code' in error
+}
+
+/**
+ * Extract a readable error message from an unknown error
+ */
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
+/**
+ * Check if an error from exec is expected (exit code 1 or command not found).
+ * Exit code 1 typically means "no process found" for lsof/netstat.
+ * ENOENT means the command itself was not found.
+ */
+function isExpectedExecError(error: unknown): boolean {
+  if (!hasErrorCode(error)) {
+    return false
+  }
+  const errCode = error.code
+  return errCode === 1 || errCode === '1' || errCode === 'ENOENT'
+}
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -16,10 +48,110 @@ let backendProcess: ChildProcess | null = null
 // Export for teardown
 export { backendProcess, postgresContainer }
 
+/**
+ * Kill processes listening on specific ports before E2E tests.
+ *
+ * This is opt-in via E2E_CLEANUP_PROCESSES=true environment variable to avoid
+ * accidentally killing unrelated processes. When enabled, it frees up port 3000
+ * (backend) by killing processes bound to that port.
+ *
+ * Uses cross-platform approach:
+ * - Windows: netstat + taskkill
+ * - Unix/Linux/macOS: lsof
+ *
+ * NOTE: We target specific ports instead of process names to avoid killing
+ * unrelated projects. Port 4321 is intentionally skipped as Playwright's webServer
+ * manages the Next.js dev server.
+ */
+async function killInterferingProcesses() {
+  // Make cleanup opt-in to avoid accidentally killing unrelated processes
+  if (process.env.E2E_CLEANUP_PROCESSES !== 'true') {
+    console.warn('ℹ️  Process cleanup skipped (set E2E_CLEANUP_PROCESSES=true to enable)')
+    return
+  }
+
+  console.warn('🧹 Checking for processes on ports 3000...')
+
+  const portsToCheck = [
+    3000, // Backend server (we manage this ourselves in global-setup)
+    // 4321 is intentionally excluded - Playwright's webServer manages the frontend
+  ]
+
+  const platform = process.platform
+  let killedAny = false
+
+  for (const port of portsToCheck) {
+    try {
+      let pid: string | null = null
+
+      if (platform === 'win32') {
+        // Windows: Use netstat to find process on port
+        try {
+          const { stdout } = await execAsync(`netstat -ano | findstr :${port}`)
+          const lines = stdout.trim().split('\n')
+          for (const line of lines) {
+            const match = line.match(/LISTENING\s+(\d+)/)
+            if (match && match[1]) {
+              pid = match[1]
+              break
+            }
+          }
+
+          if (pid) {
+            await execAsync(`taskkill /F /PID ${pid}`)
+            console.warn(`   ✓ Killed process ${pid} on port ${port}`)
+            killedAny = true
+          }
+        } catch (error) {
+          // Ignore exit code 1 (no matching process found) and ENOENT (command not found)
+          if (!isExpectedExecError(error)) {
+            console.warn(`   ⚠ Could not check port ${port}: ${getErrorMessage(error)}`)
+          }
+        }
+      } else {
+        // Unix/Linux/macOS: Use lsof to find process(es) on port
+        try {
+          const { stdout } = await execAsync(`lsof -ti :${port}`)
+          const pids = stdout
+            .trim()
+            .split(/\s+/)
+            .map((value) => value.trim())
+            .filter((value) => value.length > 0 && PID_REGEX.test(value))
+
+          for (const pidToKill of pids) {
+            await execAsync(`kill -9 ${pidToKill}`)
+            console.warn(`   ✓ Killed process ${pidToKill} on port ${port}`)
+            killedAny = true
+          }
+        } catch (error) {
+          // lsof exits with code 1 if no process found, which is fine
+          // Also ignore ENOENT (command not found)
+          if (!isExpectedExecError(error)) {
+            console.warn(`   ⚠ Could not check port ${port}: ${getErrorMessage(error)}`)
+          }
+        }
+      }
+    } catch (error) {
+      // Catch-all for unexpected errors
+      console.warn(`   ⚠ Unexpected error checking port ${port}:`, error)
+    }
+  }
+
+  if (killedAny) {
+    // Wait a moment for processes to fully terminate
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+  }
+
+  console.warn('✅ Process cleanup complete')
+}
+
 async function globalSetup() {
   console.warn('🚀 Starting E2E test environment setup...')
 
   try {
+    // Kill any interfering processes first
+    await killInterferingProcesses()
+
     // Start PostgreSQL container
     console.warn('📦 Starting PostgreSQL container...')
     postgresContainer = await new PostgreSqlContainer('postgres:18-alpine')
