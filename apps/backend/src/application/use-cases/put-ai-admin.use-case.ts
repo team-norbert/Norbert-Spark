@@ -16,9 +16,24 @@ export class PutAIAdminUseCase {
 
   async execute(id: UUIDType, dto: PutAIAdminDTO, auditContext: AuditContext): Promise<any> {
     this.logger.info(`Executing PutAIAdminUseCase for ID: ${id}`)
-
-    const result: any = await this.aiAdminPort.putChatAIOptions(id, dto)
-    // Placeholder return
-    return Promise.resolve(null)
+    const result = await this.aiAdminPort.putChatAIOptions(id, dto, auditContext)
+    try {
+      await this.auditLog.log({
+        userId: auditContext.userId,
+        entityType: EntityType.AI_OPTIONS,
+        entityId: id,
+        action: AuditAction.UPDATE,
+        changes: {
+          reason: 'chat_ai_options_updated',
+        },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
+      })
+    } catch (error) {
+      this.logger.error('Error logging audit for chat admin retrieval', error as Error, {
+        userId: auditContext.userId,
+      })
+    }
+    return result
   }
 }

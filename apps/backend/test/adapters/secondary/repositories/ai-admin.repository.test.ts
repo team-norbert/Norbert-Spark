@@ -2,6 +2,7 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIAdminRepository } from '../../../../src/adapters/secondary/repositories/ai-admin.repository.js'
+import type { AuditLogPort } from '../../../../src/application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import { Uuid } from '../../../../src/domain/value-objects/uuid.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
@@ -16,6 +17,7 @@ vi.mock('../../../../src/infrastructure/database/index.js', () => ({
 describe('AIAdminRepository', () => {
   let repository: AIAdminRepository
   let mockLogger: LoggerPort
+  let mockAuditLog: AuditLogPort
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -28,7 +30,15 @@ describe('AIAdminRepository', () => {
       debug: vi.fn(),
     }
 
-    repository = new AIAdminRepository(mockLogger)
+    // Create mock audit log
+    mockAuditLog = {
+      log: vi.fn(),
+      getByEntity: vi.fn(),
+      getByUser: vi.fn(),
+      getByAction: vi.fn(),
+    }
+
+    repository = new AIAdminRepository(mockLogger, mockAuditLog)
   })
 
   describe('getAllChatAIOptions', () => {

@@ -7,6 +7,8 @@ import { Uuid } from '../../../domain/value-objects/uuid.js'
 import { GetAIAdminUseCase } from '../../../application/use-cases/get-ai-admin.use-case.js'
 import { PutAIAdminUseCase } from '../../../application/use-cases/put-ai-admin.use-case.js'
 import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
+import { AuditAction, EntityType } from '../../../domain/audit/entity-type.enum.js'
+import type { AuditLogPort } from '../../../application/ports/audit-log.port.js'
 
 export class AIAdminController {
   constructor(

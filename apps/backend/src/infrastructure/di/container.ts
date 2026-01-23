@@ -189,8 +189,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.userRepository = new PostgresUserRepository()
     this.aiRepository = new AIRepository(this.logger)
     this.aiChatContentRepository = new AIChatContentRepository(this.logger)
-    this.aiAdminRepository = new AIAdminRepository(this.logger)
     this.auditLog = new AuditLogRepository(this.logger)
+    this.aiAdminRepository = new AIAdminRepository(this.logger, this.auditLog)
     this.bucketService = new BucketService(this.logger)
     // Initialize use cases
     this.registerUserUseCase = new RegisterUserUseCase(
