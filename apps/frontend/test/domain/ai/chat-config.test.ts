@@ -58,11 +58,11 @@ describe('ChatTypeSchema', () => {
     it('should validate ChatType with special characters', () => {
       const validChatType = {
         id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e',
-        name: 'C++ Developer',
-        description: 'Expert C++ & Python programming!',
+        name: 'JS Developer',
+        description: 'Expert JS & Python programming!',
         createdAt: '2024-01-15T10:30:00Z',
         updatedAt: '2024-01-15T10:30:00Z',
-        seoFriendlyId: 'cpp-developer',
+        seoFriendlyId: 'js-developer',
         seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
       }
 
