@@ -44,7 +44,7 @@ $env:E2E_CLEANUP_PROCESSES="true"; pnpm run test:e2e
 export E2E_CLEANUP_PROCESSES=true  # Add to ~/.bashrc or ~/.zshrc
 ```
 
-With cleanup enabled, you'll see this output when tests start:
+With cleanup enabled  (default), you'll see this output when tests start:
 
 ```
 🧹 Checking for processes on ports 3000...
@@ -53,7 +53,7 @@ With cleanup enabled, you'll see this output when tests start:
 📦 Starting PostgreSQL container...
 ```
 
-If cleanup is disabled (default), you'll see:
+If cleanup is disabled, you'll see:
 
 ```
 ℹ️  Process cleanup skipped (set E2E_CLEANUP_PROCESSES=true to enable)
