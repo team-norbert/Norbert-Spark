@@ -33,7 +33,7 @@ export class PutAIAdminDTO {
       maxRetries,
     } = data
 
-    if (!prompt || !isString(prompt)) {
+    if (!prompt || !isString(prompt) || !prompt.trim()) {
       throw new ValidationException('Invalid prompt: must be a non-empty string')
     }
     if (maxTokens && !isNumber(maxTokens)) {

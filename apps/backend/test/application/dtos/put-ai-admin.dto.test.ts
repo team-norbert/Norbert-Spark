@@ -112,6 +112,14 @@ describe('PutAIAdminDTO', () => {
         )
       })
 
+      it('should throw ValidationException when prompt is whitespace-only string', () => {
+        expect(() => PutAIAdminDTO.validate({ prompt: '   ' })).toThrow(ValidationException)
+        expect(() => PutAIAdminDTO.validate({ prompt: '   ' })).toThrow(
+          'Invalid prompt: must be a non-empty string'
+        )
+        expect(() => PutAIAdminDTO.validate({ prompt: '\t\n  ' })).toThrow(ValidationException)
+      })
+
       it('should throw ValidationException when prompt is not a string', () => {
         expect(() => PutAIAdminDTO.validate({ prompt: 123 })).toThrow(ValidationException)
         expect(() => PutAIAdminDTO.validate({ prompt: null })).toThrow(ValidationException)
