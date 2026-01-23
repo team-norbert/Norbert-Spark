@@ -93,15 +93,15 @@ export class PutAIAdminDTO {
 
     return new PutAIAdminDTO(
       prompt,
-      maxTokens as number | undefined,
-      temperature as number | undefined,
-      topP as number | undefined,
-      frequencyPenalty as number | undefined,
-      presencePenalty as number | undefined,
-      topK as number | undefined,
-      stopSequences as string[] | undefined,
-      seed as number | undefined,
-      maxRetries as number | undefined
+      maxTokens === null ? undefined : (maxTokens as number | undefined),
+      temperature === null ? undefined : (temperature as number | undefined),
+      topP === null ? undefined : (topP as number | undefined),
+      frequencyPenalty === null ? undefined : (frequencyPenalty as number | undefined),
+      presencePenalty === null ? undefined : (presencePenalty as number | undefined),
+      topK === null ? undefined : (topK as number | undefined),
+      stopSequences === null ? undefined : (stopSequences as string[] | undefined),
+      seed === null ? undefined : (seed as number | undefined),
+      maxRetries === null ? undefined : (maxRetries as number | undefined)
     )
   }
 }
