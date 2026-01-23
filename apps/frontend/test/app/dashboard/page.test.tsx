@@ -61,27 +61,7 @@ describe('DashboardPage', () => {
       expect(hasAnyRole).toHaveBeenCalledWith(['user', 'admin', 'moderator'])
     })
 
-    it('should render DashboardPageClient when user has user role', async () => {
-      vi.mocked(hasAnyRole).mockResolvedValueOnce(true)
-
-      const result = await DashboardPage()
-
-      expect(result).toBeDefined()
-      expect(result).toBeTruthy()
-      expect(redirect).not.toHaveBeenCalled()
-    })
-
-    it('should render DashboardPageClient when user has admin role', async () => {
-      vi.mocked(hasAnyRole).mockResolvedValueOnce(true)
-
-      const result = await DashboardPage()
-
-      expect(result).toBeDefined()
-      expect(result).toBeTruthy()
-      expect(redirect).not.toHaveBeenCalled()
-    })
-
-    it('should render DashboardPageClient when user has moderator role', async () => {
+    it('should render DashboardPageClient when user is authorized', async () => {
       vi.mocked(hasAnyRole).mockResolvedValueOnce(true)
 
       const result = await DashboardPage()
