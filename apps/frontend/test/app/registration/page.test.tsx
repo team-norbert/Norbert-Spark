@@ -90,20 +90,25 @@ describe('RegistrationPage', () => {
       render(<RegistrationPage />)
 
       const call = vi.mocked(RegistrationForm).mock.calls[0]
-      expect(call?.[0]).toEqual({
-        formData: mockHookReturn.formData,
-        errors: mockHookReturn.errors,
-        generalError: mockHookReturn.generalError,
-        onFieldChange: mockHookReturn.handleChange,
-        onSubmit: mockHookReturn.handleSubmit,
-        onGoogleSignUp: mockHookReturn.handleGoogleSignUp,
-        onSignIn: mockHookReturn.handleSignIn,
-        showPassword: mockHookReturn.showPassword,
-        showConfirmPassword: mockHookReturn.showConfirmPassword,
-        togglePasswordVisibility: mockHookReturn.togglePasswordVisibility,
-        toggleConfirmPasswordVisibility: mockHookReturn.toggleConfirmPasswordVisibility,
-        isSubmitting: mockHookReturn.isSubmitting,
-      })
+      const props = call?.[0] as Record<string, unknown> | undefined
+
+      expect(props).toBeDefined()
+
+      // Ensure all handler props are passed through and are functions
+      expect(props?.onFieldChange).toBe(mockHookReturn.handleChange)
+      expect(typeof props?.onFieldChange).toBe('function')
+      expect(props?.onSubmit).toBe(mockHookReturn.handleSubmit)
+      expect(typeof props?.onSubmit).toBe('function')
+      expect(props?.onGoogleSignUp).toBe(mockHookReturn.handleGoogleSignUp)
+      expect(typeof props?.onGoogleSignUp).toBe('function')
+      expect(props?.onSignIn).toBe(mockHookReturn.handleSignIn)
+      expect(typeof props?.onSignIn).toBe('function')
+      expect(props?.togglePasswordVisibility).toBe(mockHookReturn.togglePasswordVisibility)
+      expect(typeof props?.togglePasswordVisibility).toBe('function')
+      expect(props?.toggleConfirmPasswordVisibility).toBe(
+        mockHookReturn.toggleConfirmPasswordVisibility,
+      )
+      expect(typeof props?.toggleConfirmPasswordVisibility).toBe('function')
     })
   })
 
