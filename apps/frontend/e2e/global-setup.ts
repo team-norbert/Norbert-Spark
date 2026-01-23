@@ -12,6 +12,16 @@ const execAsync = promisify(exec)
 
 const PID_REGEX = /^\d+$/
 
+/**
+ * Check if an error from exec is expected (exit code 1 or command not found).
+ * Exit code 1 typically means "no process found" for lsof/netstat.
+ * ENOENT means the command itself was not found.
+ */
+function isExpectedExecError(error: unknown): boolean {
+  const errCode = (error as { code?: string | number })?.code
+  return errCode === 1 || errCode === '1' || errCode === 'ENOENT'
+}
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -77,9 +87,7 @@ async function killInterferingProcesses() {
           }
         } catch (error) {
           // Ignore exit code 1 (no matching process found) and ENOENT (command not found)
-          const errCode = (error as NodeJS.ErrnoException | Error | { code?: string | number })?.code
-          const isExpectedError = errCode === 1 || errCode === '1' || errCode === 'ENOENT'
-          if (!isExpectedError) {
+          if (!isExpectedExecError(error)) {
             console.warn(
               `   ⚠ Could not check port ${port}: ${error instanceof Error ? error.message : String(error)}`
             )
@@ -103,9 +111,7 @@ async function killInterferingProcesses() {
         } catch (error) {
           // lsof exits with code 1 if no process found, which is fine
           // Also ignore ENOENT (command not found)
-          const errCode = (error as NodeJS.ErrnoException | Error | { code?: string | number })?.code
-          const isExpectedError = errCode === 1 || errCode === '1' || errCode === 'ENOENT'
-          if (!isExpectedError) {
+          if (!isExpectedExecError(error)) {
             console.warn(
               `   ⚠ Could not check port ${port}: ${error instanceof Error ? error.message : String(error)}`
             )
