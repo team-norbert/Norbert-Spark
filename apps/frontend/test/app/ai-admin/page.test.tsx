@@ -267,13 +267,24 @@ describe('AIAdminPage', () => {
     })
 
     it('should check roles before any redirect attempt', async () => {
-      vi.mocked(hasAnyRole).mockResolvedValueOnce(false)
+      const callOrder: string[] = []
+
+      vi.mocked(hasAnyRole).mockImplementationOnce(async () => {
+        callOrder.push('hasAnyRole')
+        return false
+      })
+
+      vi.mocked(redirect).mockImplementationOnce((url: string) => {
+        callOrder.push('redirect')
+        throw new Error(`NEXT_REDIRECT: ${url}`)
+      })
 
       await expect(AIAdminPage()).rejects.toThrow()
 
       // hasAnyRole should be called before redirect
+      expect(callOrder).toEqual(['hasAnyRole', 'redirect'])
       expect(hasAnyRole).toHaveBeenCalled()
-      expect(redirect).toHaveBeenCalledAfter(hasAnyRole as any)
+      expect(redirect).toHaveBeenCalled()
     })
   })
 })
