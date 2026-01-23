@@ -26,23 +26,20 @@ pnpm run test:e2e
 The E2E test suite now **automatically handles process cleanup** in `global-setup.ts`:
 
 1. **Kills interfering processes** matching these patterns:
-   - `next dev` - Frontend Next.js dev server
    - `tsx watch` - Backend TypeScript dev server
-   - `playwright test-server` - Old Playwright test servers
    - `drizzle-kit studio` - Database GUI tool
+   - **Note**: `next dev` is NOT killed - Playwright's webServer manages the Next.js dev server
 
-2. **Verifies ports are free**: Checks that ports 3000 and 4321 are available
-
-3. **Waits for cleanup**: 2-second delay to ensure processes fully terminate
+2. **Waits for cleanup**: 1-second delay to ensure processes fully terminate
 
 You should see this output when tests start:
 
 ```
 🧹 Checking for interfering Node.js processes...
-   ✓ Killed processes matching: next dev
-   ✓ Killed processes matching: tsx watch
-✅ Ports 3000 and 4321 are free
-🚀 Starting E2E test environment setup...
+   ⚠ Warning killing tsx watch: Command failed (process not running - this is fine)
+   ⚠ Warning killing drizzle-kit studio: Command failed (process not running - this is fine)
+✅ Process cleanup complete
+📦 Starting PostgreSQL container...
 ```
 
 ### Manual Cleanup (If Needed)
@@ -60,11 +57,11 @@ ps aux | grep -i node | grep -v grep
 **Option A: Kill All Development Processes**
 
 ```bash
-pkill -f "next dev" && \
 pkill -f "tsx watch" && \
-pkill -f "playwright test-server" && \
 pkill -f "drizzle-kit studio"
 ```
+
+**Note**: You generally don't need to kill `next dev` manually, as Playwright manages the Next.js dev server automatically.
 
 **Option B: Force Kill by PID**
 
