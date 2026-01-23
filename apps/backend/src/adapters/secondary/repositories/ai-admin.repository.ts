@@ -23,4 +23,11 @@ export class AIAdminRepository implements AIAdminPort {
       throw error
     }
   }
+
+  async putChatAIOptions(id: UUIDType): Promise<any> {
+    // Implementation for updating chat AI options goes here
+    this.logger.info(`Updating chat AI options for ID: ${id}`)
+    // Placeholder return
+    return Promise.resolve(null)
+  }
 }

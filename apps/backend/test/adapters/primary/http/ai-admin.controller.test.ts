@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AIAdminController } from '../../../../src/adapters/primary/http/ai-admin.controller.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import type { GetAIAdminUseCase } from '../../../../src/application/use-cases/get-ai-admin.use-case.js'
+import type { PutAIAdminUseCase } from '../../../../src/application/use-cases/put-ai-admin.use-case.js'
 import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
 import { NotFoundException } from '../../../../src/shared/exceptions/not-found.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
@@ -12,6 +13,7 @@ import { ValidationException } from '../../../../src/shared/exceptions/validatio
 describe('AIAdminController', () => {
   let controller: AIAdminController
   let mockGetAIAdminUseCase: GetAIAdminUseCase
+  let mockPutAIAdminUseCase: PutAIAdminUseCase
   let mockLogger: LoggerPort
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
@@ -22,6 +24,11 @@ describe('AIAdminController', () => {
 
     // Create mock use case
     mockGetAIAdminUseCase = {
+      execute: vi.fn(),
+    } as any
+
+    // Create mock put use case
+    mockPutAIAdminUseCase = {
       execute: vi.fn(),
     } as any
 
@@ -50,7 +57,7 @@ describe('AIAdminController', () => {
     } as any
 
     // Create controller instance
-    controller = new AIAdminController(mockLogger, mockGetAIAdminUseCase)
+    controller = new AIAdminController(mockLogger, mockGetAIAdminUseCase, mockPutAIAdminUseCase)
   })
 
   describe('getAIChatSettingsById', () => {

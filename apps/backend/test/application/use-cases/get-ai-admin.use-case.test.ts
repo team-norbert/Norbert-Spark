@@ -36,6 +36,7 @@ describe('GetAIAdminUseCase', () => {
 
     mockAiAdminPort = {
       getAllChatAIOptions: vi.fn(),
+      putChatAIOptions: vi.fn(),
     }
 
     mockAuditContext = {

@@ -3,4 +3,5 @@ import type { UUIDType } from '../../domain/value-objects/uuid.js'
 
 export interface AIAdminPort {
   getAllChatAIOptions(id: UUIDType): Promise<DBChatAiOptions | null>
+  putChatAIOptions(id: UUIDType): Promise<any>
 }
