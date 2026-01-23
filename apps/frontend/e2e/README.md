@@ -17,28 +17,54 @@ cd apps/frontend
 pnpm run test:e2e
 ```
 
-**✨ Automatic Process Cleanup**: The E2E test suite automatically kills interfering Node.js processes before starting. No manual intervention required!
+### Enabling Automatic Process Cleanup
+
+By default, the E2E test suite will **not** automatically kill processes on port 3000. If you want to enable automatic cleanup, set the environment variable:
+
+```bash
+# Enable automatic cleanup of port 3000 before tests
+export E2E_CLEANUP_PROCESSES=true
+pnpm run test:e2e
+
+# Or inline for a single run
+E2E_CLEANUP_PROCESSES=true pnpm run test:e2e
+```
+
+**⚠️ Warning**: This will kill any process listening on port 3000 (typically your backend dev server). Only enable this if you're comfortable with this behavior.
 
 ## Troubleshooting: Process Conflicts
 
-### Automated Solution (Default)
+### Opt-In Automatic Cleanup
 
-The E2E test suite now **automatically handles process cleanup** in `global-setup.ts`:
+The E2E test suite includes an **opt-in** process cleanup feature in `global-setup.ts`:
 
-1. **Kills interfering processes** matching these patterns:
-   - `tsx watch` - Backend TypeScript dev server
-   - `drizzle-kit studio` - Database GUI tool
-   - **Note**: `next dev` is NOT killed - Playwright's webServer manages the Next.js dev server
+**To enable automatic cleanup**, export the environment variable before running tests:
 
-2. **Waits for cleanup**: 1-second delay to ensure processes fully terminate
+```bash
+export E2E_CLEANUP_PROCESSES=true
+pnpm run test:e2e
+```
 
-You should see this output when tests start:
+When enabled, it will:
+
+1. **Kill processes on port 3000** (backend server port)
+   - **Note**: Port 4321 (frontend) is NOT killed - Playwright's webServer manages the Next.js dev server
+
+2. **Wait for cleanup**: 1-second delay to ensure processes fully terminate
+
+You should see this output when cleanup is enabled:
 
 ```
-🧹 Checking for interfering Node.js processes...
-   ⚠ Warning killing tsx watch: Command failed (process not running - this is fine)
-   ⚠ Warning killing drizzle-kit studio: Command failed (process not running - this is fine)
+🧹 Checking for processes on ports 3000...
+   ✓ Killed process 12345 on port 3000
 ✅ Process cleanup complete
+📦 Starting PostgreSQL container...
+```
+
+If cleanup is disabled (default), you'll see:
+
+```
+ℹ️  Process cleanup skipped (set E2E_CLEANUP_PROCESSES=true to enable)
 📦 Starting PostgreSQL container...
 ```
 
