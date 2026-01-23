@@ -10,8 +10,34 @@ import postgres from 'postgres'
 
 const execAsync = promisify(exec)
 
-const EXIT_CODE_NO_MATCH = 'exit code 1'
 const PID_REGEX = /^\d+$/
+
+/**
+ * Type guard to check if error has a code property
+ */
+function hasErrorCode(error: unknown): error is { code: string | number } {
+  return typeof error === 'object' && error !== null && 'code' in error
+}
+
+/**
+ * Extract a readable error message from an unknown error
+ */
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
+/**
+ * Check if an error from exec is expected (exit code 1 or command not found).
+ * Exit code 1 typically means "no process found" for lsof/netstat.
+ * ENOENT means the command itself was not found.
+ */
+function isExpectedExecError(error: unknown): boolean {
+  if (!hasErrorCode(error)) {
+    return false
+  }
+  const errCode = error.code
+  return errCode === 1 || errCode === '1' || errCode === 'ENOENT'
+}
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -77,9 +103,9 @@ async function killInterferingProcesses() {
             killedAny = true
           }
         } catch (error) {
-          // Ignore errors - port might not be in use or command not available
-          if (error instanceof Error && !error.message.includes(EXIT_CODE_NO_MATCH)) {
-            console.warn(`   ⚠ Could not check port ${port}: ${error.message}`)
+          // Ignore exit code 1 (no matching process found) and ENOENT (command not found)
+          if (!isExpectedExecError(error)) {
+            console.warn(`   ⚠ Could not check port ${port}: ${getErrorMessage(error)}`)
           }
         }
       } else {
@@ -99,8 +125,9 @@ async function killInterferingProcesses() {
           }
         } catch (error) {
           // lsof exits with code 1 if no process found, which is fine
-          if (error instanceof Error && !error.message.includes(EXIT_CODE_NO_MATCH)) {
-            console.warn(`   ⚠ Could not check port ${port}: ${error.message}`)
+          // Also ignore ENOENT (command not found)
+          if (!isExpectedExecError(error)) {
+            console.warn(`   ⚠ Could not check port ${port}: ${getErrorMessage(error)}`)
           }
         }
       }
