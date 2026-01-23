@@ -25,46 +25,38 @@ export class PutAIAdminUseCase {
       const result = await this.aiAdminPort.putChatAIOptions(id, dto)
 
       // Log successful audit
-      try {
-        await this.auditLog.log({
-          userId: auditContext.userId,
-          entityType: EntityType.AI_OPTIONS,
-          entityId: id,
-          action: AuditAction.UPDATE,
-          changes: {
-            reason: 'chat_ai_options_updated',
-          },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        })
-      } catch (error) {
-        this.logger.error('Error logging audit for chat AI options update', error as Error, {
-          userId: auditContext.userId,
-        })
-      }
+      await this.logAudit(id, auditContext, 'chat_ai_options_updated')
 
       return result
     } catch (error) {
       // Log failed audit
-      try {
-        await this.auditLog.log({
-          userId: auditContext.userId,
-          entityType: EntityType.AI_OPTIONS,
-          entityId: id,
-          action: AuditAction.UPDATE,
-          changes: {
-            reason: 'chat_ai_options_update_failed',
-          },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        })
-      } catch (auditError) {
-        this.logger.error('Error logging audit for chat AI options update', auditError as Error, {
-          userId: auditContext.userId,
-        })
-      }
+      await this.logAudit(id, auditContext, 'chat_ai_options_update_failed')
 
       throw error
+    }
+  }
+
+  private async logAudit(
+    id: UUIDType,
+    auditContext: AuditContext,
+    reason: string
+  ): Promise<void> {
+    try {
+      await this.auditLog.log({
+        userId: auditContext.userId,
+        entityType: EntityType.AI_OPTIONS,
+        entityId: id,
+        action: AuditAction.UPDATE,
+        changes: {
+          reason,
+        },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
+      })
+    } catch (error) {
+      this.logger.error('Error logging audit for chat AI options update', error as Error, {
+        userId: auditContext.userId,
+      })
     }
   }
 }
