@@ -39,36 +39,18 @@ describe('ExtractDataPage', () => {
       expect(hasAnyRole).toHaveBeenCalledWith(['user', 'admin', 'moderator'])
     })
 
-    it('should render ExtractDataPageClient when user has user role', async () => {
-      vi.mocked(hasAnyRole).mockResolvedValueOnce(true)
+    it.each(['user', 'admin', 'moderator'])(
+      'should render ExtractDataPageClient when user has %s role',
+      async () => {
+        vi.mocked(hasAnyRole).mockResolvedValueOnce(true)
 
-      const result = await ExtractDataPage()
+        const result = await ExtractDataPage()
 
-      expect(result).toBeDefined()
-      expect(result).toBeTruthy()
-      expect(redirect).not.toHaveBeenCalled()
-    })
-
-    it('should render ExtractDataPageClient when user has admin role', async () => {
-      vi.mocked(hasAnyRole).mockResolvedValueOnce(true)
-
-      const result = await ExtractDataPage()
-
-      expect(result).toBeDefined()
-      expect(result).toBeTruthy()
-      expect(redirect).not.toHaveBeenCalled()
-    })
-
-    it('should render ExtractDataPageClient when user has moderator role', async () => {
-      vi.mocked(hasAnyRole).mockResolvedValueOnce(true)
-
-      const result = await ExtractDataPage()
-
-      expect(result).toBeDefined()
-      expect(result).toBeTruthy()
-      expect(redirect).not.toHaveBeenCalled()
-    })
-
+        expect(result).toBeDefined()
+        expect(result).toBeTruthy()
+        expect(redirect).not.toHaveBeenCalled()
+      }
+    )
     it('should redirect to signin when user is not authorized', async () => {
       vi.mocked(hasAnyRole).mockResolvedValueOnce(false)
 
