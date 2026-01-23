@@ -83,14 +83,18 @@ async function killInterferingProcesses() {
           }
         }
       } else {
-        // Unix/Linux/macOS: Use lsof to find process on port
+        // Unix/Linux/macOS: Use lsof to find process(es) on port
         try {
           const { stdout } = await execAsync(`lsof -ti :${port}`)
-          pid = stdout.trim()
+          const pids = stdout
+            .trim()
+            .split(/\s+/)
+            .map((value) => value.trim())
+            .filter((value) => value.length > 0 && PID_REGEX.test(value))
 
-          if (pid && PID_REGEX.test(pid)) {
-            await execAsync(`kill -9 ${pid}`)
-            console.warn(`   ✓ Killed process ${pid} on port ${port}`)
+          for (const pidToKill of pids) {
+            await execAsync(`kill -9 ${pidToKill}`)
+            console.warn(`   ✓ Killed process ${pidToKill} on port ${port}`)
             killedAny = true
           }
         } catch (error) {
