@@ -36,31 +36,31 @@ export class PutAIAdminDTO {
     if (!prompt || !isString(prompt) || !prompt.trim()) {
       throw new ValidationException('Invalid prompt: must be a non-empty string')
     }
-    if (maxTokens && !isNumber(maxTokens)) {
+    if (isDefined(maxTokens) && !isNumber(maxTokens)) {
       throw new ValidationException('Invalid maxTokens: must be a number')
     }
-    if (isNumber(maxTokens) && (maxTokens < 1 || maxTokens > 100000)) {
-      throw new ValidationException('Invalid maxTokens: must be between 1 and 100000')
+    if (isNumber(maxTokens) && (maxTokens < 0 || maxTokens > 100000)) {
+      throw new ValidationException('Invalid temperature: must be between 0 and 100000')
     }
-    if (temperature && !isNumber(temperature)) {
+    if (isDefined(temperature) && !isNumber(temperature)) {
       throw new ValidationException('Invalid temperature: must be a number')
     }
     if (isNumber(temperature) && (temperature < 0 || temperature > 2)) {
       throw new ValidationException('Invalid temperature: must be between 0 and 2')
     }
-    if (topP && !isNumber(topP)) {
+    if (isDefined(topP) && !isNumber(topP)) {
       throw new ValidationException('Invalid topP: must be a number')
     }
     if (isNumber(topP) && (topP < 0 || topP > 1)) {
       throw new ValidationException('Invalid topP: must be between 0 and 1')
     }
-    if (frequencyPenalty && !isNumber(frequencyPenalty)) {
+    if (isDefined(frequencyPenalty) && !isNumber(frequencyPenalty)) {
       throw new ValidationException('Invalid frequencyPenalty: must be a number')
     }
     if (isNumber(frequencyPenalty) && (frequencyPenalty < -2 || frequencyPenalty > 2)) {
       throw new ValidationException('Invalid frequencyPenalty: must be between -2 and 2')
     }
-    if (presencePenalty && !isNumber(presencePenalty)) {
+    if (isDefined(presencePenalty) && !isNumber(presencePenalty)) {
       throw new ValidationException('Invalid presencePenalty: must be a number')
     }
     if (isNumber(presencePenalty) && (presencePenalty < -2 || presencePenalty > 2)) {
