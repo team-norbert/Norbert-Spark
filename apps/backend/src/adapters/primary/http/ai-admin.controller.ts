@@ -47,9 +47,15 @@ export class AIAdminController {
       const dto = PutAIAdminDTO.validate(request.body)
       const result = await this.putAIAdminUseCse.execute(uuidID, dto, auditContext)
 
-      if (result) {
-        reply.status(204).send()
+      if (!result) {
+        reply.code(404).send({
+          success: false,
+          error: 'AI Chat Configuration not found',
+        })
+        return
       }
+
+      reply.status(204).send()
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
