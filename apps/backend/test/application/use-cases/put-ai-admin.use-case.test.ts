@@ -90,11 +90,7 @@ describe('PutAIAdminUseCase', () => {
         `Executing PutAIAdminUseCase for ID: ${chatTypeId}`
       )
       expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledTimes(1)
-      expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledWith(
-        chatTypeId,
-        dto,
-        mockAuditContext
-      )
+      expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledWith(chatTypeId, dto)
       expect(result).toEqual(mockUpdatedOptions)
       expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
       expect(mockAuditLog.log).toHaveBeenCalledWith({
@@ -133,11 +129,7 @@ describe('PutAIAdminUseCase', () => {
 
       const result = await useCase.execute(chatTypeId, dto, mockAuditContext)
 
-      expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledWith(
-        chatTypeId,
-        dto,
-        mockAuditContext
-      )
+      expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledWith(chatTypeId, dto)
       expect(result).toEqual(mockUpdatedOptions)
       expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
     })
@@ -150,11 +142,7 @@ describe('PutAIAdminUseCase', () => {
 
       const result = await useCase.execute(chatTypeId, dto, mockAuditContext)
 
-      expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledWith(
-        chatTypeId,
-        dto,
-        mockAuditContext
-      )
+      expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledWith(chatTypeId, dto)
       expect(result).toBeNull()
       expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
     })
@@ -276,7 +264,7 @@ describe('PutAIAdminUseCase', () => {
   })
 
   describe('execute() - error scenarios', () => {
-    it('should propagate error when putChatAIOptions fails', async () => {
+    it('should propagate error when putChatAIOptions fails and log failed audit', async () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
       const dto = new PutAIAdminDTO('Test prompt')
       const dbError = new Error('Database connection failed')
@@ -287,16 +275,23 @@ describe('PutAIAdminUseCase', () => {
         'Database connection failed'
       )
 
-      expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledWith(
-        chatTypeId,
-        dto,
-        mockAuditContext
-      )
+      expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledWith(chatTypeId, dto)
       expect(mockLogger.info).toHaveBeenCalledWith(
         `Executing PutAIAdminUseCase for ID: ${chatTypeId}`
       )
-      // Audit log should not be called if the repository throws
-      expect(mockAuditLog.log).not.toHaveBeenCalled()
+      // Audit log should be called for failed operations
+      expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
+      expect(mockAuditLog.log).toHaveBeenCalledWith({
+        userId: mockAuditContext.userId,
+        entityType: EntityType.AI_OPTIONS,
+        entityId: chatTypeId,
+        action: AuditAction.UPDATE,
+        changes: {
+          reason: 'chat_ai_options_update_failed',
+        },
+        ipAddress: mockAuditContext.ipAddress,
+        userAgent: mockAuditContext.userAgent,
+      })
     })
 
     it('should continue execution when audit log fails', async () => {

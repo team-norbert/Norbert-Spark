@@ -2,9 +2,7 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIAdminRepository } from '../../../../src/adapters/secondary/repositories/ai-admin.repository.js'
-import type { AuditLogPort } from '../../../../src/application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
-import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { Uuid } from '../../../../src/domain/value-objects/uuid.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
 
@@ -19,7 +17,6 @@ vi.mock('../../../../src/infrastructure/database/index.js', () => ({
 describe('AIAdminRepository', () => {
   let repository: AIAdminRepository
   let mockLogger: LoggerPort
-  let mockAuditLog: AuditLogPort
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -32,15 +29,7 @@ describe('AIAdminRepository', () => {
       debug: vi.fn(),
     }
 
-    // Create mock audit log
-    mockAuditLog = {
-      log: vi.fn(),
-      getByEntity: vi.fn(),
-      getByUser: vi.fn(),
-      getByAction: vi.fn(),
-    }
-
-    repository = new AIAdminRepository(mockLogger, mockAuditLog)
+    repository = new AIAdminRepository(mockLogger)
   })
 
   describe('getAllChatAIOptions', () => {
@@ -315,13 +304,6 @@ describe('AIAdminRepository', () => {
   })
 
   describe('putChatAIOptions', () => {
-    const testUserId = uuidv7()
-    const mockAuditContext = {
-      userId: new UserId(testUserId).getValue(),
-      ipAddress: '127.0.0.1',
-      userAgent: 'test-agent',
-    }
-
     it('should update chat AI options with all fields and return updated record', async () => {
       const chatTypeId = uuidv7()
       const mockDto = {
@@ -363,8 +345,7 @@ describe('AIAdminRepository', () => {
 
       const result = await repository.putChatAIOptions(
         new Uuid(chatTypeId).getValue(),
-        mockDto as any,
-        mockAuditContext
+        mockDto as any
       )
 
       expect(result).toEqual(mockUpdatedOptions)
@@ -425,8 +406,7 @@ describe('AIAdminRepository', () => {
 
       const result = await repository.putChatAIOptions(
         new Uuid(chatTypeId).getValue(),
-        mockDto as any,
-        mockAuditContext
+        mockDto as any
       )
 
       expect(result).toEqual(mockUpdatedOptions)
@@ -483,8 +463,7 @@ describe('AIAdminRepository', () => {
 
       const result = await repository.putChatAIOptions(
         new Uuid(chatTypeId).getValue(),
-        mockDto as any,
-        mockAuditContext
+        mockDto as any
       )
 
       expect(result).toEqual(mockUpdatedOptions)
@@ -536,8 +515,7 @@ describe('AIAdminRepository', () => {
 
       const result = await repository.putChatAIOptions(
         new Uuid(chatTypeId).getValue(),
-        mockDto as any,
-        mockAuditContext
+        mockDto as any
       )
 
       expect(result).toEqual(mockUpdatedOptions)
@@ -568,8 +546,7 @@ describe('AIAdminRepository', () => {
 
       const result = await repository.putChatAIOptions(
         new Uuid(chatTypeId).getValue(),
-        mockDto as any,
-        mockAuditContext
+        mockDto as any
       )
 
       expect(result).toBeNull()
@@ -615,8 +592,7 @@ describe('AIAdminRepository', () => {
 
       const result = await repository.putChatAIOptions(
         new Uuid(chatTypeId).getValue(),
-        mockDto as any,
-        mockAuditContext
+        mockDto as any
       )
 
       expect(result).toEqual(mockUpdatedOptions)
@@ -643,35 +619,22 @@ describe('AIAdminRepository', () => {
       await expect(
         repository.putChatAIOptions(
           new Uuid(chatTypeId).getValue(),
-          mockDto as any,
-          mockAuditContext
+          mockDto as any
         )
       ).rejects.toThrow('Database connection failed')
 
       expect(mockLogger.error).toHaveBeenCalledWith('Error updating chat AI options', mockError, {
         chatTypeId,
       })
-      expect(mockAuditLog.log).toHaveBeenCalledWith({
-        userId: new UserId(testUserId).getValue(),
-        entityType: 'ai_options',
-        entityId: chatTypeId,
-        action: 'update',
-        changes: {
-          reason: 'chat_ai_options_updated',
-        },
-        ipAddress: '127.0.0.1',
-        userAgent: 'test-agent',
-      })
     })
 
-    it('should handle audit log errors without throwing', async () => {
+    it('should handle database errors and log them', async () => {
       const chatTypeId = uuidv7()
       const mockDto = {
         prompt: 'Test',
       }
 
       const mockDatabaseError = new Error('Database connection failed')
-      const mockAuditError = new Error('Audit log failed')
 
       const mockReturning = vi.fn().mockRejectedValue(mockDatabaseError)
       const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
@@ -679,21 +642,14 @@ describe('AIAdminRepository', () => {
       const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
 
       vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(mockAuditError)
 
       await expect(
         repository.putChatAIOptions(
           new Uuid(chatTypeId).getValue(),
-          mockDto as any,
-          mockAuditContext
+          mockDto as any
         )
       ).rejects.toThrow('Database connection failed')
 
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for chat AI options update',
-        mockAuditError,
-        { userId: new UserId(testUserId).getValue() }
-      )
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error updating chat AI options',
         mockDatabaseError,

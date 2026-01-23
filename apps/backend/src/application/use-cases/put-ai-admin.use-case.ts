@@ -20,7 +20,27 @@ export class PutAIAdminUseCase {
     auditContext: AuditContext
   ): Promise<DBChatAiOptions | null> {
     this.logger.info(`Executing PutAIAdminUseCase for ID: ${id}`)
-    const result = await this.aiAdminPort.putChatAIOptions(id, dto, auditContext)
+
+    try {
+      const result = await this.aiAdminPort.putChatAIOptions(id, dto)
+
+      // Log successful audit
+      await this.logAudit(id, auditContext, 'chat_ai_options_updated')
+
+      return result
+    } catch (error) {
+      // Log failed audit
+      await this.logAudit(id, auditContext, 'chat_ai_options_update_failed')
+
+      throw error
+    }
+  }
+
+  private async logAudit(
+    id: UUIDType,
+    auditContext: AuditContext,
+    reason: string
+  ): Promise<void> {
     try {
       await this.auditLog.log({
         userId: auditContext.userId,
@@ -28,7 +48,7 @@ export class PutAIAdminUseCase {
         entityId: id,
         action: AuditAction.UPDATE,
         changes: {
-          reason: 'chat_ai_options_updated',
+          reason,
         },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
@@ -38,6 +58,5 @@ export class PutAIAdminUseCase {
         userId: auditContext.userId,
       })
     }
-    return result
   }
 }
