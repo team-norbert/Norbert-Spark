@@ -574,6 +574,8 @@ backend/
 
 ## Testing
 
+### Unit Tests
+
 Run unit tests:
 
 ```bash
@@ -581,6 +583,62 @@ pnpm test
 ```
 
 Tests use Fastify's built-in testing utilities (`app.inject()`) for route testing.
+
+### AI Evaluation Tests
+
+The backend includes AI evaluation tests using [Evalite](https://evalite.dev/) for testing LLM-powered features.
+
+#### Run All Eval Tests
+
+```bash
+pnpm run eval
+```
+
+#### Run a Single Eval Test
+
+To run tests for a specific eval file, use the `eval` command with the file path:
+
+```bash
+# Run HeartOfDarkness eval
+pnpm run eval evals/HeartOfDarknessTool/heartofdarkness.eval.ts
+
+# Run data extraction eval
+pnpm run eval evals/data-extraction/data_extraction.eval.ts
+```
+
+You can also use glob patterns to run multiple related tests:
+
+```bash
+# Run all evals in the HeartOfDarknessTool directory
+pnpm run eval "evals/HeartOfDarknessTool/**/*.eval.ts"
+
+# Run all data-extraction evals
+pnpm run eval "evals/data-extraction/**/*.eval.ts"
+```
+
+#### View Eval Results
+
+After running evals, view the results in the browser:
+
+```bash
+pnpm run eval:view
+```
+
+This opens a web UI displaying:
+
+- Test results and scores
+- Performance metrics
+- Historical comparisons
+- Detailed failure analysis
+
+#### Eval Configuration
+
+Eval settings are configured in `evalite.config.ts`:
+
+- Test file location: `evals/**/*.eval.ts`
+- Results output: `.evalite/` directory
+- Timeout: 2 minutes per test
+- Concurrency: Sequential execution (1 at a time)
 
 ## Environment Variables
 

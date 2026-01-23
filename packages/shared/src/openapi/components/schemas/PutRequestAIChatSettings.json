@@ -1,5 +1,6 @@
 {
   "type": "object",
+  "description": "Settings for AI chat requests",
   "required": ["prompt"],
   "properties": {
     "prompt": {
