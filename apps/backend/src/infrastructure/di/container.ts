@@ -16,6 +16,7 @@ import { PresignedUploadUrlUseCase } from '../../application/use-cases/presigned
 import { ExtractDataUseCase } from '../../application/use-cases/extract-data.use-case.js'
 import { GetChatDetailsUseCase } from '../../application/use-cases/get-chat-details.use-case.js'
 import { GetAIAdminUseCase } from '../../application/use-cases/get-ai-admin.use-case.js'
+import { PutAIAdminUseCase } from '../../application/use-cases/put-ai-admin.use-case.js'
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
@@ -97,6 +98,7 @@ export class Container {
   private readonly deleteUsersUseCase: DeleteUsersUseCase
   private readonly getChatDetailsUseCase: GetChatDetailsUseCase
   private readonly getAIAdminUseCase: GetAIAdminUseCase
+  private readonly putAIAdminUseCase: PutAIAdminUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -187,8 +189,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.userRepository = new PostgresUserRepository()
     this.aiRepository = new AIRepository(this.logger)
     this.aiChatContentRepository = new AIChatContentRepository(this.logger)
-    this.aiAdminRepository = new AIAdminRepository(this.logger)
     this.auditLog = new AuditLogRepository(this.logger)
+    this.aiAdminRepository = new AIAdminRepository(this.logger)
     this.bucketService = new BucketService(this.logger)
     // Initialize use cases
     this.registerUserUseCase = new RegisterUserUseCase(
@@ -246,6 +248,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.auditLog,
       this.aiAdminRepository
     )
+    this.putAIAdminUseCase = new PutAIAdminUseCase(
+      this.logger,
+      this.auditLog,
+      this.aiAdminRepository
+    )
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
       this.registerUserUseCase,
@@ -271,7 +278,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.extractDataUseCase,
       this.pdfUtils
     )
-    this.aiAdminController = new AIAdminController(this.logger, this.getAIAdminUseCase)
+    this.aiAdminController = new AIAdminController(
+      this.logger,
+      this.getAIAdminUseCase,
+      this.putAIAdminUseCase
+    )
     // Register routes
     this.registerRoutes()
   }
