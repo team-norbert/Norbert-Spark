@@ -5,6 +5,7 @@ import { db } from '../../../infrastructure/database/index.js'
 import { chatAiOptions } from '../../../infrastructure/database/schema.js'
 import type { DBChatAiOptions } from '../../../infrastructure/database/schema.js'
 import type { UUIDType } from '../../../domain/value-objects/uuid.js'
+import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
 
 export class AIAdminRepository implements AIAdminPort {
   constructor(private readonly logger: LoggerPort) {}
@@ -24,7 +25,7 @@ export class AIAdminRepository implements AIAdminPort {
     }
   }
 
-  async putChatAIOptions(id: UUIDType): Promise<any> {
+  async putChatAIOptions(id: UUIDType, dto: PutAIAdminDTO): Promise<any> {
     // Implementation for updating chat AI options goes here
     this.logger.info(`Updating chat AI options for ID: ${id}`)
     // Placeholder return

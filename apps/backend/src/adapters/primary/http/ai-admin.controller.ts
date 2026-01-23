@@ -6,6 +6,7 @@ import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { Uuid } from '../../../domain/value-objects/uuid.js'
 import { GetAIAdminUseCase } from '../../../application/use-cases/get-ai-admin.use-case.js'
 import { PutAIAdminUseCase } from '../../../application/use-cases/put-ai-admin.use-case.js'
+import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
 
 export class AIAdminController {
   constructor(
@@ -43,7 +44,8 @@ export class AIAdminController {
       const params = request.params as Record<string, unknown>
       const id = params.id as string
       const uuidID = new Uuid(id).getValue()
-      const result = await this.putAIAdminUseCse.execute(uuidID, auditContext)
+      const dto = PutAIAdminDTO.validate(request.body)
+      const result = await this.putAIAdminUseCse.execute(uuidID, dto, auditContext)
       return result
     } catch (error) {
       const err = error as Error

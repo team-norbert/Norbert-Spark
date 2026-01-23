@@ -5,6 +5,7 @@ import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { UUIDType } from '../../domain/value-objects/uuid.js'
 import type { DBChatAiOptions } from '../../infrastructure/database/schema.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
+import { PutAIAdminDTO } from '../dtos/put-ai-admin.dto.js'
 
 export class PutAIAdminUseCase {
   constructor(
@@ -13,8 +14,10 @@ export class PutAIAdminUseCase {
     private readonly aiAdminPort: AIAdminPort
   ) {}
 
-  async execute(id: UUIDType, auditContext: AuditContext): Promise<any> {
+  async execute(id: UUIDType, dto: PutAIAdminDTO, auditContext: AuditContext): Promise<any> {
     this.logger.info(`Executing PutAIAdminUseCase for ID: ${id}`)
+
+    const result: any = await this.aiAdminPort.putChatAIOptions(id, dto)
     // Placeholder return
     return Promise.resolve(null)
   }
