@@ -14,7 +14,11 @@ export class PutAIAdminUseCase {
     private readonly aiAdminPort: AIAdminPort
   ) {}
 
-  async execute(id: UUIDType, dto: PutAIAdminDTO, auditContext: AuditContext): Promise<any> {
+  async execute(
+    id: UUIDType,
+    dto: PutAIAdminDTO,
+    auditContext: AuditContext
+  ): Promise<DBChatAiOptions | null> {
     this.logger.info(`Executing PutAIAdminUseCase for ID: ${id}`)
     const result = await this.aiAdminPort.putChatAIOptions(id, dto, auditContext)
     try {
