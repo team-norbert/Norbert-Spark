@@ -15,7 +15,11 @@ export default async function ExtractDataPage() {
 
   // Redirect to signin if user doesn't have required role
   if (!hasAccess) {
-    redirect('/signin?callbackUrl=/extract-data&error=unauthorized')
+    const searchParams = new URLSearchParams({
+      callbackUrl: `/extract-data`,
+      error: 'unauthorized',
+    })
+    redirect(`/signin?${searchParams.toString()}`)
   }
 
   // Render the client component for authenticated users with proper roles

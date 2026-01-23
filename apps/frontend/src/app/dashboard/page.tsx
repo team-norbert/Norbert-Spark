@@ -22,7 +22,12 @@ export default async function DashboardPage() {
   // Redirect to signin if user doesn't have required role
   if (!hasAccess) {
     logger.info('[Dashboard] Access denied - redirecting to signin')
-    redirect('/signin?callbackUrl=/dashboard&error=unauthorized')
+
+    const searchParams = new URLSearchParams({
+      callbackUrl: `/dashboard`,
+      error: 'unauthorized',
+    })
+    redirect(`/signin?${searchParams.toString()}`)
   }
 
   // Get user session to pass roles to client component

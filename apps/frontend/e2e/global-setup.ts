@@ -5,8 +5,6 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql'
-import { drizzle } from 'drizzle-orm/postgres-js'
-import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import postgres from 'postgres'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -38,26 +36,19 @@ async function globalSetup() {
     const connectionString = `postgresql://${username}:${password}@${host}:${port}/norbertsSpark_test`
     console.warn(`✅ PostgreSQL container started at ${host}:${port}`)
 
-    // Create required PostgreSQL extensions
-    console.warn('🔧 Creating PostgreSQL extensions...')
-    const adminClient = postgres(connectionString)
-    await adminClient`CREATE EXTENSION IF NOT EXISTS citext`
-    await adminClient`CREATE EXTENSION IF NOT EXISTS pgcrypto`
-    await adminClient.end()
-    console.warn('✅ Extensions created')
+    // Execute SQL schema to create database structure
+    console.warn('📝 Creating database from SQL schema...')
+    const schemaPath = path.resolve(__dirname, '..', '..', 'backend', 'sql', 'norberts_schema.sql')
+    console.warn(`📂 Schema path: ${schemaPath}`)
 
-    // Run migrations from backend
-    console.warn('📝 Running database migrations...')
-    // Use __dirname to get the directory of this file, then navigate to backend/drizzle
-    const backendMigrationsPath = path.resolve(__dirname, '..', '..', 'backend', 'drizzle')
-    console.warn(`📂 Migrations path: ${backendMigrationsPath}`)
+    // Read SQL schema file
+    const sqlSchema = fs.readFileSync(schemaPath, 'utf-8')
 
-    const migrationClient = postgres(connectionString, { max: 1 })
-    const db = drizzle(migrationClient)
-
-    await migrate(db, { migrationsFolder: backendMigrationsPath })
-    await migrationClient.end()
-    console.warn('✅ Migrations completed')
+    // Execute SQL schema
+    const schemaClient = postgres(connectionString, { max: 1, prepare: false })
+    await schemaClient.unsafe(sqlSchema)
+    await schemaClient.end()
+    console.warn('✅ Database schema created')
 
     // Seed chat types
     console.warn('🌱 Seeding chat types...')
