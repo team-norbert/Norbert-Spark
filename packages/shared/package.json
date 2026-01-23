@@ -10,7 +10,7 @@
     "src"
   ],
   "scripts": {
-    "build": "pnpm run bundle:api && tsc -p tsconfig.build.json && pnpm run build:openapi",
+    "build": "pnpm run bundle:api && tsc -p tsconfig.build.json && openapi-typescript ./src/openapi.json --output ./dist/generated/openapi-types.ts",
     "test": "pnpm run test:node && pnpm run test:browser",
     "test:node": "vitest run --config vitest.config.node.ts",
     "test:browser": "vitest run --config vitest.config.browser.ts",
