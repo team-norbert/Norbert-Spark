@@ -596,14 +596,14 @@ pnpm run eval
 
 #### Run a Single Eval Test
 
-To run tests for a specific eval file, use the `eval:single` command with the file path:
+To run tests for a specific eval file, use the `eval` command with the file path:
 
 ```bash
 # Run HeartOfDarkness eval
-pnpm run eval:single evals/HeartOfDarknessTool/heartofdarkness.eval.ts
+pnpm run eval evals/HeartOfDarknessTool/heartofdarkness.eval.ts
 
 # Run data extraction eval
-pnpm run eval:single evals/data-extraction/data_extraction.eval.ts
+pnpm run eval evals/data-extraction/data_extraction.eval.ts
 ```
 
 You can also use glob patterns to run multiple related tests:
@@ -625,6 +625,7 @@ pnpm run eval:view
 ```
 
 This opens a web UI displaying:
+
 - Test results and scores
 - Performance metrics
 - Historical comparisons
@@ -633,6 +634,7 @@ This opens a web UI displaying:
 #### Eval Configuration
 
 Eval settings are configured in `evalite.config.ts`:
+
 - Test file location: `evals/**/*.eval.ts`
 - Results output: `.evalite/` directory
 - Timeout: 2 minutes per test
