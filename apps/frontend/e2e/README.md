@@ -17,21 +17,37 @@ cd apps/frontend
 pnpm run test:e2e
 ```
 
+**✨ Automatic Process Cleanup**: The E2E test suite automatically kills interfering Node.js processes before starting. No manual intervention required!
+
 ## Troubleshooting: Process Conflicts
 
-### Problem
+### Automated Solution (Default)
 
-E2E tests may show inconsistent results if development servers are running simultaneously. The tests are designed to run in complete isolation with their own:
+The E2E test suite now **automatically handles process cleanup** in `global-setup.ts`:
 
-- PostgreSQL database container (Testcontainers)
-- Backend API server (port 3000)
-- Frontend Next.js dev server (port 4321)
+1. **Kills interfering processes** matching these patterns:
+   - `next dev` - Frontend Next.js dev server
+   - `tsx watch` - Backend TypeScript dev server
+   - `playwright test-server` - Old Playwright test servers
+   - `drizzle-kit studio` - Database GUI tool
 
-If dev servers are already running on these ports, tests can fail or produce unpredictable results.
+2. **Verifies ports are free**: Checks that ports 3000 and 4321 are available
 
-### Solution: Clean Process Shutdown
+3. **Waits for cleanup**: 2-second delay to ensure processes fully terminate
 
-Before running E2E tests, ensure all Node.js development processes are stopped.
+You should see this output when tests start:
+
+```
+🧹 Checking for interfering Node.js processes...
+   ✓ Killed processes matching: next dev
+   ✓ Killed processes matching: tsx watch
+✅ Ports 3000 and 4321 are free
+🚀 Starting E2E test environment setup...
+```
+
+### Manual Cleanup (If Needed)
+
+If you encounter persistent issues or want to manually verify:
 
 #### Step 1: Check for Running Node Processes
 
@@ -39,86 +55,34 @@ Before running E2E tests, ensure all Node.js development processes are stopped.
 ps aux | grep -i node | grep -v grep
 ```
 
-This will show all Node.js processes, including:
+#### Step 2: Manual Kill Commands
 
-- Next.js dev servers (`next dev`)
-- Backend servers (`tsx watch`)
-- Webpack loaders
-- Playwright test processes
-- Other Node.js processes
-
-#### Step 2: Identify Development Processes
-
-Look for processes matching these patterns:
-
-- `next dev` - Frontend Next.js dev server
-- `tsx watch` - Backend TypeScript dev server
-- `playwright` - Running E2E tests
-- `test:e2e` - Test runner processes
-- `webpack-loaders` - Next.js webpack workers
-
-#### Step 3: Kill Development Processes
-
-**Option A: Graceful Shutdown (Recommended)**
-
-Stop dev servers in their respective terminals using `Ctrl+C`.
-
-**Option B: Force Kill Specific Processes**
-
-```bash
-# Kill Next.js dev server
-pkill -f "next dev"
-
-# Kill backend tsx watch server
-pkill -f "tsx watch"
-
-# Kill any running Playwright processes
-pkill -f "playwright"
-
-# Kill E2E test processes
-pkill -f "test:e2e"
-
-# Kill webpack loaders
-pkill -f "webpack-loaders"
-```
-
-**Option C: Kill All at Once**
+**Option A: Kill All Development Processes**
 
 ```bash
 pkill -f "next dev" && \
 pkill -f "tsx watch" && \
-pkill -f "playwright" && \
-pkill -f "test:e2e" && \
-pkill -f "webpack-loaders"
+pkill -f "playwright test-server" && \
+pkill -f "drizzle-kit studio"
 ```
 
-**Option D: Force Kill (Last Resort)**
-
-If processes don't respond to graceful shutdown:
+**Option B: Force Kill by PID**
 
 ```bash
-pkill -9 -f "turbo test:e2e"
-pkill -9 -f "@playwright/test"
-pkill -9 -f "test-server"
+# Find PIDs
+ps aux | grep -E "(next dev|tsx watch|playwright|drizzle-kit)" | grep -v grep
+
+# Kill specific PIDs
+kill -9 <PID1> <PID2> <PID3>
 ```
 
-⚠️ **Note**: The `-9` flag force kills processes without cleanup. Use only when necessary.
-
-#### Step 4: Verify Cleanup
+#### Step 3: Verify Ports Are Free
 
 ```bash
-# Check remaining development processes
-ps aux | grep -E "(next dev|tsx|playwright|webpack)" | grep -v grep | wc -l
+lsof -i :3000 -i :4321 || echo "Ports 3000 and 4321 are free"
 ```
 
-This should return `0` or a very low number (VSCode language services are OK).
-
-#### Step 5: Run E2E Tests
-
-```bash
-# From project root of this repo
-pnpm run test:e2e
-```
+This should return "Ports 3000 and 4321 are free" if successful.
 
 ## Test Environment Architecture
 

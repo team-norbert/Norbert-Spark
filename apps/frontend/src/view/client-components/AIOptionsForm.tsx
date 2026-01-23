@@ -166,6 +166,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           required
           helperText="Prompts are instructions you give to a large language model (LLM) that tell it what to do. Much like asking someone for directions, the clearer and more specific your request, the better the response you'll receive."
           sx={{ mb: 3 }}
+          data-testid="prompt-input"
         />
 
         <TextField
@@ -176,6 +177,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           onChange={handleNumberChange('maxTokens')}
           helperText="Maximum number of tokens to generate."
           sx={{ mb: 3 }}
+          data-testid="max-tokens-input"
         />
 
         <TextField
@@ -187,6 +189,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           onChange={handleNumberChange('temperature')}
           helperText="This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, a value of 0 produces nearly deterministic output, while higher values introduce more randomness. It is recommended to configure either temperature or topP, but not both."
           sx={{ mb: 3 }}
+          data-testid="temperature-input"
         />
 
         <TextField
@@ -198,6 +201,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           onChange={handleNumberChange('topP')}
           helperText="Nucleus sampling. This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, nucleus sampling (topP) is a number between 0 and 1. For example, a value of 0.1 means that only tokens within the top 10% of the probability mass are considered. It is recommended to configure either temperature or topP, but not both."
           sx={{ mb: 3 }}
+          data-testid="top-p-input"
         />
 
         <TextField
@@ -209,6 +213,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           onChange={handleNumberChange('frequencyPenalty')}
           helperText="The frequency penalty controls how likely the model is to repeat the same words or phrases. This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, a value of 0 means no penalty is applied."
           sx={{ mb: 3 }}
+          data-testid="frequency-penalty-input"
         />
 
         <TextField
@@ -220,6 +225,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           onChange={handleNumberChange('presencePenalty')}
           helperText="The presence penalty controls how likely the model is to repeat information already present in the prompt. This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, a value of 0 means no penalty is applied."
           sx={{ mb: 3 }}
+          data-testid="presence-penalty-input"
         />
 
         <TextField
@@ -231,6 +237,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           onChange={handleNumberChange('topK')}
           helperText="Top-K sampling parameter. Limits the model to consider only the top K most likely tokens."
           sx={{ mb: 3 }}
+          data-testid="top-k-input"
         />
 
         <TextField
@@ -240,6 +247,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           onChange={handleStopSequencesChange}
           helperText="Stop sequences define where text generation should end. When set, the model stops generating text as soon as it produces one of the specified stop sequences. Providers may impose limits on how many stop sequences can be used. Example: '###, END, \n\n\n' (comma-separated)"
           sx={{ mb: 3 }}
+          data-testid="stop-sequences-input"
         />
 
         <TextField
@@ -251,6 +259,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           onChange={handleNumberChange('seed')}
           helperText="This is the seed (an integer) used for random sampling. When set and supported by the model, it ensures that calls produce deterministic results."
           sx={{ mb: 3 }}
+          data-testid="seed-input"
         />
 
         <TextField
@@ -262,6 +271,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           onChange={handleNumberChange('maxRetries')}
           helperText="The maximum number of times to retry a request if it fails due to transient errors such as network issues or rate limiting. The default value is 2 retries."
           sx={{ mb: 3 }}
+          data-testid="max-retries-input"
         />
 
         <Button
@@ -271,6 +281,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           size="large"
           disabled={submitting}
           fullWidth
+          data-testid="save-button"
         >
           {submitting ? 'Saving...' : 'Save AI Options'}
         </Button>

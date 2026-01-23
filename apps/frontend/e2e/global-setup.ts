@@ -1,11 +1,14 @@
 import type { ChildProcess } from 'node:child_process'
-import { spawn } from 'node:child_process'
+import { exec, spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
 
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql'
 import postgres from 'postgres'
+
+const execAsync = promisify(exec)
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -16,10 +19,49 @@ let backendProcess: ChildProcess | null = null
 // Export for teardown
 export { backendProcess, postgresContainer }
 
+/**
+ * Kill interfering Node.js development processes before E2E tests
+ * This ensures ports 3000 and 4321 are free and no conflicting servers are running
+ *
+ * NOTE: We DON'T kill "next dev" because Playwright's webServer has already started
+ * the Next.js dev server before global-setup runs. We only kill other interfering processes.
+ */
+async function killInterferingProcesses() {
+  console.warn('🧹 Checking for interfering Node.js processes...')
+
+  const processPatterns = [
+    // 'next dev', // DON'T kill - Playwright's webServer already started this
+    'tsx watch', // Kill backend dev servers
+    'drizzle-kit studio', // Kill database GUI
+  ]
+
+  for (const pattern of processPatterns) {
+    try {
+      // Use pkill with -f flag to match full command line
+      await execAsync(`pkill -f "${pattern}"`)
+      console.warn(`   ✓ Killed processes matching: ${pattern}`)
+    } catch (error) {
+      // pkill exits with code 1 if no processes match, which is fine
+      // Only log if there's an actual error message
+      if (error instanceof Error && error.message && !error.message.includes('exit code 1')) {
+        console.warn(`   ⚠ Warning killing ${pattern}: ${error.message}`)
+      }
+    }
+  }
+
+  // Wait a moment for processes to fully terminate
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+
+  console.warn('✅ Process cleanup complete')
+}
+
 async function globalSetup() {
   console.warn('🚀 Starting E2E test environment setup...')
 
   try {
+    // Kill any interfering processes first
+    await killInterferingProcesses()
+
     // Start PostgreSQL container
     console.warn('📦 Starting PostgreSQL container...')
     postgresContainer = await new PostgreSqlContainer('postgres:18-alpine')
