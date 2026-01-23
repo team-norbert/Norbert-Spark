@@ -20,24 +20,51 @@ export class PutAIAdminUseCase {
     auditContext: AuditContext
   ): Promise<DBChatAiOptions | null> {
     this.logger.info(`Executing PutAIAdminUseCase for ID: ${id}`)
-    const result = await this.aiAdminPort.putChatAIOptions(id, dto, auditContext)
+
     try {
-      await this.auditLog.log({
-        userId: auditContext.userId,
-        entityType: EntityType.AI_OPTIONS,
-        entityId: id,
-        action: AuditAction.UPDATE,
-        changes: {
-          reason: 'chat_ai_options_updated',
-        },
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      })
+      const result = await this.aiAdminPort.putChatAIOptions(id, dto)
+
+      // Log successful audit
+      try {
+        await this.auditLog.log({
+          userId: auditContext.userId,
+          entityType: EntityType.AI_OPTIONS,
+          entityId: id,
+          action: AuditAction.UPDATE,
+          changes: {
+            reason: 'chat_ai_options_updated',
+          },
+          ipAddress: auditContext.ipAddress,
+          userAgent: auditContext.userAgent ?? undefined,
+        })
+      } catch (error) {
+        this.logger.error('Error logging audit for chat AI options update', error as Error, {
+          userId: auditContext.userId,
+        })
+      }
+
+      return result
     } catch (error) {
-      this.logger.error('Error logging audit for chat AI options update', error as Error, {
-        userId: auditContext.userId,
-      })
+      // Log failed audit
+      try {
+        await this.auditLog.log({
+          userId: auditContext.userId,
+          entityType: EntityType.AI_OPTIONS,
+          entityId: id,
+          action: AuditAction.UPDATE,
+          changes: {
+            reason: 'chat_ai_options_update_failed',
+          },
+          ipAddress: auditContext.ipAddress,
+          userAgent: auditContext.userAgent ?? undefined,
+        })
+      } catch (auditError) {
+        this.logger.error('Error logging audit for chat AI options update', auditError as Error, {
+          userId: auditContext.userId,
+        })
+      }
+
+      throw error
     }
-    return result
   }
 }

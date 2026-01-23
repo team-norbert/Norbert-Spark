@@ -7,15 +7,9 @@ import type { DBChatAiOptions } from '../../../infrastructure/database/schema.js
 import type { UUIDType } from '../../../domain/value-objects/uuid.js'
 import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
 import { isDefined } from '@norberts-spark/shared'
-import type { AuditLogPort } from '../../../application/ports/audit-log.port.js'
-import { AuditAction, EntityType } from '../../../domain/audit/entity-type.enum.js'
-import type { AuditContext } from '../../../domain/audit/audit-context.js'
 
 export class AIAdminRepository implements AIAdminPort {
-  constructor(
-    private readonly logger: LoggerPort,
-    private readonly auditLog: AuditLogPort
-  ) {}
+  constructor(private readonly logger: LoggerPort) {}
 
   async getAllChatAIOptions(id: UUIDType): Promise<DBChatAiOptions | null> {
     try {
@@ -32,11 +26,7 @@ export class AIAdminRepository implements AIAdminPort {
     }
   }
 
-  async putChatAIOptions(
-    id: UUIDType,
-    dto: PutAIAdminDTO,
-    auditContext: AuditContext
-  ): Promise<DBChatAiOptions | null> {
+  async putChatAIOptions(id: UUIDType, dto: PutAIAdminDTO): Promise<DBChatAiOptions | null> {
     try {
       this.logger.info('Updating chat AI options', { chatTypeId: id })
 
@@ -89,24 +79,6 @@ export class AIAdminRepository implements AIAdminPort {
       this.logger.info('Chat AI options updated successfully', { chatTypeId: id })
       return result[0] ?? null
     } catch (error) {
-      try {
-        await this.auditLog.log({
-          userId: auditContext.userId,
-          entityType: EntityType.AI_OPTIONS,
-          entityId: id,
-          action: AuditAction.UPDATE,
-          changes: {
-            reason: 'chat_ai_options_updated',
-          },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        })
-      } catch (error) {
-        this.logger.error('Error logging audit for chat AI options update', error as Error, {
-          userId: auditContext.userId,
-        })
-      }
-
       this.logger.error('Error updating chat AI options', error as Error, { chatTypeId: id })
       throw error
     }
