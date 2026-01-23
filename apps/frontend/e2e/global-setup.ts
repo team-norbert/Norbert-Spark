@@ -20,39 +20,93 @@ let backendProcess: ChildProcess | null = null
 export { backendProcess, postgresContainer }
 
 /**
- * Kill common long-running Node.js development processes before E2E tests.
+ * Kill processes listening on specific ports before E2E tests.
  *
- * This attempts to stop previously started backend dev servers and Drizzle Studio
- * instances so they don't conflict with the processes managed by the test runner.
+ * This is opt-in via E2E_CLEANUP_PROCESSES=true environment variable to avoid
+ * accidentally killing unrelated processes. When enabled, it frees up ports 3000
+ * (backend) and 4321 (frontend) by killing processes bound to those ports.
  *
- * NOTE: We intentionally do NOT kill "next dev" because Playwright's webServer is
- * responsible for starting and managing the Next.js dev server (typically on port 4321).
+ * Uses cross-platform approach:
+ * - Windows: netstat + taskkill
+ * - Unix/Linux/macOS: lsof
+ *
+ * NOTE: We target specific ports instead of process names to avoid killing
+ * unrelated projects. Port 4321 is intentionally skipped as Playwright's webServer
+ * manages the Next.js dev server.
  */
 async function killInterferingProcesses() {
-  console.warn('🧹 Checking for interfering Node.js processes...')
+  // Make cleanup opt-in to avoid accidentally killing unrelated processes
+  if (process.env.E2E_CLEANUP_PROCESSES !== 'true') {
+    console.warn('ℹ️  Process cleanup skipped (set E2E_CLEANUP_PROCESSES=true to enable)')
+    return
+  }
 
-  const processPatterns = [
-    // 'next dev', // DON'T kill - Playwright's webServer already started this
-    'tsx watch', // Kill backend dev servers
-    'drizzle-kit studio', // Kill database GUI
+  console.warn('🧹 Checking for processes on ports 3000...')
+
+  const portsToCheck = [
+    3000, // Backend server (we manage this ourselves in global-setup)
+    // 4321 is intentionally excluded - Playwright's webServer manages the frontend
   ]
 
-  for (const pattern of processPatterns) {
+  const platform = process.platform
+  let killedAny = false
+
+  for (const port of portsToCheck) {
     try {
-      // Use pkill with -f flag to match full command line
-      await execAsync(`pkill -f "${pattern}"`)
-      console.warn(`   ✓ Killed processes matching: ${pattern}`)
-    } catch (error) {
-      // pkill exits with code 1 if no processes match, which is fine
-      // Only log if there's an actual error message
-      if (error instanceof Error && error.message && !error.message.includes('exit code 1')) {
-        console.warn(`   ⚠ Warning killing ${pattern}: ${error.message}`)
+      let pid: string | null = null
+
+      if (platform === 'win32') {
+        // Windows: Use netstat to find process on port
+        try {
+          const { stdout } = await execAsync(`netstat -ano | findstr :${port}`)
+          const lines = stdout.trim().split('\n')
+          for (const line of lines) {
+            const match = line.match(/LISTENING\s+(\d+)/)
+            if (match && match[1]) {
+              pid = match[1]
+              break
+            }
+          }
+
+          if (pid) {
+            await execAsync(`taskkill /F /PID ${pid}`)
+            console.warn(`   ✓ Killed process ${pid} on port ${port}`)
+            killedAny = true
+          }
+        } catch (error) {
+          // Ignore errors - port might not be in use or command not available
+          if (error instanceof Error && !error.message.includes('exit code 1')) {
+            console.warn(`   ⚠ Could not check port ${port}: ${error.message}`)
+          }
+        }
+      } else {
+        // Unix/Linux/macOS: Use lsof to find process on port
+        try {
+          const { stdout } = await execAsync(`lsof -ti :${port}`)
+          pid = stdout.trim()
+
+          if (pid && pid.match(/^\d+$/)) {
+            await execAsync(`kill -9 ${pid}`)
+            console.warn(`   ✓ Killed process ${pid} on port ${port}`)
+            killedAny = true
+          }
+        } catch (error) {
+          // lsof exits with code 1 if no process found, which is fine
+          if (error instanceof Error && !error.message.includes('exit code 1')) {
+            console.warn(`   ⚠ Could not check port ${port}: ${error.message}`)
+          }
+        }
       }
+    } catch (error) {
+      // Catch-all for unexpected errors
+      console.warn(`   ⚠ Unexpected error checking port ${port}:`, error)
     }
   }
 
-  // Wait a moment for processes to fully terminate
-  await new Promise((resolve) => setTimeout(resolve, 1000))
+  if (killedAny) {
+    // Wait a moment for processes to fully terminate
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+  }
 
   console.warn('✅ Process cleanup complete')
 }
