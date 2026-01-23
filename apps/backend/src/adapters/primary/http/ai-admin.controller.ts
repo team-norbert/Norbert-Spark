@@ -48,7 +48,10 @@ export class AIAdminController {
       const uuidID = new Uuid(id).getValue()
       const dto = PutAIAdminDTO.validate(request.body)
       const result = await this.putAIAdminUseCse.execute(uuidID, dto, auditContext)
-      return result
+
+      if (result) {
+        reply.status(204).send()
+      }
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
