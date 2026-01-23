@@ -10,7 +10,6 @@ import postgres from 'postgres'
 
 const execAsync = promisify(exec)
 
-const EXIT_CODE_NO_MATCH = 'exit code 1'
 const PID_REGEX = /^\d+$/
 
 const __filename = fileURLToPath(import.meta.url)
@@ -77,9 +76,14 @@ async function killInterferingProcesses() {
             killedAny = true
           }
         } catch (error) {
-          // Ignore errors - port might not be in use or command not available
-          if (error instanceof Error && !error.message.includes(EXIT_CODE_NO_MATCH)) {
-            console.warn(`   ⚠ Could not check port ${port}: ${error.message}`)
+          // Ignore exit code 1 (no matching process found) and ENOENT (command not found)
+          const isExpectedError =
+            (error as NodeJS.ErrnoException).code === 1 ||
+            (error as NodeJS.ErrnoException).code === 'ENOENT'
+          if (!isExpectedError) {
+            console.warn(
+              `   ⚠ Could not check port ${port}: ${error instanceof Error ? error.message : String(error)}`
+            )
           }
         }
       } else {
@@ -99,8 +103,14 @@ async function killInterferingProcesses() {
           }
         } catch (error) {
           // lsof exits with code 1 if no process found, which is fine
-          if (error instanceof Error && !error.message.includes(EXIT_CODE_NO_MATCH)) {
-            console.warn(`   ⚠ Could not check port ${port}: ${error.message}`)
+          // Also ignore ENOENT (command not found)
+          const isExpectedError =
+            (error as NodeJS.ErrnoException).code === 1 ||
+            (error as NodeJS.ErrnoException).code === 'ENOENT'
+          if (!isExpectedError) {
+            console.warn(
+              `   ⚠ Could not check port ${port}: ${error instanceof Error ? error.message : String(error)}`
+            )
           }
         }
       }
