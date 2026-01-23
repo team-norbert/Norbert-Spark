@@ -44,7 +44,9 @@ $env:E2E_CLEANUP_PROCESSES="true"; pnpm run test:e2e
 export E2E_CLEANUP_PROCESSES=true  # Add to ~/.bashrc or ~/.zshrc
 ```
 
-With cleanup enabled  (default), you'll see this output when tests start:
+The default in the codebase is set to `true` to help avoid common port conflicts.
+
+With cleanup enabled (default), you'll see this output when tests start:
 
 ```
 🧹 Checking for processes on ports 3000...
