@@ -18,8 +18,8 @@
     "lint:fix": "eslint . --fix --cache",
     "test:unit": "vitest run --hideSkippedTests",
     "test:unit:coverage": "vitest run --coverage --hideSkippedTests",
-    "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed",
+    "test:e2e": "E2E_CLEANUP_PROCESSES=true playwright test",
+    "test:e2e:headed": "E2E_CLEANUP_PROCESSES=true playwright test --headed",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
