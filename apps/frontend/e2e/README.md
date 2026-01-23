@@ -72,20 +72,31 @@ ps aux | grep -i node | grep -v grep
 
 #### Step 2: Manual Kill Commands
 
-**Option A: Kill All Development Processes**
+**Option A: Kill by Port (Recommended)**
 
 ```bash
+# Kill process on backend port 3000
+lsof -ti :3000 | xargs kill -9
+
+# On Windows PowerShell:
+# Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess | Stop-Process -Force
+```
+
+**Note**: You generally don't need to kill port 4321 manually, as Playwright manages the Next.js dev server automatically.
+
+**Option B: Kill by Process Name**
+
+```bash
+# Alternative: Kill specific development processes by name
 pkill -f "tsx watch" && \
 pkill -f "drizzle-kit studio"
 ```
 
-**Note**: You generally don't need to kill `next dev` manually, as Playwright manages the Next.js dev server automatically.
-
-**Option B: Force Kill by PID**
+**Option C: Force Kill by PID**
 
 ```bash
-# Find PIDs
-ps aux | grep -E "(next dev|tsx watch|playwright|drizzle-kit)" | grep -v grep
+# Find PIDs on specific ports
+lsof -i :3000
 
 # Kill specific PIDs
 kill -9 <PID1> <PID2> <PID3>
@@ -145,10 +156,16 @@ Cleanup Complete
 
 ### 1. Always Run in Clean Environment
 
-Stop all dev servers before running E2E tests:
+Use the automated cleanup or manually stop dev servers before running E2E tests:
 
 ```bash
-# Kill processes, then run tests
+# Option 1: Use automated cleanup (recommended)
+E2E_CLEANUP_PROCESSES=true pnpm run test:e2e
+
+# Option 2: Manually kill processes by port
+lsof -ti :3000 | xargs kill -9 && pnpm run test:e2e
+
+# Option 3: Kill by process name
 pkill -f "next dev" && pkill -f "tsx watch" && pnpm run test:e2e
 ```
 
