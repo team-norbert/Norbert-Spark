@@ -77,7 +77,7 @@ async function killInterferingProcesses() {
           }
         } catch (error) {
           // Ignore exit code 1 (no matching process found) and ENOENT (command not found)
-          const errCode = (error as NodeJS.ErrnoException).code
+          const errCode = (error as NodeJS.ErrnoException | Error | { code?: string | number })?.code
           const isExpectedError = errCode === 1 || errCode === '1' || errCode === 'ENOENT'
           if (!isExpectedError) {
             console.warn(
@@ -103,7 +103,7 @@ async function killInterferingProcesses() {
         } catch (error) {
           // lsof exits with code 1 if no process found, which is fine
           // Also ignore ENOENT (command not found)
-          const errCode = (error as NodeJS.ErrnoException).code
+          const errCode = (error as NodeJS.ErrnoException | Error | { code?: string | number })?.code
           const isExpectedError = errCode === 1 || errCode === '1' || errCode === 'ENOENT'
           if (!isExpectedError) {
             console.warn(
