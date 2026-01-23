@@ -1,0 +1,306 @@
+import { render } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { ExtractDataPageClient } from '@/app/extract-data/ExtractDataPageClient.js'
+import { FileUploadPage } from '@/view/client-components/FileUploadPage.js'
+import { useFileUpload } from '@/view/hooks/useFileUpload.js'
+
+// Mock the useFileUpload hook
+vi.mock('@/view/hooks/useFileUpload.js', () => ({
+  useFileUpload: vi.fn(),
+}))
+
+// Mock the FileUploadPage component
+vi.mock('@/view/client-components/FileUploadPage.js', () => ({
+  FileUploadPage: vi.fn((props) => (
+    <div data-testid="file-upload-page" data-props={JSON.stringify(props)} />
+  )),
+}))
+
+describe('ExtractDataPageClient', () => {
+  const mockHookReturn = {
+    clearAllFiles: vi.fn(),
+    clearError: vi.fn(),
+    dragActive: false,
+    error: null,
+    extractedData: [],
+    handleDrag: vi.fn(),
+    handleDrop: vi.fn(),
+    handleFileInputChange: vi.fn(),
+    handleNavigateHome: vi.fn(),
+    handleProcessFiles: vi.fn(),
+    handleSignOut: vi.fn(),
+    isExtracting: false,
+    isUploading: false,
+    removeFile: vi.fn(),
+    uploadedFiles: [],
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(useFileUpload).mockReturnValue(mockHookReturn)
+  })
+
+  describe('Component Rendering', () => {
+    it('should render without crashing', () => {
+      const { container } = render(<ExtractDataPageClient />)
+      expect(container).toBeInTheDocument()
+    })
+
+    it('should render FileUploadPage component', () => {
+      render(<ExtractDataPageClient />)
+      expect(FileUploadPage).toHaveBeenCalledTimes(1)
+    })
+
+    it('should call useFileUpload hook', () => {
+      render(<ExtractDataPageClient />)
+      expect(useFileUpload).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('Props Passing to FileUploadPage', () => {
+    it('should pass all state values from useFileUpload hook to FileUploadPage', () => {
+      render(<ExtractDataPageClient />)
+
+      const call = vi.mocked(FileUploadPage).mock.calls[0]
+      expect(call?.[0]).toEqual({
+        uploadedFiles: mockHookReturn.uploadedFiles,
+        dragActive: mockHookReturn.dragActive,
+        error: mockHookReturn.error,
+        isUploading: mockHookReturn.isUploading,
+        isExtracting: mockHookReturn.isExtracting,
+        extractedData: mockHookReturn.extractedData,
+        onDrag: mockHookReturn.handleDrag,
+        onDrop: mockHookReturn.handleDrop,
+        onFileInputChange: mockHookReturn.handleFileInputChange,
+        onRemoveFile: mockHookReturn.removeFile,
+        onClearAllFiles: mockHookReturn.clearAllFiles,
+        onProcessFiles: mockHookReturn.handleProcessFiles,
+        onClearError: mockHookReturn.clearError,
+        onNavigateHome: mockHookReturn.handleNavigateHome,
+        onSignOut: mockHookReturn.handleSignOut,
+      })
+    })
+
+    it('should pass all handler functions from useFileUpload hook to FileUploadPage', () => {
+      render(<ExtractDataPageClient />)
+
+      const call = vi.mocked(FileUploadPage).mock.calls[0]
+      expect(call?.[0]).toEqual({
+        uploadedFiles: mockHookReturn.uploadedFiles,
+        dragActive: mockHookReturn.dragActive,
+        error: mockHookReturn.error,
+        isUploading: mockHookReturn.isUploading,
+        isExtracting: mockHookReturn.isExtracting,
+        extractedData: mockHookReturn.extractedData,
+        onDrag: mockHookReturn.handleDrag,
+        onDrop: mockHookReturn.handleDrop,
+        onFileInputChange: mockHookReturn.handleFileInputChange,
+        onRemoveFile: mockHookReturn.removeFile,
+        onClearAllFiles: mockHookReturn.clearAllFiles,
+        onProcessFiles: mockHookReturn.handleProcessFiles,
+        onClearError: mockHookReturn.clearError,
+        onNavigateHome: mockHookReturn.handleNavigateHome,
+        onSignOut: mockHookReturn.handleSignOut,
+      })
+    })
+  })
+
+  describe('DDD Architecture Compliance', () => {
+    it('should act as a minimal orchestrator between hook and component', () => {
+      render(<ExtractDataPageClient />)
+
+      // Component should only call the hook once
+      expect(useFileUpload).toHaveBeenCalledTimes(1)
+
+      // Component should render FileUploadPage once
+      expect(FileUploadPage).toHaveBeenCalledTimes(1)
+
+      // Component should pass all hook values directly to FileUploadPage
+      const fileUploadPageCall = vi.mocked(FileUploadPage).mock.calls[0]
+      const passedProps = fileUploadPageCall?.[0]
+
+      expect(passedProps).toBeDefined()
+      expect(Object.keys(passedProps || {})).toHaveLength(15) // All 15 props should be passed
+    })
+
+    it('should not contain any business logic', () => {
+      render(<ExtractDataPageClient />)
+
+      // All logic should come from the hook
+      expect(useFileUpload).toHaveBeenCalled()
+
+      // Component should simply render FileUploadPage
+      expect(FileUploadPage).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('State Propagation', () => {
+    it('should propagate uploadedFiles state', () => {
+      const uploadedFiles = [
+        { file: new File([''], 'test.pdf'), id: '1', uploadProgress: 50 },
+        { file: new File([''], 'test2.pdf'), id: '2', uploadProgress: 100 },
+      ]
+
+      vi.mocked(useFileUpload).mockReturnValue({
+        ...mockHookReturn,
+        uploadedFiles,
+      })
+
+      render(<ExtractDataPageClient />)
+
+      const call = vi.mocked(FileUploadPage).mock.calls[0]
+      expect(call?.[0]).toMatchObject({ uploadedFiles })
+    })
+
+    it('should propagate dragActive state', () => {
+      vi.mocked(useFileUpload).mockReturnValue({
+        ...mockHookReturn,
+        dragActive: true,
+      })
+
+      render(<ExtractDataPageClient />)
+
+      const call = vi.mocked(FileUploadPage).mock.calls[0]
+      expect(call?.[0]).toMatchObject({ dragActive: true })
+    })
+
+    it('should propagate error state', () => {
+      const error = 'Failed to upload file'
+
+      vi.mocked(useFileUpload).mockReturnValue({
+        ...mockHookReturn,
+        error,
+      })
+
+      render(<ExtractDataPageClient />)
+
+      const call = vi.mocked(FileUploadPage).mock.calls[0]
+      expect(call?.[0]).toMatchObject({ error })
+    })
+
+    it('should propagate isUploading state', () => {
+      vi.mocked(useFileUpload).mockReturnValue({
+        ...mockHookReturn,
+        isUploading: true,
+      })
+
+      render(<ExtractDataPageClient />)
+
+      const call = vi.mocked(FileUploadPage).mock.calls[0]
+      expect(call?.[0]).toMatchObject({ isUploading: true })
+    })
+
+    it('should propagate isExtracting state', () => {
+      vi.mocked(useFileUpload).mockReturnValue({
+        ...mockHookReturn,
+        isExtracting: true,
+      })
+
+      render(<ExtractDataPageClient />)
+
+      const call = vi.mocked(FileUploadPage).mock.calls[0]
+      expect(call?.[0]).toMatchObject({ isExtracting: true })
+    })
+
+    it('should propagate extractedData state', () => {
+      const extractedData = [
+        {
+          total: 100.0,
+          currency: 'USD',
+          invoiceNumber: 'INV-001',
+          companyAddress: '123 Test St',
+          companyName: 'Test Vendor',
+          invoiceeAddress: '456 Customer Ave',
+        },
+      ]
+
+      vi.mocked(useFileUpload).mockReturnValue({
+        ...mockHookReturn,
+        extractedData,
+      })
+
+      render(<ExtractDataPageClient />)
+
+      const call = vi.mocked(FileUploadPage).mock.calls[0]
+      expect(call?.[0]).toMatchObject({ extractedData })
+    })
+  })
+
+  describe('Handler Propagation', () => {
+    it('should propagate all handler functions correctly', () => {
+      const customHandlers = {
+        clearAllFiles: vi.fn(),
+        clearError: vi.fn(),
+        handleDrag: vi.fn(),
+        handleDrop: vi.fn(),
+        handleFileInputChange: vi.fn(),
+        handleNavigateHome: vi.fn(),
+        handleProcessFiles: vi.fn(),
+        handleSignOut: vi.fn(),
+        removeFile: vi.fn(),
+      }
+
+      vi.mocked(useFileUpload).mockReturnValue({
+        ...mockHookReturn,
+        ...customHandlers,
+      })
+
+      render(<ExtractDataPageClient />)
+
+      const call = vi.mocked(FileUploadPage).mock.calls[0]
+      expect(call?.[0]).toMatchObject({
+        onDrag: customHandlers.handleDrag,
+        onDrop: customHandlers.handleDrop,
+        onFileInputChange: customHandlers.handleFileInputChange,
+        onRemoveFile: customHandlers.removeFile,
+        onClearAllFiles: customHandlers.clearAllFiles,
+        onProcessFiles: customHandlers.handleProcessFiles,
+        onClearError: customHandlers.clearError,
+        onNavigateHome: customHandlers.handleNavigateHome,
+        onSignOut: customHandlers.handleSignOut,
+      })
+    })
+  })
+
+  describe('Re-rendering Behavior', () => {
+    it('should re-render when hook state changes', () => {
+      const { rerender } = render(<ExtractDataPageClient />)
+
+      // Change the mock return value
+      vi.mocked(useFileUpload).mockReturnValue({
+        ...mockHookReturn,
+        isUploading: true,
+      })
+
+      rerender(<ExtractDataPageClient />)
+
+      // FileUploadPage should have been called twice (initial render + rerender)
+      expect(FileUploadPage).toHaveBeenCalledTimes(2)
+    })
+
+    it('should pass updated state to FileUploadPage on re-render', () => {
+      const { rerender } = render(<ExtractDataPageClient />)
+
+      // First render
+      let call = vi.mocked(FileUploadPage).mock.calls[0]
+      expect(call?.[0]).toMatchObject({ isUploading: false })
+
+      // Change state
+      vi.mocked(useFileUpload).mockReturnValue({
+        ...mockHookReturn,
+        isUploading: true,
+        uploadedFiles: [{ file: new File([''], 'test.pdf'), id: '1' }],
+      })
+
+      rerender(<ExtractDataPageClient />)
+
+      // Second render with updated state
+      call = vi.mocked(FileUploadPage).mock.calls[1]
+      expect(call?.[0]).toMatchObject({
+        isUploading: true,
+        uploadedFiles: [{ file: new File([''], 'test.pdf'), id: '1' }],
+      })
+    })
+  })
+})
