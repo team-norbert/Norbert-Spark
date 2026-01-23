@@ -53,6 +53,7 @@ describe('AIAdminController', () => {
     // Create mock reply with chainable methods
     mockReply = {
       code: vi.fn().mockReturnThis(),
+      status: vi.fn().mockReturnThis(),
       send: vi.fn().mockReturnThis(),
     } as any
 
@@ -281,6 +282,159 @@ describe('AIAdminController', () => {
       await controller.getAIChatSettingsById(mockRequest, mockReply)
 
       expect(mockLogger.info).toHaveBeenCalledWith('Received ai-admin request')
+    })
+  })
+
+  describe('putAIChatSettingsById', () => {
+    it('should update chat AI options and return 204 for valid request', async () => {
+      const chatTypeId = uuidv7()
+      const requestBody = {
+        prompt: 'You are a helpful AI assistant',
+        temperature: 0.7,
+        topP: 0.9,
+        frequencyPenalty: 0.0,
+        presencePenalty: 0.0,
+        topK: 40,
+        stopSequences: ['END', 'STOP'],
+        seed: 12345,
+        maxRetries: 3,
+      }
+
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = requestBody
+      vi.mocked(mockPutAIAdminUseCase.execute).mockResolvedValue(true)
+
+      await controller.putAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockLogger.info).toHaveBeenCalledWith('Received ai-admin PUT request')
+      expect(mockPutAIAdminUseCase.execute).toHaveBeenCalledWith(
+        chatTypeId,
+        expect.objectContaining({
+          prompt: 'You are a helpful AI assistant',
+          temperature: 0.7,
+          topP: 0.9,
+          frequencyPenalty: 0.0,
+          presencePenalty: 0.0,
+          topK: 40,
+          stopSequences: ['END', 'STOP'],
+          seed: 12345,
+          maxRetries: 3,
+        }),
+        expect.objectContaining({
+          userId: mockRequest.user?.sub,
+          ipAddress: '127.0.0.1',
+          userAgent: 'test-agent',
+        })
+      )
+      expect(mockReply.status).toHaveBeenCalledWith(204)
+      expect(mockReply.send).toHaveBeenCalled()
+    })
+
+    it('should update with only required fields', async () => {
+      const chatTypeId = uuidv7()
+      const requestBody = {
+        prompt: 'Updated prompt',
+      }
+
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = requestBody
+      vi.mocked(mockPutAIAdminUseCase.execute).mockResolvedValue(true)
+
+      await controller.putAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockPutAIAdminUseCase.execute).toHaveBeenCalledWith(
+        chatTypeId,
+        expect.objectContaining({
+          prompt: 'Updated prompt',
+        }),
+        expect.any(Object)
+      )
+      expect(mockReply.status).toHaveBeenCalledWith(204)
+    })
+
+    it('should return 400 for invalid UUID', async () => {
+      mockRequest.params = { id: 'invalid-uuid' }
+      mockRequest.body = { prompt: 'Test prompt' }
+
+      await controller.putAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(expect.any(Number))
+      expect(mockReply.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          error: expect.any(String),
+        })
+      )
+    })
+
+    it('should return 400 for validation errors', async () => {
+      const chatTypeId = uuidv7()
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = { temperature: 5 } // Invalid: temperature must be between 0 and 2
+
+      await controller.putAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalled()
+      expect(mockReply.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          error: expect.any(String),
+        })
+      )
+    })
+
+    it('should handle use case errors correctly', async () => {
+      const chatTypeId = uuidv7()
+      const error = new NotFoundException('Chat configuration not found')
+
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = { prompt: 'Test prompt' }
+      vi.mocked(mockPutAIAdminUseCase.execute).mockRejectedValue(error)
+
+      await controller.putAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(404)
+      expect(mockReply.send).toHaveBeenCalledWith({
+        success: false,
+        error: 'Chat configuration not found',
+      })
+    })
+
+    it('should handle unexpected errors with 500 status', async () => {
+      const chatTypeId = uuidv7()
+      const error = new Error('Unexpected error')
+
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = { prompt: 'Test prompt' }
+      vi.mocked(mockPutAIAdminUseCase.execute).mockRejectedValue(error)
+
+      await controller.putAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(500)
+      expect(mockReply.send).toHaveBeenCalledWith({
+        success: false,
+        error: 'Unexpected error',
+      })
+    })
+
+    it('should extract audit context correctly when user is not authenticated', async () => {
+      const chatTypeId = uuidv7()
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = { prompt: 'Test prompt' }
+      mockRequest.user = undefined
+      vi.mocked(mockPutAIAdminUseCase.execute).mockResolvedValue(true)
+
+      await controller.putAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockPutAIAdminUseCase.execute).toHaveBeenCalledWith(
+        chatTypeId,
+        expect.any(Object),
+        expect.objectContaining({
+          userId: null,
+          ipAddress: '127.0.0.1',
+          userAgent: 'test-agent',
+        })
+      )
     })
   })
 
