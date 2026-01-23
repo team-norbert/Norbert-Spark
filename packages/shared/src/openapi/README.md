@@ -83,5 +83,5 @@ pnpm run split:api
 
 ⚠️ The `src/openapi.json` file at the root is **generated** from the split files.  
 ⚠️ Always edit files in `src/openapi/` directory, not `src/openapi.json`.  
-⚠️ Run `pnpm run bundle:api` after making changes to rebuild the bundled spec.  
-⚠️ The bundled `src/openapi.json` is committed to git for tooling compatibility.
+⚠️ The bundled `src/openapi.json` is generated at build time and **not committed to git**.  
+⚠️ All build/test/lint scripts automatically run `bundle:api` first to generate the bundled spec.
