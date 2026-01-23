@@ -1,12 +1,18 @@
 'use server'
 
 /**
- * Server-side registration wrapper.
+ * UNUSED: This file is not currently used by the registration flow.
  *
- * This is a placeholder implementation so that the file provides
- * a concrete server action export. Replace the body with the actual
- * registration logic when it is ready to be implemented.
+ * The actual registration logic is in:
+ * - Application layer: src/application/actions/registerUser.ts
+ * - Hook: src/view/hooks/useRegistrationForm.ts
+ * - Component: src/view/client-components/RegistrationForm.tsx
+ *
+ * This placeholder server action exists to maintain the file structure
+ * but is not invoked. Consider removing this file if not needed.
  */
 export async function registrationWrapper(..._args: unknown[]): Promise<never> {
-  throw new Error('registrationWrapper is not implemented yet.')
+  throw new Error(
+    'registrationWrapper is not implemented - use registerUser from application/actions instead.'
+  )
 }
