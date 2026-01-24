@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test'
 
-import { signInToDashboard } from './helpers.js'
+const TEST_CREDENTIALS = {
+  email: 'james.smith@gmail.com',
+  password: 'Admin123!',
+} as const
 
 test.describe('Admin Page - Delete Users', () => {
   test.beforeEach(async ({ context }) => {
@@ -12,7 +15,12 @@ test.describe('Admin Page - Delete Users', () => {
     page,
   }) => {
     // Step 1: Sign in as admin and navigate to dashboard
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Step 2: Navigate to admin page
     await page.goto('/admin')
@@ -77,7 +85,12 @@ test.describe('Admin Page - Delete Users', () => {
 
   test('should disable delete button when no users are selected', async ({ page }) => {
     // Sign in and navigate to admin page
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
     await page.goto('/admin')
 
     // Wait for the data grid to load
@@ -91,7 +104,12 @@ test.describe('Admin Page - Delete Users', () => {
 
   test('should update button text with selected user count', async ({ page }) => {
     // Sign in and navigate to admin page
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
     await page.goto('/admin')
 
     // Wait for the data grid to load
@@ -125,7 +143,12 @@ test.describe('Admin Page - Delete Users', () => {
 
   test('should close dialog when clicking outside the dialog box', async ({ page }) => {
     // Sign in and navigate to admin page
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
     await page.goto('/admin')
 
     // Wait for the data grid to load

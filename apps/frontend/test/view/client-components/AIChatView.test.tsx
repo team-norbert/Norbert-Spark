@@ -15,6 +15,8 @@ describe('AIChatView Component', () => {
   const mockOnNewChat = vi.fn()
   const mockOnInputChange = vi.fn()
   const mockOnErrorClose = vi.fn()
+  const mockOnNavigateHome = vi.fn()
+  const mockOnSignOut = vi.fn()
   const mockMessagesEndRef = { current: null }
   const mockPush = vi.fn()
 
@@ -34,7 +36,9 @@ describe('AIChatView Component', () => {
     onErrorClose: mockOnErrorClose,
     onFileSelect: mockOnFileSelect,
     onInputChange: mockOnInputChange,
+    onNavigateHome: mockOnNavigateHome,
     onNewChat: mockOnNewChat,
+    onSignOut: mockOnSignOut,
     onSubmit: mockOnSubmit,
     selectedFile: null,
   }
@@ -62,11 +66,44 @@ describe('AIChatView Component', () => {
       expect(container.querySelector('.MuiBox-root')).toBeInTheDocument()
     })
 
-    it('should render the intro component', () => {
+    it('should render the page header', () => {
       render(<AIChatView {...defaultProps} />)
 
-      // IntroComponent should be present
-      expect(document.querySelector('div')).toBeInTheDocument()
+      // PageHeader should display "AI Chat" title
+      expect(screen.getByText('AI Chat')).toBeInTheDocument()
+    })
+
+    it('should render home button in header', () => {
+      const { container } = render(<AIChatView {...defaultProps} />)
+
+      // Home icon should be present
+      const homeIcon = container.querySelector('[data-testid="HomeIcon"]')
+      expect(homeIcon).toBeInTheDocument()
+    })
+
+    it('should call onNavigateHome when home button is clicked', () => {
+      render(<AIChatView {...defaultProps} />)
+
+      const homeButton = screen.getByLabelText('Home')
+      fireEvent.click(homeButton)
+
+      expect(mockOnNavigateHome).toHaveBeenCalledTimes(1)
+    })
+
+    it('should render sign out button in header', () => {
+      render(<AIChatView {...defaultProps} />)
+
+      const signOutButton = screen.getByTestId('sign-out-button')
+      expect(signOutButton).toBeInTheDocument()
+    })
+
+    it('should call onSignOut when sign out button is clicked', () => {
+      render(<AIChatView {...defaultProps} />)
+
+      const signOutButton = screen.getByTestId('sign-out-button')
+      fireEvent.click(signOutButton)
+
+      expect(mockOnSignOut).toHaveBeenCalledTimes(1)
     })
 
     it('should render desktop drawer by default', () => {
@@ -403,11 +440,26 @@ describe('AIChatView Component', () => {
       expect(alert).toBeInTheDocument()
     })
 
-    it('should have proper heading structure', () => {
-      const { container } = render(<AIChatView {...defaultProps} />)
+    it('should have proper heading for AI Chat', () => {
+      render(<AIChatView {...defaultProps} />)
 
-      // IntroComponent typically contains headings
-      expect(container.querySelector('div')).toBeInTheDocument()
+      // PageHeader contains the "AI Chat" heading
+      expect(screen.getByText('AI Chat')).toBeInTheDocument()
+    })
+
+    it('should have accessible home button label', () => {
+      render(<AIChatView {...defaultProps} />)
+
+      const homeButton = screen.getByLabelText('Home')
+      expect(homeButton).toBeInTheDocument()
+    })
+
+    it('should render AI options link with proper text', () => {
+      render(<AIChatView {...defaultProps} />)
+
+      const aiOptionsLink = screen.getByText('Change the AI options')
+      expect(aiOptionsLink).toBeInTheDocument()
+      expect(aiOptionsLink).toHaveAttribute('href', '/ai-admin')
     })
   })
 

@@ -181,6 +181,8 @@ describe('useAIChat', () => {
       expect(typeof result.current.handleNewChat).toBe('function')
       expect(typeof result.current.handleInputChange).toBe('function')
       expect(typeof result.current.handleErrorClose).toBe('function')
+      expect(typeof result.current.handleNavigateHome).toBe('function')
+      expect(typeof result.current.handleSignOut).toBe('function')
     })
 
     it('should call useChat with provided id', () => {
@@ -348,6 +350,50 @@ describe('useAIChat', () => {
       })
 
       expect(result.current.errorMessage).toBe('')
+    })
+  })
+
+  describe('handleNavigateHome', () => {
+    it('should navigate to dashboard', () => {
+      const { result } = renderHook(() => useAIChat({ id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e' }))
+
+      act(() => {
+        result.current.handleNavigateHome()
+      })
+
+      expect(mockPush).toHaveBeenCalledWith('/dashboard')
+    })
+
+    it('should call router.push exactly once', () => {
+      const { result } = renderHook(() => useAIChat({ id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e' }))
+
+      act(() => {
+        result.current.handleNavigateHome()
+      })
+
+      expect(mockPush).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('handleSignOut', () => {
+    it('should navigate to sign out endpoint', () => {
+      const { result } = renderHook(() => useAIChat({ id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e' }))
+
+      act(() => {
+        result.current.handleSignOut()
+      })
+
+      expect(mockPush).toHaveBeenCalledWith('/api/auth/signout')
+    })
+
+    it('should call router.push exactly once', () => {
+      const { result } = renderHook(() => useAIChat({ id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e' }))
+
+      act(() => {
+        result.current.handleSignOut()
+      })
+
+      expect(mockPush).toHaveBeenCalledTimes(1)
     })
   })
 

@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-
+//TODO: refactor - killInterferingProcesses() now unconditionally runs pkill -f ..., which is not cross-platform (will fail on Windows / environments without pkill) and can kill unrelated processes that happen to match the pattern. Consider restoring the prior port-based approach (or gating behind an env var), and keep a Windows/Unix implementation so E2E setup remains portable and safer.
 async function globalTeardown() {
   console.warn('🧹 Starting E2E test environment teardown...')
 

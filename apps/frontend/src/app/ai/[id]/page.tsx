@@ -35,7 +35,9 @@ export default function AIChatPage({ params }: { params: Promise<{ id: string }>
     handleErrorClose,
     handleFileSelect,
     handleInputChange,
+    handleNavigateHome,
     handleNewChat,
+    handleSignOut,
     handleSubmit,
     input,
     isChatsError,
@@ -66,7 +68,9 @@ export default function AIChatPage({ params }: { params: Promise<{ id: string }>
       onErrorClose={handleErrorClose}
       onFileSelect={handleFileSelect}
       onInputChange={handleInputChange}
+      onNavigateHome={handleNavigateHome}
       onNewChat={handleNewChat}
+      onSignOut={handleSignOut}
       onSubmit={handleSubmit}
       selectedFile={selectedFile}
     />

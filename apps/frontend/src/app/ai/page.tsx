@@ -18,7 +18,9 @@ export default function AIChatPage() {
     handleErrorClose,
     handleFileSelect,
     handleInputChange,
+    handleNavigateHome,
     handleNewChat,
+    handleSignOut,
     handleSubmit,
     input,
     isChatsError,
@@ -47,7 +49,9 @@ export default function AIChatPage() {
       onErrorClose={handleErrorClose}
       onFileSelect={handleFileSelect}
       onInputChange={handleInputChange}
+      onNavigateHome={handleNavigateHome}
       onNewChat={handleNewChat}
+      onSignOut={handleSignOut}
       onSubmit={handleSubmit}
       selectedFile={selectedFile}
     />
