@@ -44,7 +44,7 @@ export const contactRoleEnum = pgEnum('contact_role', [
 
 /**
  * Company table: Stores customer information
-*/
+ */
 export const company = pgTable(
   'company',
   {
