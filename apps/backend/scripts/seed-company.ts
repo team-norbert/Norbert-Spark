@@ -326,7 +326,7 @@ async function seedCompany() {
       const role = roles[i % roles.length]
 
       allRelationships.push({
-        companyId: insertedCompany.customerId,
+        companyId: insertedCompany.companyId,
         personId: insertedPerson.keyPersonId,
         role: role,
         isPrimary: i === 0, // First relationship is primary

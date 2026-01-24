@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Customers (Accounts)
 CREATE TABLE IF NOT EXISTS company (
-    customer_id UUID PRIMARY KEY DEFAULT uuidv7(),
+    company_id UUID PRIMARY KEY DEFAULT uuidv7(),
     legal_name TEXT NOT NULL
         CHECK (length(trim(legal_name)) BETWEEN 2 AND 200),
     display_name TEXT NOT NULL
@@ -120,7 +120,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS only_one_key_person
 CREATE TABLE IF NOT EXISTS company_people (
     company_person_id UUID PRIMARY KEY DEFAULT uuidv7(),
     company_id UUID NOT NULL
-        REFERENCES company(customer_id)
+        REFERENCES company(company_id)
         ON DELETE CASCADE,
     person_id UUID NOT NULL
         REFERENCES key_person(person_id)
