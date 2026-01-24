@@ -177,7 +177,6 @@ export class AIController {
     const chat = await this.getChatUseCase.execute(chatId, userAndAssistantMessages, auditContext)
 
     this.logger.info('Received chat', { chat: chat ?? null })
-    debugger
 
     const mostRecentMessage = messages[messages.length - 1]
 
