@@ -188,14 +188,11 @@ async function getAgentResponse(question: string): Promise<string> {
     },
   ]
 
-  // System prompt that forces tool usage for accurate answers from the text
-  const evalSystemPrompt = SYSTEM_PROMPT || 'You are a helpful assistant.'
-
   try {
     const result = await generateText({
       model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
       messages,
-      system: evalSystemPrompt,
+      system: SYSTEM_PROMPT,
       tools: {
         heartOfDarknessQA: heartOfDarknessTool.getTool(),
       },
