@@ -161,10 +161,10 @@ export class AIController {
     const userId = request.user.sub
 
     // Convert string id to ChatIdType branded type
-    const chatId = new ChatId(id).getValue()
+    const chatTypeId = new ChatId(id).getValue()
 
     this.logger.debug('Processing chat request', {
-      chatId,
+      chatTypeId,
       userId,
       messageCount: messages.length,
     })
@@ -174,7 +174,11 @@ export class AIController {
       (msg) => msg.role === 'user' || msg.role === 'assistant'
     ) as any[]
 
-    const chat = await this.getChatUseCase.execute(chatId, userAndAssistantMessages, auditContext)
+    const chat = await this.getChatUseCase.execute(
+      chatTypeId,
+      userAndAssistantMessages,
+      auditContext
+    )
 
     this.logger.info('Received chat', { chat: chat ?? null })
 
@@ -196,9 +200,13 @@ export class AIController {
 
     if (!chat) {
       this.logger.info('Chat does not exist, creating new chat', { id })
-      await this.saveChatUseCase.execute(chatId, userId, messages, auditContext)
+      await this.saveChatUseCase.execute(chatTypeId, userId, messages, auditContext)
     } else {
-      await this.appendChatUseCase.execute(chatId, [mostRecentMessage as UIMessage], auditContext)
+      await this.appendChatUseCase.execute(
+        chatTypeId,
+        [mostRecentMessage as UIMessage],
+        auditContext
+      )
       this.logger.info('Chat exists, appending most recent message', { id })
     }
 
@@ -210,9 +218,9 @@ export class AIController {
       })
     }
 
-    const systemPrompt = await this.getChatAiOptionsUseCase.execute(auditContext, chatId)
+    const systemPrompt = await this.getChatAiOptionsUseCase.execute(auditContext, chatTypeId)
     if (!systemPrompt) {
-      this.logger.error('System prompt could not be retrieved', undefined, { chatId, userId })
+      this.logger.error('System prompt could not be retrieved', undefined, { chatTypeId, userId })
       return reply.code(500).send({
         success: false,
         error: 'Failed to retrieve AI configuration',
@@ -281,7 +289,7 @@ export class AIController {
         // Just the newly generated assistant message
         // Good for persisting only the latest response
         this.logger.debug('Response message', { responseMessage })
-        await this.appendChatUseCase.execute(chatId, [responseMessage], auditContext)
+        await this.appendChatUseCase.execute(chatTypeId, [responseMessage], auditContext)
       },
     })
   }
