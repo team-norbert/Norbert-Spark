@@ -189,7 +189,7 @@ export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardPr
               >
                 <AdminPanelSettingsIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
                 <Typography variant="h5" component="h2" gutterBottom>
-                  Admin
+                  User Admin
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Manage users and settings
