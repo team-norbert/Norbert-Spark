@@ -89,7 +89,6 @@ export const company = pgTable(
       'company_billing_country_format_check',
       sql`${table.billingCountry} IS NULL OR ${table.billingCountry} ~ '^[A-Z]{2}$'`
     ),
-    singleCompanyOnly: check('single_company_only', sql`${table.customerId} IS NOT NULL`),
     onlyOneCompany: uniqueIndex('only_one_company').on(sql`(true)`),
   })
 )
