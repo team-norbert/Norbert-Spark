@@ -52,15 +52,6 @@ class SimpleLogger implements LoggerPort {
   }
 }
 
-/**
- * Simple audit logger that does nothing (no-op implementation for evals)
- */
-class NoOpAuditLog {
-  async log(): Promise<void> {
-    // No-op for eval tests
-  }
-}
-
 // Create a dedicated database connection for this eval (bypasses cached test credentials)
 const evalPool = new Pool({
   connectionString: process.env.DATABASE_URL,
