@@ -267,7 +267,7 @@ export const keyPersonRelations = relations(keyPerson, ({ many }) => ({
 
 export const companyPeopleRelations = relations(companyPeople, ({ one }) => ({
   company: one(company, {
-    fields: [companyPeople.companyPersonId],
+    fields: [companyPeople.companyId],
     references: [company.customerId],
   }),
   person: one(keyPerson, {
