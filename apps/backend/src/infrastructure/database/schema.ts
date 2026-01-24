@@ -44,6 +44,7 @@ export const contactRoleEnum = pgEnum('contact_role', [
 
 /**
  * Company table: Stores customer information
+ * Note: This is a singleton table - only one company record is allowed
  */
 export const company = pgTable(
   'company',
@@ -61,6 +62,7 @@ export const company = pgTable(
     timezone: text('timezone').notNull().default('UTC'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    singletonCheck: boolean('singleton_check').notNull().default(true),
   },
   (table) => ({
     legalNameLengthCheck: check(
@@ -87,7 +89,11 @@ export const company = pgTable(
       'company_billing_country_format_check',
       sql`${table.billingCountry} IS NULL OR ${table.billingCountry} ~ '^[A-Z]{2}$'`
     ),
-    onlyOneCompany: uniqueIndex('only_one_company').on(sql`(true)`),
+    singletonCheckConstraint: check(
+      'company_singleton_check',
+      sql`${table.singletonCheck} = true`
+    ),
+    onlyOneCompany: unique('only_one_company').on(table.singletonCheck),
   })
 )
 
