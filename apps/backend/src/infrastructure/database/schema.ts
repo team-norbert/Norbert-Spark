@@ -135,7 +135,6 @@ export const keyPerson = pgTable(
       'key_person_job_title_length_check',
       sql`${table.jobTitle} IS NULL OR length(${table.jobTitle}) <= 100`
     ),
-    singleKeyPersonOnly: check('single_key_person_only', sql`${table.keyPersonId} IS NOT NULL`),
     onlyOneKeyPerson: uniqueIndex('only_one_key_person').on(sql`(true)`),
   })
 )
