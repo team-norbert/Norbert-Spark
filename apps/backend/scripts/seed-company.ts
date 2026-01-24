@@ -360,4 +360,4 @@ async function seedCompany() {
 }
 
 // Run the seed script
-seedCompany()
+seedCompany().catch(console.error)
