@@ -161,10 +161,10 @@ export class AIController {
     const userId = request.user.sub
 
     // Convert string id to ChatIdType branded type
-    const chatTypeId = new ChatId(id).getValue()
+    const chatId = new ChatId(id).getValue()
 
     this.logger.debug('Processing chat request', {
-      chatTypeId,
+      chatId,
       userId,
       messageCount: messages.length,
     })
@@ -175,7 +175,7 @@ export class AIController {
     ) as any[]
 
     const chat = await this.getChatUseCase.execute(
-      chatTypeId,
+      chatId,
       userAndAssistantMessages,
       auditContext
     )
@@ -198,16 +198,72 @@ export class AIController {
       })
     }
 
+    // Determine the chatTypeId based on whether chat exists or not
+    let chatTypeId: ChatIdType | null = null
+
     if (!chat) {
-      this.logger.info('Chat does not exist, creating new chat', { id })
-      await this.saveChatUseCase.execute(chatTypeId, userId, messages, auditContext)
+      // For new chats, chatTypeId must be provided in the request body
+      const body = request.body as any
+      const chatTypeIdFromBody = body?.chatTypeId
+
+      if (!chatTypeIdFromBody) {
+        return reply.code(400).send({
+          success: false,
+          error: 'Invalid request body',
+          details: 'chatTypeId is required for new chats',
+        })
+      }
+
+      try {
+        chatTypeId = new ChatId(chatTypeIdFromBody).getValue()
+      } catch {
+        return reply.code(400).send({
+          success: false,
+          error: 'Invalid chatTypeId format',
+          details: 'incorrect ChatId format for chatTypeId',
+        })
+      }
+
+      this.logger.info('Chat does not exist, creating new chat', { id, chatTypeId })
+      await this.saveChatUseCase.execute(chatId, userId, chatTypeId, messages, auditContext)
     } else {
+      // For existing chats, extract chatTypeId from the chat record
+      const chatRecord = chat[0]?.chat
+      if (!chatRecord?.chatTypeId) {
+        this.logger.error('Chat record missing chatTypeId', undefined, { chatId })
+        return reply.code(500).send({
+          success: false,
+          error: 'Invalid chat data',
+          details: 'Chat record is missing chatTypeId',
+        })
+      }
+
+      try {
+        chatTypeId = new ChatId(chatRecord.chatTypeId).getValue()
+      } catch {
+        this.logger.error('Invalid chatTypeId format in chat record', undefined, { chatId })
+        return reply.code(500).send({
+          success: false,
+          error: 'Invalid chat data',
+          details: 'Chat record has invalid chatTypeId format',
+        })
+      }
+
       await this.appendChatUseCase.execute(
-        chatTypeId,
+        chatId,
         [mostRecentMessage as UIMessage],
         auditContext
       )
-      this.logger.info('Chat exists, appending most recent message', { id })
+      this.logger.info('Chat exists, appending most recent message', { id, chatTypeId })
+    }
+
+    if (!chatTypeId) {
+      this.logger.error('chatTypeId not set', undefined, { chatId })
+      return reply.code(500).send({
+        success: false,
+        error: 'Internal server error',
+        details: 'chatTypeId is required but not set',
+      })
     }
 
     if (!EnvConfig.MODEL_NAME) {
@@ -289,7 +345,7 @@ export class AIController {
         // Just the newly generated assistant message
         // Good for persisting only the latest response
         this.logger.debug('Response message', { responseMessage })
-        await this.appendChatUseCase.execute(chatTypeId, [responseMessage], auditContext)
+        await this.appendChatUseCase.execute(chatId, [responseMessage], auditContext)
       },
     })
   }

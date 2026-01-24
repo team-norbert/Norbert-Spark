@@ -69,11 +69,13 @@ export class AIRepository implements AIServicePort {
   async createChat(
     chatId: ChatIdType,
     userId: UserIdType,
+    chatTypeId: ChatIdType,
     initialMessages: UIMessage[] = []
   ): Promise<string> {
     const newChat = {
       userId: userId,
       id: chatId,
+      chatTypeId: chatTypeId,
     }
 
     this.logger.info('chatId', chatId)

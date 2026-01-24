@@ -49,12 +49,14 @@ describe('AIRepository', () => {
   })
 
   describe('createChat', () => {
-    it('should successfully create chat with specific chat ID, user ID, and message with parts', async () => {
+    it('should successfully create chat with specific chat ID, user ID, chatTypeId, and message with parts', async () => {
       // Arrange: Setup test data with specific values
       const testChatIdString = '019b86fb-f42f-7ea7-b30c-8ebf80c3f4a9'
       const testUserIdString = '019b6742-b220-7e5c-a4cd-459ff52f6579'
+      const testChatTypeIdString = '019bdccc-f0cb-7322-aa9e-776e25f34d81' // Heart of Darkness chat type
       const testChatId = new ChatId(testChatIdString).getValue()
       const testUserId = new UserId(testUserIdString).getValue()
+      const testChatTypeId = new ChatId(testChatTypeIdString).getValue()
 
       const initialMessages: UIMessage[] = [
         {
@@ -92,16 +94,17 @@ describe('AIRepository', () => {
         .mockReturnValueOnce(mockPartsInsert() as any)
 
       // Act: Call createChat with the test data
-      const result = await repository.createChat(testChatId, testUserId, initialMessages)
+      const result = await repository.createChat(testChatId, testUserId, testChatTypeId, initialMessages)
 
       // Assert: Verify the chat was created successfully
       expect(result).toBe(testChatIdString)
       expect(db.insert).toHaveBeenCalledTimes(3)
 
-      // Verify chat insert was called with correct data
+      // Verify chat insert was called with correct data including chatTypeId
       expect(mockChatValues).toHaveBeenCalledWith({
         id: testChatIdString,
         userId: testUserIdString,
+        chatTypeId: testChatTypeIdString,
       })
 
       // Verify messages insert was called with correct data

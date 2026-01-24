@@ -389,6 +389,7 @@ describe('AIController', () => {
     describe('successful chat processing', () => {
       it('should process valid chat request with existing chat', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7() // Heart of Darkness chat type
         const userId = uuidv7()
         mockRequest.body = {
           id: chatId,
@@ -404,11 +405,25 @@ describe('AIController', () => {
           email: 'user@example.com',
         }
 
-        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
-          id: chatId,
-          userId: userId,
-          messages: [],
-        } as any)
+        // Mock existing chat with chatTypeId
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue([
+          {
+            chat: {
+              id: chatId,
+              userId: userId,
+              chatTypeId: chatTypeId,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            message: {
+              id: 'msg-1',
+              chatId: chatId,
+              role: 'user',
+              createdAt: new Date(),
+            },
+            part: null,
+          },
+        ] as any)
 
         await controller.chat(mockRequest, mockReply)
 
@@ -499,8 +514,10 @@ describe('AIController', () => {
 
       it('should log info when creating new chat', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
+          chatTypeId: chatTypeId, // Required for new chats
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
         }
@@ -515,11 +532,13 @@ describe('AIController', () => {
 
         expect(mockLogger.info).toHaveBeenCalledWith('Chat does not exist, creating new chat', {
           id: chatId,
+          chatTypeId,
         })
       })
 
       it('should log info when appending to existing chat', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [
@@ -530,16 +549,31 @@ describe('AIController', () => {
           trigger: 'user-input',
         }
 
-        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
-          id: chatId,
-          userId: 'user-123',
-          messages: [],
-        } as any)
+        // Mock existing chat with chatTypeId
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue([
+          {
+            chat: {
+              id: chatId,
+              userId: 'user-123',
+              chatTypeId: chatTypeId,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            message: {
+              id: 'msg-1',
+              chatId: chatId,
+              role: 'user',
+              createdAt: new Date(),
+            },
+            part: null,
+          },
+        ] as any)
 
         await controller.chat(mockRequest, mockReply)
 
         expect(mockLogger.info).toHaveBeenCalledWith('Chat exists, appending most recent message', {
           id: chatId,
+          chatTypeId,
         })
       })
     })
@@ -548,6 +582,7 @@ describe('AIController', () => {
       it('should call streamText with correct parameters', async () => {
         const { streamText } = await import('ai')
         const chatId = uuidv7()
+        const expectedChatTypeId = uuidv7() // This is the chat type ID (e.g., "Heart of Darkness" chat type)
 
         mockRequest.body = {
           id: chatId,
@@ -561,11 +596,25 @@ describe('AIController', () => {
           trigger: 'user-input',
         }
 
-        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
-          id: chatId,
-          userId: 'user-123',
-          messages: [],
-        } as any)
+        // Mock existing chat with chatTypeId
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue([
+          {
+            chat: {
+              id: chatId,
+              userId: 'user-123',
+              chatTypeId: expectedChatTypeId,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            message: {
+              id: 'msg-1',
+              chatId: chatId,
+              role: 'user',
+              createdAt: new Date(),
+            },
+            part: null,
+          },
+        ] as any)
 
         // Mock the system prompt from database
         vi.mocked(mockGetChatAiOptionsUseCase.execute).mockResolvedValue({
@@ -573,6 +622,12 @@ describe('AIController', () => {
         })
 
         await controller.chat(mockRequest, mockReply)
+
+        // Verify getChatAiOptionsUseCase was called with the correct chatTypeId
+        expect(mockGetChatAiOptionsUseCase.execute).toHaveBeenCalledWith(
+          expect.any(Object), // auditContext
+          expectedChatTypeId // Should be chatTypeId, not chatId
+        )
 
         expect(streamText).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -586,19 +641,69 @@ describe('AIController', () => {
         )
       })
 
-      it('should return stream response', async () => {
+      it('should use chatTypeId from request body for new chats', async () => {
         const chatId = uuidv7()
+        const expectedChatTypeId = uuidv7() // Chat type ID for new chat
+
         mockRequest.body = {
           id: chatId,
+          chatTypeId: expectedChatTypeId, // Required for new chats
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
         }
 
-        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+        // Mock that chat doesn't exist (new chat)
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
+
+        // Mock the system prompt from database
+        vi.mocked(mockGetChatAiOptionsUseCase.execute).mockResolvedValue({
+          prompt: 'You are a helpful assistant',
+        })
+
+        await controller.chat(mockRequest, mockReply)
+
+        // Verify getChatAiOptionsUseCase was called with chatTypeId from request body
+        expect(mockGetChatAiOptionsUseCase.execute).toHaveBeenCalledWith(
+          expect.any(Object), // auditContext
+          expectedChatTypeId // Should use chatTypeId from request body for new chats
+        )
+      })
+
+      it('should return 400 if chatTypeId is missing for new chats', async () => {
+        const chatId = uuidv7()
+
+        mockRequest.body = {
           id: chatId,
-          userId: 'user-123',
-          messages: [],
-        } as any)
+          // chatTypeId is missing
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          trigger: 'user-input',
+        }
+
+        // Mock that chat doesn't exist (new chat)
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
+
+        await controller.chat(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid request body',
+          details: 'chatTypeId is required for new chats',
+        })
+      })
+
+      it('should return stream response', async () => {
+        const chatId = uuidv7()
+        const expectedChatTypeId = uuidv7()
+
+        mockRequest.body = {
+          id: chatId,
+          chatTypeId: expectedChatTypeId,
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          trigger: 'user-input',
+        }
+
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
 
         const result = await controller.chat(mockRequest, mockReply)
 
