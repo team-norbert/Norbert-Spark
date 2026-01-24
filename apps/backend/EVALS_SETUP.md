@@ -44,8 +44,7 @@ npm rebuild better-sqlite3
 
 **Why npm and not pnpm?** pnpm ignores build scripts for security reasons. Using `npm rebuild` forces compilation of the native bindings for your platform (macOS ARM64, Linux x64, etc.).
 
-``**You'll know you need this if you see:** `"Could not locate the bindings file"` error when running `pnpm eval`.
-``
+**You'll know you need this if you see:** `"Could not locate the bindings file"` error when running `pnpm eval`.
 
 ### 3. Run Evaluations
 
