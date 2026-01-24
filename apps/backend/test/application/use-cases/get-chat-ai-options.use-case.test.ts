@@ -35,7 +35,7 @@ describe('GetChatAiOptionsUseCase', () => {
     }
 
     mockAiChatOptions = {
-      getChatOptionsByChatOptionsByChatTypeId: vi.fn(),
+      getChatOptionsByChatTypeId: vi.fn(),
     }
 
     mockAuditContext = {
@@ -52,29 +52,23 @@ describe('GetChatAiOptionsUseCase', () => {
       const chatTypeId = new ChatId(uuidv7()).getValue()
       const mockPrompt = { prompt: 'You are a helpful AI assistant' }
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockResolvedValue(
-        mockPrompt
-      )
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockResolvedValue(mockPrompt)
 
       const result = await useCase.execute(mockAuditContext, chatTypeId)
 
-      expect(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).toHaveBeenCalledTimes(1)
-      expect(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).toHaveBeenCalledWith(
-        chatTypeId
-      )
+      expect(mockAiChatOptions.getChatOptionsByChatTypeId).toHaveBeenCalledTimes(1)
+      expect(mockAiChatOptions.getChatOptionsByChatTypeId).toHaveBeenCalledWith(chatTypeId)
       expect(result).toEqual(mockPrompt)
     })
 
     it('should return null when chat AI options are not found', async () => {
       const chatTypeId = new ChatId(uuidv7()).getValue()
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockResolvedValue(null)
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockResolvedValue(null)
 
       const result = await useCase.execute(mockAuditContext, chatTypeId)
 
-      expect(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).toHaveBeenCalledWith(
-        chatTypeId
-      )
+      expect(mockAiChatOptions.getChatOptionsByChatTypeId).toHaveBeenCalledWith(chatTypeId)
       expect(result).toBeNull()
     })
 
@@ -82,9 +76,7 @@ describe('GetChatAiOptionsUseCase', () => {
       const chatTypeId = new ChatId(uuidv7()).getValue()
       const mockPrompt = { prompt: '' }
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockResolvedValue(
-        mockPrompt
-      )
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockResolvedValue(mockPrompt)
 
       const result = await useCase.execute(mockAuditContext, chatTypeId)
 
@@ -97,9 +89,7 @@ describe('GetChatAiOptionsUseCase', () => {
       const longPrompt = 'A'.repeat(10000)
       const mockPrompt = { prompt: longPrompt }
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockResolvedValue(
-        mockPrompt
-      )
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockResolvedValue(mockPrompt)
 
       const result = await useCase.execute(mockAuditContext, chatTypeId)
 
@@ -113,9 +103,7 @@ describe('GetChatAiOptionsUseCase', () => {
       const chatTypeId = new ChatId(uuidv7()).getValue()
       const mockPrompt = { prompt: 'You are a helpful AI assistant' }
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockResolvedValue(
-        mockPrompt
-      )
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockResolvedValue(mockPrompt)
 
       await useCase.execute(mockAuditContext, chatTypeId)
 
@@ -133,7 +121,7 @@ describe('GetChatAiOptionsUseCase', () => {
     it('should log to audit even when result is null', async () => {
       const chatTypeId = new ChatId(uuidv7()).getValue()
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockResolvedValue(null)
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockResolvedValue(null)
 
       await useCase.execute(mockAuditContext, chatTypeId)
 
@@ -156,9 +144,7 @@ describe('GetChatAiOptionsUseCase', () => {
         userAgent: null,
       }
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockResolvedValue(
-        mockPrompt
-      )
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockResolvedValue(mockPrompt)
 
       await useCase.execute(auditContextWithoutUserAgent, chatTypeId)
 
@@ -178,9 +164,7 @@ describe('GetChatAiOptionsUseCase', () => {
       const mockPrompt = { prompt: 'Test prompt' }
       const auditError = new Error('Audit log service unavailable')
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockResolvedValue(
-        mockPrompt
-      )
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockResolvedValue(mockPrompt)
       vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
 
       const result = await useCase.execute(mockAuditContext, chatTypeId)
@@ -199,9 +183,7 @@ describe('GetChatAiOptionsUseCase', () => {
       const chatTypeId = new ChatId(uuidv7()).getValue()
       const repositoryError = new Error('Database connection failed')
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockRejectedValue(
-        repositoryError
-      )
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockRejectedValue(repositoryError)
 
       const result = await useCase.execute(mockAuditContext, chatTypeId)
 
@@ -217,9 +199,7 @@ describe('GetChatAiOptionsUseCase', () => {
       const chatTypeId = new ChatId(uuidv7()).getValue()
       const repositoryError = new Error('Database connection failed')
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockRejectedValue(
-        repositoryError
-      )
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockRejectedValue(repositoryError)
 
       await useCase.execute(mockAuditContext, chatTypeId)
 
@@ -238,9 +218,7 @@ describe('GetChatAiOptionsUseCase', () => {
       const chatTypeId = new ChatId(uuidv7()).getValue()
       const nonErrorThrown = 'String error'
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockRejectedValue(
-        nonErrorThrown
-      )
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockRejectedValue(nonErrorThrown)
 
       const result = await useCase.execute(mockAuditContext, chatTypeId)
 
@@ -252,9 +230,7 @@ describe('GetChatAiOptionsUseCase', () => {
       const chatTypeId = new ChatId(uuidv7()).getValue()
       const timeoutError = new Error('Query timeout')
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockRejectedValue(
-        timeoutError
-      )
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockRejectedValue(timeoutError)
 
       const result = await useCase.execute(mockAuditContext, chatTypeId)
 
@@ -274,7 +250,7 @@ describe('GetChatAiOptionsUseCase', () => {
       const mockPrompt1 = { prompt: 'Prompt 1' }
       const mockPrompt2 = { prompt: 'Prompt 2' }
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId)
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId)
         .mockResolvedValueOnce(mockPrompt1)
         .mockResolvedValueOnce(mockPrompt2)
 
@@ -285,7 +261,7 @@ describe('GetChatAiOptionsUseCase', () => {
 
       expect(result1).toEqual(mockPrompt1)
       expect(result2).toEqual(mockPrompt2)
-      expect(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).toHaveBeenCalledTimes(2)
+      expect(mockAiChatOptions.getChatOptionsByChatTypeId).toHaveBeenCalledTimes(2)
     })
 
     it('should handle null userId in audit context', async () => {
@@ -297,9 +273,7 @@ describe('GetChatAiOptionsUseCase', () => {
         userAgent: 'Test Agent',
       }
 
-      vi.mocked(mockAiChatOptions.getChatOptionsByChatOptionsByChatTypeId).mockResolvedValue(
-        mockPrompt
-      )
+      vi.mocked(mockAiChatOptions.getChatOptionsByChatTypeId).mockResolvedValue(mockPrompt)
 
       const result = await useCase.execute(auditContextWithoutUserId, chatTypeId)
 

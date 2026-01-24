@@ -63,7 +63,7 @@ export class AIChatOptionsRepository implements AIChatOptionsPort {
    * // notFound = null
    * ```
    */
-  async getChatOptionsByChatOptionsByChatTypeId(
+  async getChatOptionsByChatTypeId(
     chatTypeId: ChatIdType
   ): Promise<Pick<DBChatAiOptions, 'prompt'> | null> {
     this.logger.info('Fetching chat AI options by chat type ID', { chatTypeId })

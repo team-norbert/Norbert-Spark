@@ -43,9 +43,7 @@ describe('AIChatOptionsRepository', () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      const result = await repository.getChatOptionsByChatOptionsByChatTypeId(
-        new ChatId(chatTypeId).getValue()
-      )
+      const result = await repository.getChatOptionsByChatTypeId(new ChatId(chatTypeId).getValue())
 
       expect(result).toEqual({ prompt: mockPrompt })
       expect(mockLogger.info).toHaveBeenCalledWith('Fetching chat AI options by chat type ID', {
@@ -67,9 +65,7 @@ describe('AIChatOptionsRepository', () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      const result = await repository.getChatOptionsByChatOptionsByChatTypeId(
-        new ChatId(chatTypeId).getValue()
-      )
+      const result = await repository.getChatOptionsByChatTypeId(new ChatId(chatTypeId).getValue())
 
       expect(result).toBeNull()
       expect(mockLogger.info).toHaveBeenCalledWith('Fetching chat AI options by chat type ID', {
@@ -91,7 +87,7 @@ describe('AIChatOptionsRepository', () => {
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
       await expect(
-        repository.getChatOptionsByChatOptionsByChatTypeId(new ChatId(chatTypeId).getValue())
+        repository.getChatOptionsByChatTypeId(new ChatId(chatTypeId).getValue())
       ).rejects.toThrow('Database connection failed')
 
       expect(mockLogger.error).toHaveBeenCalledWith('Error fetching chat AI options', mockError, {
@@ -110,9 +106,7 @@ describe('AIChatOptionsRepository', () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      const result = await repository.getChatOptionsByChatOptionsByChatTypeId(
-        new ChatId(chatTypeId).getValue()
-      )
+      const result = await repository.getChatOptionsByChatTypeId(new ChatId(chatTypeId).getValue())
 
       expect(result).toEqual({ prompt: '' })
       expect(mockLogger.info).toHaveBeenCalledWith('Fetching chat AI options by chat type ID', {
@@ -131,9 +125,7 @@ describe('AIChatOptionsRepository', () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      const result = await repository.getChatOptionsByChatOptionsByChatTypeId(
-        new ChatId(chatTypeId).getValue()
-      )
+      const result = await repository.getChatOptionsByChatTypeId(new ChatId(chatTypeId).getValue())
 
       expect(result).toEqual({ prompt: mockPrompt })
       expect(result?.prompt.length).toBe(10000)
@@ -152,7 +144,7 @@ describe('AIChatOptionsRepository', () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      await repository.getChatOptionsByChatOptionsByChatTypeId(new ChatId(chatTypeId).getValue())
+      await repository.getChatOptionsByChatTypeId(new ChatId(chatTypeId).getValue())
 
       expect(db.select).toHaveBeenCalledTimes(1)
       expect(mockFrom).toHaveBeenCalledTimes(1)

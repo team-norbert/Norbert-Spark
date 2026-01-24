@@ -87,7 +87,7 @@ export class GetChatAiOptionsUseCase {
     chatTypeId: ChatIdType
   ): Promise<Pick<DBChatAiOptions, 'prompt'> | null> {
     try {
-      const result = await this.aiChatOptions.getChatOptionsByChatOptionsByChatTypeId(chatTypeId)
+      const result = await this.aiChatOptions.getChatOptionsByChatTypeId(chatTypeId)
 
       try {
         await this.auditLog.log({
