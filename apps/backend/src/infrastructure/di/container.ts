@@ -303,6 +303,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
         this.authController.registerRoutes(instance)
         this.aiController.registerRoutes(instance)
         this.aiExtractDataController.registerRoutes(instance)
+        this.aiAdminController.registerRoutes(instance)
         done()
       },
       { prefix: `/api/${EnvConfig.API_VERSION}` }

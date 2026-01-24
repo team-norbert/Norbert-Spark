@@ -12,6 +12,8 @@ export class AIAdminRepository implements AIAdminPort {
   constructor(private readonly logger: LoggerPort) {}
 
   async getAllChatAIOptions(id: UUIDType): Promise<DBChatAiOptions | null> {
+    this.logger.info('Fetching chat AI options', { id })
+    debugger
     try {
       const result = await db
         .select()

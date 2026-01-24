@@ -11,6 +11,8 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 
+import { getAIChatSettingsById } from '@/infrastructure/serverActions/getAIChatSettingsById.server.js'
+
 interface AIOptions {
   id: string
   chatTypeId: string
@@ -54,13 +56,9 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
     const fetchOptions = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/v1/ai/chats/config/${chatTypeId}/settings`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch AI settings')
-        }
-        const result = (await response.json()) as { success: boolean; data: AIOptions }
+        const result = await getAIChatSettingsById(chatTypeId)
         if (!result.success) {
-          throw new Error('Server returned an error')
+          throw new Error('Failed to fetch AI settings')
         }
         if (!result.data) {
           throw new Error('Invalid response data from server')

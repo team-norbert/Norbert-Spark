@@ -42,8 +42,11 @@ export class AIAdminController {
         userAgent: request.headers['user-agent'] ?? null,
       }
       const params = request.params as Record<string, unknown>
+      this.logger.debug(`Request params: ${JSON.stringify(params)}`)
       const id = params.id as string
+      this.logger.debug(`Request id: ${id}`)
       const uuidID = new Uuid(id).getValue()
+      this.logger.debug(`Request uuidID: ${uuidID}`)
       const dto = PutAIAdminDTO.validate(request.body)
       const result = await this.putAIAdminUseCase.execute(uuidID, dto, auditContext)
 
@@ -78,8 +81,11 @@ export class AIAdminController {
       }
 
       const params = request.params as Record<string, unknown>
+      this.logger.debug(`Request params: ${JSON.stringify(params)}`)
       const id = params.id as string
+      this.logger.debug(`Request id: ${id}`)
       const uuidID = new Uuid(id).getValue()
+      this.logger.debug(`Request uuidID: ${uuidID}`)
       const result = await this.getAIAdminUseCase.execute(uuidID, auditContext)
 
       if (!result) {
