@@ -288,13 +288,14 @@ describe('AIController', () => {
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: 'Invalid request body',
-          details: 'id and trigger are required',
+          details: 'id, trigger, and chatTypeId are required',
         })
       })
 
       it('should return 400 if messages array is missing', async () => {
         mockRequest.body = {
           id: uuidv7(),
+          chatTypeId: uuidv7(),
           trigger: 'user-input',
         }
 
@@ -323,13 +324,14 @@ describe('AIController', () => {
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: 'Invalid request body',
-          details: 'id and trigger are required',
+          details: 'id, trigger, and chatTypeId are required',
         })
       })
 
       it('should return 400 if no messages are provided', async () => {
         mockRequest.body = {
           id: uuidv7(),
+          chatTypeId: uuidv7(),
           messages: [],
           trigger: 'user-input',
         }
@@ -348,6 +350,7 @@ describe('AIController', () => {
       it('should return 400 if last message is not from user', async () => {
         mockRequest.body = {
           id: uuidv7(),
+          chatTypeId: uuidv7(),
           messages: [
             { id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] },
             { id: '2', role: 'assistant', parts: [{ type: 'text', text: 'Hi there!' }] },
@@ -369,6 +372,7 @@ describe('AIController', () => {
       it('should return 401 if user is not authenticated for new chat', async () => {
         mockRequest.body = {
           id: uuidv7(),
+          chatTypeId: uuidv7(),
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
         }
@@ -389,9 +393,11 @@ describe('AIController', () => {
     describe('successful chat processing', () => {
       it('should process valid chat request with existing chat', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         const userId = uuidv7()
         mockRequest.body = {
           id: chatId,
+          chatTypeId: chatTypeId,
           messages: [
             { id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] },
             { id: '2', role: 'assistant', parts: [{ type: 'text', text: 'Hi!' }] },
@@ -409,6 +415,10 @@ describe('AIController', () => {
           userId: userId,
           messages: [],
         } as any)
+
+        vi.mocked(mockGetChatAiOptionsUseCase.execute).mockResolvedValue({
+          prompt: 'You are a helpful assistant',
+        })
 
         await controller.chat(mockRequest, mockReply)
 
@@ -440,9 +450,11 @@ describe('AIController', () => {
 
       it('should create new chat if chat does not exist', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         const userId = uuidv7()
         mockRequest.body = {
           id: chatId,
+          chatTypeId: chatTypeId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
         }
@@ -452,6 +464,10 @@ describe('AIController', () => {
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
+
+        vi.mocked(mockGetChatAiOptionsUseCase.execute).mockResolvedValue({
+          prompt: 'You are a helpful assistant',
+        })
 
         await controller.chat(mockRequest, mockReply)
 
@@ -470,9 +486,11 @@ describe('AIController', () => {
 
       it('should log debug message when processing chat', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         const userId = uuidv7()
         mockRequest.body = {
           id: chatId,
+          chatTypeId: chatTypeId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
         }
@@ -487,6 +505,10 @@ describe('AIController', () => {
           messages: [],
         } as any)
 
+        vi.mocked(mockGetChatAiOptionsUseCase.execute).mockResolvedValue({
+          prompt: 'You are a helpful assistant',
+        })
+
         await controller.chat(mockRequest, mockReply)
 
         expect(mockLogger.debug).toHaveBeenCalledWith('Received chat request')
@@ -494,13 +516,16 @@ describe('AIController', () => {
           messageCount: 1,
           id: chatId,
           trigger: 'user-input',
+          chatTypeId: chatTypeId,
         })
       })
 
       it('should log info when creating new chat', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
+          chatTypeId: chatTypeId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
         }
@@ -511,6 +536,10 @@ describe('AIController', () => {
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
 
+        vi.mocked(mockGetChatAiOptionsUseCase.execute).mockResolvedValue({
+          prompt: 'You are a helpful assistant',
+        })
+
         await controller.chat(mockRequest, mockReply)
 
         expect(mockLogger.info).toHaveBeenCalledWith('Chat does not exist, creating new chat', {
@@ -520,8 +549,10 @@ describe('AIController', () => {
 
       it('should log info when appending to existing chat', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
+          chatTypeId: chatTypeId,
           messages: [
             { id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] },
             { id: '2', role: 'assistant', parts: [{ type: 'text', text: 'Hi!' }] },
@@ -536,6 +567,10 @@ describe('AIController', () => {
           messages: [],
         } as any)
 
+        vi.mocked(mockGetChatAiOptionsUseCase.execute).mockResolvedValue({
+          prompt: 'You are a helpful assistant',
+        })
+
         await controller.chat(mockRequest, mockReply)
 
         expect(mockLogger.info).toHaveBeenCalledWith('Chat exists, appending most recent message', {
@@ -548,9 +583,11 @@ describe('AIController', () => {
       it('should call streamText with correct parameters', async () => {
         const { streamText } = await import('ai')
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
 
         mockRequest.body = {
           id: chatId,
+          chatTypeId: chatTypeId,
           messages: [
             {
               id: '1',
@@ -574,6 +611,12 @@ describe('AIController', () => {
 
         await controller.chat(mockRequest, mockReply)
 
+        // Verify that getChatAiOptionsUseCase is called with the correct chatTypeId
+        expect(mockGetChatAiOptionsUseCase.execute).toHaveBeenCalledWith(
+          expect.any(Object), // auditContext
+          chatTypeId // Should be chatTypeId, not chatId
+        )
+
         expect(streamText).toHaveBeenCalledWith(
           expect.objectContaining({
             model: expect.any(String),
@@ -588,8 +631,10 @@ describe('AIController', () => {
 
       it('should return stream response', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
+          chatTypeId: chatTypeId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
         }
@@ -599,6 +644,10 @@ describe('AIController', () => {
           userId: 'user-123',
           messages: [],
         } as any)
+
+        vi.mocked(mockGetChatAiOptionsUseCase.execute).mockResolvedValue({
+          prompt: 'You are a helpful assistant',
+        })
 
         const result = await controller.chat(mockRequest, mockReply)
 

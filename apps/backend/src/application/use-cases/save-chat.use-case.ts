@@ -17,13 +17,14 @@ export class SaveChatUseCase {
     chatId: ChatIdType,
     userId: UserIdType,
     messages: any[],
-    auditContext: AuditContext
+    auditContext: AuditContext,
+    chatTypeId?: ChatIdType
   ): Promise<string> {
     // Placeholder implementation
     this.logger.info(`Saving chat ${chatId} for user ${userId} with ${messages.length} messages.`)
     this.logger.info('Messages:', messages)
 
-    const savedChatId = await this.aiRepository.createChat(chatId, userId, messages)
+    const savedChatId = await this.aiRepository.createChat(chatId, userId, messages, chatTypeId)
     this.logger.info(`Chat saved with ID: ${savedChatId}`)
 
     try {

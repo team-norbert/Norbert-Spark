@@ -100,6 +100,7 @@ export class AIController {
     let messages: UIMessage[]
     let id: string
     let trigger: string
+    let chatTypeId: ChatIdType
 
     try {
       const body = request.body as any
@@ -116,16 +117,18 @@ export class AIController {
         messages: body?.messages || [],
       })
 
-      // Extract id and trigger from body
+      // Extract id, trigger, and chatTypeId from body
       id = body?.id
 
       trigger = body?.trigger
+      
+      const rawChatTypeId = body?.chatTypeId
 
-      if (!id || !trigger) {
+      if (!id || !trigger || !rawChatTypeId) {
         return reply.code(400).send({
           success: false,
           error: 'Invalid request body',
-          details: 'id and trigger are required',
+          details: 'id, trigger, and chatTypeId are required',
         })
       }
 
@@ -139,7 +142,17 @@ export class AIController {
         })
       }
 
-      this.logger.debug('Validated messages', { messageCount: messages.length, id, trigger })
+      try {
+        chatTypeId = new ChatId(rawChatTypeId).getValue()
+      } catch {
+        return reply.code(400).send({
+          success: false,
+          error: 'Invalid chatTypeId format',
+          details: 'incorrect ChatId format',
+        })
+      }
+
+      this.logger.debug('Validated messages', { messageCount: messages.length, id, trigger, chatTypeId })
       this.logger.debug('Validated messages content:', messages)
     } catch (e) {
       return reply.code(400).send({
@@ -196,7 +209,7 @@ export class AIController {
 
     if (!chat) {
       this.logger.info('Chat does not exist, creating new chat', { id })
-      await this.saveChatUseCase.execute(chatId, userId, messages, auditContext)
+      await this.saveChatUseCase.execute(chatId, userId, messages, auditContext, chatTypeId)
     } else {
       await this.appendChatUseCase.execute(chatId, [mostRecentMessage as UIMessage], auditContext)
       this.logger.info('Chat exists, appending most recent message', { id })
@@ -210,9 +223,9 @@ export class AIController {
       })
     }
 
-    const systemPrompt = await this.getChatAiOptionsUseCase.execute(auditContext, chatId)
+    const systemPrompt = await this.getChatAiOptionsUseCase.execute(auditContext, chatTypeId)
     if (!systemPrompt) {
-      this.logger.error('System prompt could not be retrieved', undefined, { chatId, userId })
+      this.logger.error('System prompt could not be retrieved', undefined, { chatTypeId, userId })
       return reply.code(500).send({
         success: false,
         error: 'Failed to retrieve AI configuration',
