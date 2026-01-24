@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS company_people (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CHECK (end_date IS NULL OR end_date >= start_date),
     CONSTRAINT customer_people_unique
-        UNIQUE (customer_id, person_id, role)
+        UNIQUE (company_id, person_id, role)
 );
 
 -- Enforce one primary contact per company
