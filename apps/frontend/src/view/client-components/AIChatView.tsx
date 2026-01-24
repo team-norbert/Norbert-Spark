@@ -13,6 +13,7 @@ import {
   Divider,
   Drawer,
   IconButton,
+  Link as MuiLink,
   List,
   ListItem,
   ListItemButton,
@@ -27,9 +28,9 @@ import { useRouter } from 'next/navigation.js'
 import React from 'react'
 
 import { ChatInput } from '@/view/client-components/ChatInputComponent.js'
-import { IntroComponent } from '@/view/client-components/IntroComponent.js'
 import { Message } from '@/view/client-components/MessageComponent.js'
 import { MessageIntroComponent } from '@/view/client-components/MessageIntroComponent.js'
+import { PageHeader } from '@/view/client-components/PageHeader.js'
 import { Wrapper } from '@/view/client-components/WrapperComponent.js'
 
 const DRAWER_WIDTH = 280
@@ -58,6 +59,8 @@ interface AIChatViewProps {
   readonly onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   readonly onNewChat: () => void
   readonly onSubmit: (e: React.FormEvent) => void
+  readonly onNavigateHome: () => void
+  readonly onSignOut: () => void
   readonly selectedFile: File | null
 }
 
@@ -77,7 +80,9 @@ export function AIChatView({
   onErrorClose,
   onFileSelect,
   onInputChange,
+  onNavigateHome,
   onNewChat,
+  onSignOut,
   onSubmit,
   selectedFile,
 }: AIChatViewProps) {
@@ -183,7 +188,7 @@ export function AIChatView({
 
   return (
     <Wrapper>
-      <IntroComponent />
+      <PageHeader title="AI Chat" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
 
       <Box sx={{ display: 'flex', flex: 1, mb: 2, gap: 2, minHeight: 0, overflow: 'hidden' }}>
         {/* Mobile drawer */}
@@ -326,6 +331,11 @@ export function AIChatView({
             onFileSelect={onFileSelect}
             selectedFile={selectedFile}
           />
+          <Box sx={{ p: 2, textAlign: 'center' }}>
+            <MuiLink href="/ai-admin" underline="hover">
+              Change the AI options
+            </MuiLink>
+          </Box>
         </Paper>
       </Box>
     </Wrapper>

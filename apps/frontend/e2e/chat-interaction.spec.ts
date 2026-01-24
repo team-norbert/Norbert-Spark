@@ -11,7 +11,7 @@ test.describe('Chat Interaction', () => {
     await signInAndNavigateToChat(page, { clearCookies: true, context })
 
     // Verify form elements are disabled - use simple selectors
-    const textInput = page.getByPlaceholder('Type your message...')
+    const textInput = page.getByPlaceholder('Ask a question about The Heart of Darkness...')
     await expect(textInput).toBeVisible()
     await expect(textInput).toBeDisabled()
 
@@ -50,7 +50,7 @@ test.describe('Chat Interaction', () => {
     })
 
     // Type a message and submit
-    const textInput = page.getByPlaceholder('Type your message...')
+    const textInput = page.getByPlaceholder('Ask a question about The Heart of Darkness...')
     await expect(textInput).toBeVisible()
     await expect(textInput).toBeEnabled()
     await textInput.fill('Test message that will trigger an error')

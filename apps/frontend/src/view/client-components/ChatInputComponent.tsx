@@ -52,7 +52,7 @@ export const ChatInput = ({
         maxRows={4}
         value={input}
         onChange={onChange}
-        placeholder="Type your message..."
+        placeholder="Ask a question about The Heart of Darkness..."
         disabled={isLoading || disabled}
         // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus={!disabled}
@@ -81,6 +81,7 @@ export const ChatInput = ({
             hidden
             onChange={(e) => onFileSelect(e.target.files?.[0] || null)}
             accept="image/*,.pdf,.doc,.docx,.txt"
+            disabled
           />
         </IconButton>
       )}

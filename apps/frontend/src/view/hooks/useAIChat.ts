@@ -185,6 +185,14 @@ export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
     setErrorMessage('')
   }
 
+  const handleNavigateHome = () => {
+    router.push('/dashboard')
+  }
+
+  const handleSignOut = () => {
+    router.push('/api/auth/signout')
+  }
+
   return {
     // State
     messages,
@@ -210,5 +218,7 @@ export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
     handleNewChat,
     handleInputChange,
     handleErrorClose,
+    handleNavigateHome,
+    handleSignOut,
   }
 }

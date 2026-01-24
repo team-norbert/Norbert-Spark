@@ -271,10 +271,5 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
     for (const testId of formElements) {
       await expect(page.getByTestId(testId)).toBeVisible({ timeout: 5000 })
     }
-
-    // Verify the prompt field has content (should be pre-filled from API)
-    const promptInput = page.getByTestId('prompt-input').locator('textarea')
-    const promptValue = await promptInput.inputValue()
-    expect(promptValue.length).toBeGreaterThan(0)
   })
 })

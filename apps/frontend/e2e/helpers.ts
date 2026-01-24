@@ -56,7 +56,11 @@ export async function signInAndNavigateToChat(
   await chatButton.click()
 
   // Verify navigation to /ai page
-  await expect(page).toHaveURL('/ai', { timeout: 10000 })
+  await page.waitForURL('/ai', { timeout: 10000 })
+  await page.waitForLoadState('domcontentloaded')
+
+  // Wait for PageHeader to confirm page is ready
+  await expect(page.getByRole('heading', { name: /AI Chat/i })).toBeVisible()
 }
 
 /**
