@@ -41,7 +41,7 @@ export const AIChatOptionSettingsSchema = z.object({
   topP: z.number().min(0).max(1).nullable(),
   frequencyPenalty: z.number().min(-2).max(2).nullable(),
   presencePenalty: z.number().min(-2).max(2).nullable(),
-  topK: z.number().int().min(1).nullable(),
+  topK: z.number().int().min(1).max(100).nullable(),
   stopSequences: z.array(z.string()).nullable(),
   seed: z.number().int().nullable(),
   maxRetries: z.number().int().min(0).max(10).nullable(),
