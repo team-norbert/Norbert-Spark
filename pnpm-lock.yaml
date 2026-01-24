@@ -88,10 +88,10 @@ importers:
         specifier: ^3.0.5
         version: 3.0.5
       '@aws-sdk/client-s3':
-        specifier: ^3.974.0
+        specifier: ^3.975.0
         version: 3.975.0
       '@aws-sdk/s3-request-presigner':
-        specifier: ^3.974.0
+        specifier: ^3.975.0
         version: 3.975.0
       '@fastify/cors':
         specifier: ^11.2.0
@@ -127,7 +127,7 @@ importers:
         specifier: ^1.36.1
         version: 1.36.1
       ai:
-        specifier: ^6.0.48
+        specifier: ^6.0.49
         version: 6.0.49(zod@4.3.6)
       bcrypt:
         specifier: ^6.0.0
@@ -154,7 +154,7 @@ importers:
         specifier: ^8.17.2
         version: 8.17.2
       pino:
-        specifier: ^10.2.1
+        specifier: ^10.3.0
         version: 10.3.0
       pino-logger:
         specifier: ^1.0.0
@@ -284,7 +284,7 @@ importers:
         specifier: ^3.0.13
         version: 3.0.13(zod@4.3.6)
       '@ai-sdk/react':
-        specifier: ^3.0.50
+        specifier: ^3.0.51
         version: 3.0.51(react@19.2.3)(zod@4.3.6)
       '@emotion/react':
         specifier: ^11.14.0
@@ -308,13 +308,13 @@ importers:
         specifier: ^8.26.0
         version: 8.26.0(@emotion/react@11.14.0(@types/react@19.2.9)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.9)(react@19.2.3))(@types/react@19.2.9)(react@19.2.3))(@mui/material@7.3.7(@emotion/react@11.14.0(@types/react@19.2.9)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.9)(react@19.2.3))(@types/react@19.2.9)(react@19.2.3))(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mui/system@7.3.7(@emotion/react@11.14.0(@types/react@19.2.9)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.9)(react@19.2.3))(@types/react@19.2.9)(react@19.2.3))(@types/react@19.2.9)(react@19.2.3))(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@mui/x-data-grid-generator':
-        specifier: ^8.26.0
+        specifier: ^8.26.1
         version: 8.26.1(7ec2573e1b3aaf19ec10f281b4bab0c2)
       '@norberts-spark/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@tanstack/react-query':
-        specifier: ^5.90.19
+        specifier: ^5.90.20
         version: 5.90.20(react@19.2.3)
       '@types/react':
         specifier: ^19.2.9
@@ -329,7 +329,7 @@ importers:
         specifier: ^1.36.1
         version: 1.36.1
       ai:
-        specifier: ^6.0.48
+        specifier: ^6.0.49
         version: 6.0.49(zod@4.3.6)
       appwrite:
         specifier: ^21.5.0
@@ -378,7 +378,7 @@ importers:
         specifier: ^16.1.4
         version: 16.1.4
       '@playwright/test':
-        specifier: ^1.57.0
+        specifier: ^1.58.0
         version: 1.58.0
       '@tanstack/eslint-plugin-query':
         specifier: ^5.91.3
