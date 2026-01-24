@@ -17,6 +17,7 @@ import { ExtractDataUseCase } from '../../application/use-cases/extract-data.use
 import { GetChatDetailsUseCase } from '../../application/use-cases/get-chat-details.use-case.js'
 import { GetAIAdminUseCase } from '../../application/use-cases/get-ai-admin.use-case.js'
 import { PutAIAdminUseCase } from '../../application/use-cases/put-ai-admin.use-case.js'
+import { GetChatAiOptionsUseCase } from '../../application/use-cases/get-chat-ai-options.use-case.js'
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
@@ -32,6 +33,7 @@ import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-
 import { AIChatContentRepository } from '../../adapters/secondary/repositories/ai-chat-content.repository.js'
 import { AIAdminController } from '../../adapters/primary/http/ai-admin.controller.js'
 import { AIAdminRepository } from '../../adapters/secondary/repositories/ai-admin.repository.js'
+import { AIChatOptionsRepository } from '../../adapters/secondary/repositories/ai-chat-options.repository.js'
 // Utils
 import { PDFUtils } from '../../shared/utils/pdf.utils.js'
 
@@ -82,6 +84,7 @@ export class Container {
   public readonly bucketService: BucketService
   public readonly aiChatContentRepository: AIChatContentRepository
   public readonly aiAdminRepository: AIAdminRepository
+  public readonly aiChatOptionsRepository: AIChatOptionsRepository
 
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
@@ -99,6 +102,7 @@ export class Container {
   private readonly getChatDetailsUseCase: GetChatDetailsUseCase
   private readonly getAIAdminUseCase: GetAIAdminUseCase
   private readonly putAIAdminUseCase: PutAIAdminUseCase
+  private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -191,6 +195,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.aiChatContentRepository = new AIChatContentRepository(this.logger)
     this.auditLog = new AuditLogRepository(this.logger)
     this.aiAdminRepository = new AIAdminRepository(this.logger)
+    this.aiChatOptionsRepository = new AIChatOptionsRepository(this.logger)
     this.bucketService = new BucketService(this.logger)
     // Initialize use cases
     this.registerUserUseCase = new RegisterUserUseCase(
@@ -253,6 +258,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.auditLog,
       this.aiAdminRepository
     )
+    this.getChatAiOptionsUseCase = new GetChatAiOptionsUseCase(
+      this.logger,
+      this.auditLog,
+      this.aiChatOptionsRepository
+    )
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
       this.registerUserUseCase,
@@ -270,7 +280,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.saveChatUseCase,
       this.getChatsByUserIdUseCase,
       this.getChatContentByChatIdUseCase,
-      this.getChatDetailsUseCase
+      this.getChatDetailsUseCase,
+      this.getChatAiOptionsUseCase
     )
     this.aiExtractDataController = new AIExtractDataController(
       this.logger,

@@ -4,15 +4,20 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: true })
+dotenv.config({ path: path.resolve(__dirname, '../../../.env'), override: true })
 
 import { evalite } from 'evalite'
 import { generateText, stepCountIs } from 'ai'
 import type { ModelMessage } from 'ai'
 import { google } from '@ai-sdk/google'
-import { HeartOfDarknessTool } from '../../src/infrastructure/ai/tools/heart-of-darkness.tool.js'
-import type { LoggerPort } from '../../src/application/ports/logger.port.js'
-import { SYSTEM_PROMPT } from '../../src/shared/constants/ai-constants.js'
+import { HeartOfDarknessTool } from '../../../src/infrastructure/ai/tools/heart-of-darkness.tool.js'
+import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
+import { ChatId } from '../../../src/domain/value-objects/chatID.js'
+import { Pool } from 'pg'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { chatAiOptions } from '../../../src/infrastructure/database/schema.js'
+import { eq } from 'drizzle-orm'
+
 /**
  * Simple console logger for eval tests
  */
@@ -45,6 +50,53 @@ class SimpleLogger implements LoggerPort {
       console.debug(`[DEBUG] ${message}`)
     }
   }
+}
+
+/**
+ * Simple audit logger that does nothing (no-op implementation for evals)
+ */
+class NoOpAuditLog {
+  async log(): Promise<void> {
+    // No-op for eval tests
+  }
+}
+
+// Create a dedicated database connection for this eval (bypasses cached test credentials)
+const evalPool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: false,
+})
+const evalDb = drizzle(evalPool)
+
+// Initialize logger
+const logger = new SimpleLogger()
+
+// Fetch the system prompt from the database
+// Extract the chat type ID from the directory path
+// Path structure: .../HeartOfDarknessTool/019bdccc-f0cb-7322-aa9e-776e25f34d81/heartofdarkness.eval.ts
+const chatTypeIdFromPath = path.basename(__dirname)
+const CHAT_TYPE_ID = new ChatId(chatTypeIdFromPath).getValue()
+
+logger.info('Fetching system prompt for chat type', { chatTypeId: CHAT_TYPE_ID })
+
+let SYSTEM_PROMPT: string
+try {
+  const result = await evalDb
+    .select({ prompt: chatAiOptions.prompt })
+    .from(chatAiOptions)
+    .where(eq(chatAiOptions.chatTypeId, CHAT_TYPE_ID))
+    .limit(1)
+
+  if (!result[0]) {
+    logger.warn('No system prompt found, using default')
+    throw new Error('No system prompt found')
+  } else {
+    SYSTEM_PROMPT = result[0].prompt
+    logger.info('System prompt fetched successfully')
+  }
+} catch (error) {
+  logger.error('Failed to fetch system prompt, using default', error as Error)
+  throw new Error('No system prompt found')
 }
 
 /**
@@ -137,7 +189,7 @@ async function getAgentResponse(question: string): Promise<string> {
   ]
 
   // System prompt that forces tool usage for accurate answers from the text
-  const evalSystemPrompt = SYSTEM_PROMPT
+  const evalSystemPrompt = SYSTEM_PROMPT || 'You are a helpful assistant.'
 
   try {
     const result = await generateText({

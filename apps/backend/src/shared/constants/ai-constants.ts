@@ -1,5 +1,5 @@
 import { z } from 'zod'
-export const SYSTEM_PROMPT = `You are a literary expert on Joseph Conrad's "Heart of Darkness". IMPORTANT: You MUST use the heartOfDarknessQA tool to look up the answer in the actual text. Do NOT answer from memory - always consult the tool first. After receiving the tool result, provide a direct, concise answer (1-3 sentences) based on the text.`
+export const PROMPT = `You are a literary expert on Joseph Conrad's "Heart of Darkness". IMPORTANT: You MUST use the heartOfDarknessQA tool to look up the answer in the actual text. Do NOT answer from memory - always consult the tool first. After receiving the tool result, provide a direct, concise answer (1-3 sentences) based on the text.`
 
 export const schema = z
   .object({

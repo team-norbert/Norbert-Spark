@@ -11,12 +11,14 @@ export class AIChatOptionsRepository implements AIChatOptionsPort {
 
   async getChatOptionsByChatOptionsByChatTypeId(
     chatTypeId: ChatIdType
-  ): Promise<DBChatAiOptions | null> {
+  ): Promise<Pick<DBChatAiOptions, 'prompt'> | null> {
     this.logger.info('Fetching chat AI options by chat type ID', { chatTypeId })
 
     try {
       const result = await db
-        .select()
+        .select({
+          prompt: chatAiOptions.prompt,
+        })
         .from(chatAiOptions)
         .where(eq(chatAiOptions.chatTypeId, chatTypeId))
         .limit(1)

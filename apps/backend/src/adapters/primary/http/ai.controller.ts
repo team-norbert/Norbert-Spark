@@ -19,11 +19,11 @@ import { GetChatContentByChatIdUseCase } from '../../../application/use-cases/ge
 import type { UserIdType } from '../../../domain/value-objects/userID.js'
 import { UserId } from '../../../domain/value-objects/userID.js'
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
-import { SYSTEM_PROMPT } from '../../../shared/constants/ai-constants.js'
 import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
+import { GetChatAiOptionsUseCase } from '../../../application/use-cases/get-chat-ai-options.use-case.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -35,7 +35,8 @@ export class AIController {
     private readonly saveChatUseCase: SaveChatUseCase,
     private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase,
     private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase,
-    private readonly getChatDetailsUseCase: GetChatDetailsUseCase
+    private readonly getChatDetailsUseCase: GetChatDetailsUseCase,
+    private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
@@ -176,6 +177,7 @@ export class AIController {
     const chat = await this.getChatUseCase.execute(chatId, userAndAssistantMessages, auditContext)
 
     this.logger.info('Received chat', { chat: chat ?? null })
+    debugger
 
     const mostRecentMessage = messages[messages.length - 1]
 
@@ -208,6 +210,8 @@ export class AIController {
         error: 'AI service configuration error',
       })
     }
+
+    const SYSTEM_PROMPT = await this.getChatAiOptionsUseCase.execute(auditContext, chatId)
 
     const result = streamText({
       model: google(EnvConfig.MODEL_NAME),

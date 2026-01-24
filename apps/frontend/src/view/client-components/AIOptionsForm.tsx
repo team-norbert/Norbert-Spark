@@ -218,6 +218,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="The frequency penalty controls how likely the model is to repeat the same words or phrases. This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, a value of 0 means no penalty is applied."
           sx={{ mb: 3 }}
           data-testid="frequency-penalty-input"
+          disabled
         />
 
         <TextField
@@ -230,6 +231,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="The presence penalty controls how likely the model is to repeat information already present in the prompt. This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, a value of 0 means no penalty is applied."
           sx={{ mb: 3 }}
           data-testid="presence-penalty-input"
+          disabled
         />
 
         <TextField
@@ -242,6 +244,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="Top-K sampling parameter. Limits the model to consider only the top K most likely tokens."
           sx={{ mb: 3 }}
           data-testid="top-k-input"
+          disabled
         />
 
         <TextField
@@ -252,6 +255,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="Stop sequences define where text generation should end. When set, the model stops generating text as soon as it produces one of the specified stop sequences. Providers may impose limits on how many stop sequences can be used. Example: '###, END, \n\n\n' (comma-separated)"
           sx={{ mb: 3 }}
           data-testid="stop-sequences-input"
+          disabled
         />
 
         <TextField
@@ -264,6 +268,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="This is the seed (an integer) used for random sampling. When set and supported by the model, it ensures that calls produce deterministic results."
           sx={{ mb: 3 }}
           data-testid="seed-input"
+          disabled
         />
 
         <TextField
@@ -276,6 +281,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="The maximum number of times to retry a request if it fails due to transient errors such as network issues or rate limiting. The default value is 2 retries."
           sx={{ mb: 3 }}
           data-testid="max-retries-input"
+          disabled
         />
 
         <Button
