@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test'
 
-import { signInToDashboard } from './helpers.js'
+const TEST_CREDENTIALS = {
+  email: 'james.smith@gmail.com',
+  password: 'Admin123!',
+} as const
 
 test.describe.configure({ mode: 'serial' })
 
@@ -34,7 +37,12 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
 
   test('should allow admin user to access AI admin page', async ({ page }) => {
     // Sign in as admin user
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Navigate to AI admin page
     await page.goto('/ai-admin')
@@ -56,7 +64,12 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
 
   test('should display AI chat configuration data in DataGrid', async ({ page }) => {
     // Sign in as admin user
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Navigate to AI admin page
     await page.goto('/ai-admin')
@@ -96,7 +109,12 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
 
   test('should support search functionality in AI admin page', async ({ page }) => {
     // Sign in as admin user
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Navigate to AI admin page
     await page.goto('/ai-admin')
@@ -120,7 +138,12 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
 
   test('should support pagination in AI admin page', async ({ page }) => {
     // Sign in as admin user
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Navigate to AI admin page
     await page.goto('/ai-admin')
@@ -137,7 +160,12 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
 
   test('should display error message when data fetch fails', async ({ page }) => {
     // Sign in as admin user
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Intercept the API call and force it to fail
     await page.route('**/api/v1/ai/chats/config*', (route) => {
@@ -157,7 +185,12 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
 
   test.skip('should allow closing error message', async ({ page }) => {
     // Sign in as admin user
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Intercept the API call and force it to fail
     await page.route('**/api/v1/ai/chats/config*', (route) => {
@@ -185,7 +218,12 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
 
   test('should show loading state initially', async ({ page }) => {
     // Sign in as admin user
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Delay the API response to see loading state
     await page.route('**/api/v1/ai/chats/config*', async (route) => {
@@ -214,7 +252,12 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
 
   test('should navigate to AI options form and verify all form elements', async ({ page }) => {
     // 1. Sign in as admin user
-    await signInToDashboard(page)
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // 2. Navigate to AI admin page
     await page.goto('/ai-admin')

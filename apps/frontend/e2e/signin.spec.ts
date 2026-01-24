@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test'
 
-import { TEST_CREDENTIALS } from './helpers.js'
+const TEST_CREDENTIALS = {
+  email: 'james.smith@gmail.com',
+  password: 'Admin123!',
+} as const
 
 test.describe('Sign In Page', () => {
   test.describe.configure({ mode: 'serial' })
