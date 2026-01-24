@@ -212,7 +212,11 @@ export class AIController {
 
     const systemPrompt = await this.getChatAiOptionsUseCase.execute(auditContext, chatId)
     if (!systemPrompt) {
-      throw new Error('System prompt could not be retrieved')
+      this.logger.error('System prompt could not be retrieved', { chatId, userId })
+      return reply.code(500).send({
+        success: false,
+        error: 'Failed to retrieve AI configuration',
+      })
     }
 
     const result = streamText({
