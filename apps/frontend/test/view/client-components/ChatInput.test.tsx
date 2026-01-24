@@ -14,7 +14,7 @@ describe('ChatInput Component', () => {
 
   it('should render the input field with placeholder', () => {
     render(<ChatInput {...defaultProps} />)
-    const input = screen.getByPlaceholderText('Ask a question about The Heart of Darkness...')
+    const input = screen.getByTestId('chat-text-input')
     expect(input).toBeInTheDocument()
   })
 
@@ -29,7 +29,7 @@ describe('ChatInput Component', () => {
     const onChange = vi.fn()
     render(<ChatInput {...defaultProps} onChange={onChange} />)
 
-    const input = screen.getByPlaceholderText('Ask a question about The Heart of Darkness...')
+    const input = screen.getByTestId('chat-text-input')
     fireEvent.change(input, { target: { value: 'Test message' } })
 
     expect(onChange).toHaveBeenCalled()
@@ -49,7 +49,7 @@ describe('ChatInput Component', () => {
     const onSubmit = vi.fn((e) => e.preventDefault())
     render(<ChatInput {...defaultProps} input="Test" onSubmit={onSubmit} />)
 
-    const input = screen.getByPlaceholderText('Ask a question about The Heart of Darkness...')
+    const input = screen.getByTestId('chat-text-input')
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: false })
 
     expect(onSubmit).toHaveBeenCalled()
@@ -59,7 +59,7 @@ describe('ChatInput Component', () => {
     const onSubmit = vi.fn((e) => e.preventDefault())
     render(<ChatInput {...defaultProps} input="Test" onSubmit={onSubmit} />)
 
-    const input = screen.getByPlaceholderText('Ask a question about The Heart of Darkness...')
+    const input = screen.getByTestId('chat-text-input')
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true })
 
     expect(onSubmit).not.toHaveBeenCalled()
@@ -67,7 +67,7 @@ describe('ChatInput Component', () => {
 
   it('should disable input when isLoading is true', () => {
     render(<ChatInput {...defaultProps} isLoading={true} />)
-    const input = screen.getByPlaceholderText('Ask a question about The Heart of Darkness...')
+    const input = screen.getByTestId('chat-text-input')
     expect(input).toBeDisabled()
   })
 
@@ -103,7 +103,7 @@ describe('ChatInput Component', () => {
 
   it('should disable input when disabled prop is true', () => {
     render(<ChatInput {...defaultProps} disabled={true} />)
-    const input = screen.getByPlaceholderText('Ask a question about The Heart of Darkness...')
+    const input = screen.getByTestId('chat-text-input')
     expect(input).toBeDisabled()
   })
 
@@ -115,7 +115,7 @@ describe('ChatInput Component', () => {
 
   it('should disable input when both isLoading and disabled are true', () => {
     render(<ChatInput {...defaultProps} isLoading={true} disabled={true} />)
-    const input = screen.getByPlaceholderText('Ask a question about The Heart of Darkness...')
+    const input = screen.getByTestId('chat-text-input')
     expect(input).toBeDisabled()
   })
 
@@ -127,7 +127,7 @@ describe('ChatInput Component', () => {
 
   it('should support multiline input', () => {
     render(<ChatInput {...defaultProps} />)
-    const input = screen.getByPlaceholderText('Ask a question about The Heart of Darkness...')
+    const input = screen.getByTestId('chat-text-input')
     // TextField with multiline prop creates a textarea element
     expect(input.tagName).toBe('TEXTAREA')
   })
