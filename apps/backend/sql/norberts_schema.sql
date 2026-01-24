@@ -109,9 +109,7 @@ CREATE TABLE IF NOT EXISTS key_person (
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT people_unique_email UNIQUE (email),
-    -- Enforce single key person row
-    CONSTRAINT single_key_person_only CHECK (person_id IS NOT NULL)
+    CONSTRAINT people_unique_email UNIQUE (email)
 );
 
 -- Unique constraint to enforce only one key person record
