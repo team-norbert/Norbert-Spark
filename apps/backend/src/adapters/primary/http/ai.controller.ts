@@ -210,13 +210,15 @@ export class AIController {
       })
     }
 
-    const systemPromptResult = await this.getChatAiOptionsUseCase.execute(auditContext, chatId)
-    const systemPrompt = systemPromptResult?.prompt ?? 'You are a helpful AI assistant.'
+    const systemPrompt = await this.getChatAiOptionsUseCase.execute(auditContext, chatId)
+    if (!systemPrompt) {
+      throw new Error('System prompt could not be retrieved')
+    }
 
     const result = streamText({
       model: google(EnvConfig.MODEL_NAME),
       messages: await convertToModelMessages(messages as UIMessage[]),
-      system: systemPrompt,
+      system: systemPrompt.prompt,
       experimental_telemetry: {
         isEnabled: EnvConfig.SENTRY_ENABLED === 'true',
         recordInputs: true,

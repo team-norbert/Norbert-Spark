@@ -95,7 +95,9 @@ describe('AIController', () => {
     } as any
 
     mockGetChatAiOptionsUseCase = {
-      execute: vi.fn(),
+      execute: vi.fn().mockResolvedValue({
+        prompt: 'You are a literary expert on Joseph Conrad\'s "Heart of Darkness"',
+      }),
     } as any
 
     // Create mock logger
