@@ -156,7 +156,7 @@ const renderToolPart = (part: UIMessagePart<UIDataTypes, UITools>, index: number
 
 /**
  * Message component for rendering AI assistant and user messages.
- * Displays text content with markdown support and tool execution visualizations.
+ * Displays text content with streamdown support and tool execution visualizations.
  * Supports multiple tool types including file operations, directory management, and search.
  *
  * @param props - Component props
