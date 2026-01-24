@@ -44,8 +44,7 @@ export const contactRoleEnum = pgEnum('contact_role', [
 
 /**
  * Company table: Stores customer information
- */
-
+*/
 export const company = pgTable(
   'company',
   {
@@ -54,7 +53,7 @@ export const company = pgTable(
       .default(sql`uuidv7()`),
     legalName: text('legal_name').notNull(),
     displayName: text('display_name').notNull(),
-    status: companyStatusEnum('status').notNull().default('prospect'),
+    status: companyStatusEnum('status').notNull().default('active'),
     industry: text('industry'),
     companySize: integer('company_size'),
     websiteUrl: text('website_url'),
