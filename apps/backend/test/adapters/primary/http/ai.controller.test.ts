@@ -565,6 +565,11 @@ describe('AIController', () => {
           messages: [],
         } as any)
 
+        // Mock the system prompt from database
+        vi.mocked(mockGetChatAiOptionsUseCase.execute).mockResolvedValue({
+          prompt: 'You are a literary expert on Joseph Conrad\'s "Heart of Darkness"',
+        })
+
         await controller.chat(mockRequest, mockReply)
 
         expect(streamText).toHaveBeenCalledWith(

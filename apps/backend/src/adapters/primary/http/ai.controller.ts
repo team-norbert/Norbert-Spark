@@ -211,12 +211,13 @@ export class AIController {
       })
     }
 
-    const SYSTEM_PROMPT = await this.getChatAiOptionsUseCase.execute(auditContext, chatId)
+    const systemPromptResult = await this.getChatAiOptionsUseCase.execute(auditContext, chatId)
+    const systemPrompt = systemPromptResult?.prompt ?? 'You are a helpful AI assistant.'
 
     const result = streamText({
       model: google(EnvConfig.MODEL_NAME),
       messages: await convertToModelMessages(messages as UIMessage[]),
-      system: `${SYSTEM_PROMPT}`,
+      system: systemPrompt,
       experimental_telemetry: {
         isEnabled: EnvConfig.SENTRY_ENABLED === 'true',
         recordInputs: true,
