@@ -75,7 +75,13 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(testChatId)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(testChatId)
       expect(mockAIRepository.createChat).toHaveBeenCalledWith(testChatId, testUserId, messages)
@@ -87,7 +93,13 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(testChatId)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(testChatId)
       expect(mockAIRepository.createChat).toHaveBeenCalledWith(testChatId, testUserId, messages)
@@ -98,7 +110,13 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(testChatId)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(testChatId)
       expect(mockAIRepository.createChat).toHaveBeenCalledWith(testChatId, testUserId, messages)
@@ -109,7 +127,13 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(testChatId)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(testChatId)
       expect(mockAIRepository.createChat).toHaveBeenCalledWith(testChatId, testUserId, messages)
@@ -120,7 +144,13 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(testChatId)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(testChatId)
       expect(typeof result).toBe('string')
@@ -135,8 +165,20 @@ describe('SaveChatUseCase', () => {
         .mockResolvedValueOnce(chatId1)
         .mockResolvedValueOnce(chatId2)
 
-      const result1 = await useCase.execute(chatId1, testUserId, testChatTypeId, messages, auditContext)
-      const result2 = await useCase.execute(chatId2, testUserId, testChatTypeId, messages, auditContext)
+      const result1 = await useCase.execute(
+        chatId1,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
+      const result2 = await useCase.execute(
+        chatId2,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result1).toBe(chatId1)
       expect(result2).toBe(chatId2)
@@ -153,8 +195,20 @@ describe('SaveChatUseCase', () => {
       await useCase.execute(testChatId, userId1, testChatTypeId, messages, auditContext)
       await useCase.execute(testChatId, userId2, testChatTypeId, messages, auditContext)
 
-      expect(mockAIRepository.createChat).toHaveBeenNthCalledWith(1, testChatId, userId1, testChatTypeId, messages)
-      expect(mockAIRepository.createChat).toHaveBeenNthCalledWith(2, testChatId, userId2, testChatTypeId, messages)
+      expect(mockAIRepository.createChat).toHaveBeenNthCalledWith(
+        1,
+        testChatId,
+        userId1,
+        testChatTypeId,
+        messages
+      )
+      expect(mockAIRepository.createChat).toHaveBeenNthCalledWith(
+        2,
+        testChatId,
+        userId2,
+        testChatTypeId,
+        messages
+      )
     })
   })
 
@@ -230,9 +284,9 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockRejectedValue(error)
 
-      await expect(useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)).rejects.toThrow(
-        'Database connection failed'
-      )
+      await expect(
+        useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      ).rejects.toThrow('Database connection failed')
     })
 
     it('should throw InternalErrorException when repository throws generic error', async () => {
@@ -241,9 +295,9 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockRejectedValue(error)
 
-      await expect(useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)).rejects.toThrow(
-        InternalErrorException
-      )
+      await expect(
+        useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      ).rejects.toThrow(InternalErrorException)
     })
 
     it('should propagate repository errors to caller', async () => {
@@ -252,9 +306,9 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockRejectedValue(customError)
 
-      await expect(useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)).rejects.toThrow(
-        'Custom repository error'
-      )
+      await expect(
+        useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      ).rejects.toThrow('Custom repository error')
     })
 
     it('should not log success message when repository fails', async () => {
@@ -280,7 +334,13 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(null as any)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBeNull()
     })
@@ -317,7 +377,13 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(expectedChatId)
       expect(mockAIRepository.createChat).toHaveBeenCalledWith(testChatId, testUserId, messages)
@@ -349,7 +415,13 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(expectedChatId)
     })
@@ -363,7 +435,13 @@ describe('SaveChatUseCase', () => {
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
       // Execute
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       // Verify repository was called
       expect(mockAIRepository.createChat).toHaveBeenCalledWith(testChatId, testUserId, messages)
@@ -384,7 +462,9 @@ describe('SaveChatUseCase', () => {
       const results = []
       for (let i = 0; i < 5; i++) {
         const chatId = new ChatId(uuidv7()).getValue()
-        results.push(await useCase.execute(chatId, testUserId, testChatTypeId, messages, auditContext))
+        results.push(
+          await useCase.execute(chatId, testUserId, testChatTypeId, messages, auditContext)
+        )
       }
 
       expect(results).toHaveLength(5)
@@ -406,7 +486,13 @@ describe('SaveChatUseCase', () => {
 
       // Verify each call was independent
       expect(mockAIRepository.createChat).toHaveBeenNthCalledWith(1, chatId1, testUserId, messages1)
-      expect(mockAIRepository.createChat).toHaveBeenNthCalledWith(2, chatId2, testUserId, testChatTypeId, messages2)
+      expect(mockAIRepository.createChat).toHaveBeenNthCalledWith(
+        2,
+        chatId2,
+        testUserId,
+        testChatTypeId,
+        messages2
+      )
     })
   })
 
@@ -417,7 +503,13 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(expectedChatId)
       expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('with 1000 messages'))
@@ -438,7 +530,13 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(expectedChatId)
     })
@@ -449,7 +547,13 @@ describe('SaveChatUseCase', () => {
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(differentChatId)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(differentChatId)
       expect(result).not.toBe(testChatId)
@@ -466,7 +570,13 @@ describe('SaveChatUseCase', () => {
           })
       )
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(expectedChatId)
     })
@@ -500,7 +610,13 @@ describe('SaveChatUseCase', () => {
       }
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(testChatId)
 
-      await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContextWithoutAgent)
+      await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContextWithoutAgent
+      )
 
       expect(mockAuditLog.log).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -517,7 +633,13 @@ describe('SaveChatUseCase', () => {
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(testChatId)
       vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
 
-      const result = await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      const result = await useCase.execute(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        messages,
+        auditContext
+      )
 
       expect(result).toBe(testChatId)
       expect(mockAIRepository.createChat).toHaveBeenCalledTimes(1)
@@ -567,9 +689,9 @@ describe('SaveChatUseCase', () => {
       const repositoryError = new Error('Database error')
       vi.mocked(mockAIRepository.createChat).mockRejectedValue(repositoryError)
 
-      await expect(useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)).rejects.toThrow(
-        'Database error'
-      )
+      await expect(
+        useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
+      ).rejects.toThrow('Database error')
 
       expect(mockAuditLog.log).not.toHaveBeenCalled()
     })

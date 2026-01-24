@@ -174,11 +174,7 @@ export class AIController {
       (msg) => msg.role === 'user' || msg.role === 'assistant'
     ) as any[]
 
-    const chat = await this.getChatUseCase.execute(
-      chatId,
-      userAndAssistantMessages,
-      auditContext
-    )
+    const chat = await this.getChatUseCase.execute(chatId, userAndAssistantMessages, auditContext)
 
     this.logger.info('Received chat', { chat: chat ?? null })
 
@@ -249,11 +245,7 @@ export class AIController {
         })
       }
 
-      await this.appendChatUseCase.execute(
-        chatId,
-        [mostRecentMessage as UIMessage],
-        auditContext
-      )
+      await this.appendChatUseCase.execute(chatId, [mostRecentMessage as UIMessage], auditContext)
       this.logger.info('Chat exists, appending most recent message', { id, chatTypeId })
     }
 

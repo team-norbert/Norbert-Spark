@@ -94,7 +94,12 @@ describe('AIRepository', () => {
         .mockReturnValueOnce(mockPartsInsert() as any)
 
       // Act: Call createChat with the test data
-      const result = await repository.createChat(testChatId, testUserId, testChatTypeId, initialMessages)
+      const result = await repository.createChat(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        initialMessages
+      )
 
       // Assert: Verify the chat was created successfully
       expect(result).toBe(testChatIdString)
