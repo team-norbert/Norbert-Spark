@@ -8,7 +8,7 @@
 - **Action**: Merged AI chat system tables with CRM tables into a single comprehensive schema
 - **Tables included**:
   - **User Management**: `users`
-  - **CRM**: `customers`, `people`, `customer_people`
+  - **CRM**: `company`, `key_person`, `company_people`
   - **AI Chat**: `chats`, `messages`, `ai_options`, `parts`
   - **Audit**: `audit_log`
 
@@ -110,9 +110,9 @@ Expected output: 9 tables
 - ai_options
 - audit_log
 - chats
-- customer_people
-- customers
+- companuy_people
+- company
 - messages
 - parts
-- people
+- key_person
 - users

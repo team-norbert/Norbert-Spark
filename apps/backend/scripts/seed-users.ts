@@ -328,8 +328,8 @@ async function seedUsers() {
 
     console.log('\n👥 Generating user data...')
     for (let i = 0; i < TOTAL_USERS; i++) {
-      const firstName = firstNames[i % firstNames.length]
-      const lastName = lastNames[Math.floor(i / firstNames.length) % lastNames.length]
+      const firstName = firstNames[i % firstNames.length]!
+      const lastName = lastNames[Math.floor(i / firstNames.length) % lastNames.length]!
       const name = generateName(firstName, lastName)
       const email = generateEmail(firstName, lastName, i, generatedEmails)
       const role = getRole(i)

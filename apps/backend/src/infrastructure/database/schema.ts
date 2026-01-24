@@ -19,7 +19,6 @@ import {
   unique,
   char,
 } from 'drizzle-orm/pg-core'
-import type { EmailType } from '../../domain/value-objects/email.js'
 
 // Define CITEXT custom type for case-insensitive text
 const citext = customType<{ data: string }>({
@@ -28,7 +27,7 @@ const citext = customType<{ data: string }>({
   },
 })
 
-export const customerStatusEnum = pgEnum('customer_status', [
+export const companyStatusEnum = pgEnum('customer_status', [
   'prospect',
   'active',
   'paused',
@@ -55,7 +54,7 @@ export const company = pgTable(
       .default(sql`uuidv7()`),
     legalName: text('legal_name').notNull(),
     displayName: text('display_name').notNull(),
-    status: customerStatusEnum('status').notNull().default('prospect'),
+    status: companyStatusEnum('status').notNull().default('prospect'),
     industry: text('industry'),
     companySize: integer('company_size'),
     websiteUrl: text('website_url'),
@@ -100,7 +99,7 @@ export const company = pgTable(
 export const keyPerson = pgTable(
   'key_person',
   {
-    personId: uuid('person_id')
+    keyPersonId: uuid('person_id')
       .primaryKey()
       .default(sql`uuidv7()`),
     firstName: text('first_name').notNull(),
@@ -118,25 +117,26 @@ export const keyPerson = pgTable(
   (table) => ({
     uniqueEmail: unique('people_unique_email').on(table.email),
     firstNameLengthCheck: check(
-      'people_first_name_length_check',
+      'key_person_first_name_length_check',
       sql`length(trim(${table.firstName})) BETWEEN 1 AND 100`
     ),
     lastNameLengthCheck: check(
-      'people_last_name_length_check',
+      'key_person_last_name_length_check',
       sql`length(trim(${table.lastName})) BETWEEN 1 AND 100`
     ),
     emailFormatCheck: check(
-      'people_email_format_check',
+      'key_person_email_format_check',
       sql`${table.email} IS NULL OR ${table.email} ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'`
     ),
     phoneLengthCheck: check(
-      'people_phone_length_check',
+      'key_person_phone_length_check',
       sql`${table.phone} IS NULL OR length(${table.phone}) <= 30`
     ),
     jobTitleLengthCheck: check(
-      'people_job_title_length_check',
+      'key_person_job_title_length_check',
       sql`${table.jobTitle} IS NULL OR length(${table.jobTitle}) <= 100`
     ),
+    singleKeyPersonOnly: check('single_key_person_only', sql`${table.keyPersonId} IS NOT NULL`),
     onlyOneKeyPerson: uniqueIndex('only_one_key_person').on(sql`(true)`),
   })
 )
@@ -148,17 +148,17 @@ export const keyPerson = pgTable(
 export const companyPeople = pgTable(
   'company_people',
   {
-    customerPersonId: uuid('customer_person_id')
+    companyPersonId: uuid('company_person_id')
       .primaryKey()
       .default(sql`uuidv7()`),
-    customerId: uuid('customer_id')
+    companyId: uuid('company_id')
       .notNull()
       .references(() => company.customerId, {
         onDelete: 'cascade',
       }),
     personId: uuid('person_id')
       .notNull()
-      .references(() => keyPerson.personId, {
+      .references(() => keyPerson.keyPersonId, {
         onDelete: 'cascade',
       }),
     role: contactRoleEnum('role'),
@@ -168,16 +168,16 @@ export const companyPeople = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
-    uniqueCustomerPersonRole: uniqueIndex('customer_people_unique').on(
-      table.customerId,
+    uniqueCustomerPersonRole: uniqueIndex('company_people_unique').on(
+      table.companyId,
       table.personId,
       table.role
     ),
-    onePrimaryPerCustomer: uniqueIndex('one_primary_contact_per_customer')
-      .on(table.customerId)
+    onePrimaryPerCompany: uniqueIndex('one_primary_contact_per_customer')
+      .on(table.companyId)
       .where(sql`is_primary = true`),
     endDateAfterStartDate: check(
-      'customer_people_end_date_check',
+      'company_people_end_date_check',
       sql`${table.endDate} IS NULL OR ${table.endDate} >= ${table.startDate}`
     ),
   })
@@ -270,12 +270,12 @@ export const keyPersonRelations = relations(keyPerson, ({ many }) => ({
 
 export const companyPeopleRelations = relations(companyPeople, ({ one }) => ({
   company: one(company, {
-    fields: [companyPeople.customerId],
+    fields: [companyPeople.companyPersonId],
     references: [company.customerId],
   }),
   person: one(keyPerson, {
     fields: [companyPeople.personId],
-    references: [keyPerson.personId],
+    references: [keyPerson.keyPersonId],
   }),
 }))
 

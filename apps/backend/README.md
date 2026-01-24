@@ -57,7 +57,7 @@ To seed the database with initial data, run:
 ```bash
 pnpm run seed:users
 pnpm run seed:chat
-pnpm run seed:customers
+pnpm run seed:company
 ```
 
 You can delete all data and reset the DB by running:

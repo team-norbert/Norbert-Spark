@@ -3,11 +3,11 @@
  * Seed script to populate the company and key_person tables with fictitious data
  *
  * Usage:
- *   pnpm seed:customers [relationship_count]
- *   pnpm seed:customers 50
+ *   pnpm seed:company [relationship_count]
+ *   pnpm seed:company 50
  *
  * Or set via environment variable:
- *   SEED_RELATIONSHIP_COUNT=50 pnpm seed:customers
+ *   SEED_RELATIONSHIP_COUNT=50 pnpm seed:company
  *
  * Default count: 1
  * This will create ONE company, ONE key person, and multiple company_people relationships
@@ -227,7 +227,7 @@ const jobTitles = [
   'Co-Founder',
 ]
 
-async function seedCustomers() {
+async function seedCompany() {
   console.log('🌱 Starting company and key person seed script...')
   console.log(
     `📊 Will create 1 company, 1 key person, and ${TOTAL_RELATIONSHIPS} relationship(s)\n`
@@ -253,7 +253,12 @@ async function seedCustomers() {
     const country = SeedHelpers.randomElement(countries)
     const websiteUrl = SeedHelpers.generateWebsiteUrl(display)
     const companySize = SeedHelpers.randomInt(10, 10000)
-    const status = SeedHelpers.randomElement(statuses)
+    const status = SeedHelpers.randomElement([...statuses] as (
+      | 'prospect'
+      | 'active'
+      | 'paused'
+      | 'churned'
+    )[])
     const timezone = SeedHelpers.randomElement(timezones)
 
     const companyData = {
@@ -271,6 +276,10 @@ async function seedCustomers() {
     console.log('💾 Inserting company into database...')
 
     const [insertedCompany] = await db.insert(company).values(companyData).returning()
+
+    if (!insertedCompany) {
+      throw new Error('Failed to insert company')
+    }
 
     console.log(`✅ Inserted company: ${insertedCompany.displayName}`)
     console.log('📝 Generating key person data...')
@@ -296,6 +305,10 @@ async function seedCustomers() {
 
     const [insertedPerson] = await db.insert(keyPerson).values(personData).returning()
 
+    if (!insertedPerson) {
+      throw new Error('Failed to insert key person')
+    }
+
     console.log(`✅ Inserted key person: ${insertedPerson.firstName} ${insertedPerson.lastName}`)
     console.log('📝 Creating company-people relationships...')
 
@@ -313,8 +326,8 @@ async function seedCustomers() {
       const role = roles[i % roles.length]
 
       allRelationships.push({
-        customerId: insertedCompany.customerId,
-        personId: insertedPerson.personId,
+        companyId: insertedCompany.customerId,
+        personId: insertedPerson.keyPersonId,
         role: role,
         isPrimary: i === 0, // First relationship is primary
       })
@@ -347,4 +360,4 @@ async function seedCustomers() {
 }
 
 // Run the seed script
-seedCustomers()
+seedCompany()

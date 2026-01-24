@@ -122,8 +122,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS only_one_key_person
 
 -- Customer ↔ Person Relationship (Key Contact Lives Here)
 CREATE TABLE IF NOT EXISTS company_people (
-    customer_person_id UUID PRIMARY KEY DEFAULT uuidv7(),
-    customer_id UUID NOT NULL
+    company_person_id UUID PRIMARY KEY DEFAULT uuidv7(),
+    company_id UUID NOT NULL
         REFERENCES company(customer_id)
         ON DELETE CASCADE,
     person_id UUID NOT NULL
@@ -139,9 +139,9 @@ CREATE TABLE IF NOT EXISTS company_people (
         UNIQUE (customer_id, person_id, role)
 );
 
--- Enforce one primary contact per customer
-CREATE UNIQUE INDEX IF NOT EXISTS one_primary_contact_per_customer
-    ON customer_people (customer_id)
+-- Enforce one primary contact per company
+CREATE UNIQUE INDEX IF NOT EXISTS one_primary_contact_per_company
+    ON company_people (company_id)
     WHERE is_primary = true;
 
 -- ============================================================
