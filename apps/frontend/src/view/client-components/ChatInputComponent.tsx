@@ -58,7 +58,9 @@ export const ChatInput = ({
         autoFocus={!disabled}
         variant="outlined"
         size="small"
-        data-testid="chat-text-input"
+        inputProps={{
+          'data-testid': 'chat-text-input',
+        }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
