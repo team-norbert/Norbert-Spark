@@ -1,48 +1,48 @@
 #!/usr/bin/env tsx
 /**
- * Seed script to populate the customers and people tables with fictitious data
+ * Seed script to populate the company and key_person tables with fictitious data
  *
  * Usage:
- *   pnpm seed:customers [count]
+ *   pnpm seed:customers [relationship_count]
  *   pnpm seed:customers 50
  *
  * Or set via environment variable:
- *   SEED_CUSTOMER_COUNT=50 pnpm seed:customers
+ *   SEED_RELATIONSHIP_COUNT=50 pnpm seed:customers
  *
- * Default count: 20
- * This will create companies with 1 key person (primary contact) each
+ * Default count: 1
+ * This will create ONE company, ONE key person, and multiple company_people relationships
  */
 
 import { db } from '../src/infrastructure/database/index.js'
-import { customers, people, customerPeople } from '../src/infrastructure/database/schema.js'
+import { company, keyPerson, companyPeople } from '../src/infrastructure/database/schema.js'
 import { SeedHelpers } from '../src/shared/utils/seed-helpers.util.js'
 
-// Get the number of customers to create
-const getCustomerCount = (): number => {
+// Get the number of relationships to create
+const getRelationshipCount = (): number => {
   const cliArg = process.argv[2]
   if (cliArg) {
     const count = parseInt(cliArg, 10)
     if (isNaN(count) || count < 1) {
-      console.error('❌ Error: Customer count must be a number >= 1')
+      console.error('❌ Error: Relationship count must be a number >= 1')
       process.exit(1)
     }
     return count
   }
 
-  const envCount = process.env.SEED_CUSTOMER_COUNT
+  const envCount = process.env.SEED_RELATIONSHIP_COUNT
   if (envCount) {
     const count = parseInt(envCount, 10)
     if (isNaN(count) || count < 1) {
-      console.error('❌ Error: SEED_CUSTOMER_COUNT must be a number >= 1')
+      console.error('❌ Error: SEED_RELATIONSHIP_COUNT must be a number >= 1')
       process.exit(1)
     }
     return count
   }
 
-  return 20
+  return 1
 }
 
-const TOTAL_CUSTOMERS = getCustomerCount()
+const TOTAL_RELATIONSHIPS = getRelationshipCount()
 
 // Industries
 const industries = [
@@ -228,130 +228,116 @@ const jobTitles = [
 ]
 
 async function seedCustomers() {
-  console.log('🌱 Starting customer and people seed script...')
-  console.log(`📊 Will create ${TOTAL_CUSTOMERS} customers with associated contacts\n`)
+  console.log('🌱 Starting company and key person seed script...')
+  console.log(
+    `📊 Will create 1 company, 1 key person, and ${TOTAL_RELATIONSHIPS} relationship(s)\n`
+  )
 
   try {
     // Check if data already exists
-    const existingCustomers = await db.select().from(customers)
-    if (existingCustomers.length > 0) {
-      console.log(`⚠️  Found ${existingCustomers.length} existing customers`)
+    const existingCompany = await db.select().from(company)
+    if (existingCompany.length > 0) {
+      console.log(`⚠️  Found ${existingCompany.length} existing company records`)
       console.log('🗑️  Clearing existing data...')
-      await db.delete(people)
-      await db.delete(customers)
+      await db.delete(keyPerson)
+      await db.delete(company)
       console.log('✅ Existing data cleared\n')
     }
 
     const startTime = Date.now()
-    const customersToInsert = []
-    const allPeople = []
+
+    console.log('📝 Generating company data...')
+
+    const { legal, display } = SeedHelpers.generateCompanyName()
+    const industry = SeedHelpers.randomElement(industries)
+    const country = SeedHelpers.randomElement(countries)
+    const websiteUrl = SeedHelpers.generateWebsiteUrl(display)
+    const companySize = SeedHelpers.randomInt(10, 10000)
+    const status = SeedHelpers.randomElement(statuses)
+    const timezone = SeedHelpers.randomElement(timezones)
+
+    const companyData = {
+      legalName: legal,
+      displayName: display,
+      industry,
+      companySize,
+      websiteUrl,
+      billingCountry: country,
+      timezone,
+      status,
+    }
+
+    console.log('✅ Generated company data')
+    console.log('💾 Inserting company into database...')
+
+    const [insertedCompany] = await db.insert(company).values(companyData).returning()
+
+    console.log(`✅ Inserted company: ${insertedCompany.displayName}`)
+    console.log('📝 Generating key person data...')
+
+    const firstName = SeedHelpers.randomElement(firstNames)
+    const lastName = SeedHelpers.randomElement(lastNames)
+    const email = SeedHelpers.generateEmail(firstName, lastName, websiteUrl)
+    const phone = SeedHelpers.generatePhoneNumber(country)
+    const jobTitle = SeedHelpers.randomElement(jobTitles)
+    const isActive = SeedHelpers.randomBoolean(0.95)
+
+    const personData = {
+      firstName,
+      lastName,
+      email,
+      phone,
+      jobTitle,
+      isActive,
+    }
+
+    console.log('✅ Generated key person data')
+    console.log('💾 Inserting key person into database...')
+
+    const [insertedPerson] = await db.insert(keyPerson).values(personData).returning()
+
+    console.log(`✅ Inserted key person: ${insertedPerson.firstName} ${insertedPerson.lastName}`)
+    console.log('📝 Creating company-people relationships...')
+
     const allRelationships = []
 
-    console.log('📝 Generating customer data...')
-
-    for (let i = 0; i < TOTAL_CUSTOMERS; i++) {
-      const { legal, display } = SeedHelpers.generateCompanyName()
-      const industry = SeedHelpers.randomElement(industries)
-      const country = SeedHelpers.randomElement(countries)
-      const websiteUrl = SeedHelpers.generateWebsiteUrl(display)
-      const companySize = SeedHelpers.randomInt(10, 10000)
-      const status = SeedHelpers.randomElement(statuses)
-      const timezone = SeedHelpers.randomElement(timezones)
-
-      const customer = {
-        legalName: legal,
-        displayName: display,
-        industry,
-        companySize,
-        websiteUrl,
-        billingCountry: country,
-        timezone,
-        status,
-      }
-
-      customersToInsert.push(customer)
-    }
-
-    console.log(`✅ Generated ${customersToInsert.length} customers`)
-    console.log('💾 Inserting customers into database...')
-
-    const insertedCustomers = await db.insert(customers).values(customersToInsert).returning()
-
-    console.log(`✅ Inserted ${insertedCustomers.length} customers`)
-    console.log('📝 Generating people and relationships...')
-
-    // Create exactly 1 person per customer
-    for (const customer of insertedCustomers) {
-      const customerDomain = customer.websiteUrl
-
-      const firstName = SeedHelpers.randomElement(firstNames)
-      const lastName = SeedHelpers.randomElement(lastNames)
-      const email = SeedHelpers.generateEmail(firstName, lastName, customerDomain)
-      const phone = SeedHelpers.generatePhoneNumber(customer.billingCountry)
-      const jobTitle = SeedHelpers.randomElement(jobTitles)
-      const isActive = SeedHelpers.randomBoolean(0.95)
-
-      const person = {
-        firstName,
-        lastName,
-        email,
-        phone,
-        jobTitle,
-        isActive,
-      }
-
-      allPeople.push({ ...person, customerId: customer.customerId })
-    }
-
-    console.log(`✅ Generated ${allPeople.length} people`)
-    console.log('💾 Inserting people into database...')
-
-    // Insert all people
-    const peopleToInsert = allPeople.map((p) => ({
-      firstName: p.firstName,
-      lastName: p.lastName,
-      email: p.email,
-      phone: p.phone,
-      jobTitle: p.jobTitle,
-      isActive: p.isActive,
-    }))
-
-    const insertedPeople = await db.insert(people).values(peopleToInsert).returning()
-
-    console.log(`✅ Inserted ${insertedPeople.length} people`)
-    console.log('📝 Creating customer-people relationships...')
-
-    // Create relationships - one person per customer as primary contact
-    for (let i = 0; i < insertedCustomers.length; i++) {
-      const customer = insertedCustomers[i]
-      const person = insertedPeople[i]
+    // Create the specified number of relationships
+    for (let i = 0; i < TOTAL_RELATIONSHIPS; i++) {
+      const roles = [
+        'primary_contact',
+        'decision_maker',
+        'billing_contact',
+        'technical_contact',
+        'stakeholder',
+      ] as const
+      const role = roles[i % roles.length]
 
       allRelationships.push({
-        customerId: customer.customerId,
-        personId: person.personId,
-        role: 'primary_contact',
-        isPrimary: true,
+        customerId: insertedCompany.customerId,
+        personId: insertedPerson.personId,
+        role: role,
+        isPrimary: i === 0, // First relationship is primary
       })
     }
 
-    console.log(`✅ Generated ${allRelationships.length} relationships`)
+    console.log(`✅ Generated ${allRelationships.length} relationship(s)`)
     console.log('💾 Inserting relationships into database...')
 
-    await db.insert(customerPeople).values(allRelationships)
+    await db.insert(companyPeople).values(allRelationships)
 
     const endTime = Date.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
 
-    console.log(`✅ Inserted ${allRelationships.length} customer-people relationships`)
+    console.log(`✅ Inserted ${allRelationships.length} company-people relationship(s)`)
     console.log(`\n✨ Seed completed successfully in ${duration}s`)
     console.log('\n📊 Summary:')
-    console.log(`   • Customers: ${insertedCustomers.length}`)
-    console.log(`   • People: ${insertedPeople.length}`)
+    console.log(`   • Company: 1 (${insertedCompany.displayName})`)
+    console.log(`   • Key Person: 1 (${insertedPerson.firstName} ${insertedPerson.lastName})`)
     console.log(`   • Relationships: ${allRelationships.length}`)
 
     process.exit(0)
   } catch (error) {
-    console.error('\n❌ Error seeding customers and people:', error)
+    console.error('\n❌ Error seeding company and key person:', error)
     if (error instanceof Error) {
       console.error('Error details:', error.message)
       console.error('Stack trace:', error.stack)

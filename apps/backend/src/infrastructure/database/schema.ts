@@ -44,11 +44,11 @@ export const contactRoleEnum = pgEnum('contact_role', [
 ])
 
 /**
- * Customers table: Stores customer information
+ * Company table: Stores customer information
  */
 
-export const customers = pgTable(
-  'customers',
+export const company = pgTable(
+  'company',
   {
     customerId: uuid('customer_id')
       .primaryKey()
@@ -66,45 +66,47 @@ export const customers = pgTable(
   },
   (table) => ({
     legalNameLengthCheck: check(
-      'customers_legal_name_length_check',
+      'company_legal_name_length_check',
       sql`length(trim(${table.legalName})) BETWEEN 2 AND 200`
     ),
     displayNameLengthCheck: check(
-      'customers_display_name_length_check',
+      'company_display_name_length_check',
       sql`length(trim(${table.displayName})) BETWEEN 2 AND 200`
     ),
     industryLengthCheck: check(
-      'customers_industry_length_check',
+      'company_industry_length_check',
       sql`${table.industry} IS NULL OR length(${table.industry}) <= 100`
     ),
     companySizeCheck: check(
-      'customers_company_size_check',
+      'company_company_size_check',
       sql`${table.companySize} IS NULL OR ${table.companySize} > 0`
     ),
     websiteUrlFormatCheck: check(
-      'customers_website_url_format_check',
+      'company_website_url_format_check',
       sql`${table.websiteUrl} IS NULL OR ${table.websiteUrl} ~* '^https?://'`
     ),
     billingCountryFormatCheck: check(
-      'customers_billing_country_format_check',
+      'company_billing_country_format_check',
       sql`${table.billingCountry} IS NULL OR ${table.billingCountry} ~ '^[A-Z]{2}$'`
     ),
+    singleCompanyOnly: check('single_company_only', sql`${table.customerId} IS NOT NULL`),
+    onlyOneCompany: uniqueIndex('only_one_company').on(sql`(true)`),
   })
 )
 
 /**
- * People table: Stores contacts associated with customers
+ * Key Person table: Stores contacts associated with company
  */
 
-export const people = pgTable(
-  'people',
+export const keyPerson = pgTable(
+  'key_person',
   {
     personId: uuid('person_id')
       .primaryKey()
       .default(sql`uuidv7()`),
     firstName: text('first_name').notNull(),
     lastName: text('last_name').notNull(),
-    email: text('email'),
+    email: citext('email'),
     phone: text('phone'),
     jobTitle: text('job_title'),
     isActive: boolean('is_active').default(true),
@@ -136,32 +138,34 @@ export const people = pgTable(
       'people_job_title_length_check',
       sql`${table.jobTitle} IS NULL OR length(${table.jobTitle}) <= 100`
     ),
+    singleKeyPersonOnly: check('single_key_person_only', sql`${table.personId} IS NOT NULL`),
+    onlyOneKeyPerson: uniqueIndex('only_one_key_person').on(sql`(true)`),
   })
 )
 
 /**
- * Customer - People join table
+ * Company - Key Person join table
  */
 
-export const customerPeople = pgTable(
-  'customer_people',
+export const companyPeople = pgTable(
+  'company_people',
   {
     customerPersonId: uuid('customer_person_id')
       .primaryKey()
       .default(sql`uuidv7()`),
     customerId: uuid('customer_id')
       .notNull()
-      .references(() => customers.customerId, {
+      .references(() => company.customerId, {
         onDelete: 'cascade',
       }),
     personId: uuid('person_id')
       .notNull()
-      .references(() => people.personId, {
+      .references(() => keyPerson.personId, {
         onDelete: 'cascade',
       }),
-    role: contactRoleEnum('role').notNull(),
+    role: contactRoleEnum('role'),
     isPrimary: boolean('is_primary').default(false),
-    startDate: date('start_date').notNull().defaultNow(),
+    startDate: date('start_date').default(sql`CURRENT_DATE`),
     endDate: date('end_date'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -258,33 +262,33 @@ export const dataRetrievalMessagePartsRelations = relations(
  * Relations
  */
 
-export const customerRelations = relations(customers, ({ many }) => ({
-  contacts: many(customerPeople),
+export const companyRelations = relations(company, ({ many }) => ({
+  contacts: many(companyPeople),
 }))
 
-export const personRelations = relations(people, ({ many }) => ({
-  customers: many(customerPeople),
+export const keyPersonRelations = relations(keyPerson, ({ many }) => ({
+  companies: many(companyPeople),
 }))
 
-export const customerPeopleRelations = relations(customerPeople, ({ one }) => ({
-  customer: one(customers, {
-    fields: [customerPeople.customerId],
-    references: [customers.customerId],
+export const companyPeopleRelations = relations(companyPeople, ({ one }) => ({
+  company: one(company, {
+    fields: [companyPeople.customerId],
+    references: [company.customerId],
   }),
-  person: one(people, {
-    fields: [customerPeople.personId],
-    references: [people.personId],
+  person: one(keyPerson, {
+    fields: [companyPeople.personId],
+    references: [keyPerson.personId],
   }),
 }))
 
-export type DBCustomer = typeof customers.$inferInsert
-export type DBCustomerSelect = typeof customers.$inferSelect
+export type DBCompany = typeof company.$inferInsert
+export type DBCompanySelect = typeof company.$inferSelect
 
-export type DBPerson = typeof people.$inferInsert
-export type DBPersonSelect = typeof people.$inferSelect
+export type DBKeyPerson = typeof keyPerson.$inferInsert
+export type DBKeyPersonSelect = typeof keyPerson.$inferSelect
 
-export type DBCustomerPerson = typeof customerPeople.$inferInsert
-export type DBCustomerPersonSelect = typeof customerPeople.$inferSelect
+export type DBCompanyPerson = typeof companyPeople.$inferInsert
+export type DBCompanyPersonSelect = typeof companyPeople.$inferSelect
 /**
  * User table: Stores user account information
  */

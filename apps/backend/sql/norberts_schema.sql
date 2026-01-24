@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- ============================================================
 
 -- Customers (Accounts)
-CREATE TABLE IF NOT EXISTS customers (
+CREATE TABLE IF NOT EXISTS company (
     customer_id UUID PRIMARY KEY DEFAULT uuidv7(),
     legal_name TEXT NOT NULL
         CHECK (length(trim(legal_name)) BETWEEN 2 AND 200),
@@ -85,11 +85,17 @@ CREATE TABLE IF NOT EXISTS customers (
         CHECK (billing_country IS NULL OR billing_country ~ '^[A-Z]{2}$'),
     timezone TEXT NOT NULL DEFAULT 'UTC',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- Enforce single company row
+    CONSTRAINT single_company_only CHECK (customer_id IS NOT NULL)
 );
 
--- People (Contacts)
-CREATE TABLE IF NOT EXISTS people (
+-- Unique constraint to enforce only one company record
+CREATE UNIQUE INDEX IF NOT EXISTS only_one_company
+    ON company ((true));
+
+-- Key Person (Contacts)
+CREATE TABLE IF NOT EXISTS key_person (
     person_id UUID PRIMARY KEY DEFAULT uuidv7(),
     first_name TEXT NOT NULL CHECK (length(trim(first_name)) BETWEEN 1 AND 100),
     last_name TEXT NOT NULL CHECK (length(trim(last_name)) BETWEEN 1 AND 100),
@@ -105,17 +111,23 @@ CREATE TABLE IF NOT EXISTS people (
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT people_unique_email UNIQUE (email)
+    CONSTRAINT people_unique_email UNIQUE (email),
+    -- Enforce single key person row
+    CONSTRAINT single_key_person_only CHECK (person_id IS NOT NULL)
 );
 
+-- Unique constraint to enforce only one key person record
+CREATE UNIQUE INDEX IF NOT EXISTS only_one_key_person
+    ON key_person ((true));
+
 -- Customer ↔ Person Relationship (Key Contact Lives Here)
-CREATE TABLE IF NOT EXISTS customer_people (
+CREATE TABLE IF NOT EXISTS company_people (
     customer_person_id UUID PRIMARY KEY DEFAULT uuidv7(),
     customer_id UUID NOT NULL
-        REFERENCES customers(customer_id)
+        REFERENCES company(customer_id)
         ON DELETE CASCADE,
     person_id UUID NOT NULL
-        REFERENCES people(person_id)
+        REFERENCES key_person(person_id)
         ON DELETE CASCADE,
     role contact_role,
     is_primary BOOLEAN DEFAULT false,
@@ -384,15 +396,15 @@ CREATE TRIGGER chats_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION touch_updated_at();
 
-DROP TRIGGER IF EXISTS customers_updated_at ON customers;
-CREATE TRIGGER customers_updated_at
-    BEFORE UPDATE ON customers
+DROP TRIGGER IF EXISTS company_updated_at ON company;
+CREATE TRIGGER company_updated_at
+    BEFORE UPDATE ON company
     FOR EACH ROW
     EXECUTE FUNCTION touch_updated_at();
 
-DROP TRIGGER IF EXISTS people_updated_at ON people;
-CREATE TRIGGER people_updated_at
-    BEFORE UPDATE ON people
+DROP TRIGGER IF EXISTS key_person_updated_at ON key_person;
+CREATE TRIGGER key_person_updated_at
+    BEFORE UPDATE ON key_person
     FOR EACH ROW
     EXECUTE FUNCTION touch_updated_at();
 
