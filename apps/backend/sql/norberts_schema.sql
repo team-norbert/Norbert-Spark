@@ -85,9 +85,7 @@ CREATE TABLE IF NOT EXISTS company (
         CHECK (billing_country IS NULL OR billing_country ~ '^[A-Z]{2}$'),
     timezone TEXT NOT NULL DEFAULT 'UTC',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    -- Enforce single company row
-    CONSTRAINT single_company_only CHECK (customer_id IS NOT NULL)
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Unique constraint to enforce only one company record
@@ -111,9 +109,7 @@ CREATE TABLE IF NOT EXISTS key_person (
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT people_unique_email UNIQUE (email),
-    -- Enforce single key person row
-    CONSTRAINT single_key_person_only CHECK (person_id IS NOT NULL)
+    CONSTRAINT people_unique_email UNIQUE (email)
 );
 
 -- Unique constraint to enforce only one key person record
