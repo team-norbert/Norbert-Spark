@@ -110,7 +110,7 @@ Expected output: 9 tables
 - ai_options
 - audit_log
 - chats
-- companuy_people
+- company_people
 - company
 - messages
 - parts
