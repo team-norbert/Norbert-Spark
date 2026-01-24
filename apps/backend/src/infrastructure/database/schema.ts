@@ -98,7 +98,7 @@ export const company = pgTable(
 export const keyPerson = pgTable(
   'key_person',
   {
-    keyPersonId: uuid('person_id')
+    keyPersonId: uuid('key_person_id')
       .primaryKey()
       .default(sql`uuidv7()`),
     firstName: text('first_name').notNull(),
