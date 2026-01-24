@@ -32,7 +32,7 @@ test.describe('Chat Interaction', () => {
     await page.waitForURL('/ai', { timeout: 10000 })
 
     // Verify form elements are disabled - use simple selectors
-    const textInput = page.getByPlaceholder('Ask a question about The Heart of Darkness...')
+    const textInput = page.getByTestId('chat-text-input')
     await expect(textInput).toBeVisible()
     await expect(textInput).toBeDisabled()
 
