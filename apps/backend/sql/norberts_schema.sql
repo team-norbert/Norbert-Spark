@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- ============================================================
 
 -- Customers (Accounts)
+-- Note: This is a singleton table - only one company record is allowed
 CREATE TABLE IF NOT EXISTS company (
     customer_id UUID PRIMARY KEY DEFAULT uuidv7(),
     legal_name TEXT NOT NULL
@@ -85,12 +86,11 @@ CREATE TABLE IF NOT EXISTS company (
         CHECK (billing_country IS NULL OR billing_country ~ '^[A-Z]{2}$'),
     timezone TEXT NOT NULL DEFAULT 'UTC',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    singleton_check BOOLEAN NOT NULL DEFAULT true
+        CHECK (singleton_check = true),
+    UNIQUE (singleton_check)
 );
-
--- Unique constraint to enforce only one company record
-CREATE UNIQUE INDEX IF NOT EXISTS only_one_company
-    ON company ((true));
 
 -- Key Person (Contacts)
 CREATE TABLE IF NOT EXISTS key_person (
