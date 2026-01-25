@@ -79,6 +79,7 @@ Drizzle ORM Schema (for TypeScript types)
 ### Singleton Table Pattern
 
 The `company` table is designed as a singleton table (only one company record allowed). This is enforced using:
+
 - A `singleton_check` boolean column that defaults to `true` and has a CHECK constraint to ensure it's always `true`
 - A UNIQUE constraint on the `singleton_check` column
 

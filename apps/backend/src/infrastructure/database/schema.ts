@@ -89,10 +89,7 @@ export const company = pgTable(
       'company_billing_country_format_check',
       sql`${table.billingCountry} IS NULL OR ${table.billingCountry} ~ '^[A-Z]{2}$'`
     ),
-    singletonCheckConstraint: check(
-      'company_singleton_check',
-      sql`${table.singletonCheck} = true`
-    ),
+    singletonCheckConstraint: check('company_singleton_check', sql`${table.singletonCheck} = true`),
     onlyOneCompany: unique('only_one_company').on(table.singletonCheck),
   })
 )
