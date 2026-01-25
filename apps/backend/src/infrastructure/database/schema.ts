@@ -49,7 +49,7 @@ export const contactRoleEnum = pgEnum('contact_role', [
 export const company = pgTable(
   'company',
   {
-    customerId: uuid('customer_id')
+    companyId: uuid('company_id')
       .primaryKey()
       .default(sql`uuidv7()`),
     legalName: text('legal_name').notNull(),
@@ -156,7 +156,7 @@ export const companyPeople = pgTable(
       .default(sql`uuidv7()`),
     companyId: uuid('company_id')
       .notNull()
-      .references(() => company.customerId, {
+      .references(() => company.companyId, {
         onDelete: 'cascade',
       }),
     personId: uuid('person_id')
@@ -274,7 +274,7 @@ export const keyPersonRelations = relations(keyPerson, ({ many }) => ({
 export const companyPeopleRelations = relations(companyPeople, ({ one }) => ({
   company: one(company, {
     fields: [companyPeople.companyId],
-    references: [company.customerId],
+    references: [company.companyId],
   }),
   person: one(keyPerson, {
     fields: [companyPeople.personId],
