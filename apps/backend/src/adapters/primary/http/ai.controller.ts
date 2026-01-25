@@ -19,11 +19,11 @@ import { GetChatContentByChatIdUseCase } from '../../../application/use-cases/ge
 import type { UserIdType } from '../../../domain/value-objects/userID.js'
 import { UserId } from '../../../domain/value-objects/userID.js'
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
-import { SYSTEM_PROMPT } from '../../../shared/constants/ai-constants.js'
 import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
+import { GetChatAiOptionsUseCase } from '../../../application/use-cases/get-chat-ai-options.use-case.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -35,7 +35,8 @@ export class AIController {
     private readonly saveChatUseCase: SaveChatUseCase,
     private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase,
     private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase,
-    private readonly getChatDetailsUseCase: GetChatDetailsUseCase
+    private readonly getChatDetailsUseCase: GetChatDetailsUseCase,
+    private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
@@ -160,10 +161,10 @@ export class AIController {
     const userId = request.user.sub
 
     // Convert string id to ChatIdType branded type
-    const chatId = new ChatId(id).getValue()
+    const chatTypeId = new ChatId(id).getValue()
 
     this.logger.debug('Processing chat request', {
-      chatId,
+      chatTypeId,
       userId,
       messageCount: messages.length,
     })
@@ -173,7 +174,11 @@ export class AIController {
       (msg) => msg.role === 'user' || msg.role === 'assistant'
     ) as any[]
 
-    const chat = await this.getChatUseCase.execute(chatId, userAndAssistantMessages, auditContext)
+    const chat = await this.getChatUseCase.execute(
+      chatTypeId,
+      userAndAssistantMessages,
+      auditContext
+    )
 
     this.logger.info('Received chat', { chat: chat ?? null })
 
@@ -195,9 +200,13 @@ export class AIController {
 
     if (!chat) {
       this.logger.info('Chat does not exist, creating new chat', { id })
-      await this.saveChatUseCase.execute(chatId, userId, messages, auditContext)
+      await this.saveChatUseCase.execute(chatTypeId, userId, messages, auditContext)
     } else {
-      await this.appendChatUseCase.execute(chatId, [mostRecentMessage as UIMessage], auditContext)
+      await this.appendChatUseCase.execute(
+        chatTypeId,
+        [mostRecentMessage as UIMessage],
+        auditContext
+      )
       this.logger.info('Chat exists, appending most recent message', { id })
     }
 
@@ -209,10 +218,19 @@ export class AIController {
       })
     }
 
+    const systemPrompt = await this.getChatAiOptionsUseCase.execute(auditContext, chatTypeId)
+    if (!systemPrompt) {
+      this.logger.error('System prompt could not be retrieved', undefined, { chatTypeId, userId })
+      return reply.code(500).send({
+        success: false,
+        error: 'Failed to retrieve AI configuration',
+      })
+    }
+
     const result = streamText({
       model: google(EnvConfig.MODEL_NAME),
       messages: await convertToModelMessages(messages as UIMessage[]),
-      system: `${SYSTEM_PROMPT}`,
+      system: systemPrompt.prompt,
       experimental_telemetry: {
         isEnabled: EnvConfig.SENTRY_ENABLED === 'true',
         recordInputs: true,
@@ -271,7 +289,7 @@ export class AIController {
         // Just the newly generated assistant message
         // Good for persisting only the latest response
         this.logger.debug('Response message', { responseMessage })
-        await this.appendChatUseCase.execute(chatId, [responseMessage], auditContext)
+        await this.appendChatUseCase.execute(chatTypeId, [responseMessage], auditContext)
       },
     })
   }

@@ -62,7 +62,7 @@ describe('Dashboard', () => {
         <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
       )
 
-      expect(screen.getByText('Admin')).toBeInTheDocument()
+      expect(screen.getByText('User Admin')).toBeInTheDocument()
       expect(screen.getByText('Manage users and settings')).toBeInTheDocument()
     })
   })
@@ -115,7 +115,7 @@ describe('Dashboard', () => {
         <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
       )
 
-      const adminCard = screen.getByText('Admin').closest('button')
+      const adminCard = screen.getByText('User Admin').closest('button')
       expect(adminCard).toBeInTheDocument()
 
       fireEvent.click(adminCard!)
@@ -171,7 +171,7 @@ describe('Dashboard', () => {
         <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
       )
 
-      const adminSection = screen.getByText('Admin').closest('div[class*="CardContent"]')
+      const adminSection = screen.getByText('User Admin').closest('div[class*="CardContent"]')
       expect(adminSection).toBeInTheDocument()
 
       const svg = adminSection?.querySelector('svg')
@@ -244,7 +244,7 @@ describe('Dashboard', () => {
         <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
       )
 
-      expect(screen.getByText('Admin')).toBeInTheDocument()
+      expect(screen.getByText('User Admin')).toBeInTheDocument()
       expect(screen.getByText('Manage users and settings')).toBeInTheDocument()
     })
   })

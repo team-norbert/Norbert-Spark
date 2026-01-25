@@ -28,3 +28,53 @@ export const AIChatOptionsResponseSchema = z.object({
 })
 
 export type AIChatOptionsResponse = z.infer<typeof AIChatOptionsResponseSchema>
+
+/**
+ * Schema for AI Chat Option Settings (individual chat configuration)
+ */
+export const AIChatOptionSettingsSchema = z.object({
+  id: z.uuid(),
+  chatTypeId: z.uuid(),
+  prompt: z.string(),
+  maxTokens: z.number().int().min(1).max(100000).nullable(),
+  temperature: z.number().min(0).max(2).nullable(),
+  topP: z.number().min(0).max(1).nullable(),
+  frequencyPenalty: z.number().min(-2).max(2).nullable(),
+  presencePenalty: z.number().min(-2).max(2).nullable(),
+  topK: z.number().int().min(1).max(100).nullable(),
+  stopSequences: z.array(z.string()).nullable(),
+  seed: z.number().int().nullable(),
+  maxRetries: z.number().int().min(0).max(10).nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+})
+
+export type AIChatOptionSettings = z.infer<typeof AIChatOptionSettingsSchema>
+
+/**
+ * Schema for the AI Chat Option Settings API response
+ */
+export const AIChatOptionSettingsResponseSchema = z.object({
+  success: z.boolean(),
+  data: AIChatOptionSettingsSchema,
+})
+
+export type AIChatOptionSettingsResponse = z.infer<typeof AIChatOptionSettingsResponseSchema>
+
+/**
+ * Schema for PUT request to update AI Chat Option Settings
+ */
+export const PutAIChatSettingsSchema = z.object({
+  prompt: z.string(),
+  maxTokens: z.number().int().min(1).max(100000).nullable(),
+  temperature: z.number().min(0).max(2).nullable(),
+  topP: z.number().min(0).max(1).nullable(),
+  frequencyPenalty: z.number().min(-2).max(2).nullable(),
+  presencePenalty: z.number().min(-2).max(2).nullable(),
+  topK: z.number().int().min(1).max(100).nullable(),
+  stopSequences: z.array(z.string()).nullable(),
+  seed: z.number().int().min(0).max(2147483647).nullable(),
+  maxRetries: z.number().int().min(0).max(10).nullable(),
+})
+
+export type PutAIChatSettings = z.infer<typeof PutAIChatSettingsSchema>

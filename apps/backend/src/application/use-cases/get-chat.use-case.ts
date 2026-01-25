@@ -66,7 +66,6 @@ export class GetChatUseCase {
 
     // Retrieve chat data from DB
     const chatData = await this.aiService.getChatResponse(chatID)
-    console.log('chatData:', chatData)
 
     if (chatData && chatData.length > 0) {
       this.logger.info('Chat data retrieved successfully', {

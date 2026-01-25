@@ -84,7 +84,7 @@ Results are stored in `.evalite/` directory with:
 
 ## Configuration
 
-The eval configuration is in [`evalite.config.ts`](../../evalite.config.ts):
+The eval configuration is in [`evalite.config.ts`](../../../evalite.config.ts):
 
 - **Max concurrency:** 1 (sequential execution to avoid API rate limits)
 - **Timeout:** 120 seconds per task
@@ -117,7 +117,7 @@ The eval configuration is in [`evalite.config.ts`](../../evalite.config.ts):
 
 ## Extending the Eval
 
-To add more test cases, edit [`heartofdarkness.eval.ts`](./heartofdarkness.eval.ts):
+To add more test cases, edit [`heartofdarkness.eval.ts`](heartofdarkness.eval.ts):
 
 ```typescript
 const testCases = [
@@ -162,5 +162,5 @@ llmJudgeScorer evaluates accuracy
 
 - [Evalite Documentation](https://www.evalite.dev)
 - [Evalite Scorers Guide](https://www.evalite.dev/guides/scorers)
-- [Heart of Darkness Tool Implementation](../../src/infrastructure/ai/tools/heart-of-darkness.tool.ts)
-- [AI Constants (SYSTEM_PROMPT)](../../src/shared/constants/ai-constants.ts)
+- [Heart of Darkness Tool Implementation](../../../src/infrastructure/ai/tools/heart-of-darkness.tool.ts)
+- [AI Constants (SYSTEM_PROMPT)](../../../src/shared/constants/ai-constants.ts)

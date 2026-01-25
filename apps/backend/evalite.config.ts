@@ -18,4 +18,10 @@ export default defineConfig({
 
   // Retry failed tasks
   retries: 0,
+
+  // Custom vitest config to exclude test setup files
+  // This prevents test database credentials from overriding production .env
+  vitest: {
+    setupFiles: [],
+  },
 })

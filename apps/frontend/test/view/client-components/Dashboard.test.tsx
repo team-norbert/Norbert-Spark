@@ -144,7 +144,7 @@ describe('Dashboard Component', () => {
           <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
         )
 
-        expect(screen.queryByText('Admin')).not.toBeInTheDocument()
+        expect(screen.queryByText('User Admin')).not.toBeInTheDocument()
         expect(screen.queryByText('Manage users and settings')).not.toBeInTheDocument()
         expect(screen.queryByTestId('AdminPanelSettingsIcon')).not.toBeInTheDocument()
       })
@@ -154,7 +154,7 @@ describe('Dashboard Component', () => {
           <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
         )
 
-        expect(screen.getByText('Admin')).toBeInTheDocument()
+        expect(screen.getByText('User Admin')).toBeInTheDocument()
         expect(screen.getByText('Manage users and settings')).toBeInTheDocument()
         expect(screen.getByTestId('AdminPanelSettingsIcon')).toBeInTheDocument()
       })
@@ -164,7 +164,7 @@ describe('Dashboard Component', () => {
           <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
         )
 
-        const adminCard = screen.getByText('Admin').closest('.MuiCardActionArea-root')
+        const adminCard = screen.getByText('User Admin').closest('.MuiCardActionArea-root')
         fireEvent.click(adminCard!)
 
         expect(mockOnNavigate).toHaveBeenCalledWith('/admin')
@@ -243,7 +243,7 @@ describe('Dashboard Component', () => {
 
       const chatCard = screen.getByText('Chat').closest('.MuiCardActionArea-root')
       const profileCard = screen.getByText('Profile').closest('.MuiCardActionArea-root')
-      const adminCard = screen.getByText('Admin').closest('.MuiCardActionArea-root')
+      const adminCard = screen.getByText('User Admin').closest('.MuiCardActionArea-root')
 
       fireEvent.click(chatCard!)
       fireEvent.click(profileCard!)
@@ -323,13 +323,13 @@ describe('Dashboard Component', () => {
         <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
       )
 
-      expect(screen.queryByText('Admin')).not.toBeInTheDocument()
+      expect(screen.queryByText('User Admin')).not.toBeInTheDocument()
 
       rerender(
         <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
       )
 
-      expect(screen.getByText('Admin')).toBeInTheDocument()
+      expect(screen.getByText('User Admin')).toBeInTheDocument()
     })
 
     it('should accept onNavigate callback prop', () => {

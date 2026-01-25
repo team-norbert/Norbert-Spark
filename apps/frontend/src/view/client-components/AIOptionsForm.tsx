@@ -11,6 +11,9 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 
+import { getAIChatSettingsById } from '@/infrastructure/serverActions/getAIChatSettingsById.server.js'
+import { updateAIChatSettingsById } from '@/infrastructure/serverActions/updateAIChatSettingsById.server.js'
+
 interface AIOptions {
   id: string
   chatTypeId: string
@@ -54,13 +57,9 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
     const fetchOptions = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/v1/ai/chats/config/${chatTypeId}/settings`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch AI settings')
-        }
-        const result = (await response.json()) as { success: boolean; data: AIOptions }
+        const result = await getAIChatSettingsById(chatTypeId)
         if (!result.success) {
-          throw new Error('Server returned an error')
+          throw new Error('Failed to fetch AI settings')
         }
         if (!result.data) {
           throw new Error('Invalid response data from server')
@@ -83,19 +82,21 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
     setSuccess(false)
 
     try {
-      const response = await fetch(`/api/v1/ai/chats/config/${chatTypeId}/settings`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      await updateAIChatSettingsById(chatTypeId, {
+        prompt: formData.prompt,
+        maxTokens: formData.maxTokens,
+        temperature: formData.temperature,
+        topP: formData.topP,
+        frequencyPenalty: formData.frequencyPenalty,
+        presencePenalty: formData.presencePenalty,
+        topK: formData.topK,
+        stopSequences: formData.stopSequences,
+        seed: formData.seed,
+        maxRetries: formData.maxRetries,
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to update AI settings')
-      }
-
       setSuccess(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -178,6 +179,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="Maximum number of tokens to generate."
           sx={{ mb: 3 }}
           data-testid="max-tokens-input"
+          disabled
         />
 
         <TextField
@@ -190,6 +192,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, a value of 0 produces nearly deterministic output, while higher values introduce more randomness. It is recommended to configure either temperature or topP, but not both."
           sx={{ mb: 3 }}
           data-testid="temperature-input"
+          disabled
         />
 
         <TextField
@@ -202,6 +205,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="Nucleus sampling. This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, nucleus sampling (topP) is a number between 0 and 1. For example, a value of 0.1 means that only tokens within the top 10% of the probability mass are considered. It is recommended to configure either temperature or topP, but not both."
           sx={{ mb: 3 }}
           data-testid="top-p-input"
+          disabled
         />
 
         <TextField
@@ -214,6 +218,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="The frequency penalty controls how likely the model is to repeat the same words or phrases. This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, a value of 0 means no penalty is applied."
           sx={{ mb: 3 }}
           data-testid="frequency-penalty-input"
+          disabled
         />
 
         <TextField
@@ -226,6 +231,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="The presence penalty controls how likely the model is to repeat information already present in the prompt. This value is passed through to the provider, and the valid range depends on the provider and model. For most providers, a value of 0 means no penalty is applied."
           sx={{ mb: 3 }}
           data-testid="presence-penalty-input"
+          disabled
         />
 
         <TextField
@@ -238,6 +244,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="Top-K sampling parameter. Limits the model to consider only the top K most likely tokens."
           sx={{ mb: 3 }}
           data-testid="top-k-input"
+          disabled
         />
 
         <TextField
@@ -248,6 +255,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="Stop sequences define where text generation should end. When set, the model stops generating text as soon as it produces one of the specified stop sequences. Providers may impose limits on how many stop sequences can be used. Example: '###, END, \n\n\n' (comma-separated)"
           sx={{ mb: 3 }}
           data-testid="stop-sequences-input"
+          disabled
         />
 
         <TextField
@@ -260,6 +268,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="This is the seed (an integer) used for random sampling. When set and supported by the model, it ensures that calls produce deterministic results."
           sx={{ mb: 3 }}
           data-testid="seed-input"
+          disabled
         />
 
         <TextField
@@ -272,6 +281,7 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
           helperText="The maximum number of times to retry a request if it fails due to transient errors such as network issues or rate limiting. The default value is 2 retries."
           sx={{ mb: 3 }}
           data-testid="max-retries-input"
+          disabled
         />
 
         <Button

@@ -128,7 +128,7 @@ In [`evalite.config.ts`](./evalite.config.ts):
 
 ## Adding More Tests
 
-Edit [`evals/HeartOfDarknessTool/heartofdarkness.eval.ts`](./evals/HeartOfDarknessTool/heartofdarkness.eval.ts):
+Edit [`evals/HeartOfDarknessTool/heartofdarkness.eval.ts`](evals/HeartOfDarknessTool/019bdccc-f0cb-7322-aa9e-776e25f34d81/heartofdarkness.eval.ts):
 
 ```typescript
 const testCases = [
@@ -151,7 +151,7 @@ const testCases = [
 
 For detailed information, see:
 
-- [Heart of Darkness Eval README](./evals/HeartOfDarknessTool/README.md)
+- [Heart of Darkness Eval README](evals/HeartOfDarknessTool/019bdccc-f0cb-7322-aa9e-776e25f34d81/README.md)
 - [Evalite Documentation](https://www.evalite.dev)
 - [Evalite Scorers Guide](https://www.evalite.dev/guides/scorers)
 
