@@ -17,9 +17,9 @@ DROP TABLE IF EXISTS "chats" CASCADE;
 DROP TABLE IF EXISTS "chat_types" CASCADE;
 
 -- CRM tables
-DROP TABLE IF EXISTS "customer_people" CASCADE;
-DROP TABLE IF EXISTS "people" CASCADE;
-DROP TABLE IF EXISTS "customers" CASCADE;
+DROP TABLE IF EXISTS "company_people" CASCADE;
+DROP TABLE IF EXISTS "key_person" CASCADE;
+DROP TABLE IF EXISTS "company" CASCADE;
 
 -- Users table (referenced by chats)
 DROP TABLE IF EXISTS "users" CASCADE;

@@ -8,7 +8,7 @@
 - **Action**: Merged AI chat system tables with CRM tables into a single comprehensive schema
 - **Tables included**:
   - **User Management**: `users`
-  - **CRM**: `customers`, `people`, `customer_people`
+  - **CRM**: `company`, `key_person`, `company_people`
   - **AI Chat**: `chats`, `messages`, `ai_options`, `parts`
   - **Audit**: `audit_log`
 
@@ -76,6 +76,15 @@ Drizzle ORM Schema (for TypeScript types)
 4. **Type Safety**: Drizzle ORM schema provides TypeScript types for database access
 5. **No Magic**: Clear, explicit SQL that any PostgreSQL DBA can understand
 
+### Singleton Table Pattern
+
+The `company` table is designed as a singleton table (only one company record allowed). This is enforced using:
+
+- A `singleton_check` boolean column that defaults to `true` and has a CHECK constraint to ensure it's always `true`
+- A UNIQUE constraint on the `singleton_check` column
+
+This pattern ensures that only one company record can exist in the table at any time, which is appropriate for this single-tenant application architecture.
+
 ## Migration Strategy
 
 For future schema changes:
@@ -110,9 +119,9 @@ Expected output: 9 tables
 - ai_options
 - audit_log
 - chats
-- customer_people
-- customers
+- company_people
+- company
 - messages
 - parts
-- people
+- key_person
 - users

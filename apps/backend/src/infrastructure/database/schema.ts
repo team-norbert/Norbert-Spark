@@ -19,7 +19,6 @@ import {
   unique,
   char,
 } from 'drizzle-orm/pg-core'
-import type { EmailType } from '../../domain/value-objects/email.js'
 
 // Define CITEXT custom type for case-insensitive text
 const citext = customType<{ data: string }>({
@@ -28,7 +27,7 @@ const citext = customType<{ data: string }>({
   },
 })
 
-export const customerStatusEnum = pgEnum('customer_status', [
+export const companyStatusEnum = pgEnum('customer_status', [
   'prospect',
   'active',
   'paused',
@@ -44,18 +43,18 @@ export const contactRoleEnum = pgEnum('contact_role', [
 ])
 
 /**
- * Customers table: Stores customer information
+ * Company table: Stores customer information
+ * Note: This is a singleton table - only one company record is allowed
  */
-
-export const customers = pgTable(
-  'customers',
+export const company = pgTable(
+  'company',
   {
-    customerId: uuid('customer_id')
+    companyId: uuid('company_id')
       .primaryKey()
       .default(sql`uuidv7()`),
     legalName: text('legal_name').notNull(),
     displayName: text('display_name').notNull(),
-    status: customerStatusEnum('status').notNull().default('prospect'),
+    status: companyStatusEnum('status').notNull().default('active'),
     industry: text('industry'),
     companySize: integer('company_size'),
     websiteUrl: text('website_url'),
@@ -63,48 +62,51 @@ export const customers = pgTable(
     timezone: text('timezone').notNull().default('UTC'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    singletonCheck: boolean('singleton_check').notNull().default(true),
   },
   (table) => ({
     legalNameLengthCheck: check(
-      'customers_legal_name_length_check',
+      'company_legal_name_length_check',
       sql`length(trim(${table.legalName})) BETWEEN 2 AND 200`
     ),
     displayNameLengthCheck: check(
-      'customers_display_name_length_check',
+      'company_display_name_length_check',
       sql`length(trim(${table.displayName})) BETWEEN 2 AND 200`
     ),
     industryLengthCheck: check(
-      'customers_industry_length_check',
+      'company_industry_length_check',
       sql`${table.industry} IS NULL OR length(${table.industry}) <= 100`
     ),
     companySizeCheck: check(
-      'customers_company_size_check',
+      'company_company_size_check',
       sql`${table.companySize} IS NULL OR ${table.companySize} > 0`
     ),
     websiteUrlFormatCheck: check(
-      'customers_website_url_format_check',
+      'company_website_url_format_check',
       sql`${table.websiteUrl} IS NULL OR ${table.websiteUrl} ~* '^https?://'`
     ),
     billingCountryFormatCheck: check(
-      'customers_billing_country_format_check',
+      'company_billing_country_format_check',
       sql`${table.billingCountry} IS NULL OR ${table.billingCountry} ~ '^[A-Z]{2}$'`
     ),
+    singletonCheckConstraint: check('company_singleton_check', sql`${table.singletonCheck} = true`),
+    onlyOneCompany: unique('only_one_company').on(table.singletonCheck),
   })
 )
 
 /**
- * People table: Stores contacts associated with customers
+ * Key Person table: Stores contacts associated with company
  */
 
-export const people = pgTable(
-  'people',
+export const keyPerson = pgTable(
+  'key_person',
   {
-    personId: uuid('person_id')
+    keyPersonId: uuid('key_person_id')
       .primaryKey()
       .default(sql`uuidv7()`),
     firstName: text('first_name').notNull(),
     lastName: text('last_name').notNull(),
-    email: text('email'),
+    email: citext('email'),
     phone: text('phone'),
     jobTitle: text('job_title'),
     isActive: boolean('is_active').default(true),
@@ -117,65 +119,65 @@ export const people = pgTable(
   (table) => ({
     uniqueEmail: unique('people_unique_email').on(table.email),
     firstNameLengthCheck: check(
-      'people_first_name_length_check',
+      'key_person_first_name_length_check',
       sql`length(trim(${table.firstName})) BETWEEN 1 AND 100`
     ),
     lastNameLengthCheck: check(
-      'people_last_name_length_check',
+      'key_person_last_name_length_check',
       sql`length(trim(${table.lastName})) BETWEEN 1 AND 100`
     ),
     emailFormatCheck: check(
-      'people_email_format_check',
+      'key_person_email_format_check',
       sql`${table.email} IS NULL OR ${table.email} ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'`
     ),
     phoneLengthCheck: check(
-      'people_phone_length_check',
+      'key_person_phone_length_check',
       sql`${table.phone} IS NULL OR length(${table.phone}) <= 30`
     ),
     jobTitleLengthCheck: check(
-      'people_job_title_length_check',
+      'key_person_job_title_length_check',
       sql`${table.jobTitle} IS NULL OR length(${table.jobTitle}) <= 100`
     ),
   })
 )
 
 /**
- * Customer - People join table
+ * Company - Key Person join table
  */
 
-export const customerPeople = pgTable(
-  'customer_people',
+export const companyPeople = pgTable(
+  'company_people',
   {
-    customerPersonId: uuid('customer_person_id')
+    companyPersonId: uuid('company_person_id')
       .primaryKey()
       .default(sql`uuidv7()`),
-    customerId: uuid('customer_id')
+    companyId: uuid('company_id')
       .notNull()
-      .references(() => customers.customerId, {
+      .references(() => company.companyId, {
         onDelete: 'cascade',
       }),
     personId: uuid('person_id')
       .notNull()
-      .references(() => people.personId, {
+      .references(() => keyPerson.keyPersonId, {
         onDelete: 'cascade',
       }),
-    role: contactRoleEnum('role').notNull(),
+    role: contactRoleEnum('role'),
     isPrimary: boolean('is_primary').default(false),
-    startDate: date('start_date').notNull().defaultNow(),
+    startDate: date('start_date').default(sql`CURRENT_DATE`),
     endDate: date('end_date'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
-    uniqueCustomerPersonRole: uniqueIndex('customer_people_unique').on(
-      table.customerId,
+    uniqueCustomerPersonRole: uniqueIndex('company_people_unique').on(
+      table.companyId,
       table.personId,
       table.role
     ),
-    onePrimaryPerCustomer: uniqueIndex('one_primary_contact_per_customer')
-      .on(table.customerId)
+    onePrimaryPerCompany: uniqueIndex('one_primary_contact_per_company')
+      .on(table.companyId)
       .where(sql`is_primary = true`),
     endDateAfterStartDate: check(
-      'customer_people_end_date_check',
+      'company_people_end_date_check',
       sql`${table.endDate} IS NULL OR ${table.endDate} >= ${table.startDate}`
     ),
   })
@@ -258,33 +260,33 @@ export const dataRetrievalMessagePartsRelations = relations(
  * Relations
  */
 
-export const customerRelations = relations(customers, ({ many }) => ({
-  contacts: many(customerPeople),
+export const companyRelations = relations(company, ({ many }) => ({
+  contacts: many(companyPeople),
 }))
 
-export const personRelations = relations(people, ({ many }) => ({
-  customers: many(customerPeople),
+export const keyPersonRelations = relations(keyPerson, ({ many }) => ({
+  companies: many(companyPeople),
 }))
 
-export const customerPeopleRelations = relations(customerPeople, ({ one }) => ({
-  customer: one(customers, {
-    fields: [customerPeople.customerId],
-    references: [customers.customerId],
+export const companyPeopleRelations = relations(companyPeople, ({ one }) => ({
+  company: one(company, {
+    fields: [companyPeople.companyId],
+    references: [company.companyId],
   }),
-  person: one(people, {
-    fields: [customerPeople.personId],
-    references: [people.personId],
+  person: one(keyPerson, {
+    fields: [companyPeople.personId],
+    references: [keyPerson.keyPersonId],
   }),
 }))
 
-export type DBCustomer = typeof customers.$inferInsert
-export type DBCustomerSelect = typeof customers.$inferSelect
+export type DBCompany = typeof company.$inferInsert
+export type DBCompanySelect = typeof company.$inferSelect
 
-export type DBPerson = typeof people.$inferInsert
-export type DBPersonSelect = typeof people.$inferSelect
+export type DBKeyPerson = typeof keyPerson.$inferInsert
+export type DBKeyPersonSelect = typeof keyPerson.$inferSelect
 
-export type DBCustomerPerson = typeof customerPeople.$inferInsert
-export type DBCustomerPersonSelect = typeof customerPeople.$inferSelect
+export type DBCompanyPerson = typeof companyPeople.$inferInsert
+export type DBCompanyPersonSelect = typeof companyPeople.$inferSelect
 /**
  * User table: Stores user account information
  */

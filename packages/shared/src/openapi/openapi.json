@@ -55,6 +55,10 @@
     {
       "name": "data",
       "description": "Data extraction operations"
+    },
+    {
+      "name": "company",
+      "description": "Company details"
     }
   ],
   "paths": {
