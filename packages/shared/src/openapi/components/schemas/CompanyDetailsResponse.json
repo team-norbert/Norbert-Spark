@@ -147,7 +147,7 @@
             },
             "isActive": {
               "type": "boolean",
-              "description": "Whether the key person is currently active",
+              "description": "Whether the key person is currently active. This field has a database default of true and will always be present in responses unless explicitly set to false.",
               "example": true
             },
             "createdAt": {
