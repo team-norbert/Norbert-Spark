@@ -449,7 +449,7 @@ describe('GetCompanyDetailsUseCase', () => {
       expect(mockAuditLog.log).toHaveBeenCalledWith({
         userId: customAuditContext.userId,
         entityType: EntityType.COMPANY,
-        entityId: customAuditContext.userId,
+        entityId: null,
         action: AuditAction.FETCH,
         changes: {
           reason: 'chat_successfully_retrieved_by_userid',
