@@ -18,6 +18,7 @@ import { GetChatDetailsUseCase } from '../../application/use-cases/get-chat-deta
 import { GetAIAdminUseCase } from '../../application/use-cases/get-ai-admin.use-case.js'
 import { PutAIAdminUseCase } from '../../application/use-cases/put-ai-admin.use-case.js'
 import { GetChatAiOptionsUseCase } from '../../application/use-cases/get-chat-ai-options.use-case.js'
+import { GetCompanyDetailsUseCase } from '../../application/use-cases/get-company-details.use-case.js'
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
@@ -34,6 +35,8 @@ import { AIChatContentRepository } from '../../adapters/secondary/repositories/a
 import { AIAdminController } from '../../adapters/primary/http/ai-admin.controller.js'
 import { AIAdminRepository } from '../../adapters/secondary/repositories/ai-admin.repository.js'
 import { AIChatOptionsRepository } from '../../adapters/secondary/repositories/ai-chat-options.repository.js'
+import { CompanyRepository } from '../../adapters/secondary/repositories/company.repository.js'
+import { CompanyController } from '../../adapters/primary/http/company.controller.js'
 // Utils
 import { PDFUtils } from '../../shared/utils/pdf.utils.js'
 
@@ -85,6 +88,7 @@ export class Container {
   public readonly aiChatContentRepository: AIChatContentRepository
   public readonly aiAdminRepository: AIAdminRepository
   public readonly aiChatOptionsRepository: AIChatOptionsRepository
+  public readonly companyRepository: CompanyRepository
 
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
@@ -103,6 +107,7 @@ export class Container {
   private readonly getAIAdminUseCase: GetAIAdminUseCase
   private readonly putAIAdminUseCase: PutAIAdminUseCase
   private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase
+  private readonly getCompanyDetailsUseCase: GetCompanyDetailsUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -113,6 +118,7 @@ export class Container {
   public readonly aiController: AIController
   public readonly aiExtractDataController: AIExtractDataController
   public readonly aiAdminController: AIAdminController
+  public readonly companyController: CompanyController
 
   // Audit log
   public readonly auditLog: AuditLogRepository
@@ -196,6 +202,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.auditLog = new AuditLogRepository(this.logger)
     this.aiAdminRepository = new AIAdminRepository(this.logger)
     this.aiChatOptionsRepository = new AIChatOptionsRepository(this.logger)
+    this.companyRepository = new CompanyRepository(this.logger)
     this.bucketService = new BucketService(this.logger)
     // Initialize use cases
     this.registerUserUseCase = new RegisterUserUseCase(
@@ -263,6 +270,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.auditLog,
       this.aiChatOptionsRepository
     )
+    this.getCompanyDetailsUseCase = new GetCompanyDetailsUseCase(
+      this.logger,
+      this.auditLog,
+      this.companyRepository
+    )
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
       this.registerUserUseCase,
@@ -294,6 +306,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.getAIAdminUseCase,
       this.putAIAdminUseCase
     )
+    this.companyController = new CompanyController(this.logger, this.getCompanyDetailsUseCase)
     // Register routes
     this.registerRoutes()
   }
@@ -315,6 +328,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
         this.aiController.registerRoutes(instance)
         this.aiExtractDataController.registerRoutes(instance)
         this.aiAdminController.registerRoutes(instance)
+        this.companyController.registerRoutes(instance)
         done()
       },
       { prefix: `/api/${EnvConfig.API_VERSION}` }

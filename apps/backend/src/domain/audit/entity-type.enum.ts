@@ -5,6 +5,7 @@ export const EntityType = {
   PART: 'part',
   AI_OPTIONS: 'ai_options',
   DATA_EXTRACTION: 'data_extraction',
+  COMPANY: 'company',
 } as const
 
 export const AuditAction = {
