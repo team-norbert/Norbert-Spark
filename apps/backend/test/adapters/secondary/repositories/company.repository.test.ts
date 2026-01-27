@@ -785,4 +785,302 @@ describe('CompanyRepository', () => {
       expect(mockReturning).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe('putKeyPersonDetails()', () => {
+    it('should successfully update key person details', async () => {
+      const updateData = {
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'jane.smith@example.com',
+      }
+
+      const mockUpdatedKeyPerson: DBKeyPersonSelect = {
+        keyPersonId: uuidv7(),
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'jane.smith@example.com',
+        phone: '+1234567890',
+        jobTitle: 'CEO',
+        isActive: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedKeyPerson])
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putKeyPersonDetails(updateData)
+
+      expect(result).toEqual(mockUpdatedKeyPerson)
+      expect(mockLogger.info).toHaveBeenCalledWith('Updating key person details in the database')
+      expect(db.update).toHaveBeenCalledTimes(1)
+      expect(mockSet).toHaveBeenCalledTimes(1)
+      expect(mockReturning).toHaveBeenCalledTimes(1)
+    })
+
+    it('should return null when no key person exists to update', async () => {
+      const updateData = { firstName: 'John' }
+
+      const mockReturning = vi.fn().mockResolvedValue([])
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putKeyPersonDetails(updateData)
+
+      expect(result).toBeNull()
+      expect(mockLogger.info).toHaveBeenCalledWith('Updating key person details in the database')
+    })
+
+    it('should return null when update result is undefined', async () => {
+      const updateData = { email: 'test@example.com' }
+
+      const mockReturning = vi.fn().mockResolvedValue([undefined])
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putKeyPersonDetails(updateData)
+
+      expect(result).toBeNull()
+    })
+
+    it('should handle partial updates with only required fields', async () => {
+      const updateData = { firstName: 'Updated' }
+
+      const mockUpdatedKeyPerson: DBKeyPersonSelect = {
+        keyPersonId: uuidv7(),
+        firstName: 'Updated',
+        lastName: 'Original',
+        email: 'original@example.com',
+        phone: null,
+        jobTitle: null,
+        isActive: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedKeyPerson])
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putKeyPersonDetails(updateData)
+
+      expect(result).toEqual(mockUpdatedKeyPerson)
+      expect(result?.firstName).toBe('Updated')
+    })
+
+    it('should handle updates with all fields', async () => {
+      const updateData = {
+        firstName: 'Complete',
+        lastName: 'Update',
+        email: 'complete@example.com',
+        phone: '+9876543210',
+        jobTitle: 'CTO',
+        isActive: false,
+      }
+
+      const mockUpdatedKeyPerson: DBKeyPersonSelect = {
+        keyPersonId: uuidv7(),
+        ...updateData,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedKeyPerson])
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putKeyPersonDetails(updateData)
+
+      expect(result).toEqual(mockUpdatedKeyPerson)
+      expect(result?.firstName).toBe('Complete')
+      expect(result?.lastName).toBe('Update')
+      expect(result?.email).toBe('complete@example.com')
+      expect(result?.phone).toBe('+9876543210')
+      expect(result?.jobTitle).toBe('CTO')
+      expect(result?.isActive).toBe(false)
+    })
+
+    it('should handle updating isActive status', async () => {
+      const updateData = { isActive: false }
+
+      const mockUpdatedKeyPerson: DBKeyPersonSelect = {
+        keyPersonId: uuidv7(),
+        firstName: 'Test',
+        lastName: 'Person',
+        email: 'test@example.com',
+        phone: null,
+        jobTitle: null,
+        isActive: false,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedKeyPerson])
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putKeyPersonDetails(updateData)
+
+      expect(result?.isActive).toBe(false)
+    })
+
+    it('should handle updating nullable fields to null', async () => {
+      const updateData = {
+        phone: null,
+        jobTitle: null,
+      }
+
+      const mockUpdatedKeyPerson: DBKeyPersonSelect = {
+        keyPersonId: uuidv7(),
+        firstName: 'Test',
+        lastName: 'Person',
+        email: 'test@example.com',
+        phone: null,
+        jobTitle: null,
+        isActive: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedKeyPerson])
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putKeyPersonDetails(updateData)
+
+      expect(result?.phone).toBeNull()
+      expect(result?.jobTitle).toBeNull()
+    })
+
+    it('should handle updating nullable fields to values', async () => {
+      const updateData = {
+        phone: '+1111111111',
+        jobTitle: 'VP Engineering',
+      }
+
+      const mockUpdatedKeyPerson: DBKeyPersonSelect = {
+        keyPersonId: uuidv7(),
+        firstName: 'Test',
+        lastName: 'Person',
+        email: 'test@example.com',
+        phone: '+1111111111',
+        jobTitle: 'VP Engineering',
+        isActive: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedKeyPerson])
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putKeyPersonDetails(updateData)
+
+      expect(result?.phone).toBe('+1111111111')
+      expect(result?.jobTitle).toBe('VP Engineering')
+    })
+
+    it('should throw error when database update fails', async () => {
+      const updateData = { firstName: 'Failed' }
+      const dbError = new Error('Database connection failed')
+
+      const mockReturning = vi.fn().mockRejectedValue(dbError)
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      await expect(repository.putKeyPersonDetails(updateData)).rejects.toThrow(
+        'Database connection failed'
+      )
+      expect(mockLogger.error).toHaveBeenCalledWith('Error updating key person details', dbError)
+    })
+
+    it('should log error and rethrow on database failure', async () => {
+      const updateData = { lastName: 'Error Test' }
+      const dbError = new Error('Query timeout')
+
+      const mockReturning = vi.fn().mockRejectedValue(dbError)
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      await expect(repository.putKeyPersonDetails(updateData)).rejects.toThrow('Query timeout')
+      expect(mockLogger.error).toHaveBeenCalledWith('Error updating key person details', dbError)
+      expect(mockLogger.info).toHaveBeenCalledWith('Updating key person details in the database')
+    })
+
+    it('should handle empty update data object', async () => {
+      const updateData = {}
+
+      const mockUpdatedKeyPerson: DBKeyPersonSelect = {
+        keyPersonId: uuidv7(),
+        firstName: 'Unchanged',
+        lastName: 'Person',
+        email: 'unchanged@example.com',
+        phone: null,
+        jobTitle: null,
+        isActive: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedKeyPerson])
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putKeyPersonDetails(updateData)
+
+      expect(result).toEqual(mockUpdatedKeyPerson)
+    })
+
+    it('should include updatedAt timestamp in update', async () => {
+      const updateData = { firstName: 'Timestamp' }
+
+      const mockUpdatedKeyPerson: DBKeyPersonSelect = {
+        keyPersonId: uuidv7(),
+        firstName: 'Timestamp',
+        lastName: 'Test',
+        email: 'timestamp@example.com',
+        phone: null,
+        jobTitle: null,
+        isActive: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15T10:30:00Z'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedKeyPerson])
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putKeyPersonDetails(updateData)
+
+      expect(result?.updatedAt).toBeInstanceOf(Date)
+      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining(updateData))
+    })
+
+    it('should update the singleton key person record without where clause', async () => {
+      const updateData = { firstName: 'Singleton' }
+
+      const mockUpdatedKeyPerson: DBKeyPersonSelect = {
+        keyPersonId: uuidv7(),
+        firstName: 'Singleton',
+        lastName: 'Person',
+        email: 'singleton@example.com',
+        phone: null,
+        jobTitle: null,
+        isActive: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedKeyPerson])
+      const mockSet = vi.fn().mockReturnValue({ returning: mockReturning })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      await repository.putKeyPersonDetails(updateData)
+
+      // Verify no where clause (singleton enforced by DB constraint)
+      expect(mockSet).toHaveBeenCalledTimes(1)
+      expect(mockReturning).toHaveBeenCalledTimes(1)
+    })
+  })
 })
