@@ -1,3 +1,6 @@
+'use client'
+import { Box, Chip, Container, Divider, Link, Paper, Typography } from '@mui/material'
+
 import type {
   CompanyDetails as CompanyDetailsType,
   KeyPersonDetails,
@@ -18,188 +21,261 @@ interface CompanyDetailsProps {
 export function CompanyDetails({ company, error, isLoading, keyPerson }: CompanyDetailsProps) {
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Company Details</h1>
-        <p className="text-gray-600">Loading company details...</p>
-      </div>
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold">
+          Company Details
+        </Typography>
+        <Typography color="text.secondary">Loading company details...</Typography>
+      </Container>
     )
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Company Details</h1>
-        <p className="text-red-600">Error: {error}</p>
-      </div>
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold">
+          Company Details
+        </Typography>
+        <Typography color="error">Error: {error}</Typography>
+      </Container>
     )
   }
 
   if (!company || !keyPerson) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Company Details</h1>
-        <p className="text-gray-600">No company or key person data available.</p>
-      </div>
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold">
+          Company Details
+        </Typography>
+        <Typography color="text.secondary">No company or key person data available.</Typography>
+      </Container>
     )
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'success'
+      case 'prospect':
+        return 'info'
+      case 'paused':
+        return 'warning'
+      case 'churned':
+        return 'error'
+      default:
+        return 'default'
+    }
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Company Details</h1>
+    <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Typography variant="h3" component="h1" gutterBottom fontWeight="bold" sx={{ mb: 4 }}>
+        Company Details
+      </Typography>
 
       {/* Company Information Section */}
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-600">Company Information</h2>
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Legal Name</h3>
-            <p className="text-lg">{company.legalName}</p>
-          </div>
+      <Box component="section" sx={{ mb: 4 }}>
+        <Typography variant="h5" component="h2" color="primary" gutterBottom sx={{ mb: 2 }}>
+          Company Information
+        </Typography>
+        <Paper elevation={2} sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box>
+              <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                Legal Name
+              </Typography>
+              <Typography variant="body1">{company.legalName}</Typography>
+            </Box>
 
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Display Name</h3>
-            <p className="text-lg">{company.displayName}</p>
-          </div>
+            <Box>
+              <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                Display Name
+              </Typography>
+              <Typography variant="body1">{company.displayName}</Typography>
+            </Box>
 
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Status</h3>
-            <p className="text-lg">
-              <span
-                className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  company.status === 'active'
-                    ? 'bg-green-100 text-green-800'
-                    : company.status === 'prospect'
-                      ? 'bg-blue-100 text-blue-800'
-                      : company.status === 'paused'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                }`}
-              >
-                {company.status.charAt(0).toUpperCase() + company.status.slice(1)}
-              </span>
-            </p>
-          </div>
+            <Box>
+              <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                Status
+              </Typography>
+              <Box sx={{ mt: 0.5 }}>
+                <Chip
+                  label={company.status.charAt(0).toUpperCase() + company.status.slice(1)}
+                  color={getStatusColor(company.status)}
+                  size="small"
+                />
+              </Box>
+            </Box>
 
-          {company.industry && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Industry</h3>
-              <p className="text-lg">{company.industry}</p>
-            </div>
-          )}
+            {company.industry && (
+              <Box>
+                <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                  Industry
+                </Typography>
+                <Typography variant="body1">{company.industry}</Typography>
+              </Box>
+            )}
 
-          {company.companySize && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Company Size</h3>
-              <p className="text-lg">{company.companySize} employees</p>
-            </div>
-          )}
+            {company.companySize && (
+              <Box>
+                <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                  Company Size
+                </Typography>
+                <Typography variant="body1">{company.companySize} employees</Typography>
+              </Box>
+            )}
 
-          {company.websiteUrl && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Website</h3>
-              <p className="text-lg">
-                <a
+            {company.websiteUrl && (
+              <Box>
+                <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                  Website
+                </Typography>
+                <Link
                   href={company.websiteUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  underline="hover"
                 >
                   {company.websiteUrl}
-                </a>
-              </p>
-            </div>
-          )}
+                </Link>
+              </Box>
+            )}
 
-          {company.billingCountry && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Billing Country</h3>
-              <p className="text-lg">{company.billingCountry}</p>
-            </div>
-          )}
+            {company.billingCountry && (
+              <Box>
+                <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                  Billing Country
+                </Typography>
+                <Typography variant="body1">{company.billingCountry}</Typography>
+              </Box>
+            )}
 
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Timezone</h3>
-            <p className="text-lg">{company.timezone}</p>
-          </div>
+            <Box>
+              <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                Timezone
+              </Typography>
+              <Typography variant="body1">{company.timezone}</Typography>
+            </Box>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Created At</h3>
-              <p className="text-lg">{new Date(company.createdAt).toLocaleString()}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Last Updated</h3>
-              <p className="text-lg">{new Date(company.updatedAt).toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-      </section>
+            <Divider sx={{ my: 1 }} />
+
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                gap: 2,
+              }}
+            >
+              <Box>
+                <Typography variant="caption" color="text.secondary" fontWeight="medium">
+                  Created At
+                </Typography>
+                <Typography variant="body1">
+                  {new Date(company.createdAt).toLocaleString()}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary" fontWeight="medium">
+                  Last Updated
+                </Typography>
+                <Typography variant="body1">
+                  {new Date(company.updatedAt).toLocaleString()}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Paper>
+      </Box>
 
       {/* Key Person Section */}
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-600">Key Person Contact</h2>
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Name</h3>
-            <p className="text-lg">
-              {keyPerson.firstName} {keyPerson.lastName}
-            </p>
-          </div>
+      <Box component="section" sx={{ mb: 4 }}>
+        <Typography variant="h5" component="h2" color="primary" gutterBottom sx={{ mb: 2 }}>
+          Key Person Contact
+        </Typography>
+        <Paper elevation={2} sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box>
+              <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                Name
+              </Typography>
+              <Typography variant="body1">
+                {keyPerson.firstName} {keyPerson.lastName}
+              </Typography>
+            </Box>
 
-          {keyPerson.email && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Email</h3>
-              <p className="text-lg">
-                <a href={`mailto:${keyPerson.email}`} className="text-blue-600 hover:underline">
+            {keyPerson.email && (
+              <Box>
+                <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                  Email
+                </Typography>
+                <Link href={`mailto:${keyPerson.email}`} underline="hover">
                   {keyPerson.email}
-                </a>
-              </p>
-            </div>
-          )}
+                </Link>
+              </Box>
+            )}
 
-          {keyPerson.phone && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Phone</h3>
-              <p className="text-lg">
-                <a href={`tel:${keyPerson.phone}`} className="text-blue-600 hover:underline">
+            {keyPerson.phone && (
+              <Box>
+                <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                  Phone
+                </Typography>
+                <Link href={`tel:${keyPerson.phone}`} underline="hover">
                   {keyPerson.phone}
-                </a>
-              </p>
-            </div>
-          )}
+                </Link>
+              </Box>
+            )}
 
-          {keyPerson.jobTitle && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Job Title</h3>
-              <p className="text-lg">{keyPerson.jobTitle}</p>
-            </div>
-          )}
+            {keyPerson.jobTitle && (
+              <Box>
+                <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                  Job Title
+                </Typography>
+                <Typography variant="body1">{keyPerson.jobTitle}</Typography>
+              </Box>
+            )}
 
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Status</h3>
-            <p className="text-lg">
-              <span
-                className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  keyPerson.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                }`}
-              >
-                {keyPerson.isActive ? 'Active' : 'Inactive'}
-              </span>
-            </p>
-          </div>
+            <Box>
+              <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                Status
+              </Typography>
+              <Box sx={{ mt: 0.5 }}>
+                <Chip
+                  label={keyPerson.isActive ? 'Active' : 'Inactive'}
+                  color={keyPerson.isActive ? 'success' : 'default'}
+                  size="small"
+                />
+              </Box>
+            </Box>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Created At</h3>
-              <p className="text-lg">{new Date(keyPerson.createdAt).toLocaleString()}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Last Updated</h3>
-              <p className="text-lg">{new Date(keyPerson.updatedAt).toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+            <Divider sx={{ my: 1 }} />
+
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                gap: 2,
+              }}
+            >
+              <Box>
+                <Typography variant="caption" color="text.secondary" fontWeight="medium">
+                  Created At
+                </Typography>
+                <Typography variant="body1">
+                  {new Date(keyPerson.createdAt).toLocaleString()}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary" fontWeight="medium">
+                  Last Updated
+                </Typography>
+                <Typography variant="body1">
+                  {new Date(keyPerson.updatedAt).toLocaleString()}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   )
 }

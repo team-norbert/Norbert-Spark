@@ -42,18 +42,6 @@ describe('CompanyDetails Component', () => {
       expect(screen.getByText('Loading company details...')).toBeInTheDocument()
     })
 
-    it('should apply correct CSS classes for loading state', () => {
-      const { container } = render(
-        <CompanyDetails company={null} keyPerson={null} isLoading={true} error={null} />
-      )
-
-      const loadingText = screen.getByText('Loading company details...')
-      expect(loadingText).toHaveClass('text-gray-600')
-
-      const containerDiv = container.querySelector('.container')
-      expect(containerDiv).toBeInTheDocument()
-    })
-
     it('should not render company or key person sections when loading', () => {
       render(<CompanyDetails company={null} keyPerson={null} isLoading={true} error={null} />)
 
@@ -71,15 +59,6 @@ describe('CompanyDetails Component', () => {
 
       expect(screen.getByRole('heading', { name: /company details/i })).toBeInTheDocument()
       expect(screen.getByText(`Error: ${errorMessage}`)).toBeInTheDocument()
-    })
-
-    it('should apply correct CSS classes for error state', () => {
-      render(
-        <CompanyDetails company={null} keyPerson={null} isLoading={false} error="Network error" />
-      )
-
-      const errorText = screen.getByText(/error:/i)
-      expect(errorText).toHaveClass('text-red-600')
     })
 
     it('should not render company or key person sections when error exists', () => {
@@ -118,13 +97,6 @@ describe('CompanyDetails Component', () => {
       render(<CompanyDetails company={null} keyPerson={null} isLoading={false} error={null} />)
 
       expect(screen.getByText('No company or key person data available.')).toBeInTheDocument()
-    })
-
-    it('should apply correct CSS classes for empty state', () => {
-      render(<CompanyDetails company={null} keyPerson={null} isLoading={false} error={null} />)
-
-      const emptyText = screen.getByText('No company or key person data available.')
-      expect(emptyText).toHaveClass('text-gray-600')
     })
   })
 
@@ -186,7 +158,7 @@ describe('CompanyDetails Component', () => {
   })
 
   describe('Company Status Badge', () => {
-    it('should render active status with green styling', () => {
+    it('should render active status badge', () => {
       render(
         <CompanyDetails
           company={{ ...mockCompanyData, status: 'active' }}
@@ -200,10 +172,9 @@ describe('CompanyDetails Component', () => {
       // First badge is for company, second is for key person
       const companyStatusBadge = statusBadges[0]
       expect(companyStatusBadge).toBeInTheDocument()
-      expect(companyStatusBadge).toHaveClass('bg-green-100', 'text-green-800')
     })
 
-    it('should render prospect status with blue styling', () => {
+    it('should render prospect status badge', () => {
       render(
         <CompanyDetails
           company={{ ...mockCompanyData, status: 'prospect' }}
@@ -215,10 +186,9 @@ describe('CompanyDetails Component', () => {
 
       const statusBadge = screen.getByText('Prospect')
       expect(statusBadge).toBeInTheDocument()
-      expect(statusBadge).toHaveClass('bg-blue-100', 'text-blue-800')
     })
 
-    it('should render paused status with yellow styling', () => {
+    it('should render paused status badge', () => {
       render(
         <CompanyDetails
           company={{ ...mockCompanyData, status: 'paused' }}
@@ -230,10 +200,9 @@ describe('CompanyDetails Component', () => {
 
       const statusBadge = screen.getByText('Paused')
       expect(statusBadge).toBeInTheDocument()
-      expect(statusBadge).toHaveClass('bg-yellow-100', 'text-yellow-800')
     })
 
-    it('should render churned status with red styling', () => {
+    it('should render churned status badge', () => {
       render(
         <CompanyDetails
           company={{ ...mockCompanyData, status: 'churned' }}
@@ -245,7 +214,6 @@ describe('CompanyDetails Component', () => {
 
       const statusBadge = screen.getByText('Churned')
       expect(statusBadge).toBeInTheDocument()
-      expect(statusBadge).toHaveClass('bg-red-100', 'text-red-800')
     })
 
     it('should capitalize status text', () => {
@@ -548,7 +516,7 @@ describe('CompanyDetails Component', () => {
   })
 
   describe('Key Person Status Badge', () => {
-    it('should render active status with green styling', () => {
+    it('should render active status badge', () => {
       render(
         <CompanyDetails
           company={mockCompanyData}
@@ -561,12 +529,9 @@ describe('CompanyDetails Component', () => {
       const statusBadges = screen.getAllByText('Active')
       // One for company status, one for key person status
       expect(statusBadges.length).toBeGreaterThan(0)
-
-      const keyPersonBadge = statusBadges[statusBadges.length - 1]
-      expect(keyPersonBadge).toHaveClass('bg-green-100', 'text-green-800')
     })
 
-    it('should render inactive status with gray styling', () => {
+    it('should render inactive status badge', () => {
       render(
         <CompanyDetails
           company={mockCompanyData}
@@ -578,7 +543,6 @@ describe('CompanyDetails Component', () => {
 
       const inactiveBadge = screen.getByText('Inactive')
       expect(inactiveBadge).toBeInTheDocument()
-      expect(inactiveBadge).toHaveClass('bg-gray-100', 'text-gray-800')
     })
   })
 
@@ -613,7 +577,7 @@ describe('CompanyDetails Component', () => {
   })
 
   describe('CSS Classes and Styling', () => {
-    it('should apply correct container classes', () => {
+    it('should render Material UI Paper components for card sections', () => {
       const { container } = render(
         <CompanyDetails
           company={mockCompanyData}
@@ -623,12 +587,12 @@ describe('CompanyDetails Component', () => {
         />
       )
 
-      const containerDiv = container.querySelector('.container')
-      expect(containerDiv).toBeInTheDocument()
-      expect(containerDiv).toHaveClass('mx-auto', 'px-4', 'py-8')
+      // Material UI Paper components should be present
+      const papers = container.querySelectorAll('.MuiPaper-root')
+      expect(papers.length).toBeGreaterThan(0)
     })
 
-    it('should apply correct section styling', () => {
+    it('should render Material UI Container', () => {
       const { container } = render(
         <CompanyDetails
           company={mockCompanyData}
@@ -638,15 +602,11 @@ describe('CompanyDetails Component', () => {
         />
       )
 
-      const sections = container.querySelectorAll('section')
-      expect(sections.length).toBe(2)
-
-      sections.forEach((section) => {
-        expect(section).toHaveClass('mb-8')
-      })
+      const muiContainer = container.querySelector('.MuiContainer-root')
+      expect(muiContainer).toBeInTheDocument()
     })
 
-    it('should apply correct card styling', () => {
+    it('should use Material UI Typography components', () => {
       const { container } = render(
         <CompanyDetails
           company={mockCompanyData}
@@ -656,16 +616,12 @@ describe('CompanyDetails Component', () => {
         />
       )
 
-      const cards = container.querySelectorAll('.bg-white')
-      expect(cards.length).toBe(2)
-
-      cards.forEach((card) => {
-        expect(card).toHaveClass('rounded-lg', 'shadow-md', 'p-6', 'space-y-4')
-      })
+      const typographyElements = container.querySelectorAll('.MuiTypography-root')
+      expect(typographyElements.length).toBeGreaterThan(0)
     })
 
-    it('should apply correct heading styles', () => {
-      render(
+    it('should use Material UI Chip components for status badges', () => {
+      const { container } = render(
         <CompanyDetails
           company={mockCompanyData}
           keyPerson={mockKeyPersonData}
@@ -674,13 +630,8 @@ describe('CompanyDetails Component', () => {
         />
       )
 
-      const mainHeading = screen.getByRole('heading', { name: /^company details$/i })
-      expect(mainHeading).toHaveClass('text-3xl', 'font-bold', 'mb-8')
-
-      const sectionHeadings = screen.getAllByRole('heading', { level: 2 })
-      sectionHeadings.forEach((heading) => {
-        expect(heading).toHaveClass('text-2xl', 'font-semibold', 'mb-4', 'text-blue-600')
-      })
+      const chips = container.querySelectorAll('.MuiChip-root')
+      expect(chips.length).toBe(2) // One for company status, one for key person status
     })
   })
 
