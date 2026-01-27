@@ -1,7 +1,7 @@
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { GetCompanyDetailsUseCase } from '../../../application/use-cases/get-company-details.use-case.js'
 import type { DBCompanySelect, DBKeyPersonSelect } from '../../../infrastructure/database/schema.js'
@@ -65,10 +65,54 @@ export class CompanyController {
     app.get(
       '/company/details',
       {
-        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+        preHandler: [authMiddleware],
       },
       this.getCompanyDetails.bind(this)
     )
+    app.get(
+      '/company/details',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.updateCompanyDetails.bind(this)
+    )
+  }
+
+  async updateCompanyDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.info('updateCompanyDetails called')
+
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
+    // Authorization check: User can only access their own chat history unless they have admin/moderator role
+    const authenticatedUserId = request.user?.sub
+    const userRoles = request.user?.roles || []
+
+    if (!authenticatedUserId) {
+      this.logger.warn('Authorization check failed: User not authenticated')
+      return reply.code(401).send({
+        success: false,
+        error: 'Authentication required',
+      })
+    }
+
+    // Check if user is accessing their own data OR has admin/moderator role
+    const isOwnData = authenticatedUserId === auditContext.userId
+    const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
+
+    if (!isOwnData && !hasElevatedRole) {
+      this.logger.warn(
+        `Authorization check failed: User ${authenticatedUserId} attempted to access company details without required permissions`
+      )
+      return reply.code(403).send({
+        success: false,
+        error:
+          'Access denied. You can only access your own chat history or must have admin/moderator role',
+      })
+    }
   }
 
   /**
@@ -157,7 +201,7 @@ export class CompanyController {
    * }
    * ```
    */
-  async getCompanyDetails(request: any, reply: any): Promise<void> {
+  async getCompanyDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.info('Received company GET request')
     // Extract audit context from request
     const auditContext = {
