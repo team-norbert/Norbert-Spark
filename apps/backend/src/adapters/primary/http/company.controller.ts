@@ -157,13 +157,7 @@ export class CompanyController {
    * }
    * ```
    */
-  async getCompanyDetails(
-    request: any,
-    reply: any
-  ): Promise<{
-    company: DBCompanySelect | null
-    keyPerson: DBKeyPersonSelect | null
-  }> {
+  async getCompanyDetails(request: any, reply: any): Promise<void> {
     this.logger.info('Received company GET request')
     // Extract audit context from request
     const auditContext = {
