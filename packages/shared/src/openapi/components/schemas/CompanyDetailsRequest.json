@@ -1,7 +1,7 @@
 {
   "type": "object",
   "description": "Structured request containing company and key person details",
-  "required": ["company", "keyPerson"],
+  "required": ["companyId", "keyPersonId"],
   "properties": {
     "company": {
       "type": "object",
