@@ -90,6 +90,10 @@ export class AIController {
   async chat(request: FastifyRequest, reply: FastifyReply) {
     this.logger.debug('Received chat request')
 
+    // Note: consider validating the request body schema
+    // Note: consider implementing rate limiting per user
+    // Note: manually test various failure modes
+
     // Extract audit context from request
     const auditContext = {
       userId: request.user?.sub ?? null,

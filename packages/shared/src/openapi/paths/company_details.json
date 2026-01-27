@@ -1,0 +1,81 @@
+{
+  "get": {
+    "summary": "Get Company and key person details",
+    "description": "Retrieve detailed information about the single company record and the single key person record (each table contains at most one record)",
+    "operationId": "getCompanyDetails",
+    "tags": ["company"],
+    "security": [
+      {
+        "oauthSyncSecret": []
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Company details retrieved successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/CompanyDetailsResponse.json"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - invalid or missing shared secret",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Invalid or missing shared secret"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - User does not have required role (user, moderator or admin)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Access denied. You do not have permission to access this resource"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Data not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Company or key person data not found"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Internal server error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

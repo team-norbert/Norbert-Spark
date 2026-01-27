@@ -100,6 +100,9 @@
     },
     "/ai/chats/config/{id}/settings": {
       "$ref": "paths/ai_chats_config_{id}_settings.json"
+    },
+    "/company/details": {
+      "$ref": "paths/company_details.json"
     }
   },
   "components": {

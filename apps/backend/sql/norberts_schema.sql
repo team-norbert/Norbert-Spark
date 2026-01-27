@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS company (
         CHECK (length(trim(legal_name)) BETWEEN 2 AND 200),
     display_name TEXT NOT NULL
         CHECK (length(trim(display_name)) BETWEEN 2 AND 200),
-    status customer_status NOT NULL DEFAULT 'prospect',
+    status customer_status NOT NULL DEFAULT 'active',
     industry TEXT
         CHECK (industry IS NULL OR length(industry) <= 100),
     company_size INTEGER
