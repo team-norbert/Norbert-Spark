@@ -304,7 +304,7 @@ describe('GetCompanyDetailsUseCase', () => {
       expect(mockAuditLog.log).toHaveBeenCalledWith({
         userId: auditContext.userId,
         entityType: EntityType.COMPANY,
-        entityId: auditContext.userId,
+        entityId: mockCompany.companyId,
         action: AuditAction.FETCH,
         changes: {
           reason: 'company_details_retrieved_successfully',
@@ -375,7 +375,7 @@ describe('GetCompanyDetailsUseCase', () => {
         keyPerson: mockKeyPerson,
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for chat retrieval',
+        'Error logging audit for company details retrieval',
         auditError,
         { userId: auditContext.userId }
       )
@@ -391,7 +391,7 @@ describe('GetCompanyDetailsUseCase', () => {
 
       expect(mockLogger.error).toHaveBeenCalledTimes(1)
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for chat retrieval',
+        'Error logging audit for company details retrieval',
         expect.any(Error),
         expect.objectContaining({
           userId: auditContext.userId,
@@ -449,10 +449,10 @@ describe('GetCompanyDetailsUseCase', () => {
       expect(mockAuditLog.log).toHaveBeenCalledWith({
         userId: customAuditContext.userId,
         entityType: EntityType.COMPANY,
-        entityId: null,
+        entityId: customAuditContext.userId,
         action: AuditAction.FETCH,
         changes: {
-          reason: 'chat_successfully_retrieved_by_userid',
+          reason: 'company_details_retrieved_successfully',
         },
         ipAddress: customAuditContext.ipAddress,
         userAgent: customAuditContext.userAgent,

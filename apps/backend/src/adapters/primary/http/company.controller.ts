@@ -165,6 +165,15 @@ export class CompanyController {
       ipAddress: request.ip,
       userAgent: request.headers['user-agent'] ?? null,
     }
+    // Check authentication
+    const authenticatedUserId = request.user?.sub
+    if (!authenticatedUserId) {
+      this.logger.warn('Authorization check failed: User not authenticated')
+      return reply.code(401).send({
+        success: false,
+        error: 'Authentication required',
+      })
+    }
     try {
       const result = await this.getCompanyDetailsUseCase.execute(auditContext)
       return reply.code(200).send({

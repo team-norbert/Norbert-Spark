@@ -187,22 +187,16 @@ describe('CompanyController', () => {
       })
 
       it('should handle missing user in request', async () => {
-        const mockResult = {
-          company: null,
-          keyPerson: null,
-        }
-
         mockRequest.user = undefined
-
-        vi.mocked(mockGetCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.getCompanyDetails(mockRequest, mockReply)
 
-        expect(mockGetCompanyDetailsUseCase.execute).toHaveBeenCalledWith({
-          userId: null,
-          ipAddress: '127.0.0.1',
-          userAgent: 'test-agent',
+        expect(mockReply.code).toHaveBeenCalledWith(401)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Authentication required',
         })
+        expect(mockGetCompanyDetailsUseCase.execute).not.toHaveBeenCalled()
       })
 
       it('should handle missing user-agent header', async () => {
