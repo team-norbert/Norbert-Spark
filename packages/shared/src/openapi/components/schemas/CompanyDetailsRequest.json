@@ -66,20 +66,6 @@
           "type": "string",
           "description": "Company timezone",
           "example": "America/New_York"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Timestamp when the company record was created",
-          "example": "2024-01-15T10:30:00Z",
-          "readOnly": true
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Timestamp when the company record was last updated",
-          "example": "2024-01-20T14:45:00Z",
-          "readOnly": true
         }
       }
     },
