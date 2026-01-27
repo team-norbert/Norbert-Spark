@@ -373,7 +373,7 @@ describe('CompanyController', () => {
             singletonCheck: true,
             createdAt: new Date('2024-01-01'),
             updatedAt: new Date('2024-01-15'),
-          },
+          } as any,
         }
 
         vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
@@ -452,8 +452,8 @@ describe('CompanyController', () => {
         }
 
         const mockResult = {
-          company: { companyId, status: 'active' },
-          keyPerson: { keyPersonId, isActive: true },
+          company: { companyId, status: 'active' } as any,
+          keyPerson: { keyPersonId, isActive: true } as any,
         }
 
         vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
@@ -498,7 +498,7 @@ describe('CompanyController', () => {
           roles: ['user'],
         }
 
-        const mockResult = { company: {} }
+        const mockResult = { company: {} as any }
         vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.updateCompanyDetails(mockRequest, mockReply)
@@ -519,7 +519,7 @@ describe('CompanyController', () => {
           roles: ['admin'],
         }
 
-        const mockResult = { company: {} }
+        const mockResult = { company: {} as any }
         vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.updateCompanyDetails(mockRequest, mockReply)
@@ -539,7 +539,7 @@ describe('CompanyController', () => {
           roles: ['moderator'],
         }
 
-        const mockResult = { company: {} }
+        const mockResult = { company: {} as any }
         vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.updateCompanyDetails(mockRequest, mockReply)
@@ -559,7 +559,7 @@ describe('CompanyController', () => {
           roles: ['user'],
         }
 
-        const mockResult = { company: {} }
+        const mockResult = { company: {} as any }
         vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.updateCompanyDetails(mockRequest, mockReply)
@@ -578,7 +578,7 @@ describe('CompanyController', () => {
           email: 'user-456@example.com',
         }
 
-        const mockResult = { company: {} }
+        const mockResult = { company: {} as any }
         vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.updateCompanyDetails(mockRequest, mockReply)
@@ -625,7 +625,7 @@ describe('CompanyController', () => {
           roles: ['admin'],
         }
 
-        const mockResult = { company: {} }
+        const mockResult = { company: {} as any }
         vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.updateCompanyDetails(mockRequest, mockReply)
@@ -743,7 +743,7 @@ describe('CompanyController', () => {
         ;(mockRequest as any).ip = '192.168.1.100'
         mockRequest.headers['user-agent'] = 'CustomAgent/1.0'
 
-        const mockResult = { company: {} }
+        const mockResult = { company: {} as any }
         vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.updateCompanyDetails(mockRequest, mockReply)
@@ -769,7 +769,7 @@ describe('CompanyController', () => {
         }
         mockRequest.headers['user-agent'] = undefined
 
-        const mockResult = { company: {} }
+        const mockResult = { company: {} as any }
         vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.updateCompanyDetails(mockRequest, mockReply)
@@ -794,7 +794,7 @@ describe('CompanyController', () => {
           roles: ['admin'],
         }
 
-        const mockResult = { company: {} }
+        const mockResult = { company: {} as any }
         vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
 
         await controller.updateCompanyDetails(mockRequest, mockReply)

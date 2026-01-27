@@ -5,6 +5,7 @@ import type { AuditContext } from '../../domain/audit/audit-context.js'
 import type { CompanyUpdate, KeyPersonUpdate } from '../dtos/update-company.dto.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { Uuid } from '../../domain/value-objects/uuid.js'
+import type { DBCompanySelect, DBKeyPersonSelect } from '../../infrastructure/database/schema.js'
 
 /**
  * Data structure for updating company and/or key person details.
@@ -20,6 +21,11 @@ import { Uuid } from '../../domain/value-objects/uuid.js'
 export type UpdateCompanyDetailsData = {
   company?: CompanyUpdate
   keyPerson?: KeyPersonUpdate
+}
+
+type PutCompanyDetailsResult = {
+  company?: DBCompanySelect | null
+  keyPerson?: DBKeyPersonSelect | null
 }
 
 /**
@@ -204,7 +210,10 @@ export class PutCompanyDetailsUseCase {
    * }
    * ```
    */
-  async execute(auditContext: AuditContext, data: UpdateCompanyDetailsData): Promise<any> {
+  async execute(
+    auditContext: AuditContext,
+    data: UpdateCompanyDetailsData
+  ): Promise<PutCompanyDetailsResult> {
     // Business logic to update company details goes here
     let resultPutCompanyDetails
     let resultPutKeyPersonDetails
@@ -229,7 +238,7 @@ export class PutCompanyDetailsUseCase {
           userAgent: auditContext.userAgent ?? undefined,
         })
       } catch (error) {
-        this.logger.error('Error logging audit for company details retrieval', error as Error, {
+        this.logger.error('Error logging audit for company details update', error as Error, {
           userId: auditContext.userId,
         })
       }
@@ -249,7 +258,7 @@ export class PutCompanyDetailsUseCase {
           userAgent: auditContext.userAgent ?? undefined,
         })
       } catch (error) {
-        this.logger.error('Error logging audit for key person details retrieval', error as Error, {
+        this.logger.error('Error logging audit for key person details update', error as Error, {
           userId: auditContext.userId,
         })
       }

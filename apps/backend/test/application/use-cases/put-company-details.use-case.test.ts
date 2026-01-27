@@ -193,7 +193,7 @@ describe('PutCompanyDetailsUseCase', () => {
         keyPerson: undefined,
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for company details retrieval',
+        'Error logging audit for company details update',
         auditError,
         { userId: auditContext.userId }
       )
@@ -329,7 +329,7 @@ describe('PutCompanyDetailsUseCase', () => {
         keyPerson: mockUpdatedKeyPerson,
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for key person details retrieval',
+        'Error logging audit for key person details update',
         auditError,
         { userId: auditContext.userId }
       )
