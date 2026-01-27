@@ -133,7 +133,8 @@ describe('EntityType Enum', () => {
       expect(values).toContain('part')
       expect(values).toContain('ai_options')
       expect(values).toContain('data_extraction')
-      expect(values).toHaveLength(6)
+      expect(values).toContain('company')
+      expect(values).toHaveLength(7)
     })
 
     it('should allow iteration for validation', () => {
