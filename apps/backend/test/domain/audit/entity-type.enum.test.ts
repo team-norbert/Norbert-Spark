@@ -53,6 +53,8 @@ describe('EntityType Enum', () => {
       expect(entityTypeKeys).toContain('MESSAGE')
       expect(entityTypeKeys).toContain('PART')
       expect(entityTypeKeys).toContain('AI_OPTIONS')
+      expect(entityTypeKeys).toContain('DATA_EXTRACTION')
+      expect(entityTypeKeys).toContain('COMPANY')
     })
   })
 
@@ -81,6 +83,7 @@ describe('EntityType Enum', () => {
           [EntityType.PART]: 'Part',
           [EntityType.AI_OPTIONS]: 'AI Options',
           [EntityType.DATA_EXTRACTION]: 'Data Extraction',
+          [EntityType.COMPANY]: 'Company',
         }
         // eslint-disable-next-line security/detect-object-injection
         return labels[type]
@@ -91,6 +94,8 @@ describe('EntityType Enum', () => {
       expect(getEntityLabel(EntityType.MESSAGE)).toBe('Message')
       expect(getEntityLabel(EntityType.PART)).toBe('Part')
       expect(getEntityLabel(EntityType.AI_OPTIONS)).toBe('AI Options')
+      expect(getEntityLabel(EntityType.DATA_EXTRACTION)).toBe('Data Extraction')
+      expect(getEntityLabel(EntityType.COMPANY)).toBe('Company')
     })
 
     it('should work in switch statements', () => {
