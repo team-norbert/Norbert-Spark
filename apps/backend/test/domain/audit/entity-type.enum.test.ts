@@ -23,6 +23,18 @@ describe('EntityType Enum', () => {
     it('should have AI_OPTIONS constant', () => {
       expect(EntityType.AI_OPTIONS).toBe('ai_options')
     })
+
+    it('should have DATA_EXTRACTION constant', () => {
+      expect(EntityType.DATA_EXTRACTION).toBe('data_extraction')
+    })
+
+    it('should have COMPANY constant', () => {
+      expect(EntityType.COMPANY).toBe('company')
+    })
+
+    it('should have KEY_PERSON constant', () => {
+      expect(EntityType.KEY_PERSON).toBe('key_person')
+    })
   })
 
   describe('Type Safety', () => {
@@ -32,12 +44,18 @@ describe('EntityType Enum', () => {
       const messageType: EntityType = EntityType.MESSAGE
       const partType: EntityType = EntityType.PART
       const aiOptionsType: EntityType = EntityType.AI_OPTIONS
+      const dataExtractionType: EntityType = EntityType.DATA_EXTRACTION
+      const companyType: EntityType = EntityType.COMPANY
+      const keyPersonType: EntityType = EntityType.KEY_PERSON
 
       expect(userType).toBe('user')
       expect(chatType).toBe('chat')
       expect(messageType).toBe('message')
       expect(partType).toBe('part')
       expect(aiOptionsType).toBe('ai_options')
+      expect(dataExtractionType).toBe('data_extraction')
+      expect(companyType).toBe('company')
+      expect(keyPersonType).toBe('key_person')
     })
 
     it('should allow comparison between enum values', () => {
@@ -55,6 +73,7 @@ describe('EntityType Enum', () => {
       expect(entityTypeKeys).toContain('AI_OPTIONS')
       expect(entityTypeKeys).toContain('DATA_EXTRACTION')
       expect(entityTypeKeys).toContain('COMPANY')
+      expect(entityTypeKeys).toContain('KEY_PERSON')
     })
   })
 
@@ -63,6 +82,8 @@ describe('EntityType Enum', () => {
       expect(EntityType.AI_OPTIONS).toBe('ai_options')
       expect(EntityType.AI_OPTIONS).not.toBe('AI_OPTIONS')
       expect(EntityType.AI_OPTIONS).not.toBe('aiOptions')
+      expect(EntityType.DATA_EXTRACTION).toBe('data_extraction')
+      expect(EntityType.KEY_PERSON).toBe('key_person')
     })
 
     it('should use simple lowercase for single-word types', () => {
@@ -70,6 +91,7 @@ describe('EntityType Enum', () => {
       expect(EntityType.CHAT).toBe('chat')
       expect(EntityType.MESSAGE).toBe('message')
       expect(EntityType.PART).toBe('part')
+      expect(EntityType.COMPANY).toBe('company')
     })
   })
 
@@ -84,6 +106,7 @@ describe('EntityType Enum', () => {
           [EntityType.AI_OPTIONS]: 'AI Options',
           [EntityType.DATA_EXTRACTION]: 'Data Extraction',
           [EntityType.COMPANY]: 'Company',
+          [EntityType.KEY_PERSON]: 'Key Person',
         }
         // eslint-disable-next-line security/detect-object-injection
         return labels[type]
@@ -96,6 +119,7 @@ describe('EntityType Enum', () => {
       expect(getEntityLabel(EntityType.AI_OPTIONS)).toBe('AI Options')
       expect(getEntityLabel(EntityType.DATA_EXTRACTION)).toBe('Data Extraction')
       expect(getEntityLabel(EntityType.COMPANY)).toBe('Company')
+      expect(getEntityLabel(EntityType.KEY_PERSON)).toBe('Key Person')
     })
 
     it('should work in switch statements', () => {
@@ -134,7 +158,8 @@ describe('EntityType Enum', () => {
       expect(values).toContain('ai_options')
       expect(values).toContain('data_extraction')
       expect(values).toContain('company')
-      expect(values).toHaveLength(7)
+      expect(values).toContain('key_person')
+      expect(values).toHaveLength(8)
     })
 
     it('should allow iteration for validation', () => {
@@ -426,10 +451,13 @@ describe('EntityType and AuditAction Integration', () => {
         EntityType.MESSAGE,
         EntityType.PART,
         EntityType.AI_OPTIONS,
+        EntityType.DATA_EXTRACTION,
+        EntityType.COMPANY,
+        EntityType.KEY_PERSON,
       ]
 
-      expect(allEntityTypes).toHaveLength(5)
-      expect(new Set(allEntityTypes).size).toBe(5) // No duplicates
+      expect(allEntityTypes).toHaveLength(8)
+      expect(new Set(allEntityTypes).size).toBe(8) // No duplicates
     })
 
     it('should have complete action coverage', () => {
