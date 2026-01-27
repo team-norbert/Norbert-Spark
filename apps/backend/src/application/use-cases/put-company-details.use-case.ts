@@ -206,7 +206,6 @@ export class PutCompanyDetailsUseCase {
    */
   async execute(auditContext: AuditContext, data: UpdateCompanyDetailsData): Promise<any> {
     // Business logic to update company details goes here
-    // This is a placeholder implementation
     let resultPutCompanyDetails
     let resultPutKeyPersonDetails
     if (data.company) {
