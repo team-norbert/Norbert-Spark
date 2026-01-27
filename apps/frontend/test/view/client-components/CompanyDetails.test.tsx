@@ -289,6 +289,20 @@ describe('CompanyDetails Component', () => {
       expect(screen.queryByText(/employees/i)).not.toBeInTheDocument()
     })
 
+    it('should render company size when value is 0', () => {
+      render(
+        <CompanyDetails
+          company={{ ...mockCompanyData, companySize: 0 }}
+          keyPerson={mockKeyPersonData}
+          isLoading={false}
+          error={null}
+        />
+      )
+
+      expect(screen.getByText('Company Size')).toBeInTheDocument()
+      expect(screen.getByText('0 employees')).toBeInTheDocument()
+    })
+
     it('should render website URL as clickable link when provided', () => {
       render(
         <CompanyDetails

@@ -116,7 +116,7 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
               </Box>
             )}
 
-            {company.companySize && (
+            {company.companySize != null && (
               <Box>
                 <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
                   Company Size
