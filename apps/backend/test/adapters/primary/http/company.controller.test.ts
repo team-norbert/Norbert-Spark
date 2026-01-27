@@ -8,7 +8,6 @@ import type {
   DBCompanySelect,
   DBKeyPersonSelect,
 } from '../../../../src/infrastructure/database/schema.js'
-import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
 import { NotFoundException } from '../../../../src/shared/exceptions/not-found.exception.js'
 import { UnauthorizedException } from '../../../../src/shared/exceptions/unauthorized.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
