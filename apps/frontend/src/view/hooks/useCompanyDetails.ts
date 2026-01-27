@@ -27,15 +27,15 @@ interface UseCompanyDetailsReturn {
  * @returns Object containing company data, key person data, loading state, and error message
  */
 export function useCompanyDetails(): UseCompanyDetailsReturn {
-  const { data, isLoading, error } = useQuery({
+  const { data, error, isLoading } = useQuery({
     queryKey: ['company-details'],
     queryFn: async () => {
       const response = await getCompanyDetailsAction()
-      
+
       if (!response.success) {
         throw new Error('Failed to fetch company details')
       }
-      
+
       return response.data
     },
     staleTime: ONE_MINUTE_MS, // 1 minute
