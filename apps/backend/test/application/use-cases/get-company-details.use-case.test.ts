@@ -307,7 +307,7 @@ describe('GetCompanyDetailsUseCase', () => {
         entityId: auditContext.userId,
         action: AuditAction.FETCH,
         changes: {
-          reason: 'chat_successfully_retrieved_by_userid',
+          reason: 'company_details_retrieved_successfully',
         },
         ipAddress: '127.0.0.1',
         userAgent: 'test-user-agent',
