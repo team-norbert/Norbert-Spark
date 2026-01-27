@@ -73,7 +73,6 @@ export class GetCompanyDetailsUseCase {
    *
    * 2. **Error Handling:**
    *    - Repository errors propagate to the caller
-   *    - Audit logging errors are isolated and only logged
    *    - Success/failure logging provides operation visibility
    *
    * **Return Value:**
