@@ -259,9 +259,16 @@ export class CompanyController {
       const dto = UpdateCompanyDTO.validate(request.body)
 
       const result = await this.putCompanyDetailsUseCase.execute(auditContext, dto)
-      if (result) {
-        reply.status(204).send()
+
+      if (!result || (!result.company && !result.keyPerson)) {
+        this.logger.warn('No update data provided for company details')
+        return reply.code(400).send({
+          success: false,
+          error: 'No update data provided',
+        })
       }
+
+      return reply.status(204).send()
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
