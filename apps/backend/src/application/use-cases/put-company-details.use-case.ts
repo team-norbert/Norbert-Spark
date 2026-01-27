@@ -235,12 +235,12 @@ export class PutCompanyDetailsUseCase {
       }
     }
 
-    if (resultPutKeyPersonDetails) {
+    if (resultPutKeyPersonDetails && data.keyPerson?.keyPersonId) {
       try {
         await this.auditLog.log({
           userId: auditContext.userId,
           entityType: EntityType.KEY_PERSON,
-          entityId: new Uuid(data?.keyPerson?.keyPersonId as string).getValue(),
+          entityId: new Uuid(data.keyPerson.keyPersonId).getValue(),
           action: AuditAction.UPDATE,
           changes: {
             reason: 'key_person_details_updated_successfully',
