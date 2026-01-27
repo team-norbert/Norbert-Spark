@@ -2,7 +2,6 @@ import type { LoggerPort } from '../ports/logger.port.js'
 import type { AuditLogPort } from '../ports/audit-log.port.js'
 import type { CompanyDetailsPort } from '../ports/company.repository.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
-import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { DBCompanySelect, DBKeyPersonSelect } from '../../infrastructure/database/schema.js'
 
 /**
@@ -72,12 +71,7 @@ export class GetCompanyDetailsUseCase {
    *    - Fetches company details and key person details concurrently using Promise.all
    *    - Optimizes performance by executing both queries simultaneously
    *
-   * 2. **Audit Logging:**
-   *    - Logs the fetch operation with complete audit context
-   *    - Includes userId, IP address, user agent, entity type, and action
-   *    - Audit failures are caught and logged but don't affect the main operation
-   *
-   * 3. **Error Handling:**
+   * 2. **Error Handling:**
    *    - Repository errors propagate to the caller
    *    - Audit logging errors are isolated and only logged
    *    - Success/failure logging provides operation visibility
@@ -88,11 +82,6 @@ export class GetCompanyDetailsUseCase {
    * - `keyPerson`: Complete key person record or null if not found
    *
    * Both values can be null independently (e.g., company exists but no key person).
-   *
-   * **Audit Context Requirements:**
-   * - `userId`: UserIdType - The authenticated user making the request
-   * - `ipAddress`: string - Client IP address for security tracking
-   * - `userAgent`: string | null - Browser/client user agent (optional)
    *
    * **Performance:**
    * - Uses Promise.all for parallel execution (~2x faster than sequential)
