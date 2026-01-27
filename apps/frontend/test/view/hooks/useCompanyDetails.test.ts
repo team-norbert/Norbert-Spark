@@ -581,7 +581,7 @@ describe('useCompanyDetails', () => {
     it('should be side-effect free except for data fetching', () => {
       vi.mocked(getCompanyDetailsAction).mockResolvedValue(mockSuccessResponse)
 
-      const { result } = renderHook(() => useCompanyDetails())
+      renderHook(() => useCompanyDetails())
 
       // Hook should only fetch data, no other side effects
       expect(getCompanyDetailsAction).toHaveBeenCalledTimes(1)
