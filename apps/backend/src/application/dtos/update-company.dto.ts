@@ -41,7 +41,7 @@ export class UpdateCompanyDTO {
       throw new ValidationException('Invalid company: must be a defined object')
     }
 
-    if (isDefined(company.companyId)) {
+    if (isDefined(company) && isDefined(company.companyId)) {
       if (!isString(company.companyId)) {
         throw new ValidationException('Invalid companyId: must be a string')
       }
@@ -52,23 +52,27 @@ export class UpdateCompanyDTO {
       }
     }
 
-    if (isDefined(company.legalName) && !isString(company.legalName)) {
+    if (isDefined(company) && isDefined(company.legalName) && !isString(company.legalName)) {
       throw new ValidationException('Invalid legalName: must be a string')
     }
 
     if (
+      isDefined(company) &&
       isDefined(company.legalName) &&
+      isString(company.legalName) &&
       (company.legalName.length < 2 || company.legalName.length > 200)
     ) {
       throw new ValidationException('Invalid legalName: must be between 2 and 200 characters long')
     }
 
-    if (isDefined(company.displayName) && !isString(company.displayName)) {
+    if (isDefined(company) && isDefined(company.displayName) && !isString(company.displayName)) {
       throw new ValidationException('Invalid displayName: must be a string')
     }
 
     if (
+      isDefined(company) &&
       isDefined(company.displayName) &&
+      isString(company.displayName) &&
       (company.displayName.length < 2 || company.displayName.length > 200)
     ) {
       throw new ValidationException(
@@ -76,12 +80,14 @@ export class UpdateCompanyDTO {
       )
     }
 
-    if (isDefined(company.status) && !isString(company.status)) {
+    if (isDefined(company) && isDefined(company.status) && !isString(company.status)) {
       throw new ValidationException('Invalid status: must be a string')
     }
 
     if (
+      isDefined(company) &&
       isDefined(company.status) &&
+      isString(company.status) &&
       !['prospect', 'active', 'paused', 'churned'].includes(company.status)
     ) {
       throw new ValidationException(
@@ -89,27 +95,37 @@ export class UpdateCompanyDTO {
       )
     }
 
-    if (isDefined(company.industry) && !isString(company.industry)) {
+    if (isDefined(company) && isDefined(company.industry) && !isString(company.industry)) {
       throw new ValidationException('Invalid industry: must be a string')
     }
 
-    if (isDefined(company.industry) && company.industry.length > 100) {
+    if (
+      isDefined(company) &&
+      isDefined(company.industry) &&
+      isString(company.industry) &&
+      company.industry.length > 100
+    ) {
       throw new ValidationException('Invalid industry: must be less than 100 characters long')
     }
 
-    if (isDefined(company.companySize) && !isNumber(company.companySize)) {
+    if (isDefined(company) && isDefined(company.companySize) && !isNumber(company.companySize)) {
       throw new ValidationException('Invalid companySize: must be a number')
     }
 
-    if (isDefined(company.companySize) && company.companySize < 1) {
+    if (
+      isDefined(company) &&
+      isDefined(company.companySize) &&
+      isNumber(company.companySize) &&
+      company.companySize < 1
+    ) {
       throw new ValidationException('Invalid companySize: must be greater than 0')
     }
 
-    if (isDefined(company.websiteUrl) && !isString(company.websiteUrl)) {
+    if (isDefined(company) && isDefined(company.websiteUrl) && !isString(company.websiteUrl)) {
       throw new ValidationException('Invalid websiteUrl: must be a string')
     }
 
-    if (isDefined(company.websiteUrl)) {
+    if (isDefined(company) && isDefined(company.websiteUrl) && isString(company.websiteUrl)) {
       try {
         new URL(company.websiteUrl)
       } catch {
@@ -117,17 +133,26 @@ export class UpdateCompanyDTO {
       }
     }
 
-    if (isDefined(company.billingCountry) && !isString(company.billingCountry)) {
+    if (
+      isDefined(company) &&
+      isDefined(company.billingCountry) &&
+      !isString(company.billingCountry)
+    ) {
       throw new ValidationException('Invalid billingCountry: must be a string')
     }
 
-    if (isDefined(company.billingCountry) && !/^[A-Z]{2}$/.test(company.billingCountry)) {
+    if (
+      isDefined(company) &&
+      isDefined(company.billingCountry) &&
+      isString(company.billingCountry) &&
+      !/^[A-Z]{2}$/.test(company.billingCountry)
+    ) {
       throw new ValidationException(
         'Invalid billingCountry: must be a 2-letter ISO country code (uppercase)'
       )
     }
 
-    if (isDefined(company.timezone) && !isString(company.timezone)) {
+    if (isDefined(company) && isDefined(company.timezone) && !isString(company.timezone)) {
       throw new ValidationException('Invalid timezone: must be a string')
     }
 
