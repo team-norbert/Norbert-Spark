@@ -43,7 +43,7 @@
             },
             "example": {
               "success": false,
-              "error": "Access denied. You can only access your own extracted data or must have admin/moderator role"
+              "error": "Access denied. You do not have permission to access this resource"
             }
           }
         }
@@ -57,7 +57,7 @@
             },
             "example": {
               "success": false,
-              "error": "Extracted data not found for the specified file"
+              "error": "Company or key person data not found"
             }
           }
         }
