@@ -27,14 +27,9 @@
             "schema": {
               "$ref": "../components/schemas/Error.json"
             },
-            "examples": {
-              "unauthorized": {
-                "summary": "Unauthorized access",
-                "value": {
-                  "success": false,
-                  "error": "Invalid or missing shared secret"
-                }
-              }
+            "example": {
+              "success": false,
+              "error": "Invalid or missing shared secret"
             }
           }
         }
