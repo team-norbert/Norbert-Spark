@@ -131,18 +131,6 @@
           "type": "boolean",
           "description": "Whether the key person is currently active. This field has a database default of true and will always be present in responses unless explicitly set to false.",
           "example": true
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Timestamp when the key person record was created",
-          "example": "2024-01-15T10:30:00Z"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Timestamp when the key person record was last updated",
-          "example": "2024-01-20T14:45:00Z"
         }
       }
     }
