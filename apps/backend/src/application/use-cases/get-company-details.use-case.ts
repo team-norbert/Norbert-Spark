@@ -63,7 +63,6 @@ export class GetCompanyDetailsUseCase {
   /**
    * Executes the use case to retrieve company and key person details.
    *
-   * @param auditContext - Audit context containing user identification and request metadata
    * @returns Promise resolving to an object containing company and keyPerson data (may be null)
    *
    * @remarks
@@ -143,8 +142,9 @@ export class GetCompanyDetailsUseCase {
    *   // Handle database/repository errors
    * }
    * ```
+   * @param _auditContext - Contextual information for auditing the operation
    */
-  async execute(auditContext: AuditContext): Promise<{
+  async execute(_auditContext: AuditContext): Promise<{
     company: DBCompanySelect | null
     keyPerson: DBKeyPersonSelect | null
   }> {
@@ -154,24 +154,6 @@ export class GetCompanyDetailsUseCase {
       this.companyDetailsRepo.getCompanyDetails(),
       this.companyDetailsRepo.getKeyPersonDetails(),
     ])
-
-    try {
-      await this.auditLog.log({
-        userId: auditContext.userId,
-        entityType: EntityType.COMPANY,
-        entityId: company?.companyId ?? auditContext.userId,
-        action: AuditAction.FETCH,
-        changes: {
-          reason: 'company_details_retrieved_successfully',
-        },
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      })
-    } catch (error) {
-      this.logger.error('Error logging audit for company details retrieval', error as Error, {
-        userId: auditContext.userId,
-      })
-    }
 
     this.logger.info('Company details fetched successfully')
     return { company, keyPerson }
