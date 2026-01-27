@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react'
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
 
 import type {
   CompanyDetails as CompanyDetailsType,
   KeyPersonDetails,
 } from '@/infrastructure/serverActions/getCompanyDetails.server.js'
 import { getCompanyDetailsAction } from '@/infrastructure/serverActions/getCompanyDetails.server.js'
+
+const ONE_MINUTE_MS = 60_000
 
 interface UseCompanyDetailsReturn {
   company: CompanyDetailsType | null
@@ -14,45 +18,33 @@ interface UseCompanyDetailsReturn {
 }
 
 /**
- * Custom hook for fetching company details data.
- * Handles loading states, error handling, and data fetching.
+ * Custom hook for fetching company details data using React Query.
+ *
+ * Uses React Query to fetch company and key person details from the server
+ * with automatic caching, retries, and loading/error state management.
  * Follows DDD architecture by keeping UI logic separate from presentation.
+ *
+ * @returns Object containing company data, key person data, loading state, and error message
  */
 export function useCompanyDetails(): UseCompanyDetailsReturn {
-  const [company, setCompany] = useState<CompanyDetailsType | null>(null)
-  const [keyPerson, setKeyPerson] = useState<KeyPersonDetails | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function fetchCompanyDetails() {
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        const response = await getCompanyDetailsAction()
-
-        if (!response.success) {
-          setError('Failed to fetch company details')
-          return
-        }
-
-        setCompany(response.data.company)
-        setKeyPerson(response.data.keyPerson)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unexpected error occurred')
-      } finally {
-        setIsLoading(false)
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['company-details'],
+    queryFn: async () => {
+      const response = await getCompanyDetailsAction()
+      
+      if (!response.success) {
+        throw new Error('Failed to fetch company details')
       }
-    }
-
-    void fetchCompanyDetails()
-  }, [])
+      
+      return response.data
+    },
+    staleTime: ONE_MINUTE_MS, // 1 minute
+  })
 
   return {
-    company,
-    keyPerson,
+    company: data?.company ?? null,
+    keyPerson: data?.keyPerson ?? null,
     isLoading,
-    error,
+    error: error ? (error instanceof Error ? error.message : 'An unexpected error occurred') : null,
   }
 }
