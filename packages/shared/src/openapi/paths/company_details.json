@@ -85,15 +85,8 @@
       }
     },
     "responses": {
-      "200": {
-        "description": "Company details updated successfully",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "../components/schemas/CompanyDetailsResponse.json"
-            }
-          }
-        }
+      "204": {
+        "description": "Company details updated successfully"
       },
       "401": {
         "description": "Unauthorized - invalid or missing shared secret",
