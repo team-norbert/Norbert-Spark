@@ -486,26 +486,21 @@ describe('CompanyController', () => {
         mockRequest.body = {
           company: { companyId, legalName: 'Test' },
         }
-        // User is authenticated as user-456, but since isOwnData check compares authenticatedUserId === auditContext.userId,
-        // and both come from request.user.sub, they're always equal. The authorization only fails if not accessing own data AND no elevated role.
-        // To make authorization fail, we need the user to be a different user than the one making the request.
-        // However, that's impossible in this controller design where isOwnData = authenticatedUserId === auditContext.userId
-        // So this test scenario cannot occur with the current controller implementation.
-        // Instead, test that a user with 'user' role CAN access their own data.
+        // User with regular 'user' role should be denied access
         mockRequest.user = {
           sub: new UserId(uuidv7()).getValue(),
           email: 'user-456@example.com',
           roles: ['user'],
         }
 
-        const mockResult = { company: {} as any }
-        vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
-
         await controller.updateCompanyDetails(mockRequest, mockReply)
 
-        // User with 'user' role can access their own data (isOwnData === true)
-        expect(mockPutCompanyDetailsUseCase.execute).toHaveBeenCalled()
-        expect(mockReply.status).toHaveBeenCalledWith(204)
+        expect(mockReply.code).toHaveBeenCalledWith(403)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Access denied. Admin or moderator role required to update company details',
+        })
+        expect(mockPutCompanyDetailsUseCase.execute).not.toHaveBeenCalled()
       })
 
       it('should allow user with admin role', async () => {
@@ -548,7 +543,7 @@ describe('CompanyController', () => {
         expect(mockReply.status).toHaveBeenCalledWith(204)
       })
 
-      it('should allow user updating their own data', async () => {
+      it('should reject user without admin/moderator role', async () => {
         const companyId = uuidv7()
         mockRequest.body = {
           company: { companyId, legalName: 'Test' },
@@ -559,16 +554,17 @@ describe('CompanyController', () => {
           roles: ['user'],
         }
 
-        const mockResult = { company: {} as any }
-        vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
-
         await controller.updateCompanyDetails(mockRequest, mockReply)
 
-        expect(mockPutCompanyDetailsUseCase.execute).toHaveBeenCalled()
-        expect(mockReply.status).toHaveBeenCalledWith(204)
+        expect(mockReply.code).toHaveBeenCalledWith(403)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Access denied. Admin or moderator role required to update company details',
+        })
+        expect(mockPutCompanyDetailsUseCase.execute).not.toHaveBeenCalled()
       })
 
-      it('should handle missing roles array', async () => {
+      it('should reject user with missing roles array', async () => {
         const companyId = uuidv7()
         mockRequest.body = {
           company: { companyId, legalName: 'Test' },
@@ -578,15 +574,15 @@ describe('CompanyController', () => {
           email: 'user-456@example.com',
         }
 
-        const mockResult = { company: {} as any }
-        vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(mockResult)
-
         await controller.updateCompanyDetails(mockRequest, mockReply)
 
-        // User without roles array is still accessing their own data (isOwnData === true)
-        // so authorization passes
-        expect(mockPutCompanyDetailsUseCase.execute).toHaveBeenCalled()
-        expect(mockReply.status).toHaveBeenCalledWith(204)
+        // User without roles array should be denied access
+        expect(mockReply.code).toHaveBeenCalledWith(403)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Access denied. Admin or moderator role required to update company details',
+        })
+        expect(mockPutCompanyDetailsUseCase.execute).not.toHaveBeenCalled()
       })
     })
 

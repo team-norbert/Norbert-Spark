@@ -228,7 +228,7 @@ export class CompanyController {
       userAgent: request.headers['user-agent'] ?? null,
     }
 
-    // Authorization check: User can only access their own chat history unless they have admin/moderator role
+    // Authorization check: Only admin/moderator roles can update company details
     const authenticatedUserId = request.user?.sub
     const userRoles = request.user?.roles || []
 
@@ -240,18 +240,16 @@ export class CompanyController {
       })
     }
 
-    // Check if user is accessing their own data OR has admin/moderator role
-    const isOwnData = authenticatedUserId === auditContext.userId
+    // Check if user has admin/moderator role
     const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
 
-    if (!isOwnData && !hasElevatedRole) {
+    if (!hasElevatedRole) {
       this.logger.warn(
-        `Authorization check failed: User ${authenticatedUserId} attempted to access company details without required permissions`
+        `Authorization check failed: User ${authenticatedUserId} attempted to update company details without admin/moderator role`
       )
       return reply.code(403).send({
         success: false,
-        error:
-          'Access denied. You can only access your own chat history or must have admin/moderator role',
+        error: 'Access denied. Admin or moderator role required to update company details',
       })
     }
 
