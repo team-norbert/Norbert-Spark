@@ -34,20 +34,6 @@
           }
         }
       },
-      "403": {
-        "description": "Forbidden - User does not have required role (user, moderator or admin)",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "../components/schemas/Error.json"
-            },
-            "example": {
-              "success": false,
-              "error": "Access denied. You do not have permission to access this resource"
-            }
-          }
-        }
-      },
       "404": {
         "description": "Data not found",
         "content": {
@@ -58,6 +44,81 @@
             "example": {
               "success": false,
               "error": "Company or key person data not found"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Internal server error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "put": {
+    "summary": "Update Company and key person details",
+    "description": "Update the single company record and the single key person record (each table contains at most one record)",
+    "operationId": "updateCompanyDetails",
+    "tags": ["company"],
+    "security": [
+      {
+        "oauthSyncSecret": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/CompanyDetailsRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Company details updated successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/CompanyDetailsResponse.json"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - invalid or missing shared secret",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Invalid or missing shared secret"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - User does not have required role (user, moderator or admin)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Access denied. You do not have permission to access this resource"
             }
           }
         }
