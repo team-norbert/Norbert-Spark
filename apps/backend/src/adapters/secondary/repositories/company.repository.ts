@@ -1,6 +1,12 @@
-import type { DBCompanySelect, DBKeyPersonSelect } from '../../../infrastructure/database/schema.js'
+import type {
+  DBCompanySelect,
+  DBKeyPersonSelect,
+  DBCompany,
+  DBKeyPerson,
+} from '../../../infrastructure/database/schema.js'
 import { company, keyPerson } from '../../../infrastructure/database/schema.js'
 import { db } from '../../../infrastructure/database/index.js'
+import { eq, sql } from 'drizzle-orm'
 import type { CompanyDetailsPort } from '../../../application/ports/company.repository.port.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 
@@ -47,6 +53,50 @@ export class CompanyRepository implements CompanyDetailsPort {
    * All database operations are logged for debugging and monitoring purposes.
    */
   constructor(private readonly logger: LoggerPort) {}
+
+  async putCompanyDetails(data: Partial<DBCompany>): Promise<DBCompanySelect | null> {
+    this.logger.info('Updating company details in the database')
+
+    try {
+      // Add updatedAt timestamp
+      const updateData = {
+        ...data,
+        updatedAt: sql`NOW()`,
+      }
+
+      // Update the singleton company record where singletonCheck is true
+      const [updatedCompany] = await db
+        .update(company)
+        .set(updateData)
+        .where(eq(company.singletonCheck, true))
+        .returning()
+
+      return updatedCompany ?? null
+    } catch (error) {
+      this.logger.error('Error updating company details', error as Error)
+      throw error
+    }
+  }
+
+  async putKeyPersonDetails(data: Partial<DBKeyPerson>): Promise<DBKeyPersonSelect | null> {
+    this.logger.info('Updating key person details in the database')
+
+    try {
+      // Add updatedAt timestamp
+      const updateData = {
+        ...data,
+        updatedAt: sql`NOW()`,
+      }
+
+      // Update the singleton key person record
+      const [updatedKeyPerson] = await db.update(keyPerson).set(updateData).returning()
+
+      return updatedKeyPerson ?? null
+    } catch (error) {
+      this.logger.error('Error updating key person details', error as Error)
+      throw error
+    }
+  }
 
   /**
    * Retrieves the singleton company details from the database.

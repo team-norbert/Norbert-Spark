@@ -48,6 +48,8 @@ describe('GetCompanyDetailsUseCase', () => {
     mockCompanyDetailsRepo = {
       getCompanyDetails: vi.fn(),
       getKeyPersonDetails: vi.fn(),
+      putCompanyDetails: vi.fn(),
+      putKeyPersonDetails: vi.fn(),
     }
 
     // Create use case instance with mocks

@@ -4,8 +4,8 @@ import { requireRole } from '../../../infrastructure/http/middleware/role.middle
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { GetCompanyDetailsUseCase } from '../../../application/use-cases/get-company-details.use-case.js'
-import type { DBCompanySelect, DBKeyPersonSelect } from '../../../infrastructure/database/schema.js'
-
+import { UpdateCompanyDTO } from '../../../application/dtos/update-company.dto.js'
+import { PutCompanyDetailsUseCase } from '../../../application/use-cases/put-company-details.use-case.js'
 /**
  * HTTP controller for company-related operations.
  *
@@ -37,7 +37,8 @@ export class CompanyController {
    */
   constructor(
     private readonly logger: LoggerPort,
-    private readonly getCompanyDetailsUseCase: GetCompanyDetailsUseCase
+    private readonly getCompanyDetailsUseCase: GetCompanyDetailsUseCase,
+    private readonly putCompanyDetailsUseCase: PutCompanyDetailsUseCase
   ) {}
 
   /**
@@ -69,7 +70,7 @@ export class CompanyController {
       },
       this.getCompanyDetails.bind(this)
     )
-    app.get(
+    app.put(
       '/company/details',
       {
         preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
@@ -111,6 +112,23 @@ export class CompanyController {
         success: false,
         error:
           'Access denied. You can only access your own chat history or must have admin/moderator role',
+      })
+    }
+
+    try {
+      const dto = UpdateCompanyDTO.validate(request.body)
+
+      const result = await this.putCompanyDetailsUseCase.execute(auditContext, dto)
+      if (result) {
+        reply.status(204).send()
+      }
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'An unexpected error occurred'
+      return reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
       })
     }
   }

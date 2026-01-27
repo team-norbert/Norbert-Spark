@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CompanyController } from '../../../../src/adapters/primary/http/company.controller.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import { GetCompanyDetailsUseCase } from '../../../../src/application/use-cases/get-company-details.use-case.js'
+import { PutCompanyDetailsUseCase } from '../../../../src/application/use-cases/put-company-details.use-case.js'
 import type {
   DBCompanySelect,
   DBKeyPersonSelect,
@@ -16,6 +17,7 @@ describe('CompanyController', () => {
   let controller: CompanyController
   let mockLogger: LoggerPort
   let mockGetCompanyDetailsUseCase: GetCompanyDetailsUseCase
+  let mockPutCompanyDetailsUseCase: PutCompanyDetailsUseCase
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
 
@@ -36,8 +38,17 @@ describe('CompanyController', () => {
       execute: vi.fn(),
     } as any
 
+    // Create mock put use case
+    mockPutCompanyDetailsUseCase = {
+      execute: vi.fn(),
+    } as any
+
     // Create controller instance with mocked dependencies
-    controller = new CompanyController(mockLogger, mockGetCompanyDetailsUseCase)
+    controller = new CompanyController(
+      mockLogger,
+      mockGetCompanyDetailsUseCase,
+      mockPutCompanyDetailsUseCase
+    )
 
     // Create mock Fastify reply with chainable methods
     mockReply = {
@@ -62,7 +73,11 @@ describe('CompanyController', () => {
 
   describe('constructor', () => {
     it('should create instance with dependencies', () => {
-      const instance = new CompanyController(mockLogger, mockGetCompanyDetailsUseCase)
+      const instance = new CompanyController(
+        mockLogger,
+        mockGetCompanyDetailsUseCase,
+        mockPutCompanyDetailsUseCase
+      )
 
       expect(instance).toBeInstanceOf(CompanyController)
       expect(instance).toBeDefined()
