@@ -102,9 +102,9 @@
         "keyPerson": {
           "type": "object",
           "description": "Key person contact details",
-          "required": ["personId", "firstName", "lastName", "isActive", "createdAt", "updatedAt"],
+          "required": ["keyPersonId", "firstName", "lastName", "isActive", "createdAt", "updatedAt"],
           "properties": {
-            "personId": {
+            "keyPersonId": {
               "type": "string",
               "format": "uuid",
               "description": "Unique identifier for the key person",
