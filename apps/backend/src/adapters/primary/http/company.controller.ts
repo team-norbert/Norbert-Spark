@@ -10,16 +10,35 @@ import { PutCompanyDetailsUseCase } from '../../../application/use-cases/put-com
  * HTTP controller for company-related operations.
  *
  * @remarks
- * This controller handles HTTP endpoints for retrieving company and key person details.
- * All routes require authentication via JWT and role-based authorization (admin or moderator).
+ * This controller handles HTTP endpoints for managing company and key person data:
+ * - GET /company/details - Retrieve company and key person details
+ * - PUT /company/details - Update company and/or key person details
+ *
+ * All routes require authentication via JWT. The PUT endpoint additionally requires
+ * admin or moderator role, or the user must be updating their own data.
  *
  * The controller follows the hexagonal architecture pattern, delegating business logic
  * to use cases and handling HTTP-specific concerns like request/response formatting,
  * error handling, and audit context extraction.
  *
+ * **Architecture:**
+ * - Primary Adapter (HTTP Layer)
+ * - Uses GetCompanyDetailsUseCase for retrieving data
+ * - Uses PutCompanyDetailsUseCase for updating data
+ * - Extracts audit context for all operations
+ * - Implements authentication and authorization checks
+ *
+ * **Singleton Pattern:**
+ * Both company and key_person tables enforce single-row constraints at the database level.
+ * All GET/PUT operations work with these singleton records.
+ *
  * @example
  * ```typescript
- * const controller = new CompanyController(logger, getCompanyDetailsUseCase)
+ * const controller = new CompanyController(
+ *   logger,
+ *   getCompanyDetailsUseCase,
+ *   putCompanyDetailsUseCase
+ * )
  * controller.registerRoutes(fastifyApp)
  * ```
  */
@@ -29,11 +48,12 @@ export class CompanyController {
    *
    * @param logger - Logger port for logging HTTP events and errors
    * @param getCompanyDetailsUseCase - Use case for retrieving company and key person details
+   * @param putCompanyDetailsUseCase - Use case for updating company and key person details
    *
    * @remarks
    * Dependencies are injected through the constructor following the dependency injection pattern.
-   * The logger is used for tracking request flow and errors, while the use case handles
-   * the business logic for fetching company data.
+   * The logger is used for tracking request flow and errors, while the use cases handle
+   * the business logic for fetching and updating company data.
    */
   constructor(
     private readonly logger: LoggerPort,
@@ -48,11 +68,13 @@ export class CompanyController {
    *
    * @remarks
    * Registers the following routes:
-   * - GET /company/details - Retrieves company and key person details
+   * - GET /company/details - Retrieves company and key person details (requires authentication)
+   * - PUT /company/details - Updates company and key person details (requires authentication + admin/moderator role)
    *
    * All routes are protected with:
    * - Authentication middleware (JWT verification)
-   * - Role-based authorization (admin or moderator roles required)
+   * - GET: Authentication only
+   * - PUT: Authentication + Role-based authorization (admin or moderator roles required)
    *
    * Route handlers are bound to the controller instance to preserve the `this` context.
    *
@@ -79,6 +101,124 @@ export class CompanyController {
     )
   }
 
+  /**
+   * HTTP handler for updating company and key person details.
+   *
+   * @param request - Fastify request object containing user authentication, client metadata, and update data
+   * @param reply - Fastify reply object for sending HTTP responses
+   *
+   * @returns Promise resolving to HTTP 204 No Content on success, or error response
+   *
+   * @remarks
+   * This endpoint updates singleton company and/or key person records in the database.
+   * Both tables enforce single-row constraints, so updates always target the single existing record.
+   *
+   * **Authentication & Authorization:**
+   * - Requires valid JWT authentication (handled by authMiddleware)
+   * - Requires one of the following:
+   *   1. User is updating their own data (authenticatedUserId === auditContext.userId)
+   *   2. User has admin role
+   *   3. User has moderator role
+   *
+   * **Request Body:**
+   * The request body must match UpdateCompanyDTO schema and can contain:
+   * - `company`: Object with company fields to update (companyId required)
+   * - `keyPerson`: Object with key person fields to update (keyPersonId required)
+   * - Both, one, or neither (empty object is valid)
+   *
+   * **Audit Context:**
+   * The handler extracts audit context from the request for audit logging:
+   * - `userId`: From JWT claims (request.user.sub)
+   * - `ipAddress`: Client IP address
+   * - `userAgent`: Client user agent header (null if missing)
+   *
+   * **Success Response (204 No Content):**
+   * Empty response body with HTTP 204 status code.
+   *
+   * **Error Response (4xx/5xx):**
+   * ```json
+   * {
+   *   "success": false,
+   *   "error": "Error message"
+   * }
+   * ```
+   *
+   * **Status Codes:**
+   * - 204: Success - company/key person updated, no content returned
+   * - 400: Bad Request - validation error (invalid UUID, missing required fields, etc.)
+   * - 401: Unauthorized - authentication failed (no JWT or invalid token)
+   * - 403: Forbidden - insufficient permissions (not own data and not admin/moderator)
+   * - 500: Internal Server Error - unexpected server error
+   *
+   * **Validation:**
+   * Request body is validated using UpdateCompanyDTO.validate() which checks:
+   * - Valid UUIDv7 format for companyId and keyPersonId
+   * - Valid email format for key person email
+   * - Valid URL format for company website
+   * - Valid country code for billing country
+   * - Enum values for status, industry, company size, timezone
+   *
+   * **Audit Logging:**
+   * All successful updates are logged to the audit log with:
+   * - Entity type (COMPANY or KEY_PERSON)
+   * - Action (UPDATE)
+   * - Entity ID
+   * - Audit context (userId, ipAddress, userAgent)
+   *
+   * **Error Handling:**
+   * - ValidationException: Returns 400 with validation error message
+   * - BaseException: Uses exception's status code and message
+   * - Generic errors: Default to 500 status code
+   * - All errors are logged and sent with standardized format
+   *
+   * @throws {ValidationException} When request body fails validation (invalid format, missing fields)
+   * @throws {UnauthorizedException} When authentication fails or permissions are insufficient
+   * @throws {BaseException} When business logic errors occur
+   * @throws {Error} For unexpected errors (returned as 500 status code)
+   *
+   * @example
+   * ```typescript
+   * // Update company details only
+   * PUT /company/details
+   * Headers: {
+   *   Authorization: "Bearer <jwt_token>"
+   * }
+   * Body: {
+   *   "company": {
+   *     "companyId": "019c0027-c91d-7ea6-b833-e44d18ac8021",
+   *     "legalName": "Updated Company LLC",
+   *     "displayName": "Updated Co",
+   *     "status": "active"
+   *   }
+   * }
+   *
+   * // Update key person details only
+   * PUT /company/details
+   * Body: {
+   *   "keyPerson": {
+   *     "keyPersonId": "019c0027-c91d-7ea6-b833-e44d18ac8022",
+   *     "firstName": "Jane",
+   *     "lastName": "Doe",
+   *     "email": "jane.doe@example.com"
+   *   }
+   * }
+   *
+   * // Update both company and key person
+   * PUT /company/details
+   * Body: {
+   *   "company": {
+   *     "companyId": "019c0027-c91d-7ea6-b833-e44d18ac8021",
+   *     "legalName": "Updated Company LLC"
+   *   },
+   *   "keyPerson": {
+   *     "keyPersonId": "019c0027-c91d-7ea6-b833-e44d18ac8022",
+   *     "email": "newemail@example.com"
+   *   }
+   * }
+   *
+   * // All requests return 204 No Content on success
+   * ```
+   */
   async updateCompanyDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.info('updateCompanyDetails called')
 
