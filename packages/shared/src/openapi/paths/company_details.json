@@ -1,7 +1,7 @@
 {
   "get": {
     "summary": "Get Company and key person details",
-    "description": "Retrieve detailed information about the company and its key person",
+    "description": "Retrieve detailed information about the single company record and the single key person record (each table contains at most one record)",
     "operationId": "getCompanyDetails",
     "tags": ["company"],
     "security": [
