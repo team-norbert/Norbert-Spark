@@ -4,147 +4,147 @@
   "required": ["company", "keyPerson"],
   "properties": {
     "company": {
-        "type": "object",
-        "description": "Company details",
-        "required": ["companyId"],
-        "properties": {
-          "companyId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier for the company",
-            "example": "123e4567-e89b-12d3-a456-426614174000"
-          },
-          "legalName": {
-            "type": "string",
-            "minLength": 2,
-            "maxLength": 200,
-            "description": "Legal name of the company",
-            "example": "Acme Corporation Ltd."
-          },
-          "displayName": {
-            "type": "string",
-            "minLength": 2,
-            "maxLength": 200,
-            "description": "Display name of the company",
-            "example": "Acme Corp"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["prospect", "active", "paused", "churned"],
-            "description": "Current status of the company",
-            "example": "active"
-          },
-          "industry": {
-            "type": "string",
-            "maxLength": 100,
-            "nullable": true,
-            "description": "Industry sector",
-            "example": "Technology"
-          },
-          "companySize": {
-            "type": "integer",
-            "minimum": 1,
-            "nullable": true,
-            "description": "Number of employees",
-            "example": 500
-          },
-          "websiteUrl": {
-            "type": "string",
-            "format": "uri",
-            "nullable": true,
-            "description": "Company website URL",
-            "example": "https://acme.com"
-          },
-          "billingCountry": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}$",
-            "nullable": true,
-            "description": "ISO 3166-1 alpha-2 country code",
-            "example": "US"
-          },
-          "timezone": {
-            "type": "string",
-            "description": "Company timezone",
-            "example": "America/New_York"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp when the company record was created",
-            "example": "2024-01-15T10:30:00Z"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp when the company record was last updated",
-            "example": "2024-01-20T14:45:00Z"
-          }
+      "type": "object",
+      "description": "Company details",
+      "required": ["companyId"],
+      "properties": {
+        "companyId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for the company",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "legalName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200,
+          "description": "Legal name of the company",
+          "example": "Acme Corporation Ltd."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200,
+          "description": "Display name of the company",
+          "example": "Acme Corp"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["prospect", "active", "paused", "churned"],
+          "description": "Current status of the company",
+          "example": "active"
+        },
+        "industry": {
+          "type": "string",
+          "maxLength": 100,
+          "nullable": true,
+          "description": "Industry sector",
+          "example": "Technology"
+        },
+        "companySize": {
+          "type": "integer",
+          "minimum": 1,
+          "nullable": true,
+          "description": "Number of employees",
+          "example": 500
+        },
+        "websiteUrl": {
+          "type": "string",
+          "format": "uri",
+          "nullable": true,
+          "description": "Company website URL",
+          "example": "https://acme.com"
+        },
+        "billingCountry": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$",
+          "nullable": true,
+          "description": "ISO 3166-1 alpha-2 country code",
+          "example": "US"
+        },
+        "timezone": {
+          "type": "string",
+          "description": "Company timezone",
+          "example": "America/New_York"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the company record was created",
+          "example": "2024-01-15T10:30:00Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the company record was last updated",
+          "example": "2024-01-20T14:45:00Z"
         }
-      },
-      "keyPerson": {
-        "type": "object",
-        "description": "Key person contact details",
-        "required": ["keyPersonId"],
-        "properties": {
-          "keyPersonId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier for the key person",
-            "example": "987e6543-e21b-12d3-a456-426614174000"
-          },
-          "firstName": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100,
-            "description": "First name of the key person",
-            "example": "John"
-          },
-          "lastName": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100,
-            "description": "Last name of the key person",
-            "example": "Doe"
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "nullable": true,
-            "description": "Email address (case-insensitive)",
-            "example": "john.doe@acme.com"
-          },
-          "phone": {
-            "type": "string",
-            "maxLength": 30,
-            "nullable": true,
-            "description": "Phone number",
-            "example": "+1-555-123-4567"
-          },
-          "jobTitle": {
-            "type": "string",
-            "maxLength": 100,
-            "nullable": true,
-            "description": "Job title",
-            "example": "Chief Executive Officer"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the key person is currently active. This field has a database default of true and will always be present in responses unless explicitly set to false.",
-            "example": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp when the key person record was created",
-            "example": "2024-01-15T10:30:00Z"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp when the key person record was last updated",
-            "example": "2024-01-20T14:45:00Z"
-          }
+      }
+    },
+    "keyPerson": {
+      "type": "object",
+      "description": "Key person contact details",
+      "required": ["keyPersonId"],
+      "properties": {
+        "keyPersonId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for the key person",
+          "example": "987e6543-e21b-12d3-a456-426614174000"
+        },
+        "firstName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "First name of the key person",
+          "example": "John"
+        },
+        "lastName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Last name of the key person",
+          "example": "Doe"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "nullable": true,
+          "description": "Email address (case-insensitive)",
+          "example": "john.doe@acme.com"
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 30,
+          "nullable": true,
+          "description": "Phone number",
+          "example": "+1-555-123-4567"
+        },
+        "jobTitle": {
+          "type": "string",
+          "maxLength": 100,
+          "nullable": true,
+          "description": "Job title",
+          "example": "Chief Executive Officer"
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Whether the key person is currently active. This field has a database default of true and will always be present in responses unless explicitly set to false.",
+          "example": true
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the key person record was created",
+          "example": "2024-01-15T10:30:00Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the key person record was last updated",
+          "example": "2024-01-20T14:45:00Z"
         }
       }
     }
+  }
 }
