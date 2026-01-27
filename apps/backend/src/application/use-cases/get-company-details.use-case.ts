@@ -159,7 +159,7 @@ export class GetCompanyDetailsUseCase {
       await this.auditLog.log({
         userId: auditContext.userId,
         entityType: EntityType.COMPANY,
-        entityId: auditContext.userId,
+        entityId: company?.companyId ?? auditContext.userId,
         action: AuditAction.FETCH,
         changes: {
           reason: 'company_details_retrieved_successfully',
