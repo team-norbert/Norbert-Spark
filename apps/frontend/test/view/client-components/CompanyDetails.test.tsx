@@ -376,8 +376,11 @@ describe('CompanyDetails Component', () => {
       const createdAtLabels = screen.getAllByText('Created At')
       expect(createdAtLabels.length).toBeGreaterThan(0)
 
-      // Check that the timestamp is formatted using toLocaleString
-      const createdDate = new Date('2024-01-15T10:30:00Z').toLocaleString()
+      // Check that the timestamp is formatted using toLocaleString with explicit UTC locale
+      // TZ=UTC is set in test setup to ensure consistent formatting across CI runners
+      const createdDate = new Date('2024-01-15T10:30:00Z').toLocaleString('en-US', {
+        timeZone: 'UTC',
+      })
       expect(screen.getAllByText(createdDate).length).toBeGreaterThan(0)
     })
 
@@ -394,7 +397,11 @@ describe('CompanyDetails Component', () => {
       const updatedAtLabels = screen.getAllByText('Last Updated')
       expect(updatedAtLabels.length).toBeGreaterThan(0)
 
-      const updatedDate = new Date('2024-01-20T14:45:00Z').toLocaleString()
+      // Check that the timestamp is formatted using toLocaleString with explicit UTC locale
+      // TZ=UTC is set in test setup to ensure consistent formatting across CI runners
+      const updatedDate = new Date('2024-01-20T14:45:00Z').toLocaleString('en-US', {
+        timeZone: 'UTC',
+      })
       expect(screen.getAllByText(updatedDate).length).toBeGreaterThan(0)
     })
   })
