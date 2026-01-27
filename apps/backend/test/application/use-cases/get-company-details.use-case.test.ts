@@ -6,7 +6,6 @@ import type { CompanyDetailsPort } from '../../../src/application/ports/company.
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { GetCompanyDetailsUseCase } from '../../../src/application/use-cases/get-company-details.use-case.js'
 import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
-import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
 import type {
   DBCompanySelect,
@@ -52,7 +51,7 @@ describe('GetCompanyDetailsUseCase', () => {
       putKeyPersonDetails: vi.fn(),
     }
 
-    // Create use case instance with mocks
+    // Create use case instance with mocks (auditLog parameter is still in constructor but not used)
     useCase = new GetCompanyDetailsUseCase(mockLogger, mockAuditLog, mockCompanyDetailsRepo)
   })
 
@@ -277,188 +276,6 @@ describe('GetCompanyDetailsUseCase', () => {
 
       expect(mockLogger.info).toHaveBeenCalledTimes(1)
       expect(mockLogger.info).toHaveBeenCalledWith('Fetching company details')
-    })
-  })
-
-  describe('execute() - audit logging', () => {
-    it('should log audit event with correct parameters when details are retrieved successfully', async () => {
-      const mockCompany: DBCompanySelect = {
-        companyId: uuidv7(),
-        legalName: 'Audit Test LLC',
-        displayName: 'Audit Test',
-        status: 'active',
-        industry: 'Technology',
-        companySize: 25,
-        websiteUrl: null,
-        billingCountry: 'US',
-        timezone: 'America/New_York',
-        singletonCheck: true,
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-01'),
-      }
-
-      vi.mocked(mockCompanyDetailsRepo.getCompanyDetails).mockResolvedValue(mockCompany)
-      vi.mocked(mockCompanyDetailsRepo.getKeyPersonDetails).mockResolvedValue(null)
-
-      await useCase.execute(auditContext)
-
-      expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
-      expect(mockAuditLog.log).toHaveBeenCalledWith({
-        userId: auditContext.userId,
-        entityType: EntityType.COMPANY,
-        entityId: mockCompany.companyId,
-        action: AuditAction.FETCH,
-        changes: {
-          reason: 'company_details_retrieved_successfully',
-        },
-        ipAddress: '127.0.0.1',
-        userAgent: 'test-user-agent',
-      })
-    })
-
-    it('should log audit event with null userAgent when not provided', async () => {
-      const auditContextWithoutAgent: AuditContext = {
-        userId: auditContext.userId,
-        ipAddress: '192.168.1.1',
-        userAgent: null,
-      }
-
-      vi.mocked(mockCompanyDetailsRepo.getCompanyDetails).mockResolvedValue(null)
-      vi.mocked(mockCompanyDetailsRepo.getKeyPersonDetails).mockResolvedValue(null)
-
-      await useCase.execute(auditContextWithoutAgent)
-
-      expect(mockAuditLog.log).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userId: auditContext.userId,
-          ipAddress: '192.168.1.1',
-          userAgent: undefined,
-        })
-      )
-    })
-
-    it('should still return company details successfully even if audit logging fails', async () => {
-      const mockCompany: DBCompanySelect = {
-        companyId: uuidv7(),
-        legalName: 'Test Company',
-        displayName: 'Test',
-        status: 'active',
-        industry: null,
-        companySize: null,
-        websiteUrl: null,
-        billingCountry: 'US',
-        timezone: 'UTC',
-        singletonCheck: true,
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-01'),
-      }
-
-      const mockKeyPerson: DBKeyPersonSelect = {
-        keyPersonId: uuidv7(),
-        firstName: 'Test',
-        lastName: 'User',
-        email: 'test@example.com',
-        phone: null,
-        jobTitle: null,
-        isActive: true,
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-01'),
-      }
-
-      const auditError = new Error('Audit service unavailable')
-      vi.mocked(mockCompanyDetailsRepo.getCompanyDetails).mockResolvedValue(mockCompany)
-      vi.mocked(mockCompanyDetailsRepo.getKeyPersonDetails).mockResolvedValue(mockKeyPerson)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-      const result = await useCase.execute(auditContext)
-
-      expect(result).toEqual({
-        company: mockCompany,
-        keyPerson: mockKeyPerson,
-      })
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for company details retrieval',
-        auditError,
-        { userId: auditContext.userId }
-      )
-    })
-
-    it('should log error when audit log throws exception', async () => {
-      const auditError = new Error('Database connection failed')
-      vi.mocked(mockCompanyDetailsRepo.getCompanyDetails).mockResolvedValue(null)
-      vi.mocked(mockCompanyDetailsRepo.getKeyPersonDetails).mockResolvedValue(null)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-      await useCase.execute(auditContext)
-
-      expect(mockLogger.error).toHaveBeenCalledTimes(1)
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for company details retrieval',
-        expect.any(Error),
-        expect.objectContaining({
-          userId: auditContext.userId,
-        })
-      )
-    })
-
-    it('should not call audit log if repository fails', async () => {
-      const repositoryError = new Error('Database error')
-      vi.mocked(mockCompanyDetailsRepo.getCompanyDetails).mockRejectedValue(repositoryError)
-
-      await expect(useCase.execute(auditContext)).rejects.toThrow('Database error')
-
-      expect(mockAuditLog.log).not.toHaveBeenCalled()
-    })
-
-    it('should log audit with COMPANY entity type', async () => {
-      vi.mocked(mockCompanyDetailsRepo.getCompanyDetails).mockResolvedValue(null)
-      vi.mocked(mockCompanyDetailsRepo.getKeyPersonDetails).mockResolvedValue(null)
-
-      await useCase.execute(auditContext)
-
-      expect(mockAuditLog.log).toHaveBeenCalledWith(
-        expect.objectContaining({
-          entityType: EntityType.COMPANY,
-        })
-      )
-    })
-
-    it('should log audit with FETCH action', async () => {
-      vi.mocked(mockCompanyDetailsRepo.getCompanyDetails).mockResolvedValue(null)
-      vi.mocked(mockCompanyDetailsRepo.getKeyPersonDetails).mockResolvedValue(null)
-
-      await useCase.execute(auditContext)
-
-      expect(mockAuditLog.log).toHaveBeenCalledWith(
-        expect.objectContaining({
-          action: AuditAction.FETCH,
-        })
-      )
-    })
-
-    it('should pass complete auditContext to audit log', async () => {
-      const customAuditContext: AuditContext = {
-        userId: new UserId(uuidv7()).getValue(),
-        ipAddress: '10.0.0.1',
-        userAgent: 'Custom-Agent/1.0',
-      }
-
-      vi.mocked(mockCompanyDetailsRepo.getCompanyDetails).mockResolvedValue(null)
-      vi.mocked(mockCompanyDetailsRepo.getKeyPersonDetails).mockResolvedValue(null)
-
-      await useCase.execute(customAuditContext)
-
-      expect(mockAuditLog.log).toHaveBeenCalledWith({
-        userId: customAuditContext.userId,
-        entityType: EntityType.COMPANY,
-        entityId: customAuditContext.userId,
-        action: AuditAction.FETCH,
-        changes: {
-          reason: 'company_details_retrieved_successfully',
-        },
-        ipAddress: customAuditContext.ipAddress,
-        userAgent: customAuditContext.userAgent,
-      })
     })
   })
 

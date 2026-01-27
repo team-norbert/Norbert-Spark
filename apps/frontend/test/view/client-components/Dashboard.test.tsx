@@ -138,6 +138,48 @@ describe('Dashboard Component', () => {
       })
     })
 
+    describe('Company Details Card', () => {
+      it('should render Company Details card with icon, title, and description', () => {
+        render(
+          <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        expect(screen.getByText('Company Details')).toBeInTheDocument()
+        expect(screen.getByText('View company and key person info')).toBeInTheDocument()
+        expect(screen.getByTestId('BusinessIcon')).toBeInTheDocument()
+      })
+
+      it('should call onNavigate with /company-details when Company Details card is clicked', () => {
+        render(
+          <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        const companyDetailsCard = screen
+          .getByText('Company Details')
+          .closest('.MuiCardActionArea-root')
+        fireEvent.click(companyDetailsCard!)
+
+        expect(mockOnNavigate).toHaveBeenCalledWith('/company-details')
+        expect(mockOnNavigate).toHaveBeenCalledTimes(1)
+      })
+
+      it('should render Company Details card for both admin and non-admin users', () => {
+        // Test for non-admin
+        const { rerender } = render(
+          <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        expect(screen.getByText('Company Details')).toBeInTheDocument()
+
+        // Test for admin
+        rerender(
+          <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        expect(screen.getByText('Company Details')).toBeInTheDocument()
+      })
+    })
+
     describe('Admin Card', () => {
       it('should NOT render Admin card when canAccessAdmin is false', () => {
         render(
@@ -174,22 +216,22 @@ describe('Dashboard Component', () => {
   })
 
   describe('Card Count Based on Role', () => {
-    it('should render exactly 2 cards when canAccessAdmin is false', () => {
+    it('should render exactly 4 cards when canAccessAdmin is false', () => {
       const { container } = render(
         <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
       )
 
       const cards = container.querySelectorAll('.MuiCard-root')
-      expect(cards).toHaveLength(3) // Chat, Profile, Extract Data
+      expect(cards).toHaveLength(4) // Chat, Profile, Extract Data, Company Details
     })
 
-    it('should render exactly 5 cards when canAccessAdmin is true', () => {
+    it('should render exactly 6 cards when canAccessAdmin is true', () => {
       const { container } = render(
         <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
       )
 
       const cards = container.querySelectorAll('.MuiCard-root')
-      expect(cards).toHaveLength(5) // Chat, Profile, Extract Data, Admin, AI Config
+      expect(cards).toHaveLength(6) // Chat, Profile, Extract Data, Company Details, Admin, AI Config
     })
   })
 
@@ -218,6 +260,14 @@ describe('Dashboard Component', () => {
       expect(screen.getByTestId('DescriptionIcon')).toBeInTheDocument()
     })
 
+    it('should render BusinessIcon for Company Details card', () => {
+      render(
+        <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+      )
+
+      expect(screen.getByTestId('BusinessIcon')).toBeInTheDocument()
+    })
+
     it('should render AdminPanelSettingsIcon when admin access is granted', () => {
       render(
         <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
@@ -243,16 +293,21 @@ describe('Dashboard Component', () => {
 
       const chatCard = screen.getByText('Chat').closest('.MuiCardActionArea-root')
       const profileCard = screen.getByText('Profile').closest('.MuiCardActionArea-root')
+      const companyDetailsCard = screen
+        .getByText('Company Details')
+        .closest('.MuiCardActionArea-root')
       const adminCard = screen.getByText('User Admin').closest('.MuiCardActionArea-root')
 
       fireEvent.click(chatCard!)
       fireEvent.click(profileCard!)
+      fireEvent.click(companyDetailsCard!)
       fireEvent.click(adminCard!)
 
-      expect(mockOnNavigate).toHaveBeenCalledTimes(3)
+      expect(mockOnNavigate).toHaveBeenCalledTimes(4)
       expect(mockOnNavigate).toHaveBeenNthCalledWith(1, '/ai')
       expect(mockOnNavigate).toHaveBeenNthCalledWith(2, '/profile')
-      expect(mockOnNavigate).toHaveBeenNthCalledWith(3, '/admin')
+      expect(mockOnNavigate).toHaveBeenNthCalledWith(3, '/company-details')
+      expect(mockOnNavigate).toHaveBeenNthCalledWith(4, '/admin')
     })
 
     it('should handle same card clicked multiple times', () => {
@@ -281,7 +336,7 @@ describe('Dashboard Component', () => {
       expect(h1).toHaveTextContent('Dashboard')
 
       const h2Cards = screen.getAllByRole('heading', { level: 2 })
-      expect(h2Cards.length).toBeGreaterThanOrEqual(2)
+      expect(h2Cards.length).toBeGreaterThanOrEqual(4)
     })
 
     it('should render cards as interactive elements', () => {

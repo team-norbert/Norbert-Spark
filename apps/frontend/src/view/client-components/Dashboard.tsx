@@ -1,5 +1,6 @@
 'use client'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
+import BusinessIcon from '@mui/icons-material/Business'
 import ChatIcon from '@mui/icons-material/Chat'
 import DescriptionIcon from '@mui/icons-material/Description'
 import PersonIcon from '@mui/icons-material/Person'
@@ -157,6 +158,41 @@ export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardPr
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Upload and extract data from files
+              </Typography>
+            </CardContent>
+          </CardActionArea>
+        </Card>
+
+        {/* Company Details Card */}
+        <Card
+          sx={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: 6,
+            },
+          }}
+        >
+          <CardActionArea sx={{ flexGrow: 1 }} onClick={() => onNavigate('/company-details')}>
+            <CardContent
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 200,
+                textAlign: 'center',
+              }}
+            >
+              <BusinessIcon sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }} />
+              <Typography variant="h5" component="h2" gutterBottom>
+                Company Details
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                View company and key person info
               </Typography>
             </CardContent>
           </CardActionArea>

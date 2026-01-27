@@ -2,7 +2,6 @@ import type { LoggerPort } from '../ports/logger.port.js'
 import type { AuditLogPort } from '../ports/audit-log.port.js'
 import type { CompanyDetailsPort } from '../ports/company.repository.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
-import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { DBCompanySelect, DBKeyPersonSelect } from '../../infrastructure/database/schema.js'
 
 /**
@@ -63,7 +62,6 @@ export class GetCompanyDetailsUseCase {
   /**
    * Executes the use case to retrieve company and key person details.
    *
-   * @param auditContext - Audit context containing user identification and request metadata
    * @returns Promise resolving to an object containing company and keyPerson data (may be null)
    *
    * @remarks
@@ -73,14 +71,8 @@ export class GetCompanyDetailsUseCase {
    *    - Fetches company details and key person details concurrently using Promise.all
    *    - Optimizes performance by executing both queries simultaneously
    *
-   * 2. **Audit Logging:**
-   *    - Logs the fetch operation with complete audit context
-   *    - Includes userId, IP address, user agent, entity type, and action
-   *    - Audit failures are caught and logged but don't affect the main operation
-   *
-   * 3. **Error Handling:**
+   * 2. **Error Handling:**
    *    - Repository errors propagate to the caller
-   *    - Audit logging errors are isolated and only logged
    *    - Success/failure logging provides operation visibility
    *
    * **Return Value:**
@@ -89,11 +81,6 @@ export class GetCompanyDetailsUseCase {
    * - `keyPerson`: Complete key person record or null if not found
    *
    * Both values can be null independently (e.g., company exists but no key person).
-   *
-   * **Audit Context Requirements:**
-   * - `userId`: UserIdType - The authenticated user making the request
-   * - `ipAddress`: string - Client IP address for security tracking
-   * - `userAgent`: string | null - Browser/client user agent (optional)
    *
    * **Performance:**
    * - Uses Promise.all for parallel execution (~2x faster than sequential)
@@ -143,8 +130,9 @@ export class GetCompanyDetailsUseCase {
    *   // Handle database/repository errors
    * }
    * ```
+   * @param _auditContext - Contextual information for auditing the operation
    */
-  async execute(auditContext: AuditContext): Promise<{
+  async execute(_auditContext: AuditContext): Promise<{
     company: DBCompanySelect | null
     keyPerson: DBKeyPersonSelect | null
   }> {
@@ -154,24 +142,6 @@ export class GetCompanyDetailsUseCase {
       this.companyDetailsRepo.getCompanyDetails(),
       this.companyDetailsRepo.getKeyPersonDetails(),
     ])
-
-    try {
-      await this.auditLog.log({
-        userId: auditContext.userId,
-        entityType: EntityType.COMPANY,
-        entityId: company?.companyId ?? auditContext.userId,
-        action: AuditAction.FETCH,
-        changes: {
-          reason: 'company_details_retrieved_successfully',
-        },
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      })
-    } catch (error) {
-      this.logger.error('Error logging audit for company details retrieval', error as Error, {
-        userId: auditContext.userId,
-      })
-    }
 
     this.logger.info('Company details fetched successfully')
     return { company, keyPerson }
