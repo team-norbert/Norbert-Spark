@@ -162,13 +162,13 @@ export class GetCompanyDetailsUseCase {
         entityId: auditContext.userId,
         action: AuditAction.FETCH,
         changes: {
-          reason: 'chat_successfully_retrieved_by_userid',
+          reason: 'company_details_retrieved_successfully',
         },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       })
     } catch (error) {
-      this.logger.error('Error logging audit for chat retrieval', error as Error, {
+      this.logger.error('Error logging audit for company details retrieval', error as Error, {
         userId: auditContext.userId,
       })
     }
