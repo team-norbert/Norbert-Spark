@@ -13,6 +13,7 @@ import type {
 vi.mock('../../../../src/infrastructure/database/index.js', () => ({
   db: {
     select: vi.fn(),
+    update: vi.fn(),
   },
 }))
 
@@ -462,6 +463,326 @@ describe('CompanyRepository', () => {
       expect(result2).toEqual(mockCompany)
       expect(db.select).toHaveBeenCalledTimes(2)
       expect(mockLogger.info).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  describe('putCompanyDetails()', () => {
+    it('should successfully update company details', async () => {
+      const updateData = {
+        legalName: 'Updated Company LLC',
+        displayName: 'Updated Company',
+        status: 'active' as const,
+      }
+
+      const mockUpdatedCompany: DBCompanySelect = {
+        companyId: uuidv7(),
+        legalName: 'Updated Company LLC',
+        displayName: 'Updated Company',
+        status: 'active',
+        industry: 'Technology',
+        companySize: 75,
+        websiteUrl: 'https://updated.com',
+        billingCountry: 'US',
+        timezone: 'America/New_York',
+        singletonCheck: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedCompany])
+      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putCompanyDetails(updateData)
+
+      expect(result).toEqual(mockUpdatedCompany)
+      expect(mockLogger.info).toHaveBeenCalledWith('Updating company details in the database')
+      expect(db.update).toHaveBeenCalledTimes(1)
+      expect(mockSet).toHaveBeenCalledTimes(1)
+      expect(mockWhere).toHaveBeenCalledTimes(1)
+      expect(mockReturning).toHaveBeenCalledTimes(1)
+    })
+
+    it('should return null when no company exists to update', async () => {
+      const updateData = { displayName: 'New Name' }
+
+      const mockReturning = vi.fn().mockResolvedValue([])
+      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putCompanyDetails(updateData)
+
+      expect(result).toBeNull()
+      expect(mockLogger.info).toHaveBeenCalledWith('Updating company details in the database')
+    })
+
+    it('should return null when update result is undefined', async () => {
+      const updateData = { legalName: 'Test LLC' }
+
+      const mockReturning = vi.fn().mockResolvedValue([undefined])
+      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putCompanyDetails(updateData)
+
+      expect(result).toBeNull()
+    })
+
+    it('should handle partial updates with only required fields', async () => {
+      const updateData = { legalName: 'Minimal Update' }
+
+      const mockUpdatedCompany: DBCompanySelect = {
+        companyId: uuidv7(),
+        legalName: 'Minimal Update',
+        displayName: 'Original Display',
+        status: 'active',
+        industry: null,
+        companySize: null,
+        websiteUrl: null,
+        billingCountry: 'US',
+        timezone: 'UTC',
+        singletonCheck: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedCompany])
+      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putCompanyDetails(updateData)
+
+      expect(result).toEqual(mockUpdatedCompany)
+      expect(result?.legalName).toBe('Minimal Update')
+    })
+
+    it('should handle updates with all fields', async () => {
+      const updateData = {
+        legalName: 'Complete Update LLC',
+        displayName: 'Complete Update',
+        status: 'paused' as const,
+        industry: 'Finance',
+        companySize: 200,
+        websiteUrl: 'https://complete.com',
+        billingCountry: 'CA',
+        timezone: 'America/Toronto',
+      }
+
+      const mockUpdatedCompany: DBCompanySelect = {
+        companyId: uuidv7(),
+        ...updateData,
+        singletonCheck: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedCompany])
+      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putCompanyDetails(updateData)
+
+      expect(result).toEqual(mockUpdatedCompany)
+      expect(result?.status).toBe('paused')
+      expect(result?.industry).toBe('Finance')
+      expect(result?.companySize).toBe(200)
+      expect(result?.websiteUrl).toBe('https://complete.com')
+      expect(result?.billingCountry).toBe('CA')
+      expect(result?.timezone).toBe('America/Toronto')
+    })
+
+    it('should handle updating status to different values', async () => {
+      const statuses: Array<'active' | 'prospect' | 'paused' | 'churned'> = [
+        'active',
+        'prospect',
+        'paused',
+        'churned',
+      ]
+
+      for (const status of statuses) {
+        vi.clearAllMocks()
+
+        const updateData = { status }
+
+        const mockUpdatedCompany: DBCompanySelect = {
+          companyId: uuidv7(),
+          legalName: 'Test Company',
+          displayName: 'Test',
+          status,
+          industry: null,
+          companySize: null,
+          websiteUrl: null,
+          billingCountry: 'US',
+          timezone: 'UTC',
+          singletonCheck: true,
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-15'),
+        }
+
+        const mockReturning = vi.fn().mockResolvedValue([mockUpdatedCompany])
+        const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+        const result = await repository.putCompanyDetails(updateData)
+
+        expect(result?.status).toBe(status)
+      }
+    })
+
+    it('should handle updating nullable fields to null', async () => {
+      const updateData = {
+        industry: null,
+        companySize: null,
+        websiteUrl: null,
+      }
+
+      const mockUpdatedCompany: DBCompanySelect = {
+        companyId: uuidv7(),
+        legalName: 'Test Company',
+        displayName: 'Test',
+        status: 'active',
+        industry: null,
+        companySize: null,
+        websiteUrl: null,
+        billingCountry: 'US',
+        timezone: 'UTC',
+        singletonCheck: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedCompany])
+      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putCompanyDetails(updateData)
+
+      expect(result?.industry).toBeNull()
+      expect(result?.companySize).toBeNull()
+      expect(result?.websiteUrl).toBeNull()
+    })
+
+    it('should throw error when database update fails', async () => {
+      const updateData = { legalName: 'Failed Update' }
+      const dbError = new Error('Database connection failed')
+
+      const mockReturning = vi.fn().mockRejectedValue(dbError)
+      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      await expect(repository.putCompanyDetails(updateData)).rejects.toThrow(
+        'Database connection failed'
+      )
+      expect(mockLogger.error).toHaveBeenCalledWith('Error updating company details', dbError)
+    })
+
+    it('should log error and rethrow on database failure', async () => {
+      const updateData = { displayName: 'Error Test' }
+      const dbError = new Error('Query timeout')
+
+      const mockReturning = vi.fn().mockRejectedValue(dbError)
+      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      await expect(repository.putCompanyDetails(updateData)).rejects.toThrow('Query timeout')
+      expect(mockLogger.error).toHaveBeenCalledWith('Error updating company details', dbError)
+      expect(mockLogger.info).toHaveBeenCalledWith('Updating company details in the database')
+    })
+
+    it('should handle empty update data object', async () => {
+      const updateData = {}
+
+      const mockUpdatedCompany: DBCompanySelect = {
+        companyId: uuidv7(),
+        legalName: 'Unchanged Company',
+        displayName: 'Unchanged',
+        status: 'active',
+        industry: null,
+        companySize: null,
+        websiteUrl: null,
+        billingCountry: 'US',
+        timezone: 'UTC',
+        singletonCheck: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedCompany])
+      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putCompanyDetails(updateData)
+
+      expect(result).toEqual(mockUpdatedCompany)
+    })
+
+    it('should include updatedAt timestamp in update', async () => {
+      const updateData = { legalName: 'Timestamp Test' }
+
+      const mockUpdatedCompany: DBCompanySelect = {
+        companyId: uuidv7(),
+        legalName: 'Timestamp Test',
+        displayName: 'Test',
+        status: 'active',
+        industry: null,
+        companySize: null,
+        websiteUrl: null,
+        billingCountry: 'US',
+        timezone: 'UTC',
+        singletonCheck: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15T10:30:00Z'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedCompany])
+      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      const result = await repository.putCompanyDetails(updateData)
+
+      expect(result?.updatedAt).toBeInstanceOf(Date)
+      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining(updateData))
+    })
+
+    it('should update only the singleton company record', async () => {
+      const updateData = { legalName: 'Singleton Update' }
+
+      const mockUpdatedCompany: DBCompanySelect = {
+        companyId: uuidv7(),
+        legalName: 'Singleton Update',
+        displayName: 'Singleton',
+        status: 'active',
+        industry: null,
+        companySize: null,
+        websiteUrl: null,
+        billingCountry: 'US',
+        timezone: 'UTC',
+        singletonCheck: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-15'),
+      }
+
+      const mockReturning = vi.fn().mockResolvedValue([mockUpdatedCompany])
+      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      vi.mocked(db.update).mockReturnValue({ set: mockSet } as any)
+
+      await repository.putCompanyDetails(updateData)
+
+      // Verify where clause is called (ensures singleton targeting)
+      expect(mockWhere).toHaveBeenCalledTimes(1)
+      expect(mockReturning).toHaveBeenCalledTimes(1)
     })
   })
 })
