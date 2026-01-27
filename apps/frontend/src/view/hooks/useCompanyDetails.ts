@@ -31,11 +31,11 @@ export function useCompanyDetails(): UseCompanyDetailsReturn {
     queryKey: ['company-details'],
     queryFn: async () => {
       const response = await getCompanyDetailsAction()
-      
+
       if (!response.success) {
         throw new Error('Failed to fetch company details')
       }
-      
+
       return response.data
     },
     staleTime: ONE_MINUTE_MS, // 1 minute

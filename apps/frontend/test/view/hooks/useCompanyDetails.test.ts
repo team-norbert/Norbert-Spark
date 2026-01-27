@@ -239,7 +239,7 @@ describe('useCompanyDetails', () => {
 
       for (const status of statuses) {
         vi.clearAllMocks()
-        
+
         // Create a fresh QueryClient for each iteration to avoid cache interference
         queryClient = new QueryClient({
           defaultOptions: {
