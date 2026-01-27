@@ -449,9 +449,7 @@ describe('useCompanyDetails', () => {
       expect(result.current.isLoading).toBe(true)
 
       // Resolve the promise
-      await waitFor(() => {
-        resolvePromise!(mockSuccessResponse)
-      })
+      resolvePromise!(mockSuccessResponse)
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false)
