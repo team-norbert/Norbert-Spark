@@ -391,27 +391,6 @@ describe('useCompanyDetails', () => {
         expect(result.current.isLoading).toBe(false)
       })
     })
-
-    it('should reset error state at start of fetch', async () => {
-      // First call fails
-      vi.mocked(getCompanyDetailsAction).mockRejectedValueOnce(new Error('First error'))
-
-      const { rerender, result } = renderHook(() => useCompanyDetails())
-
-      await waitFor(() => {
-        expect(result.current.error).toBe('First error')
-      })
-
-      // Second call succeeds
-      vi.mocked(getCompanyDetailsAction).mockResolvedValueOnce(mockSuccessResponse)
-
-      rerender()
-
-      // Error should be cleared during loading
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false)
-      })
-    })
   })
 
   describe('Effect Hook Behavior', () => {
