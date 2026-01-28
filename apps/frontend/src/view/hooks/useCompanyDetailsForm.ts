@@ -77,15 +77,11 @@ const KeyPersonSchema = z.object({
   firstName: z
     .string()
     .min(1, 'First name must be at least 1 character')
-    .max(100, 'First name must not exceed 100 characters')
-    .optional()
-    .or(z.literal('')),
+    .max(100, 'First name must not exceed 100 characters'),
   lastName: z
     .string()
     .min(1, 'Last name must be at least 1 character')
-    .max(100, 'Last name must not exceed 100 characters')
-    .optional()
-    .or(z.literal('')),
+    .max(100, 'Last name must not exceed 100 characters'),
   email: z.string().email('Must be a valid email address').optional().or(z.literal('')),
   phone: z.string().max(30, 'Phone must not exceed 30 characters').optional().or(z.literal('')),
   jobTitle: z
