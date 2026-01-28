@@ -183,6 +183,29 @@ describe('useCompanyDetailsForm', () => {
       expect(result.current.formData.jobTitle).toBe('')
     })
 
+    it('should normalize lowercase billing country from backend to uppercase', async () => {
+      const responseWithLowercaseCountry: CompanyDetailsResponse = {
+        success: true,
+        data: {
+          company: {
+            ...mockCompanyData,
+            billingCountry: 'us',
+          },
+          keyPerson: mockKeyPersonData,
+        },
+      }
+
+      mockGetCompanyDetailsAction.mockResolvedValue(responseWithLowercaseCountry)
+
+      const { result } = renderHook(() => useCompanyDetailsForm())
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      expect(result.current.formData.billingCountry).toBe('US')
+    })
+
     it('should set error when fetch fails with success false', async () => {
       mockGetCompanyDetailsAction.mockResolvedValue({
         success: false,
@@ -399,6 +422,38 @@ describe('useCompanyDetailsForm', () => {
       expect(result.current.errors.billingCountry).toBe(
         'Must be a 2-letter country code (e.g., US)'
       )
+    })
+
+    it('should transform billing country to uppercase', async () => {
+      mockGetCompanyDetailsAction.mockResolvedValue(mockSuccessResponse)
+
+      const { result } = renderHook(() => useCompanyDetailsForm())
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      act(() => {
+        result.current.handleChange('billingCountry')({ target: { value: 'us' } })
+      })
+
+      expect(result.current.formData.billingCountry).toBe('US')
+    })
+
+    it('should transform mixed case billing country to uppercase', async () => {
+      mockGetCompanyDetailsAction.mockResolvedValue(mockSuccessResponse)
+
+      const { result } = renderHook(() => useCompanyDetailsForm())
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      act(() => {
+        result.current.handleChange('billingCountry')({ target: { value: 'Gb' } })
+      })
+
+      expect(result.current.formData.billingCountry).toBe('GB')
     })
 
     it('should validate email format', async () => {

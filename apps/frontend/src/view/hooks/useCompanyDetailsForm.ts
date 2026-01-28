@@ -144,7 +144,7 @@ export function useCompanyDetailsForm() {
             industry: company.industry || '',
             companySize: company.companySize?.toString() || '',
             websiteUrl: company.websiteUrl || '',
-            billingCountry: company.billingCountry || '',
+            billingCountry: company.billingCountry?.toUpperCase() || '',
             timezone: company.timezone,
             keyPersonId: keyPerson.keyPersonId,
             firstName: keyPerson.firstName,
@@ -169,7 +169,11 @@ export function useCompanyDetailsForm() {
 
   const handleChange =
     (field: keyof CompanyDetailsFormData) => (event: { target: { value: unknown } }) => {
-      const value = event.target.value
+      let value = event.target.value
+      // Transform billingCountry to uppercase to match Zod validation regex ^[A-Z]{2}$
+      if (field === 'billingCountry' && typeof value === 'string') {
+        value = value.toUpperCase()
+      }
       setFormData({ ...formData, [field]: value })
       // Clear errors when user starts typing
       setErrors({ ...errors, [field]: '' })
