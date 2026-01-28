@@ -571,6 +571,103 @@ describe('useCompanyDetailsForm', () => {
       vi.useRealTimers()
     })
 
+    it('should clear redirect timeout on unmount', async () => {
+      mockGetCompanyDetailsAction.mockResolvedValue(mockSuccessResponse)
+      mockUpdateCompanyDetailsAction.mockResolvedValue({ success: true, status: 204 })
+
+      vi.useFakeTimers()
+
+      const { result, unmount } = renderHook(() => useCompanyDetailsForm())
+
+      await vi.waitFor(
+        () => {
+          expect(result.current.isLoading).toBe(false)
+        },
+        { timeout: 2000 }
+      )
+
+      act(() => {
+        void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
+      })
+
+      await vi.waitFor(
+        () => {
+          expect(mockUpdateCompanyDetailsAction).toHaveBeenCalled()
+        },
+        { timeout: 2000 }
+      )
+
+      // Unmount before timeout completes
+      unmount()
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2000)
+      })
+
+      // Router push should not be called after unmount
+      expect(mockPush).not.toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
+
+    it('should clear previous redirect timeout when submitting again', async () => {
+      mockGetCompanyDetailsAction.mockResolvedValue(mockSuccessResponse)
+      mockUpdateCompanyDetailsAction.mockResolvedValue({ success: true, status: 204 })
+
+      vi.useFakeTimers()
+
+      const { result } = renderHook(() => useCompanyDetailsForm())
+
+      await vi.waitFor(
+        () => {
+          expect(result.current.isLoading).toBe(false)
+        },
+        { timeout: 2000 }
+      )
+
+      // First submit
+      act(() => {
+        void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
+      })
+
+      await vi.waitFor(
+        () => {
+          expect(mockUpdateCompanyDetailsAction).toHaveBeenCalledTimes(1)
+        },
+        { timeout: 2000 }
+      )
+
+      // Advance time by 1 second (not enough for redirect)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000)
+      })
+
+      expect(mockPush).not.toHaveBeenCalled()
+
+      // Second submit before first timeout completes
+      act(() => {
+        void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
+      })
+
+      await vi.waitFor(
+        () => {
+          expect(mockUpdateCompanyDetailsAction).toHaveBeenCalledTimes(2)
+        },
+        { timeout: 2000 }
+      )
+
+      // Advance time by another 2 seconds
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2000)
+      })
+
+      // Router push should only be called once from the second submit
+      expect(mockPush).toHaveBeenCalledTimes(1)
+      expect(mockPush).toHaveBeenCalledWith('/company-details')
+
+      vi.useRealTimers()
+    })
+
     it('should convert empty strings to null for nullable fields', async () => {
       mockGetCompanyDetailsAction.mockResolvedValue(mockSuccessResponse)
       mockUpdateCompanyDetailsAction.mockResolvedValue({ success: true, status: 204 })
