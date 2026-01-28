@@ -48,15 +48,11 @@ const CompanySchema = z.object({
   legalName: z
     .string()
     .min(2, 'Legal name must be at least 2 characters')
-    .max(200, 'Legal name must not exceed 200 characters')
-    .optional()
-    .or(z.literal('')),
+    .max(200, 'Legal name must not exceed 200 characters'),
   displayName: z
     .string()
     .min(2, 'Display name must be at least 2 characters')
-    .max(200, 'Display name must not exceed 200 characters')
-    .optional()
-    .or(z.literal('')),
+    .max(200, 'Display name must not exceed 200 characters'),
   status: z.enum(['prospect', 'active', 'paused', 'churned']).optional(),
   industry: z
     .string()
