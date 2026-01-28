@@ -396,7 +396,9 @@ describe('useCompanyDetailsForm', () => {
         await result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      expect(result.current.errors.billingCountry).toBe('Must be a 2-letter country code (e.g., US)')
+      expect(result.current.errors.billingCountry).toBe(
+        'Must be a 2-letter country code (e.g., US)'
+      )
     })
 
     it('should validate email format', async () => {
@@ -537,20 +539,26 @@ describe('useCompanyDetailsForm', () => {
       mockUpdateCompanyDetailsAction.mockResolvedValue({ success: true, status: 204 })
 
       vi.useFakeTimers()
-      
+
       const { result } = renderHook(() => useCompanyDetailsForm())
 
-      await vi.waitFor(() => {
-        expect(result.current.isLoading).toBe(false)
-      }, { timeout: 2000 })
+      await vi.waitFor(
+        () => {
+          expect(result.current.isLoading).toBe(false)
+        },
+        { timeout: 2000 }
+      )
 
       act(() => {
         void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      await vi.waitFor(() => {
-        expect(mockUpdateCompanyDetailsAction).toHaveBeenCalled()
-      }, { timeout: 2000 })
+      await vi.waitFor(
+        () => {
+          expect(mockUpdateCompanyDetailsAction).toHaveBeenCalled()
+        },
+        { timeout: 2000 }
+      )
 
       expect(mockPush).not.toHaveBeenCalled()
 
@@ -559,7 +567,7 @@ describe('useCompanyDetailsForm', () => {
       })
 
       expect(mockPush).toHaveBeenCalledWith('/company-details')
-      
+
       vi.useRealTimers()
     })
 
@@ -574,24 +582,33 @@ describe('useCompanyDetailsForm', () => {
       })
 
       act(() => {
-        result.current.handleChange('industry')({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)
+        result.current.handleChange('industry')({
+          target: { value: '' },
+        } as React.ChangeEvent<HTMLInputElement>)
       })
 
       act(() => {
-        result.current.handleChange('websiteUrl')({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)
+        result.current.handleChange('websiteUrl')({
+          target: { value: '' },
+        } as React.ChangeEvent<HTMLInputElement>)
       })
 
       act(() => {
-        result.current.handleChange('email')({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)
+        result.current.handleChange('email')({
+          target: { value: '' },
+        } as React.ChangeEvent<HTMLInputElement>)
       })
 
       act(() => {
         void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      await waitFor(() => {
-        expect(mockUpdateCompanyDetailsAction).toHaveBeenCalled()
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(mockUpdateCompanyDetailsAction).toHaveBeenCalled()
+        },
+        { timeout: 1000 }
+      )
 
       // Get the most recent call args
       const callArgs = mockUpdateCompanyDetailsAction.mock.calls.at(-1)?.[0]
@@ -618,9 +635,12 @@ describe('useCompanyDetailsForm', () => {
         void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      await waitFor(() => {
-        expect(mockUpdateCompanyDetailsAction).toHaveBeenCalled()
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(mockUpdateCompanyDetailsAction).toHaveBeenCalled()
+        },
+        { timeout: 1000 }
+      )
 
       const callArgs = mockUpdateCompanyDetailsAction.mock.calls[0]?.[0]
       expect(callArgs.company.companySize).toBe(500)
@@ -646,9 +666,12 @@ describe('useCompanyDetailsForm', () => {
         void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      await waitFor(() => {
-        expect(result.current.generalError).toBeTruthy()
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(result.current.generalError).toBeTruthy()
+        },
+        { timeout: 1000 }
+      )
 
       expect(mockUpdateCompanyDetailsAction).not.toHaveBeenCalled()
     })
@@ -670,9 +693,14 @@ describe('useCompanyDetailsForm', () => {
         void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      await waitFor(() => {
-        expect(result.current.generalError).toBe('Please fix the validation errors before submitting')
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(result.current.generalError).toBe(
+            'Please fix the validation errors before submitting'
+          )
+        },
+        { timeout: 1000 }
+      )
     })
   })
 
@@ -696,9 +724,12 @@ describe('useCompanyDetailsForm', () => {
         void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      await waitFor(() => {
-        expect(result.current.generalError).toBe('Invalid data provided')
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(result.current.generalError).toBe('Invalid data provided')
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('should handle update failure without error message', async () => {
@@ -718,9 +749,12 @@ describe('useCompanyDetailsForm', () => {
         void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      await waitFor(() => {
-        expect(result.current.generalError).toBe('Failed to update company details')
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(result.current.generalError).toBe('Failed to update company details')
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('should handle unexpected errors during update', async () => {
@@ -737,9 +771,14 @@ describe('useCompanyDetailsForm', () => {
         void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      await waitFor(() => {
-        expect(result.current.generalError).toBe('An unexpected error occurred. Please try again.')
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(result.current.generalError).toBe(
+            'An unexpected error occurred. Please try again.'
+          )
+        },
+        { timeout: 1000 }
+      )
     })
   })
 
@@ -763,9 +802,12 @@ describe('useCompanyDetailsForm', () => {
         void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      await waitFor(() => {
-        expect(result.current.isSubmitting).toBe(true)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(result.current.isSubmitting).toBe(true)
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('should reset isSubmitting to false after successful submission', async () => {
@@ -782,9 +824,12 @@ describe('useCompanyDetailsForm', () => {
         void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      await waitFor(() => {
-        expect(result.current.isSubmitting).toBe(false)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(result.current.isSubmitting).toBe(false)
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('should reset isSubmitting to false after failed submission', async () => {
@@ -805,9 +850,12 @@ describe('useCompanyDetailsForm', () => {
         void result.current.handleSubmit({ preventDefault: vi.fn() } as unknown as React.FormEvent)
       })
 
-      await waitFor(() => {
-        expect(result.current.isSubmitting).toBe(false)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(result.current.isSubmitting).toBe(false)
+        },
+        { timeout: 1000 }
+      )
     })
   })
 })
