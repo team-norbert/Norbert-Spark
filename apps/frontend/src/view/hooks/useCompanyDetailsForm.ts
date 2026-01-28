@@ -144,7 +144,7 @@ export function useCompanyDetailsForm() {
             industry: company.industry || '',
             companySize: company.companySize?.toString() || '',
             websiteUrl: company.websiteUrl || '',
-            billingCountry: company.billingCountry || '',
+            billingCountry: company.billingCountry?.toUpperCase() || '',
             timezone: company.timezone,
             keyPersonId: keyPerson.keyPersonId,
             firstName: keyPerson.firstName,
