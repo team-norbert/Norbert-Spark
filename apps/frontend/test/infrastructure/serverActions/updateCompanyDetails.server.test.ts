@@ -356,10 +356,7 @@ describe('updateCompanyDetailsAction', () => {
       expect(result.success).toBe(false)
       expect(result.status).toBe(500)
       expect(result.error).toBe('Network error')
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'updateCompanyDetailsAction error',
-        mockError
-      )
+      expect(mockLogger.error).toHaveBeenCalledWith('updateCompanyDetailsAction error', mockError)
     })
 
     it('should handle errors with status codes', async () => {
