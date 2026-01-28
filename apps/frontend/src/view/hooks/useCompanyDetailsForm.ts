@@ -185,9 +185,19 @@ export function useCompanyDetailsForm() {
       setErrors({ ...errors, [field]: '' })
       setGeneralError('')
       setSuccessMessage('')
+      // Clear redirect timeout when user starts editing
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current)
+        redirectTimeoutRef.current = null
+      }
     }
 
   const handleCancel = () => {
+    // Clear redirect timeout if pending
+    if (redirectTimeoutRef.current) {
+      clearTimeout(redirectTimeoutRef.current)
+      redirectTimeoutRef.current = null
+    }
     router.push('/company-details')
   }
 
