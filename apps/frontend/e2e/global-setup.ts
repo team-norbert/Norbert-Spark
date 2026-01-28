@@ -142,6 +142,29 @@ async function globalSetup() {
       seedUsersProcess.on('error', reject)
     })
 
+    // Seed company data
+    console.warn('🌱 Seeding company data...')
+    const seedCompanyProcess = spawn('pnpm', ['seed:company'], {
+      cwd: backendSeedPath,
+      env: {
+        ...process.env,
+        DATABASE_URL: connectionString,
+      },
+      stdio: 'inherit',
+    })
+
+    await new Promise<void>((resolve, reject) => {
+      seedCompanyProcess.on('close', (code) => {
+        if (code === 0) {
+          console.warn('✅ Company data seeded')
+          resolve()
+        } else {
+          reject(new Error(`Seed company process exited with code ${code}`))
+        }
+      })
+      seedCompanyProcess.on('error', reject)
+    })
+
     // Save connection info to a file that tests can read
     const testConfig = {
       databaseUrl: connectionString,

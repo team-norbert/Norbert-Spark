@@ -33,7 +33,13 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
   if (error) {
     return (
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold">
+        <Typography
+          variant="h3"
+          component="h1"
+          gutterBottom
+          fontWeight="bold"
+          data-testid="error-heading"
+        >
           Company Details
         </Typography>
         <Typography color="error">Error: {error}</Typography>
@@ -44,7 +50,13 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
   if (!company || !keyPerson) {
     return (
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold">
+        <Typography
+          variant="h3"
+          component="h1"
+          gutterBottom
+          fontWeight="bold"
+          data-testid="no-data-heading"
+        >
           Company Details
         </Typography>
         <Typography color="text.secondary">No company or key person data available.</Typography>
@@ -69,7 +81,14 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
 
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
-      <Typography variant="h3" component="h1" gutterBottom fontWeight="bold" sx={{ mb: 4 }}>
+      <Typography
+        variant="h3"
+        component="h1"
+        gutterBottom
+        fontWeight="bold"
+        sx={{ mb: 4 }}
+        data-testid="company-details-heading"
+      >
         Company Details
       </Typography>
 
@@ -84,14 +103,18 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
               <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
                 Legal Name
               </Typography>
-              <Typography variant="body1">{company.legalName}</Typography>
+              <Typography variant="body1" data-testid="company-legal-name">
+                {company.legalName}
+              </Typography>
             </Box>
 
             <Box>
               <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
                 Display Name
               </Typography>
-              <Typography variant="body1">{company.displayName}</Typography>
+              <Typography variant="body1" data-testid="company-display-name">
+                {company.displayName}
+              </Typography>
             </Box>
 
             <Box>
@@ -112,7 +135,9 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
                 <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
                   Industry
                 </Typography>
-                <Typography variant="body1">{company.industry}</Typography>
+                <Typography variant="body1" data-testid="company-industry">
+                  {company.industry}
+                </Typography>
               </Box>
             )}
 
@@ -121,7 +146,9 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
                 <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
                   Company Size
                 </Typography>
-                <Typography variant="body1">{company.companySize} employees</Typography>
+                <Typography variant="body1" data-testid="company-company-size">
+                  {company.companySize} employees
+                </Typography>
               </Box>
             )}
 
@@ -135,6 +162,7 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
                   target="_blank"
                   rel="noopener noreferrer"
                   underline="hover"
+                  data-testid="company-website-url"
                 >
                   {company.websiteUrl}
                 </Link>
@@ -146,7 +174,9 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
                 <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
                   Billing Country
                 </Typography>
-                <Typography variant="body1">{company.billingCountry}</Typography>
+                <Typography variant="body1" data-testid="company-billing-country">
+                  {company.billingCountry}
+                </Typography>
               </Box>
             )}
 
@@ -154,7 +184,9 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
               <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
                 Timezone
               </Typography>
-              <Typography variant="body1">{company.timezone}</Typography>
+              <Typography variant="body1" data-testid="company-timezone">
+                {company.timezone}
+              </Typography>
             </Box>
 
             <Divider sx={{ my: 1 }} />
@@ -170,7 +202,7 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
                 <Typography variant="caption" color="text.secondary" fontWeight="medium">
                   Created At
                 </Typography>
-                <Typography variant="body1">
+                <Typography variant="body1" data-testid="company-created-at">
                   {new Date(company.createdAt).toLocaleString()}
                 </Typography>
               </Box>
@@ -178,7 +210,7 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
                 <Typography variant="caption" color="text.secondary" fontWeight="medium">
                   Last Updated
                 </Typography>
-                <Typography variant="body1">
+                <Typography variant="body1" data-testid="company-updated-at">
                   {new Date(company.updatedAt).toLocaleString()}
                 </Typography>
               </Box>
