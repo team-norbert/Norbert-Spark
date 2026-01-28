@@ -89,7 +89,7 @@ const KeyPersonSchema = z.object({
 
 export function useCompanyDetailsForm() {
   const router = useRouter()
-  const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [generalError, setGeneralError] = useState('')
