@@ -401,6 +401,38 @@ describe('useCompanyDetailsForm', () => {
       )
     })
 
+    it('should transform billing country to uppercase', async () => {
+      mockGetCompanyDetailsAction.mockResolvedValue(mockSuccessResponse)
+
+      const { result } = renderHook(() => useCompanyDetailsForm())
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      act(() => {
+        result.current.handleChange('billingCountry')({ target: { value: 'us' } })
+      })
+
+      expect(result.current.formData.billingCountry).toBe('US')
+    })
+
+    it('should transform mixed case billing country to uppercase', async () => {
+      mockGetCompanyDetailsAction.mockResolvedValue(mockSuccessResponse)
+
+      const { result } = renderHook(() => useCompanyDetailsForm())
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      act(() => {
+        result.current.handleChange('billingCountry')({ target: { value: 'Gb' } })
+      })
+
+      expect(result.current.formData.billingCountry).toBe('GB')
+    })
+
     it('should validate email format', async () => {
       mockGetCompanyDetailsAction.mockResolvedValue(mockSuccessResponse)
 
