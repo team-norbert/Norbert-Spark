@@ -276,6 +276,15 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
           </Box>
         </Paper>
       </Box>
+
+      {/* Link to edit data */}
+      <Box component="section" sx={{ mb: 4 }}>
+        <Typography variant="h5" component="h2" color="primary" gutterBottom sx={{ mb: 2 }}>
+          <Link href="/company-details/update" underline="hover">
+            Edit above company and key person details
+          </Link>
+        </Typography>
+      </Box>
     </Container>
   )
 }
