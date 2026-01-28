@@ -278,7 +278,7 @@ describe('updateCompanyDetailsAction', () => {
       const result = await updateCompanyDetailsAction(mockRequest)
 
       expect(result).toEqual({
-        status: 404,
+        status: 401,
         success: false,
         error: 'Authentication required',
       })
@@ -305,7 +305,7 @@ describe('updateCompanyDetailsAction', () => {
       const result = await updateCompanyDetailsAction(mockRequest)
 
       expect(result.success).toBe(false)
-      expect(result.status).toBe(404)
+      expect(result.status).toBe(401)
       expect(result.error).toBe('Authentication required')
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })

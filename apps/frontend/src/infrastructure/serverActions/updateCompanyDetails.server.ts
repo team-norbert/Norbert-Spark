@@ -56,7 +56,7 @@ export async function updateCompanyDetailsAction(
     if (!token) {
       logger.warn('No auth token available in updateCompanyDetailsAction')
       return {
-        status: 404,
+        status: 401,
         success: false,
         error: 'Authentication required',
       }
