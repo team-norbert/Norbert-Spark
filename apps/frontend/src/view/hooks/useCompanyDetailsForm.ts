@@ -1,5 +1,5 @@
 import { useRouter } from 'next/navigation.js'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 
 import { getCompanyDetailsAction } from '@/infrastructure/serverActions/getCompanyDetails.server.js'
@@ -89,6 +89,7 @@ const KeyPersonSchema = z.object({
 
 export function useCompanyDetailsForm() {
   const router = useRouter()
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [generalError, setGeneralError] = useState('')
@@ -167,6 +168,15 @@ export function useCompanyDetailsForm() {
     fetchData()
   }, [])
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const handleChange =
     (field: keyof CompanyDetailsFormData) => (event: { target: { value: unknown } }) => {
       let value = event.target.value
@@ -179,9 +189,19 @@ export function useCompanyDetailsForm() {
       setErrors({ ...errors, [field]: '' })
       setGeneralError('')
       setSuccessMessage('')
+      // Clear redirect timeout when user starts editing
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current)
+        redirectTimeoutRef.current = null
+      }
     }
 
   const handleCancel = () => {
+    // Clear redirect timeout if pending
+    if (redirectTimeoutRef.current) {
+      clearTimeout(redirectTimeoutRef.current)
+      redirectTimeoutRef.current = null
+    }
     router.push('/company-details')
   }
 
@@ -330,8 +350,12 @@ export function useCompanyDetailsForm() {
         setSuccessMessage('Company details updated successfully!')
         // Scroll to top to show success message
         window.scrollTo({ top: 0, behavior: 'smooth' })
+        // Clear any existing timeout before scheduling a new one
+        if (redirectTimeoutRef.current) {
+          clearTimeout(redirectTimeoutRef.current)
+        }
         // Redirect after 2 seconds
-        setTimeout(() => {
+        redirectTimeoutRef.current = setTimeout(() => {
           router.push('/company-details')
         }, 2000)
       }
