@@ -378,7 +378,10 @@ export const vectorEmbeddings = pgTable(
       'ivfflat',
       table.embedding.asc().op('vector_cosine_ops')
     ),
-    documentChunkIdx: index('data_document_chunk_idx').on(table.documentId, table.chunkIndex),
+    documentChunkIdx: index('vector_embeddings_document_chunk_idx').on(
+      table.documentId,
+      table.chunkIndex
+    ),
     contentLengthCheck: check(
       'vector_embeddings_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
