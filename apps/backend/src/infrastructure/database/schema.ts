@@ -27,6 +27,13 @@ const citext = customType<{ data: string }>({
   },
 })
 
+// Define VECTOR custom type for pgvector embeddings
+const vector = customType<{ data: number[]; config: { dimension: number } }>({
+  dataType(config) {
+    return `vector(${(config as { dimension: number })?.dimension ?? 1536})`
+  },
+})
+
 export const companyStatusEnum = pgEnum('customer_status', [
   'prospect',
   'active',
@@ -331,6 +338,32 @@ export const user = pgTable(
  */
 export type DBUser = typeof user.$inferInsert
 export type DBUserSelect = typeof user.$inferSelect
+
+/**
+ * Data table: Stores vector embeddings for RAG (Retrieval-Augmented Generation)
+ */
+export const data = pgTable(
+  'data',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    content: text('content').notNull(),
+    embedding: vector('embedding', { dimension: 1536 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => ({
+    embeddingCosineIdx: index('data_embedding_cosine_idx').using(
+      'ivfflat',
+      table.embedding.asc().op('vector_cosine_ops')
+    ),
+  })
+)
+
+export type DBData = typeof data.$inferInsert
+export type DBDataSelect = typeof data.$inferSelect
 
 /**
  * Chat Types table: Stores reusable chat templates/configurations
