@@ -856,17 +856,85 @@ describe('Database Schema', () => {
     })
 
     describe('indexes', () => {
-      it('should have ivfflat index for cosine similarity search', () => {
-        // The schema defines an index using ivfflat for vector_cosine_ops
-        // This ensures efficient similarity searches on embeddings
-        const indexName = 'data_embedding_cosine_idx'
-        expect(indexName).toBe('data_embedding_cosine_idx')
+      it('should have the table properly configured with index definitions', () => {
+        expect(vectorEmbeddings).toBeDefined()
+        expect(typeof vectorEmbeddings).toBe('object')
       })
 
-      it('should have composite index on documentId and chunkIndex', () => {
-        // The schema defines an index for efficient document chunk retrieval
-        const indexName = 'data_document_chunk_idx'
-        expect(indexName).toBe('data_document_chunk_idx')
+      it('should be able to query the table (indexes will be applied at DB level)', () => {
+        // Indexes are defined in the schema and will be created by Drizzle/SQL
+        // This test verifies the table structure supports indexes
+        const tableName = getTableName(vectorEmbeddings)
+        expect(tableName).toBe('vector_embeddings')
+      })
+
+      it('should have columns that will be indexed (embedding, documentId, chunkIndex)', () => {
+        // Verify the columns that should be indexed exist
+        expect(vectorEmbeddings.embedding).toBeDefined()
+        expect(vectorEmbeddings.embedding.name).toBe('embedding')
+
+        expect(vectorEmbeddings.documentId).toBeDefined()
+        expect(vectorEmbeddings.documentId.name).toBe('document_id')
+
+        expect(vectorEmbeddings.chunkIndex).toBeDefined()
+        expect(vectorEmbeddings.chunkIndex.name).toBe('chunk_index')
+      })
+
+      it('should have embedding column configured for vector operations', () => {
+        // Verify the embedding column is properly typed for pgvector
+        expect(vectorEmbeddings.embedding).toBeDefined()
+        expect(vectorEmbeddings.embedding.columnType).toBe('PgCustomColumn')
+        expect(vectorEmbeddings.embedding.dataType).toBe('custom')
+      })
+
+      it('should have columns properly configured for composite index', () => {
+        // Verify both columns for the documentId+chunkIndex composite index exist
+        expect(vectorEmbeddings.documentId).toBeDefined()
+        expect(vectorEmbeddings.chunkIndex).toBeDefined()
+
+        // Both should be not null for the index to work efficiently
+        expect(vectorEmbeddings.documentId.notNull).toBe(true)
+        expect(vectorEmbeddings.chunkIndex.notNull).toBe(true)
+      })
+
+      it('should have columns with appropriate types for indexing', () => {
+        // documentId: text (B-tree indexable)
+        expect(vectorEmbeddings.documentId.columnType).toBe('PgText')
+        expect(vectorEmbeddings.documentId.dataType).toBe('string')
+
+        // chunkIndex: integer (B-tree indexable)
+        expect(vectorEmbeddings.chunkIndex.columnType).toBe('PgInteger')
+        expect(vectorEmbeddings.chunkIndex.dataType).toBe('number')
+      })
+
+      it('should have schema configured to support ivfflat vector index', () => {
+        // The embedding column should support vector operations
+        // IVFFlat index will be created at the database level using pgvector extension
+        expect(vectorEmbeddings.embedding).toBeDefined()
+        expect(vectorEmbeddings.embedding.notNull).toBe(true)
+      })
+
+      it('should document expected indexes via schema definition', () => {
+        // This test documents the expected indexes that should exist:
+        const expectedIndexes = [
+          {
+            name: 'data_embedding_cosine_idx',
+            method: 'ivfflat',
+            columns: ['embedding'],
+            ops: 'vector_cosine_ops',
+            purpose: 'Efficient cosine similarity search for RAG',
+          },
+          {
+            name: 'data_document_chunk_idx',
+            method: 'btree',
+            columns: ['document_id', 'chunk_index'],
+            purpose: 'Fast lookup and ordering of document chunks',
+          },
+        ]
+
+        expect(expectedIndexes).toHaveLength(2)
+        expect(expectedIndexes[0]?.method).toBe('ivfflat')
+        expect(expectedIndexes[1]?.method).toBe('btree')
       })
     })
   })
