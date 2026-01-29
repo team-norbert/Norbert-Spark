@@ -84,7 +84,6 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_embedding_cosine_idx
     USING ivfflat (embedding vector_cosine_ops)
     WITH (lists = 100);
 
-
 -- ============================================================
 -- CRM / COMPANY MANAGEMENT
 -- ============================================================
