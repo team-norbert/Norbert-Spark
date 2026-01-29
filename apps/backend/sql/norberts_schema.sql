@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS vector_embeddings (
     chunkIndex: INTEGER NOT NULL,
     embedding VECTOR(1536) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    updatedAt TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_embedding_cosine_idx
