@@ -364,9 +364,7 @@ export const vectorEmbeddings = pgTable(
     /**
      * Position of this chunk within its document, used to reconstruct ordering.
      */
-    chunkIndex: integer('chunk_index')
-      .notNull()
-      .default(0),
+    chunkIndex: integer('chunk_index').notNull().default(0),
     embedding: vector('embedding', { dimension: 1536 }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
@@ -380,10 +378,7 @@ export const vectorEmbeddings = pgTable(
       'ivfflat',
       table.embedding.asc().op('vector_cosine_ops')
     ),
-    documentChunkIdx: index('data_document_chunk_idx').on(
-      table.documentId,
-      table.chunkIndex
-    ),
+    documentChunkIdx: index('data_document_chunk_idx').on(table.documentId, table.chunkIndex),
   })
 )
 
