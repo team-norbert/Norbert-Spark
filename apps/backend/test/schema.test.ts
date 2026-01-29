@@ -835,8 +835,9 @@ describe('Database Schema', () => {
       })
 
       describe('embedding dimension', () => {
-        it('should use 1536 dimensions for OpenAI embeddings', () => {
-          // Vector dimension for OpenAI text-embedding-ada-002
+        it('should use 1536 dimensions for vector embeddings', () => {
+          // Current default embedding dimension (e.g. compatible with OpenAI text-embedding-ada-002).
+          // Keep this value in sync with the configured embedding model.
           const expectedDimension = 1536
           expect(expectedDimension).toBe(1536)
         })
