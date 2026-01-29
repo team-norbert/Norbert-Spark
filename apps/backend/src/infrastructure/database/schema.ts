@@ -340,7 +340,7 @@ export type DBUser = typeof user.$inferInsert
 export type DBUserSelect = typeof user.$inferSelect
 
 /**
- * Data table: Stores vector embeddings for RAG (Retrieval-Augmented Generation)
+ * Vector Embeddings table: Stores vector embeddings for RAG (Retrieval-Augmented Generation)
  */
 export const vectorEmbeddings = pgTable(
   'vector_embeddings',
