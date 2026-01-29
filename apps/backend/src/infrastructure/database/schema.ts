@@ -374,7 +374,7 @@ export const vectorEmbeddings = pgTable(
       .default(sql`now()`),
   },
   (table) => ({
-    embeddingCosineIdx: index('data_embedding_cosine_idx').using(
+    embeddingCosineIdx: index('vector_embeddings_embedding_cosine_idx').using(
       'ivfflat',
       table.embedding.asc().op('vector_cosine_ops')
     ),
