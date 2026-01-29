@@ -32,15 +32,19 @@ test.describe('Chat Interaction', () => {
     await page.waitForURL('/ai', { timeout: 30000 })
 
     // Wait for Next.js compilation to complete (dev mode indicator disappears)
-    await page.waitForFunction(
-      () => !document.body.textContent?.includes('Compiling'),
-      { timeout: 30000 }
-    )
+    await page.waitForFunction(() => !document.body.textContent?.includes('Compiling'), {
+      timeout: 30000,
+    })
 
-    // Now verify form elements are disabled - use simple selectors
+    // Wait for the chat input to be visible and stable
     const textInput = page.getByTestId('chat-text-input')
-    await expect(textInput).toBeVisible()
-    await expect(textInput).toBeDisabled()
+    await expect(textInput).toBeVisible({ timeout: 10000 })
+
+    // Wait a moment for React hydration to complete
+    await page.waitForTimeout(500)
+
+    // Now verify form elements are disabled
+    await expect(textInput).toBeDisabled({ timeout: 5000 })
 
     // Verify submit button is disabled (IconButton with type="submit")
     const submitBtn = page.locator('button[type="submit"]')
@@ -75,14 +79,18 @@ test.describe('Chat Interaction', () => {
     await page.waitForURL('/ai', { timeout: 30000 })
 
     // Wait for Next.js compilation to complete (dev mode indicator disappears)
-    await page.waitForFunction(
-      () => !document.body.textContent?.includes('Compiling'),
-      { timeout: 30000 }
-    )
+    await page.waitForFunction(() => !document.body.textContent?.includes('Compiling'), {
+      timeout: 30000,
+    })
+
+    // Wait for the New Chat button to be visible and stable
+    const newChatButton = page.getByTestId('new-chat-button').first()
+    await expect(newChatButton).toBeVisible({ timeout: 10000 })
+
+    // Wait for React hydration
+    await page.waitForTimeout(500)
 
     // Click "New Chat" button to enable the form
-    const newChatButton = page.getByTestId('new-chat-button').first()
-    await expect(newChatButton).toBeVisible()
     await newChatButton.click()
 
     // Wait for URL to change to a new chat ID
