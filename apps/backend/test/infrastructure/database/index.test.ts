@@ -74,6 +74,16 @@ describe('Database Index', () => {
     })
   })
 
+  describe('Error Handling', () => {
+    it('should throw ValidationException when DATABASE_URL is undefined', async () => {
+      process.env.DATABASE_URL = undefined
+
+      await expect(import('../../../src/infrastructure/database/index.js')).rejects.toThrow(
+        'DATABASE_URL is required but not configured'
+      )
+    })
+  })
+
   describe('Drizzle Instance', () => {
     it('should initialize drizzle instance with pool', async () => {
       process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/testdb'
