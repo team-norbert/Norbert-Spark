@@ -72,8 +72,8 @@ CREATE TABLE IF NOT EXISTS vector_embeddings (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     content TEXT NOT NULL,
     documentId TEXT NOT NULL,
-    metadata: JSONB NOT NULL,
-    chunkIndex: INTEGER NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    chunk_index INTEGER NOT NULL DEFAULT 0,
     embedding VECTOR(1536) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updatedAt TIMESTAMPTZ NOT NULL DEFAULT now()
