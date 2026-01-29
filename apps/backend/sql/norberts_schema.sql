@@ -71,6 +71,9 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS vector_embeddings (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     content TEXT NOT NULL,
+    documentId TEXT NOT NULL,
+    metadata: JSONB NOT NULL,
+    chunkIndex: INTEGER NOT NULL,
     embedding VECTOR(1536) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
