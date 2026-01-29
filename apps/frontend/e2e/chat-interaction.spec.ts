@@ -31,12 +31,14 @@ test.describe('Chat Interaction', () => {
     // Wait for navigation (30s timeout for Next.js dev compilation)
     await page.waitForURL('/ai', { timeout: 30000 })
 
-    // Wait for page to be fully loaded
-    await page.waitForLoadState('domcontentloaded', { timeout: 30000 })
+    // Wait for Next.js compilation to complete (dev mode indicator disappears)
+    await page.waitForFunction(
+      () => !document.body.textContent?.includes('Compiling'),
+      { timeout: 30000 }
+    )
 
-    // Wait for chat input to be visible (indicates page is ready)
+    // Now verify form elements are disabled - use simple selectors
     const textInput = page.getByTestId('chat-text-input')
-    await expect(textInput).toBeVisible({ timeout: 10000 })
     await expect(textInput).toBeVisible()
     await expect(textInput).toBeDisabled()
 
@@ -72,14 +74,14 @@ test.describe('Chat Interaction', () => {
     // Wait for navigation (30s timeout for Next.js dev compilation)
     await page.waitForURL('/ai', { timeout: 30000 })
 
-    // Wait for page to be fully loaded
-    await page.waitForLoadState('domcontentloaded', { timeout: 30000 })
+    // Wait for Next.js compilation to complete (dev mode indicator disappears)
+    await page.waitForFunction(
+      () => !document.body.textContent?.includes('Compiling'),
+      { timeout: 30000 }
+    )
 
-    // Wait for New Chat button to be visible (indicates page is ready)
+    // Click "New Chat" button to enable the form
     const newChatButton = page.getByTestId('new-chat-button').first()
-    await expect(newChatButton).toBeVisible({ timeout: 10000 })
-
-    // Click "New Chat" button to enable the form - ensure we click the visible one
     await expect(newChatButton).toBeVisible()
     await newChatButton.click()
 
