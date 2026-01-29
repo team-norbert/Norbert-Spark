@@ -919,14 +919,14 @@ describe('Database Schema', () => {
         // This test documents the expected indexes that should exist:
         const expectedIndexes = [
           {
-            name: 'data_embedding_cosine_idx',
+            name: 'vector_embeddings_embedding_cosine_idx',
             method: 'ivfflat',
             columns: ['embedding'],
             ops: 'vector_cosine_ops',
             purpose: 'Efficient cosine similarity search for RAG',
           },
           {
-            name: 'data_document_chunk_idx',
+            name: 'vector_embeddings_document_chunk_idx',
             method: 'btree',
             columns: ['document_id', 'chunk_index'],
             purpose: 'Fast lookup and ordering of document chunks',
