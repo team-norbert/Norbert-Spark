@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS vector_embeddings (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS data_embedding_cosine_idx
+CREATE INDEX IF NOT EXISTS vector_embeddings_embedding_cosine_idx
     ON data
     USING ivfflat (embedding vector_cosine_ops)
     WITH (lists = 100);
