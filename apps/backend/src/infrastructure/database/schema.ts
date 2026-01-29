@@ -357,7 +357,7 @@ export const data = pgTable(
   (table) => ({
     embeddingCosineIdx: index('data_embedding_cosine_idx').using(
       'ivfflat',
-      table.embedding.asc().op('vector_cosine_ops')
+      table.embedding.op('vector_cosine_ops')
     ),
   })
 )
