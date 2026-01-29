@@ -28,23 +28,13 @@ test.describe('Chat Interaction', () => {
     await expect(chatButton).toBeVisible()
     await chatButton.click()
 
-    // Wait for navigation (30s timeout for Next.js dev compilation)
-    await page.waitForURL('/ai', { timeout: 30000 })
+    // Verify navigation to /ai page
+    await page.waitForURL('/ai', { timeout: 10000 })
 
-    // Wait for Next.js compilation to complete (dev mode indicator disappears)
-    await page.waitForFunction(() => !document.body.textContent?.includes('Compiling'), {
-      timeout: 30000,
-    })
-
-    // Wait for the chat input to be visible and stable
+    // Verify form elements are disabled - use simple selectors
     const textInput = page.getByTestId('chat-text-input')
-    await expect(textInput).toBeVisible({ timeout: 10000 })
-
-    // Wait a moment for React hydration to complete
-    await page.waitForTimeout(500)
-
-    // Now verify form elements are disabled
-    await expect(textInput).toBeDisabled({ timeout: 5000 })
+    await expect(textInput).toBeVisible()
+    await expect(textInput).toBeDisabled()
 
     // Verify submit button is disabled (IconButton with type="submit")
     const submitBtn = page.locator('button[type="submit"]')
@@ -75,22 +65,12 @@ test.describe('Chat Interaction', () => {
     await expect(chatButton).toBeVisible()
     await chatButton.click()
 
-    // Wait for navigation (30s timeout for Next.js dev compilation)
-    await page.waitForURL('/ai', { timeout: 30000 })
+    // Verify navigation to /ai page
+    await page.waitForURL('/ai', { timeout: 10000 })
 
-    // Wait for Next.js compilation to complete (dev mode indicator disappears)
-    await page.waitForFunction(() => !document.body.textContent?.includes('Compiling'), {
-      timeout: 30000,
-    })
-
-    // Wait for the New Chat button to be visible and stable
+    // Click "New Chat" button to enable the form - ensure we click the visible one
     const newChatButton = page.getByTestId('new-chat-button').first()
-    await expect(newChatButton).toBeVisible({ timeout: 10000 })
-
-    // Wait for React hydration
-    await page.waitForTimeout(500)
-
-    // Click "New Chat" button to enable the form
+    await expect(newChatButton).toBeVisible()
     await newChatButton.click()
 
     // Wait for URL to change to a new chat ID
