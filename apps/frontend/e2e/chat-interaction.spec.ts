@@ -26,10 +26,15 @@ test.describe('Chat Interaction', () => {
     // Click on chat navigation element
     const chatButton = page.getByTestId('chat')
     await expect(chatButton).toBeVisible()
-    await chatButton.click()
 
-    // Verify navigation to /ai page
-    await page.waitForURL('/ai', { timeout: 10000 })
+    // Wait for navigation and click together to handle Next.js compilation
+    await Promise.all([
+      page.waitForURL('/ai', { timeout: 15000 }),
+      chatButton.click(),
+    ])
+
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('domcontentloaded')
 
     // Verify form elements are disabled - use simple selectors
     const textInput = page.getByTestId('chat-text-input')
@@ -63,10 +68,15 @@ test.describe('Chat Interaction', () => {
     // Click on chat navigation element
     const chatButton = page.getByTestId('chat')
     await expect(chatButton).toBeVisible()
-    await chatButton.click()
 
-    // Verify navigation to /ai page
-    await page.waitForURL('/ai', { timeout: 10000 })
+    // Wait for navigation and click together to handle Next.js compilation
+    await Promise.all([
+      page.waitForURL('/ai', { timeout: 15000 }),
+      chatButton.click(),
+    ])
+
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('domcontentloaded')
 
     // Click "New Chat" button to enable the form - ensure we click the visible one
     const newChatButton = page.getByTestId('new-chat-button').first()
