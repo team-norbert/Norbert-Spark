@@ -342,8 +342,8 @@ export type DBUserSelect = typeof user.$inferSelect
 /**
  * Data table: Stores vector embeddings for RAG (Retrieval-Augmented Generation)
  */
-export const data = pgTable(
-  'data',
+export const vectorEmbeddings = pgTable(
+  'vector_embeddings',
   {
     id: uuid('id')
       .primaryKey()
@@ -362,8 +362,8 @@ export const data = pgTable(
   })
 )
 
-export type DBData = typeof data.$inferInsert
-export type DBDataSelect = typeof data.$inferSelect
+export type DBVectorEmbeddings = typeof vectorEmbeddings.$inferInsert
+export type DBVectorEmbeddingsSelect = typeof vectorEmbeddings.$inferSelect
 
 /**
  * Chat Types table: Stores reusable chat templates/configurations

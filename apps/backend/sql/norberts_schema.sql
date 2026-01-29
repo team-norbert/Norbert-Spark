@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- VECTOR DATA (RAG)
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS data (
+CREATE TABLE IF NOT EXISTS vector_embeddings (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     content TEXT NOT NULL,
     embedding VECTOR(1536) NOT NULL,
