@@ -18,6 +18,7 @@ BEGIN;
 -- ------------------------------------------------------------
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS citext;
+CREATE EXTENSION IF NOT EXISTS vector;
 
 -- ------------------------------------------------------------
 -- ENUM types
@@ -62,6 +63,26 @@ CREATE TABLE IF NOT EXISTS users (
     provider_id TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- ============================================================
+-- VECTOR DATA (RAG)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS vector_embeddings (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    content TEXT NOT NULL,
+    documentId TEXT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    chunk_index INTEGER NOT NULL DEFAULT 0,
+    embedding VECTOR(1536) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updatedAt TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_embedding_cosine_idx
+    ON vector_embeddings
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 100);
 
 -- ============================================================
 -- CRM / COMPANY MANAGEMENT

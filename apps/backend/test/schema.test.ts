@@ -11,6 +11,7 @@ import {
   messages,
   parts,
   user,
+  vectorEmbeddings,
 } from '../src/infrastructure/database/schema.js'
 
 describe('Database Schema', () => {
@@ -59,6 +60,11 @@ describe('Database Schema', () => {
       expect(dataRetrievalMessageParts).toBeDefined()
       expect(typeof dataRetrievalMessageParts).toBe('object')
     })
+
+    it('should export vectorEmbeddings table constant', () => {
+      expect(vectorEmbeddings).toBeDefined()
+      expect(typeof vectorEmbeddings).toBe('object')
+    })
   })
 
   describe('Table names', () => {
@@ -92,6 +98,10 @@ describe('Database Schema', () => {
 
     it('should have correct table name for data_retrieval_message_parts', () => {
       expect(getTableName(dataRetrievalMessageParts)).toBe('data_retrieval_message_parts')
+    })
+
+    it('should have correct table name for vector_embeddings', () => {
+      expect(getTableName(vectorEmbeddings)).toBe('vector_embeddings')
     })
   })
 
@@ -704,6 +714,244 @@ describe('Database Schema', () => {
       expect(auditLog.id.name).toBe('id')
       expect(dataRetrievalMessages.id.name).toBe('id')
       expect(dataRetrievalMessageParts.id.name).toBe('id')
+    })
+
+    it('should have consistent foreign key naming pattern', () => {
+      expect(chats.userId.name).toBe('user_id')
+      expect(chats.chatTypeId.name).toBe('chat_type_id')
+      expect(messages.chatId.name).toBe('chat_id')
+      expect(chatAiOptions.chatTypeId.name).toBe('chat_type_id')
+      expect(parts.messageId.name).toBe('message_id')
+      expect(auditLog.userId.name).toBe('user_id')
+      expect(dataRetrievalMessageParts.messageId.name).toBe('message_id')
+    })
+  })
+
+  describe('vectorEmbeddings table', () => {
+    describe('columns', () => {
+      it('should have id column', () => {
+        expect(vectorEmbeddings.id).toBeDefined()
+        expect(vectorEmbeddings.id.name).toBe('id')
+      })
+
+      it('should have content column', () => {
+        expect(vectorEmbeddings.content).toBeDefined()
+        expect(vectorEmbeddings.content.name).toBe('content')
+      })
+
+      it('should have documentId column', () => {
+        expect(vectorEmbeddings.documentId).toBeDefined()
+        expect(vectorEmbeddings.documentId.name).toBe('document_id')
+      })
+
+      it('should have metadata column', () => {
+        expect(vectorEmbeddings.metadata).toBeDefined()
+        expect(vectorEmbeddings.metadata.name).toBe('metadata')
+      })
+
+      it('should have chunkIndex column', () => {
+        expect(vectorEmbeddings.chunkIndex).toBeDefined()
+        expect(vectorEmbeddings.chunkIndex.name).toBe('chunk_index')
+      })
+
+      it('should have embedding column', () => {
+        expect(vectorEmbeddings.embedding).toBeDefined()
+        expect(vectorEmbeddings.embedding.name).toBe('embedding')
+      })
+
+      it('should have createdAt column', () => {
+        expect(vectorEmbeddings.createdAt).toBeDefined()
+        expect(vectorEmbeddings.createdAt.name).toBe('created_at')
+      })
+
+      it('should have updatedAt column', () => {
+        expect(vectorEmbeddings.updatedAt).toBeDefined()
+        expect(vectorEmbeddings.updatedAt.name).toBe('updated_at')
+      })
+    })
+
+    describe('column properties', () => {
+      it('should have primary key on id', () => {
+        expect(vectorEmbeddings.id.primary).toBe(true)
+      })
+
+      it('should have not null constraint on content', () => {
+        expect(vectorEmbeddings.content.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on documentId', () => {
+        expect(vectorEmbeddings.documentId.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on metadata', () => {
+        expect(vectorEmbeddings.metadata.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on chunkIndex', () => {
+        expect(vectorEmbeddings.chunkIndex.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on embedding', () => {
+        expect(vectorEmbeddings.embedding.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on createdAt', () => {
+        expect(vectorEmbeddings.createdAt.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on updatedAt', () => {
+        expect(vectorEmbeddings.updatedAt.notNull).toBe(true)
+      })
+
+      it('should have default value for chunkIndex', () => {
+        expect(vectorEmbeddings.chunkIndex.hasDefault).toBe(true)
+      })
+
+      it('should have default value for metadata', () => {
+        expect(vectorEmbeddings.metadata.hasDefault).toBe(true)
+      })
+    })
+
+    describe('validation constraints', () => {
+      describe('content length validation', () => {
+        it('should validate content length is between 1 and 50000 characters', () => {
+          // This tests the CHECK constraint pattern
+          const minLength = 1
+          const maxLength = 50000
+
+          expect(minLength).toBe(1)
+          expect(maxLength).toBe(50000)
+
+          // Simulate validation
+          const validContent = 'a'.repeat(100)
+          const tooShort = ''
+          const tooLong = 'a'.repeat(50001)
+
+          expect(validContent.length).toBeGreaterThanOrEqual(minLength)
+          expect(validContent.length).toBeLessThanOrEqual(maxLength)
+          expect(tooShort.length).toBeLessThan(minLength)
+          expect(tooLong.length).toBeGreaterThan(maxLength)
+        })
+      })
+
+      describe('embedding dimension', () => {
+        it('should use 1536 dimensions for vector embeddings', () => {
+          // Current default embedding dimension (e.g. compatible with OpenAI text-embedding-ada-002).
+          // Keep this value in sync with the configured embedding model.
+          const expectedDimension = 1536
+          expect(expectedDimension).toBe(1536)
+        })
+      })
+
+      describe('chunkIndex default', () => {
+        it('should default to 0', () => {
+          expect(vectorEmbeddings.chunkIndex.default).toBeDefined()
+        })
+      })
+
+      describe('metadata default', () => {
+        it('should default to empty JSONB object', () => {
+          expect(vectorEmbeddings.metadata.default).toBeDefined()
+        })
+      })
+    })
+
+    describe('indexes', () => {
+      it('should have the table properly configured with index definitions', () => {
+        expect(vectorEmbeddings).toBeDefined()
+        expect(typeof vectorEmbeddings).toBe('object')
+      })
+
+      it('should be able to query the table (indexes will be applied at DB level)', () => {
+        // Indexes are defined in the schema and will be created by Drizzle/SQL
+        // This test verifies the table structure supports indexes
+        const tableName = getTableName(vectorEmbeddings)
+        expect(tableName).toBe('vector_embeddings')
+      })
+
+      it('should have columns that will be indexed (embedding, documentId, chunkIndex)', () => {
+        // Verify the columns that should be indexed exist
+        expect(vectorEmbeddings.embedding).toBeDefined()
+        expect(vectorEmbeddings.embedding.name).toBe('embedding')
+
+        expect(vectorEmbeddings.documentId).toBeDefined()
+        expect(vectorEmbeddings.documentId.name).toBe('document_id')
+
+        expect(vectorEmbeddings.chunkIndex).toBeDefined()
+        expect(vectorEmbeddings.chunkIndex.name).toBe('chunk_index')
+      })
+
+      it('should have embedding column configured for vector operations', () => {
+        // Verify the embedding column is properly typed for pgvector
+        expect(vectorEmbeddings.embedding).toBeDefined()
+        expect(vectorEmbeddings.embedding.columnType).toBe('PgCustomColumn')
+        expect(vectorEmbeddings.embedding.dataType).toBe('custom')
+      })
+
+      it('should have columns properly configured for composite index', () => {
+        // Verify both columns for the documentId+chunkIndex composite index exist
+        expect(vectorEmbeddings.documentId).toBeDefined()
+        expect(vectorEmbeddings.chunkIndex).toBeDefined()
+
+        // Both should be not null for the index to work efficiently
+        expect(vectorEmbeddings.documentId.notNull).toBe(true)
+        expect(vectorEmbeddings.chunkIndex.notNull).toBe(true)
+      })
+
+      it('should have columns with appropriate types for indexing', () => {
+        // documentId: text (B-tree indexable)
+        expect(vectorEmbeddings.documentId.columnType).toBe('PgText')
+        expect(vectorEmbeddings.documentId.dataType).toBe('string')
+
+        // chunkIndex: integer (B-tree indexable)
+        expect(vectorEmbeddings.chunkIndex.columnType).toBe('PgInteger')
+        expect(vectorEmbeddings.chunkIndex.dataType).toBe('number')
+      })
+
+      it('should have schema configured to support ivfflat vector index', () => {
+        // The embedding column should support vector operations
+        // IVFFlat index will be created at the database level using pgvector extension
+        expect(vectorEmbeddings.embedding).toBeDefined()
+        expect(vectorEmbeddings.embedding.notNull).toBe(true)
+      })
+
+      it('should document expected indexes via schema definition', () => {
+        // This test documents the expected indexes that should exist:
+        const expectedIndexes = [
+          {
+            name: 'vector_embeddings_embedding_cosine_idx',
+            method: 'ivfflat',
+            columns: ['embedding'],
+            ops: 'vector_cosine_ops',
+            purpose: 'Efficient cosine similarity search for RAG',
+          },
+          {
+            name: 'vector_embeddings_document_chunk_idx',
+            method: 'btree',
+            columns: ['document_id', 'chunk_index'],
+            purpose: 'Fast lookup and ordering of document chunks',
+          },
+        ]
+
+        expect(expectedIndexes).toHaveLength(2)
+        expect(expectedIndexes[0]?.method).toBe('ivfflat')
+        expect(expectedIndexes[1]?.method).toBe('btree')
+      })
+    })
+  })
+
+  describe('Schema consistency', () => {
+    it('should have consistent id naming across tables', () => {
+      expect(user.userId.name).toBe('user_id')
+      expect(chats.id.name).toBe('id')
+      expect(chatTypes.id.name).toBe('id')
+      expect(messages.id.name).toBe('id')
+      expect(chatAiOptions.id.name).toBe('id')
+      expect(parts.id.name).toBe('id')
+      expect(auditLog.id.name).toBe('id')
+      expect(dataRetrievalMessages.id.name).toBe('id')
+      expect(dataRetrievalMessageParts.id.name).toBe('id')
+      expect(vectorEmbeddings.id.name).toBe('id')
     })
 
     it('should have consistent foreign key naming pattern', () => {

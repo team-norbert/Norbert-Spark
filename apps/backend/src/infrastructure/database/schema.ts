@@ -27,6 +27,13 @@ const citext = customType<{ data: string }>({
   },
 })
 
+// Define VECTOR custom type for pgvector embeddings
+const vector = customType<{ data: number[]; config: { dimension: number } }>({
+  dataType(config) {
+    return `vector(${(config as { dimension: number })?.dimension ?? 1536})`
+  },
+})
+
 export const companyStatusEnum = pgEnum('customer_status', [
   'prospect',
   'active',
@@ -331,6 +338,63 @@ export const user = pgTable(
  */
 export type DBUser = typeof user.$inferInsert
 export type DBUserSelect = typeof user.$inferSelect
+
+/**
+ * Vector Embeddings table: Stores vector embeddings for RAG (Retrieval-Augmented Generation)
+ */
+export const vectorEmbeddings = pgTable(
+  'vector_embeddings',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    content: text('content').notNull(),
+    /**
+     * Identifier of the source document this chunk/embedding belongs to.
+     * Useful for grouping chunks and tracing answers back to documents.
+     */
+    documentId: text('document_id').notNull(),
+    /**
+     * Flexible metadata about the chunk/document (page, section, author, etc.).
+     * Stored as JSONB with an empty-object default for backwards compatibility.
+     */
+    metadata: jsonb('metadata')
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    /**
+     * Position of this chunk within its document, used to reconstruct ordering.
+     */
+    chunkIndex: integer('chunk_index').notNull().default(0),
+    /**
+     * Vector embedding representation of the content (1536 dimensions for
+     * OpenAI text-embedding-ada-002).
+     */
+    embedding: vector('embedding', { dimension: 1536 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => ({
+    embeddingCosineIdx: index('vector_embeddings_embedding_cosine_idx').using(
+      'ivfflat',
+      table.embedding.asc().op('vector_cosine_ops')
+    ),
+    documentChunkIdx: index('vector_embeddings_document_chunk_idx').on(
+      table.documentId,
+      table.chunkIndex
+    ),
+    contentLengthCheck: check(
+      'vector_embeddings_content_length_check',
+      sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
+    ),
+  })
+)
+
+export type DBVectorEmbeddings = typeof vectorEmbeddings.$inferInsert
+export type DBVectorEmbeddingsSelect = typeof vectorEmbeddings.$inferSelect
 
 /**
  * Chat Types table: Stores reusable chat templates/configurations
