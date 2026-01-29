@@ -854,21 +854,6 @@ describe('Database Schema', () => {
         })
       })
     })
-
-    describe('indexes', () => {
-      it('should have ivfflat index for cosine similarity search', () => {
-        // The schema defines an index using ivfflat for vector_cosine_ops
-        // This ensures efficient similarity searches on embeddings
-        const indexName = 'data_embedding_cosine_idx'
-        expect(indexName).toBe('data_embedding_cosine_idx')
-      })
-
-      it('should have composite index on documentId and chunkIndex', () => {
-        // The schema defines an index for efficient document chunk retrieval
-        const indexName = 'data_document_chunk_idx'
-        expect(indexName).toBe('data_document_chunk_idx')
-      })
-    })
   })
 
   describe('Schema consistency', () => {
