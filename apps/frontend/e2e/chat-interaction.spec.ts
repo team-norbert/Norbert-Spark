@@ -64,9 +64,6 @@ test.describe('Chat Interaction', () => {
     const textInput = page.getByTestId('chat-text-input')
     await expect(textInput).toBeVisible({ timeout: 10000 })
 
-    // Wait for React hydration to complete
-    await page.waitForTimeout(500)
-
     await expect(textInput).toBeDisabled({ timeout: 5000 })
 
     // Verify submit button is disabled (IconButton with type="submit")
