@@ -365,6 +365,10 @@ export const vectorEmbeddings = pgTable(
      * Position of this chunk within its document, used to reconstruct ordering.
      */
     chunkIndex: integer('chunk_index').notNull().default(0),
+    /**
+     * Vector embedding representation of the content (1536 dimensions for
+     * OpenAI text-embedding-ada-002).
+     */
     embedding: vector('embedding', { dimension: 1536 }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
