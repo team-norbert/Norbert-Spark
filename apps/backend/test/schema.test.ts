@@ -1042,10 +1042,19 @@ describe('Database Schema', () => {
 
     describe('all vectorEmbeddings tables share common structure', () => {
       it('should have same column names across all dimension variants', () => {
-        const columns1536 = Object.keys(vectorEmbeddings1536).filter((k) => k !== 'enableRLS')
-        const columns768 = Object.keys(vectorEmbeddings768).filter((k) => k !== 'enableRLS')
-        const columns384 = Object.keys(vectorEmbeddings384).filter((k) => k !== 'enableRLS')
+        const getColumnKeys = (table: Record<string, unknown>): string[] =>
+          Object.entries(table)
+            // Exclude known non-column properties and keep only entries that look like Drizzle columns
+            .filter(([key, value]) => {
+              if (key === 'enableRLS') return false
+              return !!value && typeof value === 'object' && 'columnType' in (value as Record<string, unknown>)
+            })
+            .map(([key]) => key)
+            .sort()
 
+        const columns1536 = getColumnKeys(vectorEmbeddings1536 as unknown as Record<string, unknown>)
+        const columns768 = getColumnKeys(vectorEmbeddings768 as unknown as Record<string, unknown>)
+        const columns384 = getColumnKeys(vectorEmbeddings384 as unknown as Record<string, unknown>)
         expect(columns1536).toEqual(columns768)
         expect(columns768).toEqual(columns384)
       })
