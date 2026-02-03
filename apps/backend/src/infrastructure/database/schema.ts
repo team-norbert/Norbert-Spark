@@ -446,16 +446,16 @@ export const vectorEmbeddings768 = pgTable(
       .default(sql`now()`),
   },
   (table) => ({
-    embeddingCosineIdx: index('vector_embeddings_embedding_cosine_idx').using(
+    embeddingCosineIdx: index('vector_embeddings_768_embedding_cosine_idx').using(
       'ivfflat',
       table.embedding.asc().op('vector_cosine_ops')
     ),
-    documentChunkIdx: index('vector_embeddings_document_chunk_idx').on(
+    documentChunkIdx: index('vector_embeddings_768_document_chunk_idx').on(
       table.documentId,
       table.chunkIndex
     ),
     contentLengthCheck: check(
-      'vector_embeddings_content_length_check',
+      'vector_embeddings_768_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
     ),
   })
