@@ -67,22 +67,85 @@ CREATE TABLE IF NOT EXISTS users (
 -- ============================================================
 -- VECTOR DATA (RAG)
 -- ============================================================
+-- Embedding dimension configuration:
+--   Common embedding model dimensions:
+--   - OpenAI text-embedding-ada-002: 1536
+--   - OpenAI text-embedding-3-small: 1536
+--   - OpenAI text-embedding-3-large: 3072
+--   - Google text-embedding-004: 768
+--   - Google text-embedding-005: 768
+--   - Cohere embed-english-v3.0: 1024
+--   - Anthropic voyage-large-2: 1536
+-- ============================================================
 
-CREATE TABLE IF NOT EXISTS vector_embeddings (
+CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     content TEXT NOT NULL,
-    documentId TEXT NOT NULL,
+    document_id TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     chunk_index INTEGER NOT NULL DEFAULT 0,
     embedding VECTOR(1536) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updatedAt TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS vector_embeddings_embedding_cosine_idx
-    ON vector_embeddings
+CREATE INDEX IF NOT EXISTS vector_embeddings_1536_embedding_cosine_idx
+    ON vector_embeddings_1536
     USING ivfflat (embedding vector_cosine_ops)
     WITH (lists = 100);
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_1536_document_chunk_idx
+    ON vector_embeddings_1536 (document_id, chunk_index);
+
+ALTER TABLE vector_embeddings_1536
+    ADD CONSTRAINT vector_embeddings_1536_content_length_check
+    CHECK (length(content) >= 1 AND length(content) <= 50000);
+
+CREATE TABLE IF NOT EXISTS vector_embeddings_768 (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    content TEXT NOT NULL,
+    document_id TEXT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    chunk_index INTEGER NOT NULL DEFAULT 0,
+    embedding VECTOR(768) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_cosine_idx
+    ON vector_embeddings_768
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 100);
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_768_document_chunk_idx
+    ON vector_embeddings_768 (document_id, chunk_index);
+
+ALTER TABLE vector_embeddings_768
+    ADD CONSTRAINT vector_embeddings_768_content_length_check
+    CHECK (length(content) >= 1 AND length(content) <= 50000);
+
+CREATE TABLE IF NOT EXISTS vector_embeddings_384 (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    content TEXT NOT NULL,
+    document_id TEXT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    chunk_index INTEGER NOT NULL DEFAULT 0,
+    embedding VECTOR(384) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_384_embedding_cosine_idx
+    ON vector_embeddings_384
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 100);
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_384_document_chunk_idx
+    ON vector_embeddings_384 (document_id, chunk_index);
+
+ALTER TABLE vector_embeddings_384
+    ADD CONSTRAINT vector_embeddings_384_content_length_check
+    CHECK (length(content) >= 1 AND length(content) <= 50000);
 
 -- ============================================================
 -- CRM / COMPANY MANAGEMENT

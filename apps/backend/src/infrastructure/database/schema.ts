@@ -342,8 +342,8 @@ export type DBUserSelect = typeof user.$inferSelect
 /**
  * Vector Embeddings table: Stores vector embeddings for RAG (Retrieval-Augmented Generation)
  */
-export const vectorEmbeddings = pgTable(
-  'vector_embeddings',
+export const vectorEmbeddings1536 = pgTable(
+  'vector_embeddings_1536',
   {
     id: uuid('id')
       .primaryKey()
@@ -366,8 +366,16 @@ export const vectorEmbeddings = pgTable(
      */
     chunkIndex: integer('chunk_index').notNull().default(0),
     /**
-     * Vector embedding representation of the content (1536 dimensions for
-     * OpenAI text-embedding-ada-002).
+     * Vector embedding representation of the content
+     * Used by:
+     * OpenAI text embedding models
+     *
+     * Pros:
+     * Excellent semantic resolution
+     * Very strong RAG performance
+     *
+     * Cons:
+     * Storage and index size grow quickly
      */
     embedding: vector('embedding', { dimension: 1536 }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
@@ -378,23 +386,150 @@ export const vectorEmbeddings = pgTable(
       .default(sql`now()`),
   },
   (table) => ({
-    embeddingCosineIdx: index('vector_embeddings_embedding_cosine_idx').using(
+    embeddingCosineIdx: index('vector_embeddings_1536_embedding_cosine_idx').using(
       'ivfflat',
       table.embedding.asc().op('vector_cosine_ops')
     ),
-    documentChunkIdx: index('vector_embeddings_document_chunk_idx').on(
+    documentChunkIdx: index('vector_embeddings_1536_document_chunk_idx').on(
       table.documentId,
       table.chunkIndex
     ),
     contentLengthCheck: check(
-      'vector_embeddings_content_length_check',
+      'vector_embeddings_1536_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
     ),
   })
 )
 
-export type DBVectorEmbeddings = typeof vectorEmbeddings.$inferInsert
-export type DBVectorEmbeddingsSelect = typeof vectorEmbeddings.$inferSelect
+export type DBVectorEmbeddings1536 = typeof vectorEmbeddings1536.$inferInsert
+export type DBVectorEmbeddings1536Select = typeof vectorEmbeddings1536.$inferSelect
+export type DBVectorEmbeddingsSelect1536 = DBVectorEmbeddings1536Select
+
+export const vectorEmbeddings768 = pgTable(
+  'vector_embeddings_768',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    content: text('content').notNull(),
+    /**
+     * Identifier of the source document this chunk/embedding belongs to.
+     * Useful for grouping chunks and tracing answers back to documents.
+     */
+    documentId: text('document_id').notNull(),
+    /**
+     * Flexible metadata about the chunk/document (page, section, author, etc.).
+     * Stored as JSONB with an empty-object default for backwards compatibility.
+     */
+    metadata: jsonb('metadata')
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    /**
+     * Position of this chunk within its document, used to reconstruct ordering.
+     */
+    chunkIndex: integer('chunk_index').notNull().default(0),
+    /**
+     * Used by: older SBERT models, some multilingual models
+     *
+     * Pros:
+     * Better semantic richness than 384
+     * Still relatively compact
+     *
+     * Cons:
+     * Slightly more storage + compute
+     */
+    embedding: vector('embedding', { dimension: 768 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => ({
+    embeddingCosineIdx: index('vector_embeddings_768_embedding_cosine_idx').using(
+      'ivfflat',
+      table.embedding.asc().op('vector_cosine_ops')
+    ),
+    documentChunkIdx: index('vector_embeddings_768_document_chunk_idx').on(
+      table.documentId,
+      table.chunkIndex
+    ),
+    contentLengthCheck: check(
+      'vector_embeddings_768_content_length_check',
+      sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
+    ),
+  })
+)
+
+export type DBVectorEmbeddings768 = typeof vectorEmbeddings768.$inferInsert
+export type DBVectorEmbeddingsSelect768 = typeof vectorEmbeddings768.$inferSelect
+
+export const vectorEmbeddings384 = pgTable(
+  'vector_embeddings_384',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    content: text('content').notNull(),
+    /**
+     * Identifier of the source document this chunk/embedding belongs to.
+     * Useful for grouping chunks and tracing answers back to documents.
+     */
+    documentId: text('document_id').notNull(),
+    /**
+     * Flexible metadata about the chunk/document (page, section, author, etc.).
+     * Stored as JSONB with an empty-object default for backwards compatibility.
+     */
+    metadata: jsonb('metadata')
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    /**
+     * Position of this chunk within its document, used to reconstruct ordering.
+     */
+    chunkIndex: integer('chunk_index').notNull().default(0),
+    /**
+     * Vector embedding representation of the content
+     * Used by: smaller Sentence-Transformers models (e.g. all-MiniLM-L6-v2)
+     *
+     * Pros:
+     * Fast
+     * Cheap to store
+     * Good enough for many semantic search / RAG tasks
+     *
+     * Cons:
+     * Lower recall for subtle semantic distinctions
+     * Typical use cases:
+     * Lightweight RAG
+     * High-volume search
+     * Edge / cost-sensitive system
+     */
+    embedding: vector('embedding', { dimension: 384 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => ({
+    embeddingCosineIdx: index('vector_embeddings_384_embedding_cosine_idx').using(
+      'ivfflat',
+      table.embedding.asc().op('vector_cosine_ops')
+    ),
+    documentChunkIdx: index('vector_embeddings_384_document_chunk_idx').on(
+      table.documentId,
+      table.chunkIndex
+    ),
+    contentLengthCheck: check(
+      'vector_embeddings_384_content_length_check',
+      sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
+    ),
+  })
+)
+
+export type DBVectorEmbeddings384 = typeof vectorEmbeddings384.$inferInsert
+export type DBVectorEmbeddingsSelect384 = typeof vectorEmbeddings384.$inferSelect
 
 /**
  * Chat Types table: Stores reusable chat templates/configurations
