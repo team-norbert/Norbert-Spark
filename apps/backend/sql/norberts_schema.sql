@@ -97,12 +97,12 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_1536_embedding_cosine_idx
 CREATE TABLE IF NOT EXISTS vector_embeddings_768 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     content TEXT NOT NULL,
-    documentId TEXT NOT NULL,
+    document_id TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     chunk_index INTEGER NOT NULL DEFAULT 0,
     embedding VECTOR(768) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updatedAt TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_cosine_idx
@@ -113,12 +113,12 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_cosine_idx
 CREATE TABLE IF NOT EXISTS vector_embeddings_384 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     content TEXT NOT NULL,
-    documentId TEXT NOT NULL,
+    document_id TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     chunk_index INTEGER NOT NULL DEFAULT 0,
     embedding VECTOR(384) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updatedAt TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_384_embedding_cosine_idx
