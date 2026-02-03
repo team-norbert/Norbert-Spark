@@ -953,3 +953,4 @@ This project is licensed under the [Affero General Public License v3.0 (AGPLv3)]
 The AGPLv3 is a copyleft license that requires anyone who distributes the software, or a derivative work, to make the source code available under the same license. This includes providing access to the source code of any modifications made to the original software.
 
 For more details, see the [LICENSE](./LICENSE) file.
+ 
