@@ -94,6 +94,13 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_1536_embedding_cosine_idx
     USING ivfflat (embedding vector_cosine_ops)
     WITH (lists = 100);
 
+CREATE INDEX IF NOT EXISTS vector_embeddings_1536_document_chunk_idx
+    ON vector_embeddings_1536 (document_id, chunk_index);
+
+ALTER TABLE vector_embeddings_1536
+    ADD CONSTRAINT vector_embeddings_1536_content_length_check
+    CHECK (length(content) >= 1 AND length(content) <= 50000);
+
 CREATE TABLE IF NOT EXISTS vector_embeddings_768 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     content TEXT NOT NULL,
@@ -113,9 +120,10 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_cosine_idx
 CREATE INDEX IF NOT EXISTS vector_embeddings_768_document_chunk_idx
     ON vector_embeddings_768 (document_id, chunk_index);
 
-ALTER TABLE IF NOT EXISTS vector_embeddings_768
-    ADD CONSTRAINT vector_embeddings_768_content_length_chk
-    CHECK (char_length(content) <= 16000);
+ALTER TABLE vector_embeddings_768
+    ADD CONSTRAINT vector_embeddings_768_content_length_check
+    CHECK (length(content) >= 1 AND length(content) <= 50000);
+
 CREATE TABLE IF NOT EXISTS vector_embeddings_384 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     content TEXT NOT NULL,
@@ -131,6 +139,13 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_384_embedding_cosine_idx
     ON vector_embeddings_384
     USING ivfflat (embedding vector_cosine_ops)
     WITH (lists = 100);
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_384_document_chunk_idx
+    ON vector_embeddings_384 (document_id, chunk_index);
+
+ALTER TABLE vector_embeddings_384
+    ADD CONSTRAINT vector_embeddings_384_content_length_check
+    CHECK (length(content) >= 1 AND length(content) <= 50000);
 
 -- ============================================================
 -- CRM / COMPANY MANAGEMENT
