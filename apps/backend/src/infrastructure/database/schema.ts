@@ -402,7 +402,8 @@ export const vectorEmbeddings1536 = pgTable(
 )
 
 export type DBVectorEmbeddings1536 = typeof vectorEmbeddings1536.$inferInsert
-export type DBVectorEmbeddingsSelect1536 = typeof vectorEmbeddings1536.$inferSelect
+export type DBVectorEmbeddings1536Select = typeof vectorEmbeddings1536.$inferSelect
+export type DBVectorEmbeddingsSelect1536 = DBVectorEmbeddings1536Select
 
 export const vectorEmbeddings768 = pgTable(
   'vector_embeddings_768',
