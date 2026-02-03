@@ -1020,8 +1020,8 @@ describe('Database Schema', () => {
         })
       })
 
-      describe('embedding dimension', () => {
-        it('should use 384 dimensions for lightweight Sentence-Transformers models', () => {
+      describe('embedding column type', () => {
+        it('should use a custom pgvector column for embeddings', () => {
           expect(vectorEmbeddings384.embedding.columnType).toBe('PgCustomColumn')
           expect(vectorEmbeddings384.embedding.dataType).toBe('custom')
         })
