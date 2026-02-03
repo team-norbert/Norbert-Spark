@@ -833,8 +833,8 @@ describe('Database Schema', () => {
         })
       })
 
-      describe('embedding dimension', () => {
-        it('should use 1536 dimensions for OpenAI text embedding models', () => {
+      describe('embedding column configuration', () => {
+        it('should configure embedding column as custom pgvector type', () => {
           expect(vectorEmbeddings1536.embedding.columnType).toBe('PgCustomColumn')
           expect(vectorEmbeddings1536.embedding.dataType).toBe('custom')
         })
