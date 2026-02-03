@@ -1047,12 +1047,18 @@ describe('Database Schema', () => {
             // Exclude known non-column properties and keep only entries that look like Drizzle columns
             .filter(([key, value]) => {
               if (key === 'enableRLS') return false
-              return !!value && typeof value === 'object' && 'columnType' in (value as Record<string, unknown>)
+              return (
+                !!value &&
+                typeof value === 'object' &&
+                'columnType' in (value as Record<string, unknown>)
+              )
             })
             .map(([key]) => key)
             .sort()
 
-        const columns1536 = getColumnKeys(vectorEmbeddings1536 as unknown as Record<string, unknown>)
+        const columns1536 = getColumnKeys(
+          vectorEmbeddings1536 as unknown as Record<string, unknown>
+        )
         const columns768 = getColumnKeys(vectorEmbeddings768 as unknown as Record<string, unknown>)
         const columns384 = getColumnKeys(vectorEmbeddings384 as unknown as Record<string, unknown>)
         expect(columns1536).toEqual(columns768)
