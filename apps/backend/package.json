@@ -81,7 +81,7 @@
     "@vitest/eslint-plugin": "^1.6.6",
     "autoevals": "^0.0.131",
     "aws-sdk": "^2.1693.0",
-    "drizzle-kit": "^0.31.8",
+    "drizzle-kit": "^0.31.9",
     "eslint": "^9.39.2",
     "eslint-plugin-codegen": "^0.34.1",
     "eslint-plugin-import": "^2.32.0",
