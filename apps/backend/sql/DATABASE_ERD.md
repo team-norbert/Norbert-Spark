@@ -34,13 +34,29 @@ erDiagram
         timestamptz created_at "Default: now()"
     }
 
-    data {
+    vector_embeddings_1536 {
         uuid id PK "Default: uuidv7()"
-        text content "NOT NULL"
+        uuid document_id "References source document"
+        integer chunk_index "Index of chunk within document"
         vector embedding "VECTOR(1536) NOT NULL"
         timestamptz created_at "Default: now()"
     }
 
+    vector_embeddings_768 {
+        uuid id PK "Default: uuidv7()"
+        uuid document_id "References source document"
+        integer chunk_index "Index of chunk within document"
+        vector embedding "VECTOR(768) NOT NULL"
+        timestamptz created_at "Default: now()"
+    }
+
+    vector_embeddings_384 {
+        uuid id PK "Default: uuidv7()"
+        uuid document_id "References source document"
+        integer chunk_index "Index of chunk within document"
+        vector embedding "VECTOR(384) NOT NULL"
+        timestamptz created_at "Default: now()"
+    }
     company {
         uuid company_id PK "Default: uuidv7()"
         text legal_name "NOT NULL, 2-200 chars"
