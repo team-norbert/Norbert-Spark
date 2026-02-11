@@ -11,7 +11,7 @@ erDiagram
     users ||--o{ audit_log : "performs"
 
     %% AI Chat System
-    chat_types ||--o{ chats : "configures"
+    chat_types o|--o{ chats : "configures"
     chat_types ||--|| chat_ai_options : "has"
     chats ||--o{ messages : "contains"
     messages ||--o{ parts : "has"
