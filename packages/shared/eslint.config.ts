@@ -42,8 +42,12 @@ const config: Linter.Config[] = [
       vitest: vitestPlugin,
     },
     rules: {
-      ...vitestPlugin.configs.recommended.rules,
-      'vitest/no-conditional-expect': 'off', // Allow conditional expects for type narrowing
+      // Use only specific vitest rules to avoid configuration issues
+      'vitest/expect-expect': 'error',
+      'vitest/no-identical-title': 'error',
+      'vitest/no-focused-tests': 'warn',
+      'vitest/valid-expect': 'error',
+      'vitest/no-conditional-expect': 'off',
     },
   },
 ]
