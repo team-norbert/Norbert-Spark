@@ -15,6 +15,10 @@ import { DatabaseException } from '../../../shared/exceptions/database.exception
 import { ConflictException } from '../../../shared/exceptions/conflict.exception.js'
 import { DatabaseUtil } from '../../../shared/utils/database.util.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
+import {
+  encryptTwoFactorSecret,
+  decryptTwoFactorSecret,
+} from '../../../shared/utils/encryption.util.js'
 
 /**
  * PostgreSQL implementation of the User Repository
@@ -98,6 +102,8 @@ export class PostgresUserRepository implements UserRepositoryPort {
         password: userEntity.getPassword() ? userEntity.getPasswordHash() : null,
         provider: null,
         providerId: null,
+        twoFactorEnabled: userEntity.isTwoFactorEnabled(),
+        twoFactorSecret: userEntity.getTwoFactorSecret() ?? null,
         createdAt: new Date(),
       }
 
@@ -207,6 +213,8 @@ export class PostgresUserRepository implements UserRepositoryPort {
         password: null, // OAuth users don't have passwords
         provider: provider || null,
         providerId: providerId || null,
+        twoFactorEnabled: userEntity.isTwoFactorEnabled(),
+        twoFactorSecret: userEntity.getTwoFactorSecret() ?? null,
         createdAt: new Date(),
       }
 
@@ -250,6 +258,8 @@ export class PostgresUserRepository implements UserRepositoryPort {
         role: userEntity.getRole(),
         provider: userEntity.getProvider(),
         providerId: userEntity.getProviderId() ? userEntity.getProviderId() : null,
+        twoFactorEnabled: userEntity.isTwoFactorEnabled(),
+        twoFactorSecret: userEntity.getTwoFactorSecret() ?? null,
         createdAt: new Date(),
       }
 
@@ -453,6 +463,8 @@ export class PostgresUserRepository implements UserRepositoryPort {
           email: userEntity.getEmail(),
           name: userEntity.getName(),
           role: userEntity.getRole(),
+          twoFactorEnabled: userEntity.isTwoFactorEnabled(),
+          twoFactorSecret: userEntity.getTwoFactorSecret() ?? null,
         })
         .where(eq(user.userId, userEntity.id))
     } catch (error) {
@@ -568,6 +580,20 @@ export class PostgresUserRepository implements UserRepositoryPort {
     const password = record.password ? Password.fromHash(record.password) : undefined
     const role = new Role(record.role)
     const userId = new UserId(record.userId).getValue()
+
+    // Handle 2FA secret decryption if present
+    let twoFactorSecret: string | undefined
+    if (record.twoFactorSecret) {
+      try {
+        // Store encrypted value - decryption happens when needed by application layer
+        twoFactorSecret = record.twoFactorSecret
+      } catch (error) {
+        // Log decryption error but don't fail - this allows recovery
+        console.error('Failed to handle 2FA secret:', error)
+        twoFactorSecret = undefined
+      }
+    }
+
     return new User(
       userId,
       email,
@@ -576,7 +602,9 @@ export class PostgresUserRepository implements UserRepositoryPort {
       password,
       record.createdAt,
       record.provider ?? undefined,
-      record.providerId ?? undefined
+      record.providerId ?? undefined,
+      record.twoFactorEnabled,
+      twoFactorSecret
     )
   }
 }
