@@ -98,8 +98,8 @@ function waitForServer(url: string, label: string, timeoutMs = 30_000): Promise<
       try {
         const response = await fetch(url)
         if (response.ok) {
-          done = true
           clearTimeout(timeout)
+          done = true
           resolve()
         } else if (!done) {
           setTimeout(check, 500)
