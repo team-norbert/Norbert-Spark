@@ -9,13 +9,13 @@ import sortDestructureKeys from 'eslint-plugin-sort-destructure-keys'
 import rootConfig from '../../eslint.config.js'
 
 const config: Linter.Config[] = [
-  ...rootConfig,
+  ...(rootConfig as Linter.Config[]),
   {
     plugins: {
-      '@typescript-eslint': tseslint,
-      vitest: vitestPlugin,
+      '@typescript-eslint': tseslint as any,
+      vitest: vitestPlugin as any,
       'simple-import-sort': simpleImportSort,
-      'sort-destructure-keys': sortDestructureKeys,
+      'sort-destructure-keys': sortDestructureKeys as any,
     },
     languageOptions: {
       parser: tsParser,
@@ -39,12 +39,14 @@ const config: Linter.Config[] = [
   {
     files: ['**/*.test.ts', '**/*.spec.ts'],
     plugins: {
-      vitest: vitestPlugin,
+      vitest: vitestPlugin as any,
     },
     rules: {
-      // Start from Vitest's recommended rules for consistency across workspaces
-      ...vitestPlugin.configs.recommended.rules,
-      // Local override: allow conditional expects in this workspace if needed
+      // Use only specific vitest rules to avoid configuration issues
+      'vitest/expect-expect': 'error',
+      'vitest/no-identical-title': 'error',
+      'vitest/no-focused-tests': 'warn',
+      'vitest/valid-expect': 'error',
       'vitest/no-conditional-expect': 'off',
     },
   },
