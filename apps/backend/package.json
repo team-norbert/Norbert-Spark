@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22 <25",
+    "node": "24",
     "pnpm": ">=10"
   },
   "scripts": {
@@ -98,6 +98,6 @@
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
-  "packageManager": "pnpm@10.25.0",
+  "packageManager": "pnpm@10.29.3",
   "preinstall": "npx --yes only-allow pnpm"
 }

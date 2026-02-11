@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [22.x, 24.x]
+        node-version: [24.x]
     
     steps:
     - name: Checkout code
@@ -20,7 +20,7 @@ jobs:
     - name: Install pnpm
       uses: pnpm/action-setup@v4
       with:
-        version: 10.25.0
+        version: 10.29.3
 
     - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4

@@ -9,6 +9,10 @@
     "dist",
     "src"
   ],
+  "engines": {
+    "node": "24",
+    "pnpm": ">=10"
+  },
   "scripts": {
     "build": "pnpm run bundle:api && tsc -p tsconfig.build.json && openapi-typescript ./src/openapi.json --output ./dist/generated/openapi-types.ts",
     "test": "pnpm run test:node && pnpm run test:browser",
@@ -51,5 +55,7 @@
     "redoc-cli": "^0.13.21",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"
-  }
+  },
+  "packageManager": "pnpm@10.29.3",
+  "preinstall": "npx --yes only-allow pnpm"
 }

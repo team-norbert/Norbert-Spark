@@ -1,6 +1,6 @@
-# Check if Node version is already correct (22.x)
+# Check if Node version is already correct (24.x)
 NODE_VERSION=$(node --version 2>/dev/null | cut -d'v' -f2 | cut -d'.' -f1)
-if [ "$NODE_VERSION" = "22" ]; then
+if [ "$NODE_VERSION" = "24" ]; then
   echo "Node 22 already available, skipping nvm setup"
 else
   # Load nvm if available
