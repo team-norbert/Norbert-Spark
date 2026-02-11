@@ -309,6 +309,8 @@ export const user = pgTable(
     role: text('role').notNull().default('user'),
     provider: text('provider'),
     providerId: text('provider_id'),
+    twoFactorEnabled: boolean('two_factor_enabled').notNull().default(false),
+    twoFactorSecret: text('two_factor_secret'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
