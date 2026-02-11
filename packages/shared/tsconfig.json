@@ -4,5 +4,5 @@
     "noEmit": true,
     "rootDir": null
   },
-  "include": ["src/**/*", "tests/**/*"]
+  "include": ["src/**/*", "tests/**/*", "eslint.config.ts", "../../eslint-plugin-types.d.ts"]
 }

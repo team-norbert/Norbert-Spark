@@ -23,7 +23,7 @@
     "docs:api": "pnpm run bundle:api && redoc-cli serve ./src/openapi.json --watch --port 8080",
     "typecheck": "pnpm run bundle:api && tsc --noEmit",
     "build:openapi": "pnpm run bundle:api && openapi-typescript ./src/openapi.json --output ./dist/generated/openapi-types.ts",
-    "bundle:api": "redocly bundle ./src/openapi/openapi.json --output ./src/openapi.json",
+    "bundle:api": "bash ./scripts/bundle-api.sh",
     "split:api": "redocly split ./src/openapi.json --outDir ./src/openapi"
   },
   "dependencies": {

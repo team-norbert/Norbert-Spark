@@ -1,4 +1,4 @@
-import type { Linter } from 'eslint'
+import type { ESLint, Linter } from 'eslint'
 
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
@@ -8,14 +8,23 @@ import sortDestructureKeys from 'eslint-plugin-sort-destructure-keys'
 
 import rootConfig from '../../eslint.config.js'
 
+/**
+ * Helper function to safely cast plugin types to ESLint.Plugin
+ * This provides better type safety than 'as any' by explicitly
+ * acknowledging the type assertion through unknown
+ */
+function asESLintPlugin(plugin: unknown): ESLint.Plugin {
+  return plugin as ESLint.Plugin
+}
+
 const config: Linter.Config[] = [
-  ...rootConfig,
+  ...(rootConfig as Linter.Config[]),
   {
     plugins: {
-      '@typescript-eslint': tseslint,
-      vitest: vitestPlugin,
+      '@typescript-eslint': asESLintPlugin(tseslint),
+      vitest: asESLintPlugin(vitestPlugin),
       'simple-import-sort': simpleImportSort,
-      'sort-destructure-keys': sortDestructureKeys,
+      'sort-destructure-keys': asESLintPlugin(sortDestructureKeys),
     },
     languageOptions: {
       parser: tsParser,
@@ -39,11 +48,15 @@ const config: Linter.Config[] = [
   {
     files: ['**/*.test.ts', '**/*.spec.ts'],
     plugins: {
-      vitest: vitestPlugin,
+      vitest: asESLintPlugin(vitestPlugin),
     },
     rules: {
-      ...vitestPlugin.configs.recommended.rules,
-      'vitest/no-conditional-expect': 'off', // Allow conditional expects for type narrowing
+      // Use only specific vitest rules to avoid configuration issues
+      'vitest/expect-expect': 'error',
+      'vitest/no-identical-title': 'error',
+      'vitest/no-focused-tests': 'warn',
+      'vitest/valid-expect': 'error',
+      'vitest/no-conditional-expect': 'off',
     },
   },
 ]

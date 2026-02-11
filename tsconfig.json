@@ -34,5 +34,6 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true
   },
+  "include": ["eslint-plugin-types.d.ts", "eslint.config.ts"],
   "exclude": ["node_modules", "dist", ".next", ".turbo", ".history"]
 }

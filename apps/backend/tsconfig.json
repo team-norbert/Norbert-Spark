@@ -3,6 +3,13 @@
   "compilerOptions": {
     "outDir": "./dist"
   },
-  "include": ["src/**/*", "test/**/*", "evals/**/*", "scripts/**/*"],
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "evals/**/*",
+    "scripts/**/*",
+    "eslint.config.ts",
+    "../../eslint-plugin-types.d.ts"
+  ],
   "exclude": ["node_modules", "dist", "../../.history"]
 }
