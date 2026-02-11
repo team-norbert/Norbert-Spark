@@ -48,6 +48,7 @@ export function ErrorPageDisplay({
           }}
         >
           <ErrorOutlineIcon
+            data-testid="ErrorOutlineIcon"
             sx={{
               fontSize: 100,
               color: 'error.main',

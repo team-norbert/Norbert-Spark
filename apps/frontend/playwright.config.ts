@@ -10,9 +10,8 @@ export default defineConfig({
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
   use: {
-    baseURL: 'https://localhost:4321',
+    baseURL: 'http://localhost:4321',
     trace: 'on-first-retry',
-    ignoreHTTPSErrors: true,
   },
   projects: [
     {
@@ -20,19 +19,7 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'pnpm dev',
-    url: 'https://localhost:4321',
-    reuseExistingServer: !process.env.CI,
-    ignoreHTTPSErrors: true,
-    env: {
-      BACKEND_AI_CALLBACK_URL_DEV: 'http://localhost:3000/api/v1',
-      BACKEND_AI_CALLBACK_URL_PROD: 'http://localhost:3000/api/v1',
-      // Ensure the un-suffixed env var is set for the Next dev server
-      // so server-side calls (backendRequest) point to the local backend
-      // during E2E tests.
-      BACKEND_AI_CALLBACK_URL: 'http://localhost:3000/api/v1',
-      NEXT_PUBLIC_POST_AI_CALLBACK_URL: 'https://127.0.0.1:3000/api/v1/ai/chat',
-    },
-  },
+  // No webServer block — the production Next.js server is built and started
+  // inside global-setup.ts so that it can use the dynamic DATABASE_URL from
+  // the Testcontainers PostgreSQL instance.
 })

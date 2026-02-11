@@ -8,6 +8,9 @@ import { promisify } from 'node:util'
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql'
 import postgres from 'postgres'
 
+/* eslint-disable-next-line no-undef */
+type ProcessEnv = NodeJS.ProcessEnv
+
 const execAsync = promisify(exec)
 
 const __filename = fileURLToPath(import.meta.url)
@@ -15,24 +18,25 @@ const __dirname = path.dirname(__filename)
 
 let postgresContainer: StartedPostgreSqlContainer
 let backendProcess: ChildProcess | null = null
+let frontendProcess: ChildProcess | null = null
 
 // Export for teardown
-export { backendProcess, postgresContainer }
+export { backendProcess, frontendProcess, postgresContainer }
 
 /**
  * Kill common long-running Node.js development processes before E2E tests.
  *
- * This attempts to stop previously started backend dev servers and Drizzle Studio
- * instances so they don't conflict with the processes managed by the test runner.
- *
- * NOTE: We intentionally do NOT kill "next dev" because Playwright's webServer is
- * responsible for starting and managing the Next.js dev server (typically on port 4321).
+ * This attempts to stop previously started backend dev servers, Next.js
+ * servers and Drizzle Studio instances so they don't conflict with the
+ * processes managed by the test runner.
  */
 async function killInterferingProcesses() {
   console.warn('🧹 Checking for interfering Node.js processes...')
 
   const processPatterns = [
-    // 'next dev', // DON'T kill - Playwright's webServer already started this
+    'next dev', // Kill dev servers that would conflict with production build
+    'next start', // Kill any lingering production servers
+    'node .next/standalone', // Kill any lingering standalone Next.js servers (including E2E)
     'tsx watch', // Kill backend dev servers
     'drizzle-kit studio', // Kill database GUI
   ]
@@ -57,6 +61,61 @@ async function killInterferingProcesses() {
   console.warn('✅ Process cleanup complete')
 }
 
+/**
+ * Run a spawned process and return a promise that resolves when it exits
+ * successfully or rejects on non-zero exit / error.
+ */
+function runProcess(
+  command: string,
+  args: string[],
+  options: { cwd: string; env: ProcessEnv }
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(command, args, { ...options, stdio: 'inherit' })
+    proc.on('close', (code: number | null) => {
+      if (code === 0) resolve()
+      else reject(new Error(`"${command} ${args.join(' ')}" exited with code ${code}`))
+    })
+    proc.on('error', reject)
+  })
+}
+
+/**
+ * Poll a URL until it responds successfully, with a configurable timeout.
+ */
+function waitForServer(url: string, label: string, timeoutMs = 30_000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let done = false
+
+    const timeout = setTimeout(() => {
+      done = true
+      reject(new Error(`${label} failed to start within ${timeoutMs / 1000} seconds`))
+    }, timeoutMs)
+
+    const check = async () => {
+      if (done) return
+
+      try {
+        const response = await fetch(url)
+        if (response.ok) {
+          clearTimeout(timeout)
+          done = true
+          resolve()
+        } else if (!done) {
+          setTimeout(check, 500)
+        }
+      } catch {
+        if (!done) {
+          setTimeout(check, 500)
+        }
+      }
+    }
+
+    // Give the server a moment to bind before first check
+    setTimeout(check, 1000)
+  })
+}
+
 async function globalSetup() {
   console.warn('🚀 Starting E2E test environment setup...')
 
@@ -64,9 +123,9 @@ async function globalSetup() {
     // Kill any interfering processes first
     await killInterferingProcesses()
 
-    // Start PostgreSQL container
+    // ── 1. Start PostgreSQL container ────────────────────────────────────
     console.warn('📦 Starting PostgreSQL container...')
-    postgresContainer = await new PostgreSqlContainer('postgres:18-alpine')
+    postgresContainer = await new PostgreSqlContainer('pgvector/pgvector:0.8.1-pg18-trixie')
       .withDatabase('norbertsSpark_test')
       .withUsername('test')
       .withPassword('test')
@@ -80,107 +139,69 @@ async function globalSetup() {
     const connectionString = `postgresql://${username}:${password}@${host}:${port}/norbertsSpark_test`
     console.warn(`✅ PostgreSQL container started at ${host}:${port}`)
 
-    // Execute SQL schema to create database structure
+    // ── 2. Create database schema ────────────────────────────────────────
     console.warn('📝 Creating database from SQL schema...')
     const schemaPath = path.resolve(__dirname, '..', '..', 'backend', 'sql', 'norberts_schema.sql')
     console.warn(`📂 Schema path: ${schemaPath}`)
 
-    // Read SQL schema file
     const sqlSchema = fs.readFileSync(schemaPath, 'utf-8')
-
-    // Execute SQL schema
     const schemaClient = postgres(connectionString, { max: 1, prepare: false })
     await schemaClient.unsafe(sqlSchema)
     await schemaClient.end()
     console.warn('✅ Database schema created')
 
-    // Seed chat types
-    console.warn('🌱 Seeding chat types...')
+    // ── 3. Seed data ─────────────────────────────────────────────────────
     const backendSeedPath = path.join(process.cwd(), '..', 'backend')
-    const seedChatProcess = spawn('pnpm', ['seed:chat'], {
-      cwd: backendSeedPath,
-      env: {
-        ...process.env,
-        DATABASE_URL: connectionString,
-      },
-      stdio: 'inherit',
-    })
+    const seedEnv = { ...process.env, DATABASE_URL: connectionString }
 
-    await new Promise<void>((resolve, reject) => {
-      seedChatProcess.on('close', (code) => {
-        if (code === 0) {
-          console.warn('✅ Chat types seeded')
-          resolve()
-        } else {
-          reject(new Error(`Seed chat process exited with code ${code}`))
-        }
-      })
-      seedChatProcess.on('error', reject)
-    })
+    console.warn('🌱 Seeding chat types...')
+    await runProcess('pnpm', ['seed:chat'], { cwd: backendSeedPath, env: seedEnv })
+    console.warn('✅ Chat types seeded')
 
-    // Seed test users
     console.warn('🌱 Seeding test users...')
-    const seedUsersProcess = spawn('pnpm', ['seed:users', '3'], {
+    await runProcess('pnpm', ['seed:users', '3'], {
       cwd: backendSeedPath,
-      env: {
-        ...process.env,
-        DATABASE_URL: connectionString,
-        SEED_PASSWORD: 'Admin123!', // Test password for all seeded users
-      },
-      stdio: 'inherit',
+      env: { ...seedEnv, SEED_PASSWORD: 'Admin123!' },
     })
+    console.warn('✅ Test users seeded')
 
-    await new Promise<void>((resolve, reject) => {
-      seedUsersProcess.on('close', (code) => {
-        if (code === 0) {
-          console.warn('✅ Test users seeded')
-          resolve()
-        } else {
-          reject(new Error(`Seed users process exited with code ${code}`))
-        }
-      })
-      seedUsersProcess.on('error', reject)
-    })
-
-    // Seed company data
     console.warn('🌱 Seeding company data...')
-    const seedCompanyProcess = spawn('pnpm', ['seed:company'], {
-      cwd: backendSeedPath,
-      env: {
-        ...process.env,
-        DATABASE_URL: connectionString,
-      },
-      stdio: 'inherit',
-    })
+    await runProcess('pnpm', ['seed:company'], { cwd: backendSeedPath, env: seedEnv })
+    console.warn('✅ Company data seeded')
 
-    await new Promise<void>((resolve, reject) => {
-      seedCompanyProcess.on('close', (code) => {
-        if (code === 0) {
-          console.warn('✅ Company data seeded')
-          resolve()
-        } else {
-          reject(new Error(`Seed company process exited with code ${code}`))
-        }
-      })
-      seedCompanyProcess.on('error', reject)
-    })
-
-    // Save connection info to a file that tests can read
+    // ── 4. Save test config ──────────────────────────────────────────────
     const testConfig = {
       databaseUrl: connectionString,
       host,
       port,
       containerId: postgresContainer.getId(),
     }
-
     const configPath = path.join(process.cwd(), 'e2e', '.test-db-config.json')
     fs.writeFileSync(configPath, JSON.stringify(testConfig, null, 2))
 
-    // Set environment variable for the test run
     process.env.DATABASE_URL = connectionString
     process.env.TEST_DATABASE_URL = connectionString
 
-    // Start backend server
+    // ── 5. Production build of Next.js ───────────────────────────────────
+    console.warn('🔨 Building Next.js production bundle...')
+    const frontendPath = process.cwd()
+    await runProcess('pnpm', ['build'], {
+      cwd: frontendPath,
+      env: {
+        ...process.env,
+        DATABASE_URL: connectionString,
+        BACKEND_AI_CALLBACK_URL: 'http://localhost:3000/api/v1',
+        BACKEND_AI_CALLBACK_URL_DEV: 'http://localhost:3000/api/v1',
+        BACKEND_AI_CALLBACK_URL_PROD: 'http://localhost:3000/api/v1',
+        NEXT_PUBLIC_BASE_URL: 'http://localhost:4321',
+        NEXT_PUBLIC_POST_AI_CALLBACK_URL: 'http://localhost:3000/api/v1/ai/chat',
+        NEXTAUTH_URL: 'http://localhost:4321',
+        NEXTAUTH_SECRET: 'e2e-test-secret-minimum-32-chars-long',
+      },
+    })
+    console.warn('✅ Next.js production build complete')
+
+    // ── 6. Start backend server ──────────────────────────────────────────
     console.warn('🚀 Starting backend server...')
     const backendPath = path.join(process.cwd(), '..', 'backend')
 
@@ -192,10 +213,10 @@ async function globalSetup() {
         PORT: '3000',
         HOST: 'localhost',
         NODE_ENV: 'test',
-        USE_HTTPS: 'false', // Use HTTP for E2E tests
+        USE_HTTPS: 'false',
         JWT_SECRET: 'test-jwt-secret-for-e2e-tests-minimum-256-bits',
         JWT_ISSUER: 'norbertsSpark-test',
-        JWT_EXPIRATION: '3600', // 1 hour in seconds (backend expects seconds, not '1h' format)
+        JWT_EXPIRATION: '3600',
         GOOGLE_GENERATIVE_AI_API_KEY: 'test-google-api-key-for-e2e',
         MODEL_NAME: 'gemini-1.5-flash',
         RESEND_API_KEY: 'test-resend-api-key-for-e2e',
@@ -204,63 +225,65 @@ async function globalSetup() {
       stdio: ['ignore', 'pipe', 'pipe'],
     })
 
-    // Wait for backend to be ready
-    await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Backend server failed to start within 30 seconds'))
-      }, 30000)
-
-      const checkServer = async () => {
-        try {
-          const response = await fetch('http://localhost:3000/health')
-          if (response.ok) {
-            clearTimeout(timeout)
-            resolve()
-          }
-        } catch {
-          // Server not ready yet, try again
-          setTimeout(checkServer, 500)
-        }
-      }
-
-      // Start checking after 2 seconds to give server time to start
-      setTimeout(checkServer, 2000)
-
-      // Log backend output
-      backendProcess?.stdout?.on('data', (data) => {
-        const message = data.toString().trim()
-        if (message) {
-          console.warn(`[Backend] ${message}`)
-        }
-      })
-
-      backendProcess?.stderr?.on('data', (data) => {
-        const message = data.toString().trim()
-        if (message) {
-          console.warn(`[Backend Error] ${message}`)
-        }
-      })
-
-      backendProcess?.on('error', (error) => {
-        clearTimeout(timeout)
-        reject(error)
-      })
-
-      backendProcess?.on('exit', (code) => {
-        if (code !== 0 && code !== null) {
-          clearTimeout(timeout)
-          reject(new Error(`Backend process exited with code ${code}`))
-        }
-      })
+    backendProcess.stdout?.on('data', (data) => {
+      const msg = data.toString().trim()
+      if (msg) console.warn(`[Backend] ${msg}`)
+    })
+    backendProcess.stderr?.on('data', (data) => {
+      const msg = data.toString().trim()
+      if (msg) console.warn(`[Backend Error] ${msg}`)
     })
 
+    await waitForServer('http://localhost:3000/health', 'Backend server')
     console.warn('✅ Backend server started at http://localhost:3000')
 
+    // ── 7. Start Next.js production server ───────────────────────────────
+    console.warn('🚀 Starting Next.js production server...')
+
+    frontendProcess = spawn('pnpm', ['start:e2e'], {
+      cwd: frontendPath,
+      env: {
+        ...process.env,
+        DATABASE_URL: connectionString,
+        NODE_ENV: 'production',
+        BACKEND_AI_CALLBACK_URL: 'http://localhost:3000/api/v1',
+        BACKEND_AI_CALLBACK_URL_DEV: 'http://localhost:3000/api/v1',
+        BACKEND_AI_CALLBACK_URL_PROD: 'http://localhost:3000/api/v1',
+        NEXT_PUBLIC_BASE_URL: 'http://localhost:4321',
+        NEXT_PUBLIC_POST_AI_CALLBACK_URL: 'http://localhost:3000/api/v1/ai/chat',
+        NEXTAUTH_URL: 'http://localhost:4321',
+        NEXTAUTH_SECRET: 'e2e-test-secret-minimum-32-chars-long',
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+
+    frontendProcess.stdout?.on('data', (data) => {
+      const msg = data.toString().trim()
+      if (msg) console.warn(`[Frontend] ${msg}`)
+    })
+    frontendProcess.stderr?.on('data', (data) => {
+      const msg = data.toString().trim()
+      if (msg) console.warn(`[Frontend Error] ${msg}`)
+    })
+
+    await waitForServer('http://localhost:4321', 'Next.js production server')
+    console.warn('✅ Next.js production server started at http://localhost:4321')
+
+    // ── Done ─────────────────────────────────────────────────────────────
     console.warn('✅ E2E test environment ready!')
     console.warn(`📊 Database running at ${host}:${port}`)
     console.warn(`🔧 Backend API running at http://localhost:3000`)
+    console.warn(`🌐 Frontend running at http://localhost:4321`)
   } catch (error) {
     console.error('❌ Failed to set up E2E test environment:', error)
+
+    // Clean up anything that was started
+    if (frontendProcess && !frontendProcess.killed) {
+      frontendProcess.kill('SIGTERM')
+    }
+    if (backendProcess && !backendProcess.killed) {
+      backendProcess.kill('SIGTERM')
+    }
     if (postgresContainer) {
       try {
         await postgresContainer.stop()

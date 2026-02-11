@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:18.1-alpine
+    image: pgvector/pgvector:0.8.1-pg18-trixie
     container_name: norbertsSpark-postgres
     restart: unless-stopped
     
@@ -34,8 +34,8 @@ services:
       POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_US.UTF-8}
     
     volumes:
-      # Persistent data storage
-      - postgres_data:/var/lib/postgresql/data
+      # Persistent data storage (PG18+ uses /var/lib/postgresql with versioned subdirs)
+      - postgres_data:/var/lib/postgresql
       # Initialization scripts (Best Practice #3)
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
       # Custom PostgreSQL configuration (Best Practice #4)

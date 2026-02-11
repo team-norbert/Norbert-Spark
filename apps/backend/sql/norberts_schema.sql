@@ -7,7 +7,7 @@
 --   - Audit logging
 -- 
 -- Requirements:
---   - PostgreSQL 14+
+--   - PostgreSQL 18+
 --   - UUIDs via pgcrypto or uuidv7()
 -- ============================================================
 
