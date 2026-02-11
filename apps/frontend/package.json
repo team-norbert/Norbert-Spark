@@ -13,7 +13,7 @@
     "upgrade": "next upgrade",
     "build": "next build && cp -r .next/static .next/standalone/apps/frontend/.next/static",
     "start": "PORT=4321 node .next/standalone/apps/frontend/server.js",
-    "start:e2e": "NODE_TLS_REJECT_UNAUTHORIZED=0 PORT=4321 node .next/standalone/apps/frontend/server.js",
+    "start:e2e": "PORT=4321 node .next/standalone/apps/frontend/server.js",
     "bundle:analyze": "pnpm run build && next experimental-analyze",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",
