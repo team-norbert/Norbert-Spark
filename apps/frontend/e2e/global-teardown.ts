@@ -1,46 +1,63 @@
+import type { ChildProcess } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+
+/**
+ * Gracefully stop a child process: send SIGTERM, wait up to `timeoutMs`
+ * for it to exit, then force-kill with SIGKILL if necessary.
+ */
+async function stopProcess(
+  proc: ChildProcess | null,
+  label: string,
+  timeoutMs = 5000
+): Promise<void> {
+  if (!proc || proc.killed || proc.exitCode !== null) {
+    if (proc) console.warn(`ℹ️  ${label} already exited or was killed`)
+    return
+  }
+
+  console.warn(`🛑 Stopping ${label}...`)
+  try {
+    proc.kill('SIGTERM')
+
+    await new Promise<void>((resolve) => {
+      const timeout = setTimeout(() => {
+        if (!proc.killed && proc.exitCode === null) {
+          console.warn(`⚠️  ${label} did not stop gracefully, forcing kill...`)
+          try {
+            proc.kill('SIGKILL')
+          } catch (error) {
+            console.warn(`⚠️  Could not force kill ${label}: ${error}`)
+          }
+        }
+        resolve()
+      }, timeoutMs)
+
+      proc.on('exit', () => {
+        clearTimeout(timeout)
+        resolve()
+      })
+    })
+
+    console.warn(`✅ ${label} stopped`)
+  } catch (error) {
+    console.warn(`⚠️  Error stopping ${label}: ${error}`)
+  }
+}
+
 //TODO: refactor - killInterferingProcesses() now unconditionally runs pkill -f ..., which is not cross-platform (will fail on Windows / environments without pkill) and can kill unrelated processes that happen to match the pattern. Consider restoring the prior port-based approach (or gating behind an env var), and keep a Windows/Unix implementation so E2E setup remains portable and safer.
 async function globalTeardown() {
   console.warn('🧹 Starting E2E test environment teardown...')
 
   try {
-    // Stop backend server
-    const { backendProcess } = await import('./global-setup.js')
-    if (backendProcess && !backendProcess.killed && backendProcess.exitCode === null) {
-      console.warn('🛑 Stopping backend server...')
-      try {
-        backendProcess.kill('SIGTERM')
+    // Import managed processes from global setup
+    const { backendProcess, frontendProcess } = await import('./global-setup.js')
 
-        // Wait for graceful shutdown
-        await new Promise<void>((resolve) => {
-          const timeout = setTimeout(() => {
-            if (!backendProcess.killed && backendProcess.exitCode === null) {
-              console.warn('⚠️  Backend did not stop gracefully, forcing kill...')
-              try {
-                backendProcess.kill('SIGKILL')
-              } catch (error) {
-                console.warn(`⚠️  Could not force kill backend: ${error}`)
-              }
-            }
-            resolve()
-          }, 5000)
+    // Stop frontend and backend servers
+    await stopProcess(frontendProcess, 'frontend server')
+    await stopProcess(backendProcess, 'backend server')
 
-          backendProcess.on('exit', () => {
-            clearTimeout(timeout)
-            resolve()
-          })
-        })
-
-        console.warn('✅ Backend server stopped')
-      } catch (error) {
-        console.warn(`⚠️  Error stopping backend server: ${error}`)
-      }
-    } else if (backendProcess) {
-      console.warn('ℹ️  Backend process already exited or was killed')
-    }
-
-    // Read the test configuration
+    // Read the test configuration and clean up
     const configPath = path.join(process.cwd(), 'e2e', '.test-db-config.json')
 
     if (fs.existsSync(configPath)) {

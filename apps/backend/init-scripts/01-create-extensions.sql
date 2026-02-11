@@ -18,6 +18,9 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- Enable citext for case-insensitive text columns (useful for emails)
 CREATE EXTENSION IF NOT EXISTS citext;
 
+-- Enable pgvector for vector similarity search (RAG embeddings)
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- Output confirmation
 DO $$
 BEGIN
