@@ -11,8 +11,8 @@ async function stopProcess(
   label: string,
   timeoutMs = 5000
 ): Promise<void> {
-  if (!proc || proc.killed || proc.exitCode !== null) {
-    if (proc) console.warn(`ℹ️  ${label} already exited or was killed`)
+  if (!proc || proc.exitCode !== null) {
+    if (proc) console.warn(`ℹ️  ${label} already exited`)
     return
   }
 
