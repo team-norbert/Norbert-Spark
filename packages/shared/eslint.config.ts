@@ -42,11 +42,9 @@ const config: Linter.Config[] = [
       vitest: vitestPlugin,
     },
     rules: {
-      // Use only specific vitest rules to avoid configuration issues
-      'vitest/expect-expect': 'error',
-      'vitest/no-identical-title': 'error',
-      'vitest/no-focused-tests': 'warn',
-      'vitest/valid-expect': 'error',
+      // Start from Vitest's recommended rules for consistency across workspaces
+      ...vitestPlugin.configs.recommended.rules,
+      // Local override: allow conditional expects in this workspace if needed
       'vitest/no-conditional-expect': 'off',
     },
   },
