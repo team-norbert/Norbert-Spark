@@ -85,21 +85,29 @@ function runProcess(
  */
 function waitForServer(url: string, label: string, timeoutMs = 30_000): Promise<void> {
   return new Promise((resolve, reject) => {
+    let done = false
+
     const timeout = setTimeout(() => {
+      done = true
       reject(new Error(`${label} failed to start within ${timeoutMs / 1000} seconds`))
     }, timeoutMs)
 
     const check = async () => {
+      if (done) return
+
       try {
         const response = await fetch(url)
         if (response.ok) {
+          done = true
           clearTimeout(timeout)
           resolve()
-        } else {
+        } else if (!done) {
           setTimeout(check, 500)
         }
       } catch {
-        setTimeout(check, 500)
+        if (!done) {
+          setTimeout(check, 500)
+        }
       }
     }
 
