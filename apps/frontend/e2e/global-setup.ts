@@ -36,7 +36,7 @@ async function killInterferingProcesses() {
   const processPatterns = [
     'next dev', // Kill dev servers that would conflict with production build
     'next start', // Kill any lingering production servers
-    'next start:e2e', // Kill any lingering E2E-specific servers
+    'node .next/standalone', // Kill any lingering standalone Next.js servers (including E2E)
     'tsx watch', // Kill backend dev servers
     'drizzle-kit studio', // Kill database GUI
   ]
