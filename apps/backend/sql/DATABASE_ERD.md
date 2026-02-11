@@ -202,14 +202,17 @@ Stores user accounts with support for both password-based and OAuth authenticati
 - **Roles**: user, admin, moderator
 - **OAuth Support**: Google provider with provider_id
 
-### **data**
+### **vector_embeddings_1536 / vector_embeddings_768 / vector_embeddings_384**
 
-Stores vector embeddings for RAG (Retrieval-Augmented Generation) functionality.
+Store vector embeddings for RAG (Retrieval-Augmented Generation) functionality, separated by embedding dimension.
 
-- **Primary Key**: `id` (UUID v7)
-- **Embedding**: VECTOR(1536) for OpenAI text-embedding-ada-002 or text-embedding-3-small
-- **Index**: IVFFlat index on embedding column for cosine similarity search
-- **Supported Models**: OpenAI (1536/3072), Google (768), Cohere (1024), Anthropic (1536)
+- **Primary Key**: `id` (UUID v7) in each table
+- **Embeddings**:
+  - `vector_embeddings_1536`: VECTOR(1536) for models such as OpenAI text-embedding-ada-002 or text-embedding-3-small
+  - `vector_embeddings_768`: VECTOR(768) for models that produce 768-dimensional embeddings
+  - `vector_embeddings_384`: VECTOR(384) for models that produce 384-dimensional embeddings
+- **Index**: IVFFlat (or similar) index on the embedding column in each table for cosine similarity search
+- **Supported Models**: Multiple providers mapped to the appropriate table by embedding dimension (e.g., OpenAI 1536-dim, Google 768-dim, and other providers with compatible dimensions)
 
 ### **company**
 
