@@ -497,7 +497,7 @@ export const vectorEmbeddings768 = pgTable(
     /**
      * Position of this chunk within its document, used to reconstruct ordering.
      */
-    chunkIndex: integer('chunk_index').notNull(),
+    chunkIndex: integer('chunk_index').notNull().default(0),
     content: text('content').notNull(),
     /**
      * Flexible metadata about the chunk/document (page, section, author, etc.).
@@ -574,7 +574,7 @@ export const vectorEmbeddings384 = pgTable(
     /**
      * Position of this chunk within its document, used to reconstruct ordering.
      */
-    chunkIndex: integer('chunk_index').notNull(),
+    chunkIndex: integer('chunk_index').notNull().default(0),
     content: text('content').notNull(),
     /**
      * Flexible metadata about the chunk/document (page, section, author, etc.).
