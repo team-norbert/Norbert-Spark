@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
 
     embedding_model_id UUID NOT NULL
     REFERENCES embedding_models(id)
-    ON DELETE RESTRICT,
+    ON DELETE CASCADE,
 
     chunk_index INTEGER NOT NULL,
     content TEXT NOT NULL,
