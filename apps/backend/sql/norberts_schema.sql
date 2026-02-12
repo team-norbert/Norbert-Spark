@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
     REFERENCES embedding_models(id)
     ON DELETE CASCADE,
 
-    chunk_index INTEGER NOT NULL,
+    chunk_index INTEGER NOT NULL DEFAULT 0,
     content TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
 
