@@ -1,8 +1,8 @@
 # Build stage
-FROM node:22-slim AS builder
+FROM node:24-slim AS builder
 
-# Enable pnpm
-RUN corepack enable && corepack prepare pnpm@10.25.0 --activate
+# Enable pnpm 10.29.3
+RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ FROM node:22-slim
 
 # Install curl for healthchecks and enable pnpm
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* && \
-    corepack enable && corepack prepare pnpm@10.25.0 --activate
+    corepack enable && corepack prepare pnpm@10.29.3 --activate
 
 WORKDIR /app
 
