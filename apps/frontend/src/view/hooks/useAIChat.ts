@@ -8,7 +8,7 @@ import { isValidUUID, uuidVersionValidation } from 'uuidv7-utilities'
 
 import { fileToDataURL } from '@/application/services/fileToDataURL.service.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
-import { useAIChatConfig } from '@/view/hooks/queries/useAIChatConfig.js'
+import { useAIChatTypes } from '@/view/hooks/queries/useAIChatTypes.js'
 import { useUserChats } from '@/view/hooks/useUserChats.js'
 
 const logger = createLogger({ prefix: 'useAIChat' })
@@ -55,7 +55,7 @@ export function useAIChat({ chatTypeId, id, initialMessages }: UseAIChatProps = 
   const { data: session } = useSession()
 
   // Fetch available chat types to resolve chatTypeId if not provided
-  const { chatTypes } = useAIChatConfig()
+  const { chatTypes } = useAIChatTypes()
   const resolvedChatTypeId = chatTypeId ?? chatTypes[0]?.id
 
   const disabled = !id
