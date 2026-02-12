@@ -221,7 +221,7 @@ describe('AIController', () => {
       controller.registerRoutes(mockApp)
 
       expect(mockApp.post).toHaveBeenCalledTimes(1)
-      expect(mockApp.get).toHaveBeenCalledTimes(3)
+      expect(mockApp.get).toHaveBeenCalledTimes(4)
       expect(mockApp.put).not.toHaveBeenCalled()
       expect(mockApp.delete).not.toHaveBeenCalled()
     })
@@ -234,7 +234,7 @@ describe('AIController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.get).toHaveBeenCalledTimes(3)
+      expect(mockApp.get).toHaveBeenCalledTimes(4)
       expect(mockApp.get).toHaveBeenCalledWith(
         '/ai/chats/:userId',
         expect.objectContaining({ preHandler: expect.any(Array) }),
@@ -250,9 +250,25 @@ describe('AIController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.get).toHaveBeenCalledTimes(3)
+      expect(mockApp.get).toHaveBeenCalledTimes(4)
       expect(mockApp.get).toHaveBeenCalledWith(
         '/ai/fetchChat/:chatId',
+        expect.objectContaining({ preHandler: expect.any(Array) }),
+        expect.any(Function)
+      )
+    })
+
+    it('should register GET /ai/chats/types route', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      expect(mockApp.get).toHaveBeenCalledTimes(4)
+      expect(mockApp.get).toHaveBeenCalledWith(
+        '/ai/chats/types',
         expect.objectContaining({ preHandler: expect.any(Array) }),
         expect.any(Function)
       )
@@ -266,7 +282,7 @@ describe('AIController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.get).toHaveBeenCalledTimes(3)
+      expect(mockApp.get).toHaveBeenCalledTimes(4)
       expect(mockApp.get).toHaveBeenCalledWith(
         '/ai/chats/config',
         expect.objectContaining({ preHandler: expect.any(Array) }),
