@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS users (
     two_factor_enabled BOOLEAN NOT NULL DEFAULT false,
     two_factor_secret TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- ============================================================

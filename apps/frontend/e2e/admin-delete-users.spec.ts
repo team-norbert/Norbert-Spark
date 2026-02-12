@@ -116,7 +116,7 @@ test.describe('Admin Page - Delete Users', () => {
     await page.waitForSelector('.MuiDataGrid-root', { timeout: 10000 })
 
     const deleteButton = page.getByTestId('delete-users-button')
-    
+
     // Wait for delete button to be visible
     await expect(deleteButton.last()).toBeVisible()
 

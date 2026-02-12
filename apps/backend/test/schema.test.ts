@@ -166,6 +166,11 @@ describe('Database Schema', () => {
         expect(user.createdAt).toBeDefined()
         expect(user.createdAt.name).toBe('created_at')
       })
+
+      it('should have updatedAt column', () => {
+        expect(user.updatedAt).toBeDefined()
+        expect(user.updatedAt.name).toBe('updated_at')
+      })
     })
 
     describe('chats table columns', () => {

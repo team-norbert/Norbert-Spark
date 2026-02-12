@@ -314,6 +314,9 @@ export const user = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => ({
     providerCheck: check('provider_check', sql`${table.provider} IN ('google')`),
