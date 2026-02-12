@@ -64,6 +64,13 @@ export class AIController {
       this.getAIChatByChatId.bind(this)
     )
     app.get(
+      '/ai/chats/types',
+      {
+        preHandler: [authMiddleware],
+      },
+      this.getAIChatTypes.bind(this)
+    )
+    app.get(
       '/ai/chats/config',
       {
         preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
@@ -476,6 +483,47 @@ export class AIController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'Failed to fetch chat details'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
+  }
+
+  /**
+   * Retrieves available chat types for authenticated users.
+   *
+   * This endpoint allows any authenticated user to discover the available chat types
+   * in the system. It returns the same information as getAIChatDetails but is accessible
+   * to all authenticated users, not just admins/moderators.
+   *
+   * This endpoint is necessary because the /ai/chat endpoint requires a chatTypeId,
+   * but regular users need a way to discover what chatTypeIds are available.
+   *
+   * @param request - The Fastify request object with authentication
+   * @param reply - The Fastify reply object
+   * @returns A list of available chat types with their details
+   */
+  async getAIChatTypes(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.debug('Received getAIChatTypes request')
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
+    try {
+      const result = await this.getChatDetailsUseCase.execute(auditContext)
+      this.logger.debug(JSON.stringify(result))
+      reply.code(200).send({
+        success: true,
+        data: result,
+      })
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'Failed to fetch chat types'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,

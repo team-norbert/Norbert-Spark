@@ -221,7 +221,7 @@ describe('AIController', () => {
       controller.registerRoutes(mockApp)
 
       expect(mockApp.post).toHaveBeenCalledTimes(1)
-      expect(mockApp.get).toHaveBeenCalledTimes(3)
+      expect(mockApp.get).toHaveBeenCalledTimes(4)
       expect(mockApp.put).not.toHaveBeenCalled()
       expect(mockApp.delete).not.toHaveBeenCalled()
     })
@@ -234,7 +234,7 @@ describe('AIController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.get).toHaveBeenCalledTimes(3)
+      expect(mockApp.get).toHaveBeenCalledTimes(4)
       expect(mockApp.get).toHaveBeenCalledWith(
         '/ai/chats/:userId',
         expect.objectContaining({ preHandler: expect.any(Array) }),
@@ -250,7 +250,7 @@ describe('AIController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.get).toHaveBeenCalledTimes(3)
+      expect(mockApp.get).toHaveBeenCalledTimes(4)
       expect(mockApp.get).toHaveBeenCalledWith(
         '/ai/fetchChat/:chatId',
         expect.objectContaining({ preHandler: expect.any(Array) }),
@@ -266,7 +266,7 @@ describe('AIController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.get).toHaveBeenCalledTimes(3)
+      expect(mockApp.get).toHaveBeenCalledTimes(4)
       expect(mockApp.get).toHaveBeenCalledWith(
         '/ai/chats/config',
         expect.objectContaining({ preHandler: expect.any(Array) }),
@@ -1343,6 +1343,175 @@ describe('AIController', () => {
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: "ChatType with identifier 'test-id' not found",
+        })
+      })
+    })
+  })
+
+  describe('getAIChatTypes()', () => {
+    describe('successful scenarios', () => {
+      it('should fetch and return chat types for authenticated users', async () => {
+        const mockChatTypes = [
+          {
+            id: uuidv7(),
+            name: 'General Assistant',
+            seoFriendlyId: 'general-assistant',
+            seoFriendlyBase64Id: 'AbCdEfGhIjKlMnOpQrStUv',
+            description: 'A general purpose AI assistant',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          {
+            id: uuidv7(),
+            name: 'Code Helper',
+            seoFriendlyId: 'code-helper',
+            seoFriendlyBase64Id: 'XyZaBcDeFgHiJkLmNoPqRs',
+            description: 'Specialized in coding assistance',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]
+
+        mockRequest.user = {
+          sub: new UserId(uuidv7()).getValue(),
+          email: 'user@example.com',
+          roles: ['user'],
+        }
+        vi.mocked(mockGetChatDetailsUseCase.execute).mockResolvedValue(mockChatTypes)
+
+        await controller.getAIChatTypes(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockChatTypes,
+        })
+        expect(mockGetChatDetailsUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
+        expect(mockGetChatDetailsUseCase.execute).toHaveBeenCalledTimes(1)
+        expect(mockLogger.debug).toHaveBeenCalledWith('Received getAIChatTypes request')
+      })
+
+      it('should return empty array when no chat types exist', async () => {
+        const mockChatTypes: any[] = []
+
+        mockRequest.user = {
+          sub: new UserId(uuidv7()).getValue(),
+          email: 'user@example.com',
+          roles: ['user'],
+        }
+        vi.mocked(mockGetChatDetailsUseCase.execute).mockResolvedValue(mockChatTypes)
+
+        await controller.getAIChatTypes(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: [],
+        })
+        expect(mockGetChatDetailsUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
+      })
+
+      it('should handle request with null userId', async () => {
+        const mockChatTypes = [
+          {
+            id: uuidv7(),
+            name: 'Test Chat Type',
+            seoFriendlyId: 'test-chat-type',
+            seoFriendlyBase64Id: 'TeSt1234567890AbCdEfGh',
+            description: 'Test description',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]
+
+        mockRequest.user = undefined // No user object
+        vi.mocked(mockGetChatDetailsUseCase.execute).mockResolvedValue(mockChatTypes)
+
+        await controller.getAIChatTypes(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockChatTypes,
+        })
+        expect(mockGetChatDetailsUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId: null,
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
+      })
+    })
+
+    describe('error scenarios', () => {
+      it('should handle InternalErrorException and return 500 status', async () => {
+        const errorMessage = 'Database connection failed'
+        const mockError = new InternalErrorException(errorMessage)
+
+        mockRequest.user = {
+          sub: new UserId(uuidv7()).getValue(),
+          email: 'user@example.com',
+          roles: ['user'],
+        }
+        vi.mocked(mockGetChatDetailsUseCase.execute).mockRejectedValue(mockError)
+
+        await controller.getAIChatTypes(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: errorMessage,
+        })
+      })
+
+      it('should handle NotFoundException and return 404 status', async () => {
+        const mockError = new NotFoundException('ChatType', 'test-id')
+
+        mockRequest.user = {
+          sub: new UserId(uuidv7()).getValue(),
+          email: 'user@example.com',
+          roles: ['user'],
+        }
+        vi.mocked(mockGetChatDetailsUseCase.execute).mockRejectedValue(mockError)
+
+        await controller.getAIChatTypes(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(404)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: "ChatType with identifier 'test-id' not found",
+        })
+      })
+
+      it('should handle generic errors and return 500 status', async () => {
+        const mockError = new Error('Unexpected error')
+
+        mockRequest.user = {
+          sub: new UserId(uuidv7()).getValue(),
+          email: 'user@example.com',
+          roles: ['user'],
+        }
+        vi.mocked(mockGetChatDetailsUseCase.execute).mockRejectedValue(mockError)
+
+        await controller.getAIChatTypes(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Unexpected error',
         })
       })
     })
