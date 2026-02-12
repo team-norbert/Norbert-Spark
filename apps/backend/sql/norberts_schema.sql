@@ -61,6 +61,8 @@ CREATE TABLE IF NOT EXISTS users (
     role        TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
     provider    TEXT CHECK (provider IN ('google')),
     provider_id TEXT,
+    two_factor_enabled BOOLEAN NOT NULL DEFAULT false,
+    two_factor_secret TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

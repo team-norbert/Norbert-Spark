@@ -98,6 +98,8 @@ export class PostgresUserRepository implements UserRepositoryPort {
         password: userEntity.getPassword() ? userEntity.getPasswordHash() : null,
         provider: null,
         providerId: null,
+        twoFactorEnabled: userEntity.isTwoFactorEnabled(),
+        twoFactorSecret: userEntity.getTwoFactorSecret() ?? null,
         createdAt: new Date(),
       }
 
@@ -207,6 +209,8 @@ export class PostgresUserRepository implements UserRepositoryPort {
         password: null, // OAuth users don't have passwords
         provider: provider || null,
         providerId: providerId || null,
+        twoFactorEnabled: userEntity.isTwoFactorEnabled(),
+        twoFactorSecret: userEntity.getTwoFactorSecret() ?? null,
         createdAt: new Date(),
       }
 
@@ -250,6 +254,8 @@ export class PostgresUserRepository implements UserRepositoryPort {
         role: userEntity.getRole(),
         provider: userEntity.getProvider(),
         providerId: userEntity.getProviderId() ? userEntity.getProviderId() : null,
+        twoFactorEnabled: userEntity.isTwoFactorEnabled(),
+        twoFactorSecret: userEntity.getTwoFactorSecret() ?? null,
         createdAt: new Date(),
       }
 
@@ -453,6 +459,8 @@ export class PostgresUserRepository implements UserRepositoryPort {
           email: userEntity.getEmail(),
           name: userEntity.getName(),
           role: userEntity.getRole(),
+          twoFactorEnabled: userEntity.isTwoFactorEnabled(),
+          twoFactorSecret: userEntity.getTwoFactorSecret() ?? null,
         })
         .where(eq(user.userId, userEntity.id))
     } catch (error) {
@@ -568,6 +576,10 @@ export class PostgresUserRepository implements UserRepositoryPort {
     const password = record.password ? Password.fromHash(record.password) : undefined
     const role = new Role(record.role)
     const userId = new UserId(record.userId).getValue()
+
+    // Store encrypted value as-is - encryption/decryption happens at application layer
+    const twoFactorSecret = record.twoFactorSecret ?? undefined
+
     return new User(
       userId,
       email,
@@ -576,7 +588,9 @@ export class PostgresUserRepository implements UserRepositoryPort {
       password,
       record.createdAt,
       record.provider ?? undefined,
-      record.providerId ?? undefined
+      record.providerId ?? undefined,
+      record.twoFactorEnabled,
+      twoFactorSecret
     )
   }
 }

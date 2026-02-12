@@ -152,6 +152,16 @@ describe('Database Schema', () => {
         expect(user.role.name).toBe('role')
       })
 
+      it('should have twoFactorEnabled column', () => {
+        expect(user.twoFactorEnabled).toBeDefined()
+        expect(user.twoFactorEnabled.name).toBe('two_factor_enabled')
+      })
+
+      it('should have twoFactorSecret column', () => {
+        expect(user.twoFactorSecret).toBeDefined()
+        expect(user.twoFactorSecret.name).toBe('two_factor_secret')
+      })
+
       it('should have createdAt column', () => {
         expect(user.createdAt).toBeDefined()
         expect(user.createdAt.name).toBe('created_at')

@@ -54,6 +54,8 @@ export class User {
    * @param createdAt - Timestamp when the user was created (defaults to current date/time)
    * @param provider - Authentication provider (optional, for OAuth users)
    * @param providerId - Unique identifier from the authentication provider (optional, for OAuth users)
+   * @param twoFactorEnabled - Whether two-factor authentication is enabled (defaults to false)
+   * @param twoFactorSecret - Encrypted two-factor authentication secret (optional, only if 2FA is enabled)
    *
    * @example
    * ```typescript
@@ -66,6 +68,8 @@ export class User {
    * const existingUser = new User('user-456', email, 'John Smith', role, password)
    * // For OAuth users without password
    * const oauthUser = new User(undefined, email, 'John Smith', role, undefined, undefined, 'google', '1234567890')
+   * // For users with 2FA enabled
+   * const user2FA = new User('user-789', email, 'John Smith', role, password, undefined, undefined, undefined, true, 'encrypted_secret')
    * ```
    */
   constructor(
@@ -76,7 +80,9 @@ export class User {
     private password?: PasswordType,
     private createdAt: Date = new Date(),
     private provider?: string,
-    private providerId?: string
+    private providerId?: string,
+    private twoFactorEnabled: boolean = false,
+    private twoFactorSecret?: string
   ) {}
 
   /**
@@ -263,5 +269,94 @@ export class User {
    */
   getCreatedAt(): Date {
     return this.createdAt
+  }
+
+  /**
+   * Checks if two-factor authentication is enabled for the user.
+   *
+   * @returns True if 2FA is enabled, false otherwise
+   * @example
+   * ```typescript
+   * const is2FAEnabled = user.isTwoFactorEnabled() // true or false
+   * ```
+   */
+  isTwoFactorEnabled(): boolean {
+    return this.twoFactorEnabled
+  }
+
+  /**
+   * Gets the encrypted two-factor authentication secret.
+   *
+   * @returns The encrypted 2FA secret, or undefined if 2FA is not enabled
+   * @example
+   * ```typescript
+   * const secret = user.getTwoFactorSecret() // 'encrypted_secret' or undefined
+   * ```
+   */
+  getTwoFactorSecret(): string | undefined {
+    return this.twoFactorSecret
+  }
+
+  /**
+   * Enables two-factor authentication for the user.
+   *
+   * Business Rule: The 2FA secret must be provided and should be encrypted before storing.
+   *
+   * @param encryptedSecret - The encrypted 2FA secret to store
+   * @throws {ValidationException} If the encrypted secret is not provided
+   * @example
+   * ```typescript
+   * const encryptedSecret = encryptTwoFactorSecret('JBSWY3DPEHPK3PXP')
+   * user.enableTwoFactor(encryptedSecret)
+   * ```
+   */
+  enableTwoFactor(encryptedSecret: string): void {
+    if (!encryptedSecret || encryptedSecret.trim() === '') {
+      throw new ValidationException(
+        'Encrypted 2FA secret is required to enable two-factor authentication'
+      )
+    }
+    this.twoFactorEnabled = true
+    this.twoFactorSecret = encryptedSecret
+  }
+
+  /**
+   * Disables two-factor authentication for the user.
+   *
+   * Business Rule: Disabling 2FA should remove the stored secret for security.
+   *
+   * @example
+   * ```typescript
+   * user.disableTwoFactor()
+   * ```
+   */
+  disableTwoFactor(): void {
+    this.twoFactorEnabled = false
+    this.twoFactorSecret = undefined
+  }
+
+  /**
+   * Updates the two-factor authentication secret.
+   *
+   * Business Rule: Can only update the secret if 2FA is already enabled.
+   *
+   * @param encryptedSecret - The new encrypted 2FA secret
+   * @throws {ValidationException} If 2FA is not enabled or encrypted secret is invalid
+   * @example
+   * ```typescript
+   * const newEncryptedSecret = encryptTwoFactorSecret('NEWJBSWY3DPEHPK3PXP')
+   * user.updateTwoFactorSecret(newEncryptedSecret)
+   * ```
+   */
+  updateTwoFactorSecret(encryptedSecret: string): void {
+    if (!this.twoFactorEnabled) {
+      throw new ValidationException(
+        'Cannot update 2FA secret when two-factor authentication is not enabled'
+      )
+    }
+    if (!encryptedSecret || encryptedSecret.trim() === '') {
+      throw new ValidationException('Encrypted 2FA secret cannot be empty')
+    }
+    this.twoFactorSecret = encryptedSecret
   }
 }
