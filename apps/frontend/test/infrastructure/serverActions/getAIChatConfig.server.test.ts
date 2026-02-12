@@ -67,7 +67,7 @@ describe('getAIChatConfig', () => {
       expect(mockGetAuthToken).toHaveBeenCalledOnce()
       expect(mockBackendRequest).toHaveBeenCalledWith({
         method: 'GET',
-        endpoint: '/ai/chats/config',
+        endpoint: '/ai/chats/types',
         headers: {
           Authorization: `Bearer ${TEST_TOKEN}`,
         },
@@ -277,7 +277,7 @@ describe('getAIChatConfig', () => {
 
       expect(mockBackendRequest).toHaveBeenCalledWith(
         expect.objectContaining({
-          endpoint: '/ai/chats/config',
+          endpoint: '/ai/chats/types',
         })
       )
     })

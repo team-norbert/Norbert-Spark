@@ -64,6 +64,13 @@ export class AIController {
       this.getAIChatByChatId.bind(this)
     )
     app.get(
+      '/ai/chats/types',
+      {
+        preHandler: [authMiddleware],
+      },
+      this.getAIChatTypes.bind(this)
+    )
+    app.get(
       '/ai/chats/config',
       {
         preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
@@ -410,6 +417,84 @@ export class AIController {
       return reply.code(500).send({
         success: false,
         error: 'Internal server error',
+      })
+    }
+  }
+
+  /**
+   * Retrieves all available chat types for authenticated users.
+   *
+   * This endpoint is available to all authenticated users and returns an array
+   * of all chat type configurations in the database, enriched with SEO-friendly
+   * identifiers for URL generation. This allows regular users to discover and
+   * select chat types without requiring admin/moderator privileges.
+   *
+   * The chat types include essential information such as:
+   * - UUID identifier
+   * - Human-readable name
+   * - Description of the chat type's purpose
+   * - SEO-friendly slug for clean URLs
+   * - Base64-encoded UUID for compact URL representation
+   * - Creation and update timestamps
+   *
+   * **Access Control:**
+   * - Requires valid authentication (any authenticated user)
+   *
+   * **Audit Trail:**
+   * - All access attempts are logged via the GetChatDetailsUseCase
+   * - Includes user ID, IP address, and user agent information
+   *
+   * @param request - The Fastify request object containing authentication context
+   * @param reply - The Fastify reply object for sending responses
+   * @returns A promise that resolves with a JSON response containing all chat type details
+   *
+   * @example
+   * ```typescript
+   * // Route: GET /ai/chats/types
+   * // Headers: { Authorization: "Bearer <token>" }
+   * // Response:
+   * // {
+   * //   "success": true,
+   * //   "data": [
+   * //     {
+   * //       "id": "019bdccc-f0cb-7322-aa9e-776e25f34d81",
+   * //       "name": "The Heart of Darkness",
+   * //       "description": "Ask questions about the novella 'The Heart of Darkness' by Joseph Conrad",
+   * //       "seoFriendlyId": "the-heart-of-darkness",
+   * //       "seoFriendlyBase64Id": "AbCdEfGhIjKlMnOpQrStUv",
+   * //       "createdAt": "2024-01-01T00:00:00.000Z",
+   * //       "updatedAt": "2024-01-01T00:00:00.000Z"
+   * //     }
+   * //   ]
+   * // }
+   * ```
+   *
+   * @throws {BaseException} When a domain-specific error occurs (returns appropriate status code)
+   * @throws {Error} When an unexpected error occurs (returns 500 status code)
+   */
+  async getAIChatTypes(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.debug('Received getAIChatTypes request')
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
+    try {
+      const result = await this.getChatDetailsUseCase.execute(auditContext)
+      this.logger.debug(JSON.stringify(result))
+      reply.code(200).send({
+        success: true,
+        data: result,
+      })
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err.message || 'Failed to fetch chat types'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
       })
     }
   }
