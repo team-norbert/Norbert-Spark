@@ -5,13 +5,13 @@ import { backendRequest } from '@/infrastructure/serverActions/baseServerAction.
 import { getAuthToken } from '@/lib/auth.js'
 
 /**
- * Server Action to fetch AI chat configuration
+ * Server Action to fetch AI chat types
  *
  * Retrieves all available chat types with their details and SEO-friendly identifiers.
- * Only accessible to users with 'admin' or 'moderator' roles.
+ * This endpoint is accessible to all authenticated users (not restricted to admin/moderator).
  *
- * @returns Promise with the chat configuration data
- * @throws {Error} If the request fails or user is not authenticated/authorized
+ * @returns Promise with the chat types data
+ * @throws {Error} If the request fails or user is not authenticated
  *
  * @example
  * ```typescript
@@ -27,7 +27,7 @@ export async function getAIChatConfig(): Promise<AIChatOptionsResponse> {
 
   return backendRequest<AIChatOptionsResponse>({
     method: 'GET',
-    endpoint: '/ai/chats/config',
+    endpoint: '/ai/chats/types',
     headers: {
       Authorization: `Bearer ${token}`,
     },

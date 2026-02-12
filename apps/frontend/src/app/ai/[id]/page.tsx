@@ -47,6 +47,7 @@ export default function AIChatPage({ params }: { params: Promise<{ id: string }>
     messagesEndRef,
     mobileOpen,
     selectedFile,
+    status,
   } = useAIChat({ id, initialMessages: chatData?.messages })
 
   logger.info('Rendering AIChatPage with messages:', messages)
@@ -73,6 +74,7 @@ export default function AIChatPage({ params }: { params: Promise<{ id: string }>
       onSignOut={handleSignOut}
       onSubmit={handleSubmit}
       selectedFile={selectedFile}
+      status={status}
     />
   )
 }

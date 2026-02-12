@@ -1,4 +1,4 @@
-import { type BrowserContext, expect, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 const TEST_CREDENTIALS = {
   email: 'james.smith@gmail.com',

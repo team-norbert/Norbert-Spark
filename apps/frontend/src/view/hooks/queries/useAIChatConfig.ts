@@ -11,8 +11,11 @@ interface UseAIChatConfigReturn {
 }
 
 /**
- * React Query hook for fetching AI chat configuration
+ * React Query hook for fetching AI chat types
  * Provides automatic caching, refetching, and loading states
+ *
+ * This hook retrieves all available chat types that authenticated users can use.
+ * It is accessible to all authenticated users (not restricted to admin/moderator).
  *
  * @returns Object containing chat types, loading state, error, and refetch function
  *

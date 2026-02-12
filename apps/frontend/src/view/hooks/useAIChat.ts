@@ -8,6 +8,7 @@ import { isValidUUID, uuidVersionValidation } from 'uuidv7-utilities'
 
 import { fileToDataURL } from '@/application/services/fileToDataURL.service.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
+import { useAIChatConfig } from '@/view/hooks/queries/useAIChatConfig.js'
 import { useUserChats } from '@/view/hooks/useUserChats.js'
 
 const logger = createLogger({ prefix: 'useAIChat' })
@@ -32,6 +33,7 @@ const ALLOWED_FILE_TYPES = [
 
 interface UseAIChatProps {
   id?: string
+  chatTypeId?: string
   initialMessages?: any[]
 }
 
@@ -48,11 +50,16 @@ export function isValidUUIDv7(id: string | Buffer) {
 export function processUserUUID(id: string | Buffer) {
   return isValidUUIDv7(id)
 }
-export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
+export function useAIChat({ chatTypeId, id, initialMessages }: UseAIChatProps = {}) {
   const router = useRouter()
   const { data: session } = useSession()
 
-  const disabled = !id
+  // Fetch available chat types to resolve chatTypeId if not provided
+  const { chatTypes, error: chatConfigError, isLoading: isLoadingChatTypes } = useAIChatConfig()
+  const resolvedChatTypeId = chatTypeId ?? chatTypes[0]?.id
+
+  // Disable chat if no id or if chatTypeId is not available
+  const disabled = !id || !resolvedChatTypeId
 
   const handleNewChat = () => {
     const newId = uuidv7()
@@ -81,13 +88,30 @@ export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
     }
   }, [id])
 
+  // Handle chat type configuration errors
+  useEffect(() => {
+    if (chatConfigError && !chatTypeId) {
+      setErrorMessage(
+        'Unable to load chat configuration. Please ensure you have the necessary permissions or try again later.'
+      )
+    } else if (!isLoadingChatTypes && !resolvedChatTypeId && id) {
+      setErrorMessage(
+        'Chat type configuration is not available. Please contact support if this problem persists.'
+      )
+    } else if (!chatConfigError && !isLoadingChatTypes && resolvedChatTypeId) {
+      // Clear error message when configuration is successfully loaded
+      setErrorMessage('')
+    }
+  }, [chatConfigError, chatTypeId, isLoadingChatTypes, resolvedChatTypeId, id])
+
   logger.info('Initial messages in useAIChat:', initialMessages)
 
-  const { messages, sendMessage, stop } = useChat({
+  const { messages, sendMessage, status, stop } = useChat({
     id: id,
     messages: initialMessages,
     transport: new DefaultChatTransport({
       api: process.env.NEXT_PUBLIC_POST_AI_CALLBACK_URL,
+      body: resolvedChatTypeId ? { chatTypeId: resolvedChatTypeId } : undefined,
       fetch: (url, options) => {
         const accessToken = session?.accessToken
         return fetch(url, {
@@ -122,6 +146,14 @@ export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim() || isLoading) return
+
+    // Validate that chatTypeId is available before submitting
+    if (!resolvedChatTypeId) {
+      setErrorMessage(
+        'Chat type configuration is not available. Unable to send message. Please try again later.'
+      )
+      return
+    }
 
     setIsLoading(true)
 
@@ -203,6 +235,7 @@ export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
     mobileOpen,
     messagesEndRef,
     disabled,
+    status,
     userId: session?.user?.id ?? null,
     currentChatId: id,
 
