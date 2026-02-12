@@ -94,15 +94,69 @@ EXECUTE FUNCTION users_set_updated_at();
 --   - Anthropic voyage-large-2: 1536
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
+CREATE TABLE IF NOT EXISTS tenants (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    content TEXT NOT NULL,
-    document_id TEXT NOT NULL,
-    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-    chunk_index INTEGER NOT NULL DEFAULT 0,
-    embedding VECTOR(1536) NOT NULL,
+    name TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE users ADD COLUMN tenant_id UUID
+    REFERENCES tenants(id)
+        ON DELETE CASCADE;
+
+CREATE TABLE IF NOT EXISTS documents (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    tenant_id UUID NOT NULL
+        REFERENCES tenants(id)
+        ON DELETE CASCADE,
+
+    title TEXT NOT NULL,
+    source TEXT,
+    checksum TEXT,
+    status TEXT NOT NULL DEFAULT 'processing'
+        CHECK (status IN ('processing', 'indexed', 'failed', 'archived')),
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE documents ADD COLUMN tenant_id UUID
+    REFERENCES tenants(id)
+        ON DELETE CASCADE;
+
+CREATE TABLE IF NOT EXISTS embedding_models (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    name TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    dimension INTEGER NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+
+    tenant_id UUID NOT NULL
+    REFERENCES tenants(id)
+    ON DELETE CASCADE,
+
+    document_id UUID NOT NULL
+    REFERENCES documents(id)
+    ON DELETE CASCADE,
+
+    embedding_model_id UUID NOT NULL
+    REFERENCES embedding_models(id)
+    ON DELETE RESTRICT,
+
+    chunk_index INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+
+    embedding VECTOR(1536) NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    UNIQUE (document_id, embedding_model_id, chunk_index)
 );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_1536_embedding_cosine_idx
@@ -119,13 +173,29 @@ ALTER TABLE vector_embeddings_1536
 
 CREATE TABLE IF NOT EXISTS vector_embeddings_768 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
+
+    tenant_id UUID NOT NULL
+    REFERENCES tenants(id)
+    ON DELETE CASCADE,
+
+    document_id UUID NOT NULL
+    REFERENCES documents(id)
+    ON DELETE CASCADE,
+
+    embedding_model_id UUID NOT NULL
+    REFERENCES embedding_models(id)
+    ON DELETE RESTRICT,
+
+    chunk_index INTEGER NOT NULL,
     content TEXT NOT NULL,
-    document_id TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-    chunk_index INTEGER NOT NULL DEFAULT 0,
+
     embedding VECTOR(768) NOT NULL,
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    UNIQUE (document_id, embedding_model_id, chunk_index)
     );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_cosine_idx
@@ -142,13 +212,29 @@ ALTER TABLE vector_embeddings_768
 
 CREATE TABLE IF NOT EXISTS vector_embeddings_384 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
+
+    tenant_id UUID NOT NULL
+    REFERENCES tenants(id)
+    ON DELETE CASCADE,
+
+    document_id UUID NOT NULL
+    REFERENCES documents(id)
+    ON DELETE CASCADE,
+
+    embedding_model_id UUID NOT NULL
+    REFERENCES embedding_models(id)
+    ON DELETE RESTRICT,
+
+    chunk_index INTEGER NOT NULL,
     content TEXT NOT NULL,
-    document_id TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-    chunk_index INTEGER NOT NULL DEFAULT 0,
+
     embedding VECTOR(384) NOT NULL,
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    UNIQUE (document_id, embedding_model_id, chunk_index)
     );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_384_embedding_cosine_idx
@@ -192,6 +278,10 @@ CREATE TABLE IF NOT EXISTS company (
     UNIQUE (singleton_check)
 );
 
+ALTER TABLE company ADD COLUMN tenant_id UUID
+    REFERENCES tenants(id)
+        ON DELETE CASCADE;
+
 -- Key Person (Contacts)
 CREATE TABLE IF NOT EXISTS key_person (
     person_id UUID PRIMARY KEY DEFAULT uuidv7(),
@@ -211,6 +301,10 @@ CREATE TABLE IF NOT EXISTS key_person (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT people_unique_email UNIQUE (email)
 );
+
+ALTER TABLE key_person ADD COLUMN tenant_id UUID
+    REFERENCES tenants(id)
+        ON DELETE CASCADE;
 
 -- Unique constraint to enforce only one key person record
 CREATE UNIQUE INDEX IF NOT EXISTS only_one_key_person
@@ -234,6 +328,10 @@ CREATE TABLE IF NOT EXISTS company_people (
     CONSTRAINT customer_people_unique
         UNIQUE (company_id, person_id, role)
 );
+
+ALTER TABLE company_people ADD COLUMN tenant_id UUID
+    REFERENCES tenants(id)
+        ON DELETE CASCADE;
 
 -- Enforce one primary contact per company
 CREATE UNIQUE INDEX IF NOT EXISTS one_primary_contact_per_company
