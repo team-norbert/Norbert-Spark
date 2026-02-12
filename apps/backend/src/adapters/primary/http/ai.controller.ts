@@ -511,8 +511,6 @@ export class AIController {
       userAgent: request.headers['user-agent'] ?? null,
     }
 
-    debugger
-
     const params = request.params as Record<string, unknown>
     const chatIdParam = params.chatId as string
 
@@ -523,13 +521,10 @@ export class AIController {
       })
     }
 
-    debugger
-
     let chatId: ChatIdType
 
     try {
       chatId = new ChatId(chatIdParam).getValue()
-      debugger
     } catch (error) {
       if (error instanceof Error) {
         this.logger.error(`Invalid chatId format in getAIChatByChatId: ${chatIdParam}`, error)
@@ -553,8 +548,6 @@ export class AIController {
     try {
       // Fetch the chat data which includes the userId
       const chatData = await this.getChatContentByChatIdUseCase.execute(chatId, auditContext)
-
-      debugger
 
       if (!chatData || chatData.length === 0) {
         return reply.code(404).send({
