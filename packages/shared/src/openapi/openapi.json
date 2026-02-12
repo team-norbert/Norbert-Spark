@@ -98,6 +98,9 @@
     "/ai/chats/config": {
       "$ref": "paths/ai_chats_config.json"
     },
+    "/ai/chats/types": {
+      "$ref": "paths/ai_chats_types.json"
+    },
     "/ai/chats/config/{id}/settings": {
       "$ref": "paths/ai_chats_config_{id}_settings.json"
     },

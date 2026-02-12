@@ -1,0 +1,77 @@
+{
+  "type": "object",
+  "description": "Structured response containing array of chat types",
+  "required": ["success", "data"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Indicates if the request was successful",
+      "example": true
+    },
+    "data": {
+      "type": "array",
+      "description": "Array of chat type objects",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "seoFriendlyId",
+          "seoFriendlyBase64Id",
+          "description",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the chat type",
+            "example": "019c52b2-0cac-7995-9461-83d735c5c51d"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Display name of the chat type",
+            "example": "The Heart of Darkness"
+          },
+          "seoFriendlyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "description": "SEO-friendly URL slug (lowercase alphanumeric with hyphens)",
+            "example": "heart-darkness"
+          },
+          "seoFriendlyBase64Id": {
+            "type": "string",
+            "minLength": 22,
+            "maxLength": 22,
+            "description": "Base64-encoded URL-safe identifier (22 characters)",
+            "example": "AZxSsgyseZWUYYPXNcXFHQ"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Detailed description of the chat type",
+            "example": "Explore Joseph Conrad's classic novella through interactive AI-powered discussions"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the chat type was created",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the chat type was last updated",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        }
+      }
+    }
+  }
+}
