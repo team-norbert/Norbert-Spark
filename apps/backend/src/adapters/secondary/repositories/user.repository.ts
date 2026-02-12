@@ -15,10 +15,6 @@ import { DatabaseException } from '../../../shared/exceptions/database.exception
 import { ConflictException } from '../../../shared/exceptions/conflict.exception.js'
 import { DatabaseUtil } from '../../../shared/utils/database.util.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
-import {
-  encryptTwoFactorSecret,
-  decryptTwoFactorSecret,
-} from '../../../shared/utils/encryption.util.js'
 
 /**
  * PostgreSQL implementation of the User Repository
@@ -581,18 +577,8 @@ export class PostgresUserRepository implements UserRepositoryPort {
     const role = new Role(record.role)
     const userId = new UserId(record.userId).getValue()
 
-    // Handle 2FA secret decryption if present
-    let twoFactorSecret: string | undefined
-    if (record.twoFactorSecret) {
-      try {
-        // Store encrypted value - decryption happens when needed by application layer
-        twoFactorSecret = record.twoFactorSecret
-      } catch (error) {
-        // Log decryption error but don't fail - this allows recovery
-        console.error('Failed to handle 2FA secret:', error)
-        twoFactorSecret = undefined
-      }
-    }
+    // Store encrypted value as-is - encryption/decryption happens at application layer
+    const twoFactorSecret = record.twoFactorSecret ?? undefined
 
     return new User(
       userId,
