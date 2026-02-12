@@ -110,11 +110,6 @@ CREATE TABLE IF NOT EXISTS documents (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-CREATE TRIGGER trg_documents_touch_updated_at
-    BEFORE UPDATE ON documents
-    FOR EACH ROW
-    EXECUTE FUNCTION touch_updated_at();
 -- ============================================================
 -- Added embedding_models table to catalog
 -- embedding model configurations (name, provider, dimension)
@@ -587,6 +582,12 @@ CREATE TRIGGER company_updated_at
 DROP TRIGGER IF EXISTS key_person_updated_at ON key_person;
 CREATE TRIGGER key_person_updated_at
     BEFORE UPDATE ON key_person
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_documents_touch_updated_at ON documents;
+CREATE TRIGGER trg_documents_touch_updated_at
+    BEFORE UPDATE ON documents
     FOR EACH ROW
     EXECUTE FUNCTION touch_updated_at();
 
