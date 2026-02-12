@@ -1,4 +1,5 @@
 import 'modern-normalize/modern-normalize.css'
+import 'streamdown/styles.css'
 
 import type { Metadata } from 'next'
 import React from 'react'
