@@ -120,10 +120,6 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-ALTER TABLE documents ADD COLUMN tenant_id UUID
-    REFERENCES tenants(id)
-        ON DELETE CASCADE;
-
 CREATE TABLE IF NOT EXISTS embedding_models (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     name TEXT NOT NULL,
