@@ -279,43 +279,50 @@ export function AIChatView({
               </Box>
             ) : (
               <Stack spacing={2}>
-                {messages.map((message) => (
-                  <Box
-                    key={message.id}
-                    sx={{
-                      display: 'flex',
-                      gap: 2,
-                      alignItems: 'flex-start',
-                      flexDirection: message.role === 'user' ? 'row-reverse' : 'row',
-                    }}
-                  >
-                    <Avatar
+                {messages.map((message, index) => {
+                  // Only animate the last assistant message during streaming
+                  const isLastAssistantMessage =
+                    message.role === 'assistant' && index === messages.length - 1
+                  const isAnimating = status === 'streaming' && isLastAssistantMessage
+
+                  return (
+                    <Box
+                      key={message.id}
                       sx={{
-                        bgcolor: message.role === 'user' ? 'primary.main' : 'secondary.main',
-                        color: message.role === 'user' ? 'primary.contrastText' : 'text.primary',
+                        display: 'flex',
+                        gap: 2,
+                        alignItems: 'flex-start',
+                        flexDirection: message.role === 'user' ? 'row-reverse' : 'row',
                       }}
                     >
-                      {message.role === 'user' ? <PersonIcon /> : <SmartToyIcon />}
-                    </Avatar>
-                    <Paper
-                      sx={{
-                        p: 2,
-                        maxWidth: '70%',
-                        bgcolor: message.role === 'user' ? 'primary.light' : 'white',
-                        color: message.role === 'user' ? 'primary.contrastText' : 'text.primary',
-                      }}
-                    >
-                      <Box sx={{ whiteSpace: 'pre-wrap' }}>
-                        <Message
-                          key={message.id}
-                          role={message.role}
-                          parts={message.parts}
-                          status={status}
-                        />
-                      </Box>
-                    </Paper>
-                  </Box>
-                ))}
+                      <Avatar
+                        sx={{
+                          bgcolor: message.role === 'user' ? 'primary.main' : 'secondary.main',
+                          color: message.role === 'user' ? 'primary.contrastText' : 'text.primary',
+                        }}
+                      >
+                        {message.role === 'user' ? <PersonIcon /> : <SmartToyIcon />}
+                      </Avatar>
+                      <Paper
+                        sx={{
+                          p: 2,
+                          maxWidth: '70%',
+                          bgcolor: message.role === 'user' ? 'primary.light' : 'white',
+                          color: message.role === 'user' ? 'primary.contrastText' : 'text.primary',
+                        }}
+                      >
+                        <Box sx={{ whiteSpace: 'pre-wrap' }}>
+                          <Message
+                            key={message.id}
+                            role={message.role}
+                            parts={message.parts}
+                            isAnimating={isAnimating}
+                          />
+                        </Box>
+                      </Paper>
+                    </Box>
+                  )
+                })}
                 {isLoading && (
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                     <Avatar sx={{ bgcolor: 'secondary.main', color: 'text.primary' }}>

@@ -4,7 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIRepository } from '../../../../src/adapters/secondary/repositories/ai.repository.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
-import { ChatId, type ChatIdType } from '../../../../src/domain/value-objects/chatID.js'
+import {
+  ChatId,
+  type ChatIdType as _ChatIdType,
+} from '../../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
 import { Uuid7Util } from '../../../../src/shared/utils/uuid7.util.js'

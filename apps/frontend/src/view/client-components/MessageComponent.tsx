@@ -162,16 +162,17 @@ const renderToolPart = (part: UIMessagePart<UIDataTypes, UITools>, index: number
  * @param props - Component props
  * @param props.role - The role of the message sender ('user' or 'assistant')
  * @param props.parts - Array of message parts including text and tool executions
+ * @param props.isAnimating - Whether the message content should animate (for streaming)
  * @returns A Box component containing the formatted message with text and tool visualizations
  */
 export const Message = ({
+  isAnimating,
   parts,
   role,
-  status,
 }: {
   role: string
   parts: UIMessagePart<UIDataTypes, UITools>[]
-  status: 'submitted' | 'streaming' | 'ready' | 'error'
+  isAnimating: boolean
 }) => {
   const prefix = role === 'user' ? 'User: ' : 'AI: '
 
@@ -197,7 +198,7 @@ export const Message = ({
     >
       {/* Text container with data-testid set based on role (user | ai) */}
       <Box data-testid={testId}>
-        <Streamdown animated={{ animation: 'fadeIn' }} isAnimating={status === 'streaming'}>
+        <Streamdown animated={{ animation: 'fadeIn' }} isAnimating={isAnimating}>
           {prefix + text}
         </Streamdown>
       </Box>
