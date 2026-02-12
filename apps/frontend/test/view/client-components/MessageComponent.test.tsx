@@ -15,14 +15,14 @@ describe('Message Component', () => {
   describe('Text message rendering', () => {
     it('renders user text message with correct prefix', () => {
       const textPart = { type: 'text' as const, text: 'Hello world' }
-      render(<Message role="user" parts={[textPart]} />)
+      render(<Message role="user" parts={[textPart]} status="ready" />)
       expect(screen.getByText(/User:/)).toBeInTheDocument()
       expect(screen.getByText(/Hello world/)).toBeInTheDocument()
     })
 
     it('renders AI text message with correct prefix', () => {
       const textPart = { type: 'text' as const, text: 'I am an AI assistant' }
-      render(<Message role="assistant" parts={[textPart]} />)
+      render(<Message role="assistant" parts={[textPart]} status="ready" />)
       expect(screen.getByText(/AI:/)).toBeInTheDocument()
       expect(screen.getByText(/I am an AI assistant/)).toBeInTheDocument()
     })
@@ -32,33 +32,33 @@ describe('Message Component', () => {
         { type: 'text' as const, text: 'First part' },
         { type: 'text' as const, text: 'Second part' },
       ]
-      render(<Message role="assistant" parts={parts} />)
+      render(<Message role="assistant" parts={parts} status="ready" />)
       expect(screen.getByText(/First part/)).toBeInTheDocument()
       expect(screen.getByText(/Second part/)).toBeInTheDocument()
     })
 
     it('handles empty text gracefully', () => {
       const textPart = { type: 'text' as const, text: '' }
-      render(<Message role="user" parts={[textPart]} />)
+      render(<Message role="user" parts={[textPart]} status="ready" />)
       expect(screen.getByText(/User:/)).toBeInTheDocument()
     })
 
     it('renders text with markdown formatting', () => {
       const textPart = { type: 'text' as const, text: '**Bold** and *italic*' }
-      render(<Message role="assistant" parts={[textPart]} />)
+      render(<Message role="assistant" parts={[textPart]} status="ready" />)
       expect(screen.getByText(/Bold/)).toBeInTheDocument()
     })
 
     it('applies correct background color for user messages', () => {
       const textPart = { type: 'text' as const, text: 'Test' }
-      const { container } = render(<Message role="user" parts={[textPart]} />)
+      const { container } = render(<Message role="user" parts={[textPart]} status="ready" />)
       const box = container.querySelector('.MuiBox-root')
       expect(box).toBeInTheDocument()
     })
 
     it('applies correct background color for AI messages', () => {
       const textPart = { type: 'text' as const, text: 'Test' }
-      const { container } = render(<Message role="assistant" parts={[textPart]} />)
+      const { container } = render(<Message role="assistant" parts={[textPart]} status="ready" />)
       const box = container.querySelector('.MuiBox-root')
       expect(box).toBeInTheDocument()
     })
@@ -66,7 +66,7 @@ describe('Message Component', () => {
     it('handles long text content', () => {
       const longText = 'Lorem ipsum '.repeat(100)
       const textPart = { type: 'text' as const, text: longText }
-      render(<Message role="user" parts={[textPart]} />)
+      render(<Message role="user" parts={[textPart]} status="ready" />)
       expect(screen.getByText(new RegExp(longText.substring(0, 50)))).toBeInTheDocument()
     })
   })
@@ -78,7 +78,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-1',
         input: { path: '/test/file.txt', content: 'Test content here' },
       }
-      render(<Message role="assistant" parts={[writeFilePart]} />)
+      render(<Message role="assistant" parts={[writeFilePart]} status="ready" />)
       expect(screen.getByText(/📝 Wrote to file/)).toBeInTheDocument()
       expect(screen.getByText(/Path: \/test\/file\.txt/)).toBeInTheDocument()
       expect(screen.getByText(/Content length: 17 characters/)).toBeInTheDocument()
@@ -90,7 +90,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-2',
         input: { content: 'Test content' },
       }
-      render(<Message role="assistant" parts={[writeFilePart]} />)
+      render(<Message role="assistant" parts={[writeFilePart]} status="ready" />)
       expect(screen.getByText(/Path: Unknown/)).toBeInTheDocument()
     })
 
@@ -100,7 +100,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-3',
         input: { path: '/test/file.txt' },
       }
-      render(<Message role="assistant" parts={[writeFilePart]} />)
+      render(<Message role="assistant" parts={[writeFilePart]} status="ready" />)
       expect(screen.getByText(/Content length: 0 characters/)).toBeInTheDocument()
     })
   })
@@ -112,7 +112,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-4',
         input: { path: '/data/config.json' },
       }
-      render(<Message role="assistant" parts={[readFilePart]} />)
+      render(<Message role="assistant" parts={[readFilePart]} status="ready" />)
       expect(screen.getByText(/📖 Read file/)).toBeInTheDocument()
       expect(screen.getByText(/Path: \/data\/config\.json/)).toBeInTheDocument()
     })
@@ -123,7 +123,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-5',
         input: {},
       }
-      render(<Message role="assistant" parts={[readFilePart]} />)
+      render(<Message role="assistant" parts={[readFilePart]} status="ready" />)
       expect(screen.getByText(/Path: Unknown/)).toBeInTheDocument()
     })
   })
@@ -135,7 +135,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-6',
         input: { path: '/temp/old-file.log' },
       }
-      render(<Message role="assistant" parts={[deletePathPart]} />)
+      render(<Message role="assistant" parts={[deletePathPart]} status="ready" />)
       expect(screen.getByText(/🗑️ Deleted path/)).toBeInTheDocument()
       expect(screen.getByText(/Path: \/temp\/old-file\.log/)).toBeInTheDocument()
     })
@@ -146,7 +146,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-7',
         input: {},
       }
-      render(<Message role="assistant" parts={[deletePathPart]} />)
+      render(<Message role="assistant" parts={[deletePathPart]} status="ready" />)
       expect(screen.getByText(/Path: Unknown/)).toBeInTheDocument()
     })
   })
@@ -158,7 +158,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-8',
         input: { path: '/home/user/documents' },
       }
-      render(<Message role="assistant" parts={[listDirPart]} />)
+      render(<Message role="assistant" parts={[listDirPart]} status="ready" />)
       expect(screen.getByText(/📁 Listed directory/)).toBeInTheDocument()
       expect(screen.getByText(/Path: \/home\/user\/documents/)).toBeInTheDocument()
     })
@@ -169,7 +169,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-9',
         input: {},
       }
-      render(<Message role="assistant" parts={[listDirPart]} />)
+      render(<Message role="assistant" parts={[listDirPart]} status="ready" />)
       expect(screen.getByText(/Path: Unknown/)).toBeInTheDocument()
     })
   })
@@ -181,7 +181,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-10',
         input: { path: '/new/directory' },
       }
-      render(<Message role="assistant" parts={[createDirPart]} />)
+      render(<Message role="assistant" parts={[createDirPart]} status="ready" />)
       expect(screen.getByText(/📂 Created directory/)).toBeInTheDocument()
       expect(screen.getByText(/Path: \/new\/directory/)).toBeInTheDocument()
     })
@@ -192,7 +192,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-11',
         input: {},
       }
-      render(<Message role="assistant" parts={[createDirPart]} />)
+      render(<Message role="assistant" parts={[createDirPart]} status="ready" />)
       expect(screen.getByText(/Path: Unknown/)).toBeInTheDocument()
     })
   })
@@ -204,7 +204,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-12',
         input: { path: '/check/this/path' },
       }
-      render(<Message role="assistant" parts={[existsPart]} />)
+      render(<Message role="assistant" parts={[existsPart]} status="ready" />)
       expect(screen.getByText(/🔍 Checked existence/)).toBeInTheDocument()
       expect(screen.getByText(/Path: \/check\/this\/path/)).toBeInTheDocument()
     })
@@ -215,7 +215,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-13',
         input: {},
       }
-      render(<Message role="assistant" parts={[existsPart]} />)
+      render(<Message role="assistant" parts={[existsPart]} status="ready" />)
       expect(screen.getByText(/Path: Unknown/)).toBeInTheDocument()
     })
   })
@@ -227,7 +227,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-14',
         input: { pattern: '*.ts' },
       }
-      render(<Message role="assistant" parts={[searchFilesPart]} />)
+      render(<Message role="assistant" parts={[searchFilesPart]} status="ready" />)
       expect(screen.getByText(/🔎 Searched files/)).toBeInTheDocument()
       expect(screen.getByText(/Pattern: \*\.ts/)).toBeInTheDocument()
     })
@@ -238,7 +238,7 @@ describe('Message Component', () => {
         toolCallId: 'test-call-15',
         input: {},
       }
-      render(<Message role="assistant" parts={[searchFilesPart]} />)
+      render(<Message role="assistant" parts={[searchFilesPart]} status="ready" />)
       expect(screen.getByText(/Pattern: Unknown/)).toBeInTheDocument()
     })
   })
@@ -253,7 +253,7 @@ describe('Message Component', () => {
           input: { path: '/mixed/test.txt', content: 'Mixed content' },
         },
       ]
-      render(<Message role="assistant" parts={mixedParts} />)
+      render(<Message role="assistant" parts={mixedParts} status="ready" />)
       expect(screen.getByText(/Creating a file\.\.\./)).toBeInTheDocument()
       expect(screen.getByText(/📝 Wrote to file/)).toBeInTheDocument()
     })
@@ -271,7 +271,7 @@ describe('Message Component', () => {
           input: { path: '/second.txt', content: 'Data' },
         },
       ]
-      render(<Message role="assistant" parts={multipleToolParts} />)
+      render(<Message role="assistant" parts={multipleToolParts} status="ready" />)
       expect(screen.getByText(/📖 Read file/)).toBeInTheDocument()
       expect(screen.getByText(/📝 Wrote to file/)).toBeInTheDocument()
     })

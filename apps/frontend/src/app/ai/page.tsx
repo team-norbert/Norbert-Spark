@@ -30,6 +30,7 @@ export default function AIChatPage() {
     messagesEndRef,
     mobileOpen,
     selectedFile,
+    status,
   } = useAIChat()
 
   return (
@@ -54,6 +55,7 @@ export default function AIChatPage() {
       onSignOut={handleSignOut}
       onSubmit={handleSubmit}
       selectedFile={selectedFile}
+      status={status}
     />
   )
 }

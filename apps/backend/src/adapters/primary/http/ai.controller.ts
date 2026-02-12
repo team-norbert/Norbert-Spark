@@ -222,6 +222,9 @@ export class AIController {
       })
     }
 
+    console.log('chatTypeId', chatTypeId)
+    debugger
+
     const systemPrompt = await this.getChatAiOptionsUseCase.execute(auditContext, chatTypeId)
     if (!systemPrompt) {
       this.logger.error('System prompt could not be retrieved', undefined, { chatTypeId, userId })

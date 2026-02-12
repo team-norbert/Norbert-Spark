@@ -41,6 +41,7 @@ describe('AIChatView Component', () => {
     onSignOut: mockOnSignOut,
     onSubmit: mockOnSubmit,
     selectedFile: null,
+    status: 'ready' as const,
   }
 
   beforeEach(async () => {

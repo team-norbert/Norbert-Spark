@@ -69,6 +69,10 @@ export class AIChatOptionsRepository implements AIChatOptionsPort {
     this.logger.info('Fetching chat AI options by chat type ID', { chatTypeId })
 
     try {
+      console.log('chatAiOptions.chatTypeId', chatAiOptions.chatTypeId)
+      debugger
+      console.log('chatTypeId', chatTypeId)
+      debugger
       const result = await db
         .select({
           prompt: chatAiOptions.prompt,

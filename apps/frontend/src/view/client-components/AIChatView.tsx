@@ -62,6 +62,7 @@ interface AIChatViewProps {
   readonly onNavigateHome: () => void
   readonly onSignOut: () => void
   readonly selectedFile: File | null
+  readonly status: 'submitted' | 'streaming' | 'ready' | 'error'
 }
 
 export function AIChatView({
@@ -85,6 +86,7 @@ export function AIChatView({
   onSignOut,
   onSubmit,
   selectedFile,
+  status,
 }: AIChatViewProps) {
   const router = useRouter()
   const drawer = (
@@ -304,7 +306,12 @@ export function AIChatView({
                       }}
                     >
                       <Box sx={{ whiteSpace: 'pre-wrap' }}>
-                        <Message key={message.id} role={message.role} parts={message.parts} />
+                        <Message
+                          key={message.id}
+                          role={message.role}
+                          parts={message.parts}
+                          status={status}
+                        />
                       </Box>
                     </Paper>
                   </Box>

@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "tsx watch src/infrastructure/di/container/index.ts",
-    "dev:debug": "tsx watch --inspect src/infrastructure/di/container/index.ts",
+    "dev:debug": "NODE_OPTIONS='--inspect' tsx watch src/infrastructure/di/container/index.ts",
     "build": "tsc",
     "start": "node dist/infrastructure/di/container/index.js",
     "lint": "eslint . --cache",

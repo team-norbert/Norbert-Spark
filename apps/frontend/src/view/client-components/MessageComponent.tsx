@@ -1,3 +1,5 @@
+import 'streamdown/styles.css'
+
 import { Box } from '@mui/material'
 import type { UIDataTypes, UIMessagePart, UITools } from 'ai'
 import { Streamdown } from 'streamdown'
@@ -167,9 +169,11 @@ const renderToolPart = (part: UIMessagePart<UIDataTypes, UITools>, index: number
 export const Message = ({
   parts,
   role,
+  status,
 }: {
   role: string
   parts: UIMessagePart<UIDataTypes, UITools>[]
+  status: 'submitted' | 'streaming' | 'ready' | 'error'
 }) => {
   const prefix = role === 'user' ? 'User: ' : 'AI: '
 
@@ -195,7 +199,9 @@ export const Message = ({
     >
       {/* Text container with data-testid set based on role (user | ai) */}
       <Box data-testid={testId}>
-        <Streamdown>{prefix + text}</Streamdown>
+        <Streamdown animated={{ animation: 'fadeIn' }} isAnimating={status === 'streaming'}>
+          {prefix + text}
+        </Streamdown>
       </Box>
       {parts.map((part, index) => renderToolPart(part, index))}
     </Box>

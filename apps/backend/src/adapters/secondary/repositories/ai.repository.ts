@@ -64,7 +64,6 @@ export class AIRepository implements AIServicePort {
       await db.insert(parts).values(partsRecords)
     }
   }
-  //user_id
 
   async createChat(
     chatId: ChatIdType,
