@@ -412,7 +412,7 @@ export const vectorEmbeddings1536 = pgTable(
     embeddingModelId: uuid('embedding_model_id')
       .notNull()
       .references(() => embeddingModels.id, {
-        onDelete: 'cascade',
+        onDelete: 'restrict',
       }),
     /**
      * Position of this chunk within its document, used to reconstruct ordering.
