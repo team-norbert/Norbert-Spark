@@ -491,7 +491,7 @@ export class AIController {
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'Failed to fetch chat types'
+      const errorMessage = err.message || 'Failed to fetch chat types'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
