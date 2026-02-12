@@ -63,9 +63,23 @@ CREATE TABLE IF NOT EXISTS users (
     provider_id TEXT,
     two_factor_enabled BOOLEAN NOT NULL DEFAULT false,
     two_factor_secret TEXT,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Trigger function to keep users.updated_at current on updates
+CREATE OR REPLACE FUNCTION users_set_updated_at()
+RETURNS trigger AS $$
+BEGIN
+  NEW.updated_at := now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER users_updated_at
+BEFORE UPDATE ON users
+FOR EACH ROW
+EXECUTE FUNCTION users_set_updated_at();
 -- ============================================================
 -- VECTOR DATA (RAG)
 -- ============================================================

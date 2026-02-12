@@ -311,9 +311,8 @@ export const user = pgTable(
     providerId: text('provider_id'),
     twoFactorEnabled: boolean('two_factor_enabled').notNull().default(false),
     twoFactorSecret: text('two_factor_secret'),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     providerCheck: check('provider_check', sql`${table.provider} IN ('google')`),
@@ -380,12 +379,8 @@ export const vectorEmbeddings1536 = pgTable(
      * Storage and index size grow quickly
      */
     embedding: vector('embedding', { dimension: 1536 }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     embeddingCosineIdx: index('vector_embeddings_1536_embedding_cosine_idx').using(
@@ -441,12 +436,8 @@ export const vectorEmbeddings768 = pgTable(
      * Slightly more storage + compute
      */
     embedding: vector('embedding', { dimension: 768 }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     embeddingCosineIdx: index('vector_embeddings_768_embedding_cosine_idx').using(
@@ -507,12 +498,8 @@ export const vectorEmbeddings384 = pgTable(
      * Edge / cost-sensitive system
      */
     embedding: vector('embedding', { dimension: 384 }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     embeddingCosineIdx: index('vector_embeddings_384_embedding_cosine_idx').using(
@@ -546,12 +533,8 @@ export const chatTypes = pgTable(
     seoFriendlyId: citext('seo_friendly_id').notNull().unique(),
     seoFriendlyBase64Id: text('seo_friendly_base64_id').notNull().unique(),
     description: text('description').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     nameIdx: index('chat_types_name_idx').on(table.name),
@@ -588,12 +571,8 @@ export const chats = pgTable(
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),
     chatTypeId: uuid('chat_type_id').references(() => chatTypes.id, { onDelete: 'restrict' }),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     userIdIdx: index('chats_user_id_idx').on(table.userId),
@@ -617,9 +596,7 @@ export const messages = pgTable(
     chatId: uuid('chat_id')
       .notNull()
       .references(() => chats.id, { onDelete: 'cascade' }),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     role: varchar('role').notNull(),
   },
   (table) => ({
@@ -655,12 +632,8 @@ export const chatAiOptions = pgTable(
     stopSequences: text('stop_sequences').array(),
     seed: integer('seed'),
     maxRetries: integer('max_retries'),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     chatTypeIdIdx: uniqueIndex('chat_ai_options_chat_type_id_idx').on(table.chatTypeId),
@@ -809,9 +782,7 @@ export const auditLog = pgTable(
     changes: jsonb('changes'),
     ipAddress: inet('ip_address'),
     userAgent: text('user_agent'),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     userIdIdx: index('audit_log_user_id_idx').on(table.userId),
