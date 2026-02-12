@@ -98,8 +98,8 @@ test.describe('Admin Page - Delete Users', () => {
 
     // Verify the delete button is disabled when no users are selected
     const deleteButton = page.getByTestId('delete-users-button')
-    await expect(deleteButton).toBeDisabled()
-    await expect(deleteButton).toContainText('Delete Users (0)')
+    await expect(deleteButton.last()).toBeDisabled()
+    await expect(deleteButton.last()).toContainText('Delete Users (0)')
   })
 
   test('should update button text with selected user count', async ({ page }) => {

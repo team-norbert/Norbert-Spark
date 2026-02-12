@@ -83,7 +83,7 @@ export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
 
   logger.info('Initial messages in useAIChat:', initialMessages)
 
-  const { messages, sendMessage, stop } = useChat({
+  const { messages, sendMessage, status, stop } = useChat({
     id: id,
     messages: initialMessages,
     transport: new DefaultChatTransport({
@@ -205,6 +205,7 @@ export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
     disabled,
     userId: session?.user?.id ?? null,
     currentChatId: id,
+    status,
 
     // Chat history
     chats,
