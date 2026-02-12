@@ -98,6 +98,9 @@ export function useAIChat({ chatTypeId, id, initialMessages }: UseAIChatProps = 
       setErrorMessage(
         'Chat type configuration is not available. Please contact support if this problem persists.'
       )
+    } else if (!chatConfigError && !isLoadingChatTypes && resolvedChatTypeId) {
+      // Clear error message when configuration is successfully loaded
+      setErrorMessage('')
     }
   }, [chatConfigError, chatTypeId, isLoadingChatTypes, resolvedChatTypeId, id])
 
