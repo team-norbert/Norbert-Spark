@@ -311,12 +311,8 @@ export const user = pgTable(
     providerId: text('provider_id'),
     twoFactorEnabled: boolean('two_factor_enabled').notNull().default(false),
     twoFactorSecret: text('two_factor_secret'),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .default(sql`now()`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     providerCheck: check('provider_check', sql`${table.provider} IN ('google')`),
