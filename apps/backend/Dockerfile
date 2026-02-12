@@ -26,7 +26,7 @@ RUN pnpm --filter @norberts-spark/shared build && \
     pnpm --filter @norberts-spark/backend build
 
 # Runtime stage
-FROM node:22-slim
+FROM node:24-slim
 
 # Install curl for healthchecks and enable pnpm
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* && \
