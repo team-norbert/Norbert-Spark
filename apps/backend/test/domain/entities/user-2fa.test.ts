@@ -7,6 +7,9 @@ import { Password } from '../../../src/domain/value-objects/password.js'
 import { Role } from '../../../src/domain/value-objects/role.js'
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 
+/**
+ * Tests for User entity two-factor authentication functionality
+ */
 describe('User Entity - Two-Factor Authentication', () => {
   let email: EmailType
   let role: Role
