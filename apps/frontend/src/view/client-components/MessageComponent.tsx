@@ -1,5 +1,3 @@
-import 'streamdown/styles.css'
-
 import { Box } from '@mui/material'
 import type { UIDataTypes, UIMessagePart, UITools } from 'ai'
 import { Streamdown } from 'streamdown'
