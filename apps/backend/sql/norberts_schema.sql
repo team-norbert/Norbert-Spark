@@ -166,6 +166,9 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_1536_embedding_cosine_idx
 CREATE INDEX IF NOT EXISTS vector_embeddings_1536_document_chunk_idx
     ON vector_embeddings_1536 (document_id, chunk_index);
 
+CREATE INDEX IF NOT EXISTS vector_embeddings_1536_embedding_model_id_idx
+    ON vector_embeddings_1536(embedding_model_id);
+
 ALTER TABLE vector_embeddings_1536
     ADD CONSTRAINT vector_embeddings_1536_content_length_check
     CHECK (length(content) >= 1 AND length(content) <= 50000);
@@ -201,6 +204,9 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_cosine_idx
 CREATE INDEX IF NOT EXISTS vector_embeddings_768_document_chunk_idx
     ON vector_embeddings_768 (document_id, chunk_index);
 
+CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_model_id_idx
+    ON vector_embeddings_768(embedding_model_id);
+
 ALTER TABLE vector_embeddings_768
     ADD CONSTRAINT vector_embeddings_768_content_length_check
     CHECK (length(content) >= 1 AND length(content) <= 50000);
@@ -235,6 +241,9 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_384_embedding_cosine_idx
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_384_document_chunk_idx
     ON vector_embeddings_384 (document_id, chunk_index);
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_384_embedding_model_id_idx
+    ON vector_embeddings_384(embedding_model_id);
 
 ALTER TABLE vector_embeddings_384
     ADD CONSTRAINT vector_embeddings_384_content_length_check
