@@ -104,6 +104,7 @@ export class AIController {
     let messages: UIMessage[]
     let id: string
     let trigger: string
+    let bodyChatTypeId: string
 
     try {
       const body = request.body as any
@@ -120,16 +121,16 @@ export class AIController {
         messages: body?.messages || [],
       })
 
-      // Extract id and trigger from body
+      // Extract id, trigger, and chatTypeId from body
       id = body?.id
-
       trigger = body?.trigger
+      bodyChatTypeId = body?.chatTypeId
 
-      if (!id || !trigger) {
+      if (!id || !trigger || !bodyChatTypeId) {
         return reply.code(400).send({
           success: false,
           error: 'Invalid request body',
-          details: 'id and trigger are required',
+          details: 'id, trigger, and chatTypeId are required',
         })
       }
 
@@ -165,9 +166,22 @@ export class AIController {
     const userId = request.user.sub
 
     // Convert string id to ChatIdType branded type
-    const chatTypeId = new ChatId(id).getValue()
+    const chatId = new ChatId(id).getValue()
+
+    // Validate and convert chatTypeId from request body
+    let chatTypeId: ChatIdType
+    try {
+      chatTypeId = new ChatId(bodyChatTypeId).getValue()
+    } catch {
+      return reply.code(400).send({
+        success: false,
+        error: 'Invalid chatTypeId format',
+        details: 'chatTypeId must be a valid UUID',
+      })
+    }
 
     this.logger.debug('Processing chat request', {
+      chatId,
       chatTypeId,
       userId,
       messageCount: messages.length,
@@ -178,11 +192,7 @@ export class AIController {
       (msg) => msg.role === 'user' || msg.role === 'assistant'
     ) as any[]
 
-    const chat = await this.getChatUseCase.execute(
-      chatTypeId,
-      userAndAssistantMessages,
-      auditContext
-    )
+    const chat = await this.getChatUseCase.execute(chatId, userAndAssistantMessages, auditContext)
 
     this.logger.info('Received chat', { chat: chat ?? null })
 
@@ -204,13 +214,9 @@ export class AIController {
 
     if (!chat) {
       this.logger.info('Chat does not exist, creating new chat', { id })
-      await this.saveChatUseCase.execute(chatTypeId, userId, messages, auditContext)
+      await this.saveChatUseCase.execute(chatId, chatTypeId, userId, messages, auditContext)
     } else {
-      await this.appendChatUseCase.execute(
-        chatTypeId,
-        [mostRecentMessage as UIMessage],
-        auditContext
-      )
+      await this.appendChatUseCase.execute(chatId, [mostRecentMessage as UIMessage], auditContext)
       this.logger.info('Chat exists, appending most recent message', { id })
     }
 
@@ -221,9 +227,6 @@ export class AIController {
         error: 'AI service configuration error',
       })
     }
-
-    console.log('chatTypeId', chatTypeId)
-    debugger
 
     const systemPrompt = await this.getChatAiOptionsUseCase.execute(auditContext, chatTypeId)
     if (!systemPrompt) {
@@ -296,7 +299,7 @@ export class AIController {
         // Just the newly generated assistant message
         // Good for persisting only the latest response
         this.logger.debug('Response message', { responseMessage })
-        await this.appendChatUseCase.execute(chatTypeId, [responseMessage], auditContext)
+        await this.appendChatUseCase.execute(chatId, [responseMessage], auditContext)
       },
     })
   }
@@ -508,6 +511,8 @@ export class AIController {
       userAgent: request.headers['user-agent'] ?? null,
     }
 
+    debugger
+
     const params = request.params as Record<string, unknown>
     const chatIdParam = params.chatId as string
 
@@ -518,10 +523,13 @@ export class AIController {
       })
     }
 
+    debugger
+
     let chatId: ChatIdType
 
     try {
       chatId = new ChatId(chatIdParam).getValue()
+      debugger
     } catch (error) {
       if (error instanceof Error) {
         this.logger.error(`Invalid chatId format in getAIChatByChatId: ${chatIdParam}`, error)
@@ -545,6 +553,8 @@ export class AIController {
     try {
       // Fetch the chat data which includes the userId
       const chatData = await this.getChatContentByChatIdUseCase.execute(chatId, auditContext)
+
+      debugger
 
       if (!chatData || chatData.length === 0) {
         return reply.code(404).send({
