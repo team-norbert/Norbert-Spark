@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS users (
     provider_id TEXT,
     two_factor_enabled BOOLEAN NOT NULL DEFAULT false,
     two_factor_secret TEXT,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
