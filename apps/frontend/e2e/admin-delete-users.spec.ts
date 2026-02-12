@@ -115,13 +115,13 @@ test.describe('Admin Page - Delete Users', () => {
     // Wait for the data grid to load
     await page.waitForSelector('.MuiDataGrid-root', { timeout: 10000 })
 
-    const deleteButton = page.getByTestId('delete-users-button')
+    const deleteButton = page.getByTestId('delete-users-button').last()
 
     // Wait for delete button to be visible
-    await expect(deleteButton.last()).toBeVisible()
+    await expect(deleteButton).toBeVisible()
 
     // Initially 0 users selected
-    await expect(deleteButton.last()).toContainText('Delete Users (0)')
+    await expect(deleteButton).toContainText('Delete Users (0)')
 
     // Select first user
     const firstRowCheckbox = page
