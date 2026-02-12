@@ -8,7 +8,6 @@ import { isValidUUID, uuidVersionValidation } from 'uuidv7-utilities'
 
 import { fileToDataURL } from '@/application/services/fileToDataURL.service.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
-import { useAIChatConfig } from '@/view/hooks/queries/useAIChatConfig.js'
 import { useUserChats } from '@/view/hooks/useUserChats.js'
 
 const logger = createLogger({ prefix: 'useAIChat' })
@@ -33,7 +32,6 @@ const ALLOWED_FILE_TYPES = [
 
 interface UseAIChatProps {
   id?: string
-  chatTypeId?: string
   initialMessages?: any[]
 }
 
@@ -50,13 +48,9 @@ export function isValidUUIDv7(id: string | Buffer) {
 export function processUserUUID(id: string | Buffer) {
   return isValidUUIDv7(id)
 }
-export function useAIChat({ chatTypeId, id, initialMessages }: UseAIChatProps = {}) {
+export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
   const router = useRouter()
   const { data: session } = useSession()
-
-  // Fetch available chat types to resolve chatTypeId if not provided
-  const { chatTypes } = useAIChatConfig()
-  const resolvedChatTypeId = chatTypeId ?? chatTypes[0]?.id
 
   const disabled = !id
 
@@ -94,7 +88,6 @@ export function useAIChat({ chatTypeId, id, initialMessages }: UseAIChatProps = 
     messages: initialMessages,
     transport: new DefaultChatTransport({
       api: process.env.NEXT_PUBLIC_POST_AI_CALLBACK_URL,
-      body: resolvedChatTypeId ? { chatTypeId: resolvedChatTypeId } : undefined,
       fetch: (url, options) => {
         const accessToken = session?.accessToken
         return fetch(url, {
@@ -210,9 +203,9 @@ export function useAIChat({ chatTypeId, id, initialMessages }: UseAIChatProps = 
     mobileOpen,
     messagesEndRef,
     disabled,
-    status,
     userId: session?.user?.id ?? null,
     currentChatId: id,
+    status,
 
     // Chat history
     chats,

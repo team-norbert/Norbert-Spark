@@ -104,7 +104,6 @@ export class AIController {
     let messages: UIMessage[]
     let id: string
     let trigger: string
-    let bodyChatTypeId: string
 
     try {
       const body = request.body as any
@@ -121,16 +120,16 @@ export class AIController {
         messages: body?.messages || [],
       })
 
-      // Extract id, trigger, and chatTypeId from body
+      // Extract id and trigger from body
       id = body?.id
-      trigger = body?.trigger
-      bodyChatTypeId = body?.chatTypeId
 
-      if (!id || !trigger || !bodyChatTypeId) {
+      trigger = body?.trigger
+
+      if (!id || !trigger) {
         return reply.code(400).send({
           success: false,
           error: 'Invalid request body',
-          details: 'id, trigger, and chatTypeId are required',
+          details: 'id and trigger are required',
         })
       }
 
@@ -166,22 +165,9 @@ export class AIController {
     const userId = request.user.sub
 
     // Convert string id to ChatIdType branded type
-    const chatId = new ChatId(id).getValue()
-
-    // Validate and convert chatTypeId from request body
-    let chatTypeId: ChatIdType
-    try {
-      chatTypeId = new ChatId(bodyChatTypeId).getValue()
-    } catch {
-      return reply.code(400).send({
-        success: false,
-        error: 'Invalid chatTypeId format',
-        details: 'chatTypeId must be a valid UUID',
-      })
-    }
+    const chatTypeId = new ChatId(id).getValue()
 
     this.logger.debug('Processing chat request', {
-      chatId,
       chatTypeId,
       userId,
       messageCount: messages.length,
@@ -192,7 +178,11 @@ export class AIController {
       (msg) => msg.role === 'user' || msg.role === 'assistant'
     ) as any[]
 
-    const chat = await this.getChatUseCase.execute(chatId, userAndAssistantMessages, auditContext)
+    const chat = await this.getChatUseCase.execute(
+      chatTypeId,
+      userAndAssistantMessages,
+      auditContext
+    )
 
     this.logger.info('Received chat', { chat: chat ?? null })
 
@@ -214,9 +204,13 @@ export class AIController {
 
     if (!chat) {
       this.logger.info('Chat does not exist, creating new chat', { id })
-      await this.saveChatUseCase.execute(chatId, chatTypeId, userId, messages, auditContext)
+      await this.saveChatUseCase.execute(chatTypeId, userId, messages, auditContext)
     } else {
-      await this.appendChatUseCase.execute(chatId, [mostRecentMessage as UIMessage], auditContext)
+      await this.appendChatUseCase.execute(
+        chatTypeId,
+        [mostRecentMessage as UIMessage],
+        auditContext
+      )
       this.logger.info('Chat exists, appending most recent message', { id })
     }
 
@@ -299,7 +293,7 @@ export class AIController {
         // Just the newly generated assistant message
         // Good for persisting only the latest response
         this.logger.debug('Response message', { responseMessage })
-        await this.appendChatUseCase.execute(chatId, [responseMessage], auditContext)
+        await this.appendChatUseCase.execute(chatTypeId, [responseMessage], auditContext)
       },
     })
   }

@@ -288,7 +288,7 @@ describe('AIController', () => {
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: 'Invalid request body',
-          details: 'id, trigger, and chatTypeId are required',
+          details: 'id and trigger are required',
         })
       })
 
@@ -296,7 +296,6 @@ describe('AIController', () => {
         mockRequest.body = {
           id: uuidv7(),
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
@@ -316,7 +315,6 @@ describe('AIController', () => {
         mockRequest.body = {
           id: uuidv7(),
           messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
-          chatTypeId: uuidv7(),
         }
 
         await controller.chat(mockRequest, mockReply)
@@ -325,7 +323,7 @@ describe('AIController', () => {
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: 'Invalid request body',
-          details: 'id, trigger, and chatTypeId are required',
+          details: 'id and trigger are required',
         })
       })
 
@@ -334,7 +332,6 @@ describe('AIController', () => {
           id: uuidv7(),
           messages: [],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
@@ -356,7 +353,6 @@ describe('AIController', () => {
             { id: '2', role: 'assistant', parts: [{ type: 'text', text: 'Hi there!' }] },
           ],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
@@ -375,7 +371,6 @@ describe('AIController', () => {
           id: uuidv7(),
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
         mockRequest.user = undefined
 
@@ -403,7 +398,6 @@ describe('AIController', () => {
             { id: '3', role: 'user', parts: [{ type: 'text', text: 'How are you?' }] },
           ],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
         mockRequest.user = {
           sub: new UserId(userId).getValue(),
@@ -451,7 +445,6 @@ describe('AIController', () => {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
         mockRequest.user = {
           sub: new UserId(userId).getValue(),
@@ -482,7 +475,6 @@ describe('AIController', () => {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
         mockRequest.user = {
           sub: new UserId(userId).getValue(),
@@ -511,7 +503,6 @@ describe('AIController', () => {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
         mockRequest.user = {
           sub: new UserId(uuidv7()).getValue(),
@@ -537,7 +528,6 @@ describe('AIController', () => {
             { id: '3', role: 'user', parts: [{ type: 'text', text: 'How are you?' }] },
           ],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
@@ -569,7 +559,6 @@ describe('AIController', () => {
             },
           ],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
@@ -603,7 +592,6 @@ describe('AIController', () => {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
@@ -624,7 +612,6 @@ describe('AIController', () => {
         mockRequest.body = {
           messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
 
         await controller.chat(mockRequest, mockReply)
@@ -633,7 +620,7 @@ describe('AIController', () => {
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: 'Invalid request body',
-          details: 'id, trigger, and chatTypeId are required',
+          details: 'id and trigger are required',
         })
       })
 
@@ -643,7 +630,6 @@ describe('AIController', () => {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockRejectedValue(new Error('Database error'))

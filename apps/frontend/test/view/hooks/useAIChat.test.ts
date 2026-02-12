@@ -38,15 +38,6 @@ vi.mock('@/view/hooks/useUserChats.js', () => ({
   useUserChats: vi.fn(),
 }))
 
-vi.mock('@/view/hooks/queries/useAIChatConfig.js', () => ({
-  useAIChatConfig: vi.fn(() => ({
-    chatTypes: [{ id: '019c50e0-b3ea-7bd5-849c-bc2c78a7d911', name: 'default' }],
-    isLoading: false,
-    error: null,
-    refetch: vi.fn(),
-  })),
-}))
-
 describe('processUserUUID', () => {
   describe('valid UUIDv7', () => {
     it('should return true for a valid UUIDv7 string', () => {

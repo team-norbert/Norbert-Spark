@@ -4,10 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIRepository } from '../../../../src/adapters/secondary/repositories/ai.repository.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
-import {
-  ChatId,
-  type ChatIdType as _ChatIdType,
-} from '../../../../src/domain/value-objects/chatID.js'
+import { ChatId } from '../../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
 import { Uuid7Util } from '../../../../src/shared/utils/uuid7.util.js'
@@ -57,7 +54,6 @@ describe('AIRepository', () => {
       const testChatIdString = '019b86fb-f42f-7ea7-b30c-8ebf80c3f4a9'
       const testUserIdString = '019b6742-b220-7e5c-a4cd-459ff52f6579'
       const testChatId = new ChatId(testChatIdString).getValue()
-      const testChatTypeId = new ChatId(uuidv7()).getValue()
       const testUserId = new UserId(testUserIdString).getValue()
 
       const initialMessages: UIMessage[] = [
@@ -96,12 +92,7 @@ describe('AIRepository', () => {
         .mockReturnValueOnce(mockPartsInsert() as any)
 
       // Act: Call createChat with the test data
-      const result = await repository.createChat(
-        testChatId,
-        testChatTypeId,
-        testUserId,
-        initialMessages
-      )
+      const result = await repository.createChat(testChatId, testUserId, initialMessages)
 
       // Assert: Verify the chat was created successfully
       expect(result).toBe(testChatIdString)
@@ -110,7 +101,6 @@ describe('AIRepository', () => {
       // Verify chat insert was called with correct data
       expect(mockChatValues).toHaveBeenCalledWith({
         id: testChatIdString,
-        chatTypeId: testChatTypeId,
         userId: testUserIdString,
       })
 
