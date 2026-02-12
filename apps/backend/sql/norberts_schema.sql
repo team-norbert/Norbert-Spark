@@ -111,6 +111,10 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TRIGGER trg_documents_touch_updated_at
+    BEFORE UPDATE ON documents
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
 -- ============================================================
 -- Added embedding_models table to catalog
 -- embedding model configurations (name, provider, dimension)
