@@ -94,6 +94,11 @@ EXECUTE FUNCTION users_set_updated_at();
 --   - Anthropic voyage-large-2: 1536
 -- ============================================================
 
+-- ============================================================
+-- Added documents table to track document metadata
+-- with status tracking (processing, indexed, failed, archived)
+-- ============================================================
+
 CREATE TABLE IF NOT EXISTS documents (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     title TEXT NOT NULL,
@@ -106,6 +111,11 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- ============================================================
+-- Added embedding_models table to catalog
+-- embedding model configurations (name, provider, dimension)
+-- ============================================================
+
 CREATE TABLE IF NOT EXISTS embedding_models (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     name TEXT NOT NULL,
@@ -113,6 +123,12 @@ CREATE TABLE IF NOT EXISTS embedding_models (
     dimension INTEGER NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- ============================================================
+-- All three vector embedding tables use UUID foreign keys instead of
+-- TEXT document_id, added embedding_model_id foreign key,
+-- and added unique constraint on (document_id, embedding_model_id, chunk_index)
+-- ============================================================
 
 CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
