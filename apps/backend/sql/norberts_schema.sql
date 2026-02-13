@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_768 (
     REFERENCES embedding_models(id)
     ON DELETE RESTRICT,
 
-    chunk_index INTEGER NOT NULL,
+    chunk_index INTEGER NOT NULL DEFAULT 0,
     content TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
 
