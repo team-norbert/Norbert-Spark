@@ -75,6 +75,17 @@ export interface EmailChangeChanges {
   [key: string]: unknown
 }
 
+export interface RegistrationFailedChanges {
+  email?: string
+  reason: string
+  [key: string]: unknown
+}
+
+export interface RegistrationSuccessChanges {
+  email?: string
+  [key: string]: unknown
+}
+
 /**
  * Union type of all possible change structures
  * This provides type safety while allowing flexibility for different audit actions
@@ -88,4 +99,6 @@ export type AuditChanges =
   | LogoutChanges
   | PasswordChangeChanges
   | EmailChangeChanges
+  | RegistrationFailedChanges
+  | RegistrationSuccessChanges
   | Record<string, unknown> // Fallback for custom change structures
