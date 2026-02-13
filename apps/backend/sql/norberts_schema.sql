@@ -188,7 +188,8 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_768 (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    UNIQUE (document_id, embedding_model_id, chunk_index)
+    CONSTRAINT vector_embeddings_768_document_model_chunk_unique
+        UNIQUE (document_id, embedding_model_id, chunk_index)
     );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_cosine_idx
