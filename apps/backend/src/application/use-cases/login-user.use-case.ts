@@ -5,10 +5,11 @@ import type { TokenGeneratorPort } from '../ports/token-generator.port.js'
 import { UnauthorizedException } from '../../shared/exceptions/unauthorized.exception.js'
 import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import { EntityType } from '../../domain/audit/entity-type.enum.js'
 import { AuditAction } from '../../domain/audit/entity-type.enum.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
+import type { LoginChanges, LoginFailedChanges } from '../../domain/audit/audit-changes.types.js'
 
 /**
  * Use case for authenticating users and generating access tokens
@@ -148,15 +149,19 @@ export class LoginUserUseCase {
 
     if (!user) {
       try {
-        await this.auditLog.log({
+        const auditEntry: CreateAuditLogDTO = {
           userId: null,
           entityType: EntityType.USER,
           entityId: null,
           action: AuditAction.LOGIN_FAILED,
-          changes: { reason: 'user_not_found' },
+          changes: {
+            email: dto.email,
+            reason: 'user_not_found',
+          } satisfies LoginFailedChanges,
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent ?? undefined,
-        })
+        }
+        await this.auditLog.log(auditEntry)
       } catch (error) {
         this.logger.error('Error logging audit for user retrieval', error as Error, { user })
       }
@@ -179,15 +184,19 @@ export class LoginUserUseCase {
 
     if (!isPasswordValid) {
       try {
-        await this.auditLog.log({
+        const auditEntry: CreateAuditLogDTO = {
           userId: user.id,
           entityType: EntityType.USER,
           entityId: user.id,
           action: AuditAction.LOGIN_FAILED,
-          changes: { reason: 'invalid_password' },
+          changes: {
+            email: dto.email,
+            reason: 'invalid_password',
+          } satisfies LoginFailedChanges,
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent ?? undefined,
-        })
+        }
+        await this.auditLog.log(auditEntry)
       } catch (error) {
         this.logger.error('Error logging audit for failed password verification', error as Error, {
           user,
@@ -198,6 +207,26 @@ export class LoginUserUseCase {
     }
 
     this.logger.info('User logged in successfully', { userId: user.id, email: dto.email })
+
+    try {
+      const auditEntry: CreateAuditLogDTO = {
+        userId: user.id,
+        entityType: EntityType.USER,
+        entityId: user.id,
+        action: AuditAction.LOGIN,
+        changes: {
+          email: dto.email,
+          success: true,
+        } satisfies LoginChanges,
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
+      }
+      await this.auditLog.log(auditEntry)
+    } catch (error) {
+      this.logger.error('Error logging audit for failed log in user', error as Error, {
+        user,
+      })
+    }
 
     // Generate JWT access token
     const accessToken = this.tokenGenerator.generateToken({

@@ -198,6 +198,29 @@ describe('LoginUserUseCase', () => {
 
         expect(result.access_token).toBe('custom-jwt-token-12345')
       })
+
+      it('should log audit entry for successful login', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        await useCase.execute(dto, auditContext)
+
+        expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
+        expect(mockAuditLog.log).toHaveBeenCalledWith({
+          userId: mockUser.id,
+          entityType: 'user',
+          entityId: mockUser.id,
+          action: 'login',
+          changes: {
+            email: 'john@example.com',
+            success: true,
+          },
+          ipAddress: '127.0.0.1',
+          userAgent: 'test-user-agent',
+        })
+      })
     })
 
     describe('user not found', () => {
