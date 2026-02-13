@@ -223,7 +223,7 @@ export class LoginUserUseCase {
       }
       await this.auditLog.log(auditEntry)
     } catch (error) {
-      this.logger.error('Error logging audit for failed log in user', error as Error, {
+      this.logger.error('Error logging audit for successful login', error as Error, {
         user,
       })
     }
