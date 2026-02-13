@@ -331,9 +331,10 @@ export const embeddingModels = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
-    uniqueNameProvider: unique('embedding_models_name_provider_unique').on(
+    uniqueNameProviderDimension: unique('embedding_models_name_provider_dimension_unique').on(
       table.name,
-      table.provider
+      table.provider,
+      table.dimension
     ),
   })
 )
