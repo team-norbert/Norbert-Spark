@@ -294,6 +294,63 @@ export type DBKeyPersonSelect = typeof keyPerson.$inferSelect
 
 export type DBCompanyPerson = typeof companyPeople.$inferInsert
 export type DBCompanyPersonSelect = typeof companyPeople.$inferSelect
+
+/**
+ * Documents table: Tracks document metadata with status tracking
+ */
+export const documents = pgTable(
+  'documents',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    title: text('title').notNull(),
+    source: text('source'),
+    checksum: text('checksum'),
+    status: text('status')
+      .notNull()
+      .default('processing')
+      .$type<'processing' | 'indexed' | 'failed' | 'archived'>(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    statusCheck: check(
+      'documents_status_check',
+      sql`${table.status} IN ('processing', 'indexed', 'failed', 'archived')`
+    ),
+  })
+)
+
+export type DBDocument = typeof documents.$inferInsert
+export type DBDocumentSelect = typeof documents.$inferSelect
+
+/**
+ * Embedding Models table: Catalogs embedding model configurations
+ */
+export const embeddingModels = pgTable(
+  'embedding_models',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    name: text('name').notNull(),
+    provider: text('provider').notNull(),
+    dimension: integer('dimension').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    uniqueNameProviderDimension: unique('embedding_models_name_provider_dimension_unique').on(
+      table.name,
+      table.provider,
+      table.dimension
+    ),
+  })
+)
+
+export type DBEmbeddingModel = typeof embeddingModels.$inferInsert
+export type DBEmbeddingModelSelect = typeof embeddingModels.$inferSelect
+
 /**
  * User table: Stores user account information
  */
@@ -349,12 +406,29 @@ export const vectorEmbeddings1536 = pgTable(
     id: uuid('id')
       .primaryKey()
       .default(sql`uuidv7()`),
-    content: text('content').notNull(),
     /**
      * Identifier of the source document this chunk/embedding belongs to.
-     * Useful for grouping chunks and tracing answers back to documents.
+     * Foreign key to documents table.
      */
-    documentId: text('document_id').notNull(),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, {
+        onDelete: 'cascade',
+      }),
+    /**
+     * Identifier of the embedding model used to generate this embedding.
+     * Foreign key to embedding_models table.
+     */
+    embeddingModelId: uuid('embedding_model_id')
+      .notNull()
+      .references(() => embeddingModels.id, {
+        onDelete: 'restrict',
+      }),
+    /**
+     * Position of this chunk within its document, used to reconstruct ordering.
+     */
+    chunkIndex: integer('chunk_index').notNull().default(0),
+    content: text('content').notNull(),
     /**
      * Flexible metadata about the chunk/document (page, section, author, etc.).
      * Stored as JSONB with an empty-object default for backwards compatibility.
@@ -362,10 +436,6 @@ export const vectorEmbeddings1536 = pgTable(
     metadata: jsonb('metadata')
       .notNull()
       .default(sql`'{}'::jsonb`),
-    /**
-     * Position of this chunk within its document, used to reconstruct ordering.
-     */
-    chunkIndex: integer('chunk_index').notNull().default(0),
     /**
      * Vector embedding representation of the content
      * Used by:
@@ -391,6 +461,14 @@ export const vectorEmbeddings1536 = pgTable(
       table.documentId,
       table.chunkIndex
     ),
+    embeddingModelIdIdx: index('vector_embeddings_1536_embedding_model_id_idx').on(
+      table.embeddingModelId
+    ),
+    uniqueDocumentModelChunk: unique('vector_embeddings_1536_document_model_chunk_unique').on(
+      table.documentId,
+      table.embeddingModelId,
+      table.chunkIndex
+    ),
     contentLengthCheck: check(
       'vector_embeddings_1536_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
@@ -408,12 +486,29 @@ export const vectorEmbeddings768 = pgTable(
     id: uuid('id')
       .primaryKey()
       .default(sql`uuidv7()`),
-    content: text('content').notNull(),
     /**
      * Identifier of the source document this chunk/embedding belongs to.
-     * Useful for grouping chunks and tracing answers back to documents.
+     * Foreign key to documents table.
      */
-    documentId: text('document_id').notNull(),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, {
+        onDelete: 'cascade',
+      }),
+    /**
+     * Identifier of the embedding model used to generate this embedding.
+     * Foreign key to embedding_models table.
+     */
+    embeddingModelId: uuid('embedding_model_id')
+      .notNull()
+      .references(() => embeddingModels.id, {
+        onDelete: 'restrict',
+      }),
+    /**
+     * Position of this chunk within its document, used to reconstruct ordering.
+     */
+    chunkIndex: integer('chunk_index').notNull().default(0),
+    content: text('content').notNull(),
     /**
      * Flexible metadata about the chunk/document (page, section, author, etc.).
      * Stored as JSONB with an empty-object default for backwards compatibility.
@@ -421,10 +516,6 @@ export const vectorEmbeddings768 = pgTable(
     metadata: jsonb('metadata')
       .notNull()
       .default(sql`'{}'::jsonb`),
-    /**
-     * Position of this chunk within its document, used to reconstruct ordering.
-     */
-    chunkIndex: integer('chunk_index').notNull().default(0),
     /**
      * Used by: older SBERT models, some multilingual models
      *
@@ -448,6 +539,14 @@ export const vectorEmbeddings768 = pgTable(
       table.documentId,
       table.chunkIndex
     ),
+    embeddingModelIdIdx: index('vector_embeddings_768_embedding_model_id_idx').on(
+      table.embeddingModelId
+    ),
+    uniqueDocumentModelChunk: unique('vector_embeddings_768_document_model_chunk_unique').on(
+      table.documentId,
+      table.embeddingModelId,
+      table.chunkIndex
+    ),
     contentLengthCheck: check(
       'vector_embeddings_768_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
@@ -464,12 +563,29 @@ export const vectorEmbeddings384 = pgTable(
     id: uuid('id')
       .primaryKey()
       .default(sql`uuidv7()`),
-    content: text('content').notNull(),
     /**
      * Identifier of the source document this chunk/embedding belongs to.
-     * Useful for grouping chunks and tracing answers back to documents.
+     * Foreign key to documents table.
      */
-    documentId: text('document_id').notNull(),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, {
+        onDelete: 'cascade',
+      }),
+    /**
+     * Identifier of the embedding model used to generate this embedding.
+     * Foreign key to embedding_models table.
+     */
+    embeddingModelId: uuid('embedding_model_id')
+      .notNull()
+      .references(() => embeddingModels.id, {
+        onDelete: 'restrict',
+      }),
+    /**
+     * Position of this chunk within its document, used to reconstruct ordering.
+     */
+    chunkIndex: integer('chunk_index').notNull().default(0),
+    content: text('content').notNull(),
     /**
      * Flexible metadata about the chunk/document (page, section, author, etc.).
      * Stored as JSONB with an empty-object default for backwards compatibility.
@@ -477,10 +593,6 @@ export const vectorEmbeddings384 = pgTable(
     metadata: jsonb('metadata')
       .notNull()
       .default(sql`'{}'::jsonb`),
-    /**
-     * Position of this chunk within its document, used to reconstruct ordering.
-     */
-    chunkIndex: integer('chunk_index').notNull().default(0),
     /**
      * Vector embedding representation of the content
      * Used by: smaller Sentence-Transformers models (e.g. all-MiniLM-L6-v2)
@@ -508,6 +620,14 @@ export const vectorEmbeddings384 = pgTable(
     ),
     documentChunkIdx: index('vector_embeddings_384_document_chunk_idx').on(
       table.documentId,
+      table.chunkIndex
+    ),
+    embeddingModelIdIdx: index('vector_embeddings_384_embedding_model_id_idx').on(
+      table.embeddingModelId
+    ),
+    uniqueDocumentModelChunk: unique('vector_embeddings_384_document_model_chunk_unique').on(
+      table.documentId,
+      table.embeddingModelId,
       table.chunkIndex
     ),
     contentLengthCheck: check(
@@ -832,6 +952,51 @@ export const chatAiOptionsRelations = relations(chatAiOptions, ({ one }) => ({
   chatType: one(chatTypes, {
     fields: [chatAiOptions.chatTypeId],
     references: [chatTypes.id],
+  }),
+}))
+
+export const documentsRelations = relations(documents, ({ many }) => ({
+  vectorEmbeddings1536: many(vectorEmbeddings1536),
+  vectorEmbeddings768: many(vectorEmbeddings768),
+  vectorEmbeddings384: many(vectorEmbeddings384),
+}))
+
+export const embeddingModelsRelations = relations(embeddingModels, ({ many }) => ({
+  vectorEmbeddings1536: many(vectorEmbeddings1536),
+  vectorEmbeddings768: many(vectorEmbeddings768),
+  vectorEmbeddings384: many(vectorEmbeddings384),
+}))
+
+export const vectorEmbeddings1536Relations = relations(vectorEmbeddings1536, ({ one }) => ({
+  document: one(documents, {
+    fields: [vectorEmbeddings1536.documentId],
+    references: [documents.id],
+  }),
+  embeddingModel: one(embeddingModels, {
+    fields: [vectorEmbeddings1536.embeddingModelId],
+    references: [embeddingModels.id],
+  }),
+}))
+
+export const vectorEmbeddings768Relations = relations(vectorEmbeddings768, ({ one }) => ({
+  document: one(documents, {
+    fields: [vectorEmbeddings768.documentId],
+    references: [documents.id],
+  }),
+  embeddingModel: one(embeddingModels, {
+    fields: [vectorEmbeddings768.embeddingModelId],
+    references: [embeddingModels.id],
+  }),
+}))
+
+export const vectorEmbeddings384Relations = relations(vectorEmbeddings384, ({ one }) => ({
+  document: one(documents, {
+    fields: [vectorEmbeddings384.documentId],
+    references: [documents.id],
+  }),
+  embeddingModel: one(embeddingModels, {
+    fields: [vectorEmbeddings384.embeddingModelId],
+    references: [embeddingModels.id],
   }),
 }))
 

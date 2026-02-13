@@ -94,15 +94,63 @@ EXECUTE FUNCTION users_set_updated_at();
 --   - Anthropic voyage-large-2: 1536
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
+-- ============================================================
+-- Added documents table to track document metadata
+-- with status tracking (processing, indexed, failed, archived)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS documents (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    content TEXT NOT NULL,
-    document_id TEXT NOT NULL,
-    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-    chunk_index INTEGER NOT NULL DEFAULT 0,
-    embedding VECTOR(1536) NOT NULL,
+    title TEXT NOT NULL,
+    source TEXT,
+    checksum TEXT,
+    status TEXT NOT NULL DEFAULT 'processing'
+        CHECK (status IN ('processing', 'indexed', 'failed', 'archived')),
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- ============================================================
+-- Added embedding_models table to catalog
+-- embedding model configurations (name, provider, dimension)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS embedding_models (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    name TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    dimension INTEGER NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (name, provider, dimension)
+);
+
+-- ============================================================
+-- All three vector embedding tables use UUID foreign keys instead of
+-- TEXT document_id, added embedding_model_id foreign key,
+-- and added unique constraint on (document_id, embedding_model_id, chunk_index)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+
+    document_id UUID NOT NULL
+    REFERENCES documents(id)
+    ON DELETE CASCADE,
+
+    embedding_model_id UUID NOT NULL
+    REFERENCES embedding_models(id)
+    ON DELETE RESTRICT,
+
+    chunk_index INTEGER NOT NULL DEFAULT 0,
+    content TEXT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+
+    embedding VECTOR(1536) NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    UNIQUE (document_id, embedding_model_id, chunk_index)
 );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_1536_embedding_cosine_idx
@@ -113,19 +161,35 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_1536_embedding_cosine_idx
 CREATE INDEX IF NOT EXISTS vector_embeddings_1536_document_chunk_idx
     ON vector_embeddings_1536 (document_id, chunk_index);
 
+CREATE INDEX IF NOT EXISTS vector_embeddings_1536_embedding_model_id_idx
+    ON vector_embeddings_1536 (embedding_model_id);
+
 ALTER TABLE vector_embeddings_1536
     ADD CONSTRAINT vector_embeddings_1536_content_length_check
     CHECK (length(content) >= 1 AND length(content) <= 50000);
 
 CREATE TABLE IF NOT EXISTS vector_embeddings_768 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    content TEXT NOT NULL,
-    document_id TEXT NOT NULL,
-    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+
+    document_id UUID NOT NULL
+    REFERENCES documents(id)
+    ON DELETE CASCADE,
+
+    embedding_model_id UUID NOT NULL
+    REFERENCES embedding_models(id)
+    ON DELETE RESTRICT,
+
     chunk_index INTEGER NOT NULL DEFAULT 0,
+    content TEXT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+
     embedding VECTOR(768) NOT NULL,
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    CONSTRAINT vector_embeddings_768_document_model_chunk_unique
+        UNIQUE (document_id, embedding_model_id, chunk_index)
     );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_cosine_idx
@@ -136,19 +200,35 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_cosine_idx
 CREATE INDEX IF NOT EXISTS vector_embeddings_768_document_chunk_idx
     ON vector_embeddings_768 (document_id, chunk_index);
 
+CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_model_id_idx
+    ON vector_embeddings_768 (embedding_model_id);
+
 ALTER TABLE vector_embeddings_768
     ADD CONSTRAINT vector_embeddings_768_content_length_check
     CHECK (length(content) >= 1 AND length(content) <= 50000);
 
 CREATE TABLE IF NOT EXISTS vector_embeddings_384 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    content TEXT NOT NULL,
-    document_id TEXT NOT NULL,
-    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+
+    document_id UUID NOT NULL
+    REFERENCES documents(id)
+    ON DELETE CASCADE,
+
+    embedding_model_id UUID NOT NULL
+    REFERENCES embedding_models(id)
+    ON DELETE RESTRICT,
+
     chunk_index INTEGER NOT NULL DEFAULT 0,
+    content TEXT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+
     embedding VECTOR(384) NOT NULL,
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    CONSTRAINT vector_embeddings_384_document_model_chunk_unique
+        UNIQUE (document_id, embedding_model_id, chunk_index)
     );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_384_embedding_cosine_idx
@@ -158,6 +238,9 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_384_embedding_cosine_idx
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_384_document_chunk_idx
     ON vector_embeddings_384 (document_id, chunk_index);
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_384_embedding_model_id_idx
+    ON vector_embeddings_384 (embedding_model_id);
 
 ALTER TABLE vector_embeddings_384
     ADD CONSTRAINT vector_embeddings_384_content_length_check
@@ -501,6 +584,12 @@ CREATE TRIGGER company_updated_at
 DROP TRIGGER IF EXISTS key_person_updated_at ON key_person;
 CREATE TRIGGER key_person_updated_at
     BEFORE UPDATE ON key_person
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_documents_touch_updated_at ON documents;
+CREATE TRIGGER trg_documents_touch_updated_at
+    BEFORE UPDATE ON documents
     FOR EACH ROW
     EXECUTE FUNCTION touch_updated_at();
 

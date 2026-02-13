@@ -6,8 +6,13 @@ import {
   chatAiOptions,
   chats,
   chatTypes,
+  company,
+  companyPeople,
   dataRetrievalMessageParts,
   dataRetrievalMessages,
+  documents,
+  embeddingModels,
+  keyPerson,
   messages,
   parts,
   user,
@@ -77,6 +82,31 @@ describe('Database Schema', () => {
       expect(vectorEmbeddings384).toBeDefined()
       expect(typeof vectorEmbeddings384).toBe('object')
     })
+
+    it('should export company table constant', () => {
+      expect(company).toBeDefined()
+      expect(typeof company).toBe('object')
+    })
+
+    it('should export keyPerson table constant', () => {
+      expect(keyPerson).toBeDefined()
+      expect(typeof keyPerson).toBe('object')
+    })
+
+    it('should export companyPeople table constant', () => {
+      expect(companyPeople).toBeDefined()
+      expect(typeof companyPeople).toBe('object')
+    })
+
+    it('should export documents table constant', () => {
+      expect(documents).toBeDefined()
+      expect(typeof documents).toBe('object')
+    })
+
+    it('should export embeddingModels table constant', () => {
+      expect(embeddingModels).toBeDefined()
+      expect(typeof embeddingModels).toBe('object')
+    })
   })
 
   describe('Table names', () => {
@@ -122,6 +152,26 @@ describe('Database Schema', () => {
 
     it('should have correct table name for vector_embeddings_384', () => {
       expect(getTableName(vectorEmbeddings384)).toBe('vector_embeddings_384')
+    })
+
+    it('should have correct table name for company', () => {
+      expect(getTableName(company)).toBe('company')
+    })
+
+    it('should have correct table name for key_person', () => {
+      expect(getTableName(keyPerson)).toBe('key_person')
+    })
+
+    it('should have correct table name for company_people', () => {
+      expect(getTableName(companyPeople)).toBe('company_people')
+    })
+
+    it('should have correct table name for documents', () => {
+      expect(getTableName(documents)).toBe('documents')
+    })
+
+    it('should have correct table name for embedding_models', () => {
+      expect(getTableName(embeddingModels)).toBe('embedding_models')
     })
   })
 
@@ -622,6 +672,221 @@ describe('Database Schema', () => {
         expect(dataRetrievalMessageParts.createdAt.name).toBe('created_at')
       })
     })
+
+    describe('company table columns', () => {
+      it('should have companyId column', () => {
+        expect(company.companyId).toBeDefined()
+        expect(company.companyId.name).toBe('company_id')
+      })
+
+      it('should have legalName column', () => {
+        expect(company.legalName).toBeDefined()
+        expect(company.legalName.name).toBe('legal_name')
+      })
+
+      it('should have displayName column', () => {
+        expect(company.displayName).toBeDefined()
+        expect(company.displayName.name).toBe('display_name')
+      })
+
+      it('should have status column', () => {
+        expect(company.status).toBeDefined()
+        expect(company.status.name).toBe('status')
+      })
+
+      it('should have industry column', () => {
+        expect(company.industry).toBeDefined()
+        expect(company.industry.name).toBe('industry')
+      })
+
+      it('should have companySize column', () => {
+        expect(company.companySize).toBeDefined()
+        expect(company.companySize.name).toBe('company_size')
+      })
+
+      it('should have websiteUrl column', () => {
+        expect(company.websiteUrl).toBeDefined()
+        expect(company.websiteUrl.name).toBe('website_url')
+      })
+
+      it('should have billingCountry column', () => {
+        expect(company.billingCountry).toBeDefined()
+        expect(company.billingCountry.name).toBe('billing_country')
+      })
+
+      it('should have timezone column', () => {
+        expect(company.timezone).toBeDefined()
+        expect(company.timezone.name).toBe('timezone')
+      })
+
+      it('should have createdAt column', () => {
+        expect(company.createdAt).toBeDefined()
+        expect(company.createdAt.name).toBe('created_at')
+      })
+
+      it('should have updatedAt column', () => {
+        expect(company.updatedAt).toBeDefined()
+        expect(company.updatedAt.name).toBe('updated_at')
+      })
+
+      it('should have singletonCheck column', () => {
+        expect(company.singletonCheck).toBeDefined()
+        expect(company.singletonCheck.name).toBe('singleton_check')
+      })
+    })
+
+    describe('keyPerson table columns', () => {
+      it('should have keyPersonId column', () => {
+        expect(keyPerson.keyPersonId).toBeDefined()
+        expect(keyPerson.keyPersonId.name).toBe('person_id')
+      })
+
+      it('should have firstName column', () => {
+        expect(keyPerson.firstName).toBeDefined()
+        expect(keyPerson.firstName.name).toBe('first_name')
+      })
+
+      it('should have lastName column', () => {
+        expect(keyPerson.lastName).toBeDefined()
+        expect(keyPerson.lastName.name).toBe('last_name')
+      })
+
+      it('should have email column', () => {
+        expect(keyPerson.email).toBeDefined()
+        expect(keyPerson.email.name).toBe('email')
+      })
+
+      it('should have phone column', () => {
+        expect(keyPerson.phone).toBeDefined()
+        expect(keyPerson.phone.name).toBe('phone')
+      })
+
+      it('should have jobTitle column', () => {
+        expect(keyPerson.jobTitle).toBeDefined()
+        expect(keyPerson.jobTitle.name).toBe('job_title')
+      })
+
+      it('should have isActive column', () => {
+        expect(keyPerson.isActive).toBeDefined()
+        expect(keyPerson.isActive.name).toBe('is_active')
+      })
+
+      it('should have createdAt column', () => {
+        expect(keyPerson.createdAt).toBeDefined()
+        expect(keyPerson.createdAt.name).toBe('created_at')
+      })
+
+      it('should have updatedAt column', () => {
+        expect(keyPerson.updatedAt).toBeDefined()
+        expect(keyPerson.updatedAt.name).toBe('updated_at')
+      })
+    })
+
+    describe('companyPeople table columns', () => {
+      it('should have companyPersonId column', () => {
+        expect(companyPeople.companyPersonId).toBeDefined()
+        expect(companyPeople.companyPersonId.name).toBe('company_person_id')
+      })
+
+      it('should have companyId column', () => {
+        expect(companyPeople.companyId).toBeDefined()
+        expect(companyPeople.companyId.name).toBe('company_id')
+      })
+
+      it('should have personId column', () => {
+        expect(companyPeople.personId).toBeDefined()
+        expect(companyPeople.personId.name).toBe('person_id')
+      })
+
+      it('should have role column', () => {
+        expect(companyPeople.role).toBeDefined()
+        expect(companyPeople.role.name).toBe('role')
+      })
+
+      it('should have isPrimary column', () => {
+        expect(companyPeople.isPrimary).toBeDefined()
+        expect(companyPeople.isPrimary.name).toBe('is_primary')
+      })
+
+      it('should have startDate column', () => {
+        expect(companyPeople.startDate).toBeDefined()
+        expect(companyPeople.startDate.name).toBe('start_date')
+      })
+
+      it('should have endDate column', () => {
+        expect(companyPeople.endDate).toBeDefined()
+        expect(companyPeople.endDate.name).toBe('end_date')
+      })
+
+      it('should have createdAt column', () => {
+        expect(companyPeople.createdAt).toBeDefined()
+        expect(companyPeople.createdAt.name).toBe('created_at')
+      })
+    })
+
+    describe('documents table columns', () => {
+      it('should have id column', () => {
+        expect(documents.id).toBeDefined()
+        expect(documents.id.name).toBe('id')
+      })
+
+      it('should have title column', () => {
+        expect(documents.title).toBeDefined()
+        expect(documents.title.name).toBe('title')
+      })
+
+      it('should have source column', () => {
+        expect(documents.source).toBeDefined()
+        expect(documents.source.name).toBe('source')
+      })
+
+      it('should have checksum column', () => {
+        expect(documents.checksum).toBeDefined()
+        expect(documents.checksum.name).toBe('checksum')
+      })
+
+      it('should have status column', () => {
+        expect(documents.status).toBeDefined()
+        expect(documents.status.name).toBe('status')
+      })
+
+      it('should have createdAt column', () => {
+        expect(documents.createdAt).toBeDefined()
+        expect(documents.createdAt.name).toBe('created_at')
+      })
+
+      it('should have updatedAt column', () => {
+        expect(documents.updatedAt).toBeDefined()
+        expect(documents.updatedAt.name).toBe('updated_at')
+      })
+    })
+
+    describe('embeddingModels table columns', () => {
+      it('should have id column', () => {
+        expect(embeddingModels.id).toBeDefined()
+        expect(embeddingModels.id.name).toBe('id')
+      })
+
+      it('should have name column', () => {
+        expect(embeddingModels.name).toBeDefined()
+        expect(embeddingModels.name.name).toBe('name')
+      })
+
+      it('should have provider column', () => {
+        expect(embeddingModels.provider).toBeDefined()
+        expect(embeddingModels.provider.name).toBe('provider')
+      })
+
+      it('should have dimension column', () => {
+        expect(embeddingModels.dimension).toBeDefined()
+        expect(embeddingModels.dimension.name).toBe('dimension')
+      })
+
+      it('should have createdAt column', () => {
+        expect(embeddingModels.createdAt).toBeDefined()
+        expect(embeddingModels.createdAt.name).toBe('created_at')
+      })
+    })
   })
 
   describe('Column properties', () => {
@@ -688,10 +953,70 @@ describe('Database Schema', () => {
     it('should have nullable dataRetrievalMessageParts.textJson', () => {
       expect(dataRetrievalMessageParts.textJson.notNull).toBe(false)
     })
+
+    it('should have primary key on company.companyId', () => {
+      expect(company.companyId.primary).toBe(true)
+    })
+
+    it('should have primary key on keyPerson.keyPersonId', () => {
+      expect(keyPerson.keyPersonId.primary).toBe(true)
+    })
+
+    it('should have primary key on companyPeople.companyPersonId', () => {
+      expect(companyPeople.companyPersonId.primary).toBe(true)
+    })
+
+    it('should have not null constraint on company.legalName', () => {
+      expect(company.legalName.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on keyPerson.firstName', () => {
+      expect(keyPerson.firstName.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on companyPeople.companyId', () => {
+      expect(companyPeople.companyId.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on companyPeople.personId', () => {
+      expect(companyPeople.personId.notNull).toBe(true)
+    })
+
+    it('should have primary key on documents.id', () => {
+      expect(documents.id.primary).toBe(true)
+    })
+
+    it('should have not null constraint on documents.title', () => {
+      expect(documents.title.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on documents.status', () => {
+      expect(documents.status.notNull).toBe(true)
+    })
+
+    it('should have nullable documents.source', () => {
+      expect(documents.source.notNull).toBe(false)
+    })
+
+    it('should have primary key on embeddingModels.id', () => {
+      expect(embeddingModels.id.primary).toBe(true)
+    })
+
+    it('should have not null constraint on embeddingModels.name', () => {
+      expect(embeddingModels.name.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on embeddingModels.provider', () => {
+      expect(embeddingModels.provider.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on embeddingModels.dimension', () => {
+      expect(embeddingModels.dimension.notNull).toBe(true)
+    })
   })
 
   describe('Schema structure validation', () => {
-    it('should have all nine table constants exported', () => {
+    it('should have all seventeen table constants exported', () => {
       const tables = [
         user,
         chats,
@@ -702,8 +1027,16 @@ describe('Database Schema', () => {
         auditLog,
         dataRetrievalMessages,
         dataRetrievalMessageParts,
+        vectorEmbeddings1536,
+        vectorEmbeddings768,
+        vectorEmbeddings384,
+        company,
+        keyPerson,
+        companyPeople,
+        documents,
+        embeddingModels,
       ]
-      expect(tables).toHaveLength(9)
+      expect(tables).toHaveLength(17)
       tables.forEach((table) => {
         expect(table).toBeDefined()
         expect(typeof table).toBe('object')
