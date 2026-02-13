@@ -298,20 +298,29 @@ export type DBCompanyPersonSelect = typeof companyPeople.$inferSelect
 /**
  * Documents table: Tracks document metadata with status tracking
  */
-export const documents = pgTable('documents', {
-  id: uuid('id')
-    .primaryKey()
-    .default(sql`uuidv7()`),
-  title: text('title').notNull(),
-  source: text('source'),
-  checksum: text('checksum'),
-  status: text('status')
-    .notNull()
-    .default('processing')
-    .$type<'processing' | 'indexed' | 'failed' | 'archived'>(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+export const documents = pgTable(
+  'documents',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    title: text('title').notNull(),
+    source: text('source'),
+    checksum: text('checksum'),
+    status: text('status')
+      .notNull()
+      .default('processing')
+      .$type<'processing' | 'indexed' | 'failed' | 'archived'>(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    statusCheck: check(
+      'documents_status_check',
+      sql`${table.status} IN ('processing', 'indexed', 'failed', 'archived')`
+    ),
+  })
+)
 
 export type DBDocument = typeof documents.$inferInsert
 export type DBDocumentSelect = typeof documents.$inferSelect
