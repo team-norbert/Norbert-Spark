@@ -4,7 +4,6 @@ import type { AIChatOptionsPort } from '../ports/ai-chat-options.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import type { DBChatAiOptions } from '../../infrastructure/database/schema.js'
 import type { ChatIdType } from '../../domain/value-objects/chatID.js'
-import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 
 /**
  * Use case for retrieving AI configuration options for a specific chat type.
@@ -62,7 +61,7 @@ export class GetChatAiOptionsUseCase {
    * - Success: Logs FETCH action with reason 'chat_options_retrieved_successfully_for_internal'
    * - Failure: Logs FETCH action with reason 'chat_options_failed_to_retrieve_for_internal'
    *
-   * @param auditContext - Context information for audit logging (user ID, IP address, user agent)
+   * @param _auditContext
    * @param chatTypeId - The unique identifier of the chat type to retrieve options for
    * @returns Promise resolving to an object containing the system prompt, or null if not found or on error
    *
@@ -83,39 +82,14 @@ export class GetChatAiOptionsUseCase {
    * ```
    */
   async execute(
-    auditContext: AuditContext,
+    _auditContext: AuditContext,
     chatTypeId: ChatIdType
   ): Promise<Pick<DBChatAiOptions, 'prompt'> | null> {
     try {
       const result = await this.aiChatOptions.getChatOptionsByChatTypeId(chatTypeId)
-
-      try {
-        await this.auditLog.log({
-          userId: auditContext.userId,
-          entityType: EntityType.AI_OPTIONS,
-          entityId: chatTypeId,
-          action: AuditAction.FETCH,
-          changes: { reason: 'chat_options_retrieved_successfully_for_internal' },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        })
-      } catch (error) {
-        this.logger.error('Error logging audit for chat retrieval', error as Error, {
-          userId: auditContext.userId,
-        })
-      }
       return result ?? null
     } catch (error) {
       this.logger.error('Error in GetChatAiOptionsUseCase.execute', error as Error, { chatTypeId })
-      await this.auditLog.log({
-        userId: auditContext.userId,
-        entityType: EntityType.AI_OPTIONS,
-        entityId: chatTypeId,
-        action: AuditAction.FETCH,
-        changes: { reason: 'chat_options_failed_to_retrieve_for_internal' },
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      })
       return null
     }
   }
