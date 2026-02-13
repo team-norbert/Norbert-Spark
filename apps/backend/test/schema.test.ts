@@ -10,6 +10,8 @@ import {
   companyPeople,
   dataRetrievalMessageParts,
   dataRetrievalMessages,
+  documents,
+  embeddingModels,
   keyPerson,
   messages,
   parts,
@@ -95,6 +97,16 @@ describe('Database Schema', () => {
       expect(companyPeople).toBeDefined()
       expect(typeof companyPeople).toBe('object')
     })
+
+    it('should export documents table constant', () => {
+      expect(documents).toBeDefined()
+      expect(typeof documents).toBe('object')
+    })
+
+    it('should export embeddingModels table constant', () => {
+      expect(embeddingModels).toBeDefined()
+      expect(typeof embeddingModels).toBe('object')
+    })
   })
 
   describe('Table names', () => {
@@ -152,6 +164,14 @@ describe('Database Schema', () => {
 
     it('should have correct table name for company_people', () => {
       expect(getTableName(companyPeople)).toBe('company_people')
+    })
+
+    it('should have correct table name for documents', () => {
+      expect(getTableName(documents)).toBe('documents')
+    })
+
+    it('should have correct table name for embedding_models', () => {
+      expect(getTableName(embeddingModels)).toBe('embedding_models')
     })
   })
 
@@ -803,6 +823,70 @@ describe('Database Schema', () => {
         expect(companyPeople.createdAt.name).toBe('created_at')
       })
     })
+
+    describe('documents table columns', () => {
+      it('should have id column', () => {
+        expect(documents.id).toBeDefined()
+        expect(documents.id.name).toBe('id')
+      })
+
+      it('should have title column', () => {
+        expect(documents.title).toBeDefined()
+        expect(documents.title.name).toBe('title')
+      })
+
+      it('should have source column', () => {
+        expect(documents.source).toBeDefined()
+        expect(documents.source.name).toBe('source')
+      })
+
+      it('should have checksum column', () => {
+        expect(documents.checksum).toBeDefined()
+        expect(documents.checksum.name).toBe('checksum')
+      })
+
+      it('should have status column', () => {
+        expect(documents.status).toBeDefined()
+        expect(documents.status.name).toBe('status')
+      })
+
+      it('should have createdAt column', () => {
+        expect(documents.createdAt).toBeDefined()
+        expect(documents.createdAt.name).toBe('created_at')
+      })
+
+      it('should have updatedAt column', () => {
+        expect(documents.updatedAt).toBeDefined()
+        expect(documents.updatedAt.name).toBe('updated_at')
+      })
+    })
+
+    describe('embeddingModels table columns', () => {
+      it('should have id column', () => {
+        expect(embeddingModels.id).toBeDefined()
+        expect(embeddingModels.id.name).toBe('id')
+      })
+
+      it('should have name column', () => {
+        expect(embeddingModels.name).toBeDefined()
+        expect(embeddingModels.name.name).toBe('name')
+      })
+
+      it('should have provider column', () => {
+        expect(embeddingModels.provider).toBeDefined()
+        expect(embeddingModels.provider.name).toBe('provider')
+      })
+
+      it('should have dimension column', () => {
+        expect(embeddingModels.dimension).toBeDefined()
+        expect(embeddingModels.dimension.name).toBe('dimension')
+      })
+
+      it('should have createdAt column', () => {
+        expect(embeddingModels.createdAt).toBeDefined()
+        expect(embeddingModels.createdAt.name).toBe('created_at')
+      })
+    })
   })
 
   describe('Column properties', () => {
@@ -897,10 +981,42 @@ describe('Database Schema', () => {
     it('should have not null constraint on companyPeople.personId', () => {
       expect(companyPeople.personId.notNull).toBe(true)
     })
+
+    it('should have primary key on documents.id', () => {
+      expect(documents.id.primary).toBe(true)
+    })
+
+    it('should have not null constraint on documents.title', () => {
+      expect(documents.title.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on documents.status', () => {
+      expect(documents.status.notNull).toBe(true)
+    })
+
+    it('should have nullable documents.source', () => {
+      expect(documents.source.notNull).toBe(false)
+    })
+
+    it('should have primary key on embeddingModels.id', () => {
+      expect(embeddingModels.id.primary).toBe(true)
+    })
+
+    it('should have not null constraint on embeddingModels.name', () => {
+      expect(embeddingModels.name.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on embeddingModels.provider', () => {
+      expect(embeddingModels.provider.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on embeddingModels.dimension', () => {
+      expect(embeddingModels.dimension.notNull).toBe(true)
+    })
   })
 
   describe('Schema structure validation', () => {
-    it('should have all fifteen table constants exported', () => {
+    it('should have all seventeen table constants exported', () => {
       const tables = [
         user,
         chats,
@@ -917,8 +1033,10 @@ describe('Database Schema', () => {
         company,
         keyPerson,
         companyPeople,
+        documents,
+        embeddingModels,
       ]
-      expect(tables).toHaveLength(15)
+      expect(tables).toHaveLength(17)
       tables.forEach((table) => {
         expect(table).toBeDefined()
         expect(typeof table).toBe('object')
