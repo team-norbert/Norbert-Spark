@@ -124,6 +124,7 @@ export class RegisterUserUseCase {
     } catch (error) {
       this.logger.error('Failed to save user', error as Error, { email: dto.email })
       if (DatabaseUtil.isDuplicateKeyError(error)) {
+        // For failed registration: entityId = email (no user entity created yet)
         const auditEntry: CreateAuditLogDTO = {
           userId: auditContext.userId,
           entityType: EntityType.USER,
@@ -143,6 +144,7 @@ export class RegisterUserUseCase {
     }
 
     try {
+      // For successful registration: entityId = userId (user entity now exists)
       const auditEntry: CreateAuditLogDTO = {
         userId: userId,
         entityType: EntityType.USER,
