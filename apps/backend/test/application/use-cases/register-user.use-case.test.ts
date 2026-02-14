@@ -112,7 +112,7 @@ describe('RegisterUserUseCase', () => {
           entityType: EntityType.USER,
           entityId: mockUserId,
           action: AuditAction.CREATE,
-          changes: { reason: 'new_user' },
+          changes: { email: 'john@example.com', reason: 'new_user' },
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent,
         })
@@ -255,11 +255,11 @@ describe('RegisterUserUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: null,
+          userId: auditContext.userId,
           entityType: EntityType.USER,
-          entityId: expect.any(String), // String(email) returns "[object Object]" for Email value objects
+          entityId: 'duplicate@example.com',
           action: AuditAction.REGISTRATION_FAILED,
-          changes: { reason: 'duplicate_email' },
+          changes: { email: 'duplicate@example.com', reason: 'duplicate_email' },
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent,
         })

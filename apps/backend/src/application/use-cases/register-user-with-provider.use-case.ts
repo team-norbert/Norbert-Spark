@@ -132,6 +132,7 @@ export class RegisterUserWithProviderUseCase {
     } catch (error) {
       this.logger.error('Failed to save user', error as Error, { email: dto.email })
       if (DatabaseUtil.isDuplicateKeyError(error)) {
+        // For failed registration: entityId = email (no user entity created yet)
         await this.auditLog.log({
           userId: auditContext.userId,
           entityType: EntityType.USER,
@@ -149,6 +150,7 @@ export class RegisterUserWithProviderUseCase {
     // Only log audit for new user registrations, not returning users
     if (isNewUser) {
       try {
+        // For successful registration: entityId = userId (user entity now exists)
         await this.auditLog.log({
           userId: userId,
           entityType: EntityType.USER,
