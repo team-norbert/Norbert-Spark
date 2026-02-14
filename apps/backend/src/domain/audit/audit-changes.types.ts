@@ -93,13 +93,13 @@ export interface RegistrationSuccessChanges {
   [key: string]: unknown
 }
 
-export interface FetchChat {
+export interface FetchChatChanges {
   reason: string
   chatIds: string[]
   [key: string]: unknown
 }
 
-export interface FetchChatFailed {
+export interface FetchChatFailedChanges {
   reason: string
   errorMessage: string
   [key: string]: unknown
@@ -120,6 +120,6 @@ export type AuditChanges =
   | EmailChangeChanges
   | RegistrationFailedChanges
   | RegistrationSuccessChanges
-  | FetchChat
-  | FetchChatFailed
+  | FetchChatChanges
+  | FetchChatFailedChanges
   | Record<string, unknown> // Fallback for custom change structures

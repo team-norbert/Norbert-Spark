@@ -298,6 +298,7 @@ describe('AuditAction Enum', () => {
           [AuditAction.LOGIN]: 'Logged In',
           [AuditAction.LOGOUT]: 'Logged Out',
           [AuditAction.FETCH]: 'Fetched',
+          [AuditAction.FETCH_FAILED]: 'Fetch Failed',
           [AuditAction.LOGIN_FAILED]: 'Login Failed',
           [AuditAction.PASSWORD_CHANGE]: 'Password Changed',
           [AuditAction.EMAIL_CHANGE]: 'Email Changed',
