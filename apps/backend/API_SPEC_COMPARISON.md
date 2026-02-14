@@ -122,17 +122,17 @@ This report documents the comparison between API endpoint implementations in `ap
 
 - 🔴 **CRITICAL - Response structure mismatch:**
   - **OpenAPI spec:** Expects flat array: `User[]` (NOT wrapped)
-  - **Implementation:** Returns `{ success: true, data: User[], pagination: { page, limit, total } }`
+  - **Implementation:** Returns `{ success: true, data: User[], pagination: { total, limit, offset } }`
 - ⚠️ **MINOR - Query parameters:**
-  - **OpenAPI spec:** Does NOT document `page` and `limit` query parameters
-  - **Implementation:** Accepts and validates `limit` (1-100) and `page` (0+) query params
+  - **OpenAPI spec:** Does NOT document `offset` and `limit` query parameters
+  - **Implementation:** Accepts and validates `limit` (1-100) and `offset` (0+) query params
 
 **Severity:** 🔴 **CRITICAL** - Response structure completely different. OpenAPI expects flat array, implementation wraps with success/pagination.
 
 **Recommendation:** Update OpenAPI spec to:
 
-1. Wrap response in `{ success, data, pagination }` structure
-2. Document `page` and `limit` query parameters
+1. Wrap response in `{ success, data, pagination }` structure, where `pagination` contains `{ total, limit, offset }`
+2. Document `offset` and `limit` query parameters
 
 ---
 
@@ -417,7 +417,7 @@ This report documents the comparison between API endpoint implementations in `ap
 | **DELETE /users**             | Response field name differs (`deleted` vs `deletedCount`)                        | Minor inconsistency              |
 | **POST /users/register**      | Need to verify `token_type` and `expires_in` fields are present                  | May be missing documented fields |
 | **GET /ai/fetchChat/:chatId** | Returns 404 instead of 403 for security (best practice but should be documented) | Documentation gap                |
-| **GET /users**                | Query parameters (`page`, `limit`) not documented in OpenAPI spec                | Documentation gap                |
+| **GET /users**                | Query parameters (`offset`, `limit`) not documented in OpenAPI spec              | Documentation gap                |
 
 ### ✅ NO ISSUES (Matches Perfectly)
 
