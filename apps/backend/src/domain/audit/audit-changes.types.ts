@@ -14,12 +14,14 @@ export interface CreateChanges {
 
 /**
  * Changes tracked when an entity is updated
- * Captures the state before and after the update
+ *
+ * Can optionally capture the state before and after the update.
+ * Use 'reason' for simple tracking or 'before'/'after' for detailed change tracking.
  */
 export interface UpdateChanges {
   reason?: string
   before?: Record<string, unknown>
-  after: Record<string, unknown>
+  after?: Record<string, unknown>
 }
 
 /**
