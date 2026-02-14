@@ -75,12 +75,18 @@ export interface EmailChangeChanges {
   [key: string]: unknown
 }
 
+/**
+ * Metadata tracked for failed registration attempts
+ */
 export interface RegistrationFailedChanges {
   email?: string
   reason: string
   [key: string]: unknown
 }
 
+/**
+ * Metadata tracked for successful registration
+ */
 export interface RegistrationSuccessChanges {
   email: string
   reason: string
