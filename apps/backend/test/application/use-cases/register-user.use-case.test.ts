@@ -108,11 +108,11 @@ describe('RegisterUserUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: null,
+          userId: mockUserId,
           entityType: EntityType.USER,
-          entityId: 'john@example.com',
+          entityId: String(mockUserId),
           action: AuditAction.CREATE,
-          changes: { email: 'john@example.com' },
+          changes: { email: 'john@example.com', reason: 'new_user' },
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent,
         })

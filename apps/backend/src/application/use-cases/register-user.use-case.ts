@@ -144,7 +144,7 @@ export class RegisterUserUseCase {
 
     try {
       const auditEntry: CreateAuditLogDTO = {
-        userId: null,
+        userId: userId,
         entityType: EntityType.USER,
         entityId: String(userId),
         action: AuditAction.CREATE,

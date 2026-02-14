@@ -83,6 +83,7 @@ export interface RegistrationFailedChanges {
 
 export interface RegistrationSuccessChanges {
   email: string
+  reason: string
   [key: string]: unknown
 }
 
