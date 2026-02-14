@@ -1,7 +1,7 @@
 {
   "get": {
     "summary": "Get all users",
-    "description": "Retrieves all users in date order. Requires authentication with admin or moderator role.",
+    "description": "Retrieves all users in date order with pagination. Requires authentication with admin or moderator role.",
     "operationId": "getAllUsers",
     "tags": ["users"],
     "security": [
@@ -9,16 +9,38 @@
         "bearerAuth": []
       }
     ],
+    "parameters": [
+      {
+        "name": "page",
+        "in": "query",
+        "description": "Page number (0-indexed)",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        }
+      },
+      {
+        "name": "limit",
+        "in": "query",
+        "description": "Number of items per page",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 10
+        }
+      }
+    ],
     "responses": {
       "200": {
-        "description": "Users found",
+        "description": "Users found with pagination information",
         "content": {
           "application/json": {
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "../components/schemas/User.json"
-              }
+              "$ref": "../components/schemas/PaginatedUsersResponse.json"
             }
           }
         }

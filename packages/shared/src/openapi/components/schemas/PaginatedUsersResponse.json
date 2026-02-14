@@ -1,0 +1,42 @@
+{
+  "type": "object",
+  "description": "Paginated response for users list",
+  "required": ["success", "data", "pagination"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "example": true
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "$ref": "./User.json"
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "required": ["page", "limit", "total"],
+      "properties": {
+        "page": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Current page number (0-indexed)",
+          "example": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Number of items per page",
+          "example": 10
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of users",
+          "example": 42
+        }
+      }
+    }
+  }
+}
