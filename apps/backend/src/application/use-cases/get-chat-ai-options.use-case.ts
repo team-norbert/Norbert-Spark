@@ -15,9 +15,7 @@ import type { ChatIdType } from '../../domain/value-objects/chatID.js'
  *
  * **Responsibilities:**
  * - Fetch AI options (system prompts) from the repository
- * - Log audit trail for all retrieval attempts (success and failure)
  * - Handle errors gracefully and return null on failure
- * - Ensure audit logging failures don't break the main operation
  *
  * **Architecture Layer:** Application Layer (Use Case)
  *
@@ -49,17 +47,10 @@ export class GetChatAiOptionsUseCase {
    * Executes the use case to retrieve AI configuration options for a specific chat type.
    *
    * This method fetches the AI system prompt and related configuration from the database
-   * via the AI chat options repository. All retrieval attempts (both successful and failed)
-   * are logged to the audit trail for compliance and debugging purposes.
+   * via the AI chat options repository.
    *
    * **Error Handling:**
    * - If retrieval fails, the error is logged and null is returned
-   * - If audit logging fails, the error is logged but the main operation continues
-   * - Audit logging failures never cause the use case to fail
-   *
-   * **Audit Trail:**
-   * - Success: Logs FETCH action with reason 'chat_options_retrieved_successfully_for_internal'
-   * - Failure: Logs FETCH action with reason 'chat_options_failed_to_retrieve_for_internal'
    *
    * @param _auditContext - Unused, kept for interface compatibility and future audit logging
    * @param chatTypeId - The unique identifier of the chat type to retrieve options for
