@@ -1,9 +1,10 @@
 import type { LoggerPort } from '../ports/logger.port.js'
 import type { UserRepositoryPort } from '../ports/user.repository.port.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
+import type { DeleteChanges } from '../../domain/audit/audit-changes.types.js'
 
 /**
  * Use case for deleting multiple users in a single batch operation.
@@ -121,15 +122,21 @@ export class DeleteUsersUseCase {
     }
 
     try {
-      await this.auditLog.log({
+      const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
         entityType: EntityType.USER,
         entityId: userIds.join(','),
         action: AuditAction.DELETE,
-        changes: { reason: 'deleted_users' },
+        changes: {
+          deleted: {
+            userIds: userIds,
+            count: userIds.length,
+          },
+        } satisfies DeleteChanges,
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
-      })
+      }
+      await this.auditLog.log(auditEntry)
     } catch (error) {
       this.logger.error('Error logging audit for user deletion', error as Error, { userIds })
     }

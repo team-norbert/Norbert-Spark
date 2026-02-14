@@ -199,14 +199,19 @@ describe('DeleteUsersUseCase', () => {
         )
       })
 
-      it('should log audit with deletion reason', async () => {
+      it('should log audit with deletion changes', async () => {
         const userIds = [createMockUserId()]
 
         await useCase.execute(userIds, auditContext)
 
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
-            changes: { reason: 'deleted_users' },
+            changes: {
+              deleted: {
+                userIds: userIds,
+                count: 1,
+              },
+            },
           })
         )
       })
