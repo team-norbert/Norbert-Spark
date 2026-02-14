@@ -13,7 +13,7 @@
       {
         "name": "offset",
         "in": "query",
-        "description": "Number of items to skip (0-indexed)",
+        "description": "Number of items to skip",
         "required": false,
         "schema": {
           "type": "integer",
