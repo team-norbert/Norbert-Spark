@@ -16,6 +16,7 @@ export const AuditAction = {
   LOGIN: 'login',
   LOGOUT: 'logout',
   FETCH: 'fetch',
+  FETCH_FAILED: 'fetch_failed',
   LOGIN_FAILED: 'login_failed',
   PASSWORD_CHANGE: 'password_change',
   EMAIL_CHANGE: 'email_change',

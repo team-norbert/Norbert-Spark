@@ -182,13 +182,15 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${testUserId}`)
     })
 
-    it('should not call error logger on repository failure', async () => {
+    it('should call error logger on repository failure', async () => {
       const error = new Error('Repository error')
       vi.mocked(mockAIRepository.getChatsByUserId).mockRejectedValue(error)
 
       await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow()
 
-      expect(mockLogger.error).not.toHaveBeenCalled()
+      expect(mockLogger.error).toHaveBeenCalledWith('Error retrieving chats for user', error, {
+        userId: testUserId,
+      })
     })
   })
 
@@ -346,13 +348,25 @@ describe('GetChatsByUserIdUseCase', () => {
       )
     })
 
-    it('should not call audit log if repository fails', async () => {
+    it('should call audit log with failure details if repository fails', async () => {
       const repositoryError = new Error('Database error')
       vi.mocked(mockAIRepository.getChatsByUserId).mockRejectedValue(repositoryError)
 
       await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow('Database error')
 
-      expect(mockAuditLog.log).not.toHaveBeenCalled()
+      expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
+      expect(mockAuditLog.log).toHaveBeenCalledWith({
+        userId: auditContext.userId,
+        entityType: 'chat',
+        entityId: testUserId,
+        action: 'fetch_failed',
+        changes: {
+          reason: 'chat_retrieval_failed',
+          errorMessage: 'Database error',
+        },
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-user-agent',
+      })
     })
 
     it('should log audit with correct changes structure', async () => {
