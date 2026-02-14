@@ -25,7 +25,7 @@ export class GetChatsByUserIdUseCase {
       chats = await this.aiRepository.getChatsByUserId(userId)
     } catch (error) {
       this.logger.error('Error retrieving chats for user', error as Error, {
-        userId: userId,
+        userId,
       })
 
       try {
