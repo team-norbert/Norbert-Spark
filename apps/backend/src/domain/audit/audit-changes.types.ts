@@ -17,7 +17,8 @@ export interface CreateChanges {
  * Captures the state before and after the update
  */
 export interface UpdateChanges {
-  before: Record<string, unknown>
+  reason?: string
+  before?: Record<string, unknown>
   after: Record<string, unknown>
 }
 
