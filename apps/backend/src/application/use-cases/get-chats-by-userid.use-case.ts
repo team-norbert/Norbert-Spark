@@ -5,9 +5,7 @@ import type { AIServicePort } from '../ports/ai.port.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
-import type {
-  FetchChat,
-} from '../../domain/audit/audit-changes.types.js'
+import type { FetchChat } from '../../domain/audit/audit-changes.types.js'
 
 export class GetChatsByUserIdUseCase {
   constructor(
