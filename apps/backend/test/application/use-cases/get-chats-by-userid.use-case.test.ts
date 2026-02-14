@@ -188,11 +188,9 @@ describe('GetChatsByUserIdUseCase', () => {
 
       await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow()
 
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error retrieving chats for user',
-        error,
-        { userId: testUserId }
-      )
+      expect(mockLogger.error).toHaveBeenCalledWith('Error retrieving chats for user', error, {
+        userId: testUserId,
+      })
     })
   })
 
