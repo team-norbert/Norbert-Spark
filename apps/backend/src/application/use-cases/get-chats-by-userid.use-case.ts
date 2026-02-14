@@ -2,9 +2,12 @@ import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 import type { LoggerPort } from '../ports/logger.port.js'
 import type { AIServicePort } from '../ports/ai.port.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
+import type {
+  FetchChat,
+} from '../../domain/audit/audit-changes.types.js'
 
 export class GetChatsByUserIdUseCase {
   constructor(
@@ -21,7 +24,7 @@ export class GetChatsByUserIdUseCase {
     )
 
     try {
-      await this.auditLog.log({
+      const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
         entityType: EntityType.CHAT,
         entityId: userId,
@@ -29,10 +32,11 @@ export class GetChatsByUserIdUseCase {
         changes: {
           reason: 'chat_successfully_retrieved_by_userid',
           chatIds: chats,
-        },
+        } satisfies FetchChat,
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
-      })
+      }
+      await this.auditLog.log(auditEntry)
     } catch (error) {
       this.logger.error('Error logging audit for chat retrieval', error as Error, {
         userId: auditContext.userId,

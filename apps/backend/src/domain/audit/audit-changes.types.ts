@@ -93,6 +93,18 @@ export interface RegistrationSuccessChanges {
   [key: string]: unknown
 }
 
+export interface FetchChat {
+  reason: string
+  chatIds: string[]
+  [key: string]: unknown
+}
+
+export interface FetchChatFailed {
+  reason: string
+  errorMessage: string
+  [key: string]: unknown
+}
+
 /**
  * Union type of all possible change structures
  * This provides type safety while allowing flexibility for different audit actions
@@ -108,4 +120,6 @@ export type AuditChanges =
   | EmailChangeChanges
   | RegistrationFailedChanges
   | RegistrationSuccessChanges
+  | FetchChat
+  | FetchChatFailed
   | Record<string, unknown> // Fallback for custom change structures
