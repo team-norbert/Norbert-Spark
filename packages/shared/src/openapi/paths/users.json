@@ -11,9 +11,9 @@
     ],
     "parameters": [
       {
-        "name": "page",
+        "name": "offset",
         "in": "query",
-        "description": "Page number (0-indexed)",
+        "description": "Number of items to skip (0-indexed)",
         "required": false,
         "schema": {
           "type": "integer",

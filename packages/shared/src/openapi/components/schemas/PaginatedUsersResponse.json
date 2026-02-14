@@ -15,12 +15,12 @@
     },
     "pagination": {
       "type": "object",
-      "required": ["page", "limit", "total"],
+      "required": ["offset", "limit", "total"],
       "properties": {
-        "page": {
+        "offset": {
           "type": "integer",
           "minimum": 0,
-          "description": "Current page number (0-indexed)",
+          "description": "Number of items to skip (0-indexed)",
           "example": 0
         },
         "limit": {
