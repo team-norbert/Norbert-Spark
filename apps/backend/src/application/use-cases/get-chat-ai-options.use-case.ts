@@ -61,7 +61,7 @@ export class GetChatAiOptionsUseCase {
    * - Success: Logs FETCH action with reason 'chat_options_retrieved_successfully_for_internal'
    * - Failure: Logs FETCH action with reason 'chat_options_failed_to_retrieve_for_internal'
    *
-   * @param _auditContext
+   * @param _auditContext - Unused, kept for interface compatibility and future audit logging
    * @param chatTypeId - The unique identifier of the chat type to retrieve options for
    * @returns Promise resolving to an object containing the system prompt, or null if not found or on error
    *
