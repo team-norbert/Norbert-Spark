@@ -780,8 +780,8 @@ describe('AuditLog Entity', () => {
       )
 
       expect(updateAudit.action).toBe(AuditAction.UPDATE)
-      expect((updateAudit.changes as UpdateChanges)?.before.email).toBe('john@old.com')
-      expect((updateAudit.changes as UpdateChanges)?.after.email).toBe('john@new.com')
+      expect((updateAudit.changes as UpdateChanges)?.before?.email).toBe('john@old.com')
+      expect((updateAudit.changes as UpdateChanges)?.after?.email).toBe('john@new.com')
     })
 
     it('should represent a chat creation', () => {
