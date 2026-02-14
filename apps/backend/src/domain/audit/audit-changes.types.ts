@@ -82,7 +82,7 @@ export interface RegistrationFailedChanges {
 }
 
 export interface RegistrationSuccessChanges {
-  email?: string
+  email: string
   [key: string]: unknown
 }
 
