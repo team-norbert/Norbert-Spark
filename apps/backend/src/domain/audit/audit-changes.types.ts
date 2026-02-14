@@ -12,6 +12,10 @@ export interface CreateChanges {
   created: Record<string, unknown>
 }
 
+export interface DeleteChanges {
+  deleted: Record<string, unknown>
+}
+
 /**
  * Changes tracked when an entity is updated
  * Captures the state before and after the update
