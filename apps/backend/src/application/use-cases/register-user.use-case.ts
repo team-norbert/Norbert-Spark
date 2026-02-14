@@ -150,6 +150,7 @@ export class RegisterUserUseCase {
         action: AuditAction.CREATE,
         changes: {
           email: dto.email,
+          reason: 'new_user',
         } satisfies RegistrationSuccessChanges,
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
