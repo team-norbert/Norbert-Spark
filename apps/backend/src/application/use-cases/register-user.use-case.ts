@@ -146,7 +146,7 @@ export class RegisterUserUseCase {
       const auditEntry: CreateAuditLogDTO = {
         userId: null,
         entityType: EntityType.USER,
-        entityId: String(email),
+        entityId: String(userId),
         action: AuditAction.CREATE,
         changes: {
           email: dto.email,
