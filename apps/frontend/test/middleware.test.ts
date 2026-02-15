@@ -399,7 +399,7 @@ describe('Middleware', () => {
       // When JWT decryption fails, user is treated as unauthenticated
       // and redirected to signin
       expect(response.status).toBe(302)
-      expect(response.headers.get('Location')).toBe(
+      expect(response.headers.get('location')).toBe(
         'http://localhost:3000/signin?callbackUrl=%2Fadmin'
       )
     })
