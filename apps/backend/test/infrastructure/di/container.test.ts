@@ -239,8 +239,9 @@ describe('Container', () => {
         container.getAllUsersUseCase,
         // @ts-expect-error - Accessing private property for testing
         container.deleteUsersUseCase,
-        container.logger,
-        container.app
+        // @ts-expect-error - Accessing private property for testing
+        container.getUserByIdUseCase,
+        container.logger
       )
     })
 
