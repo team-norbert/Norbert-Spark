@@ -174,10 +174,20 @@ export class AIController {
     const chatTypeParam = requestBody?.chatTypeParam as string | undefined
     const bodyChatTypeId = requestBody?.chatTypeId as string | undefined
 
+    // Early validation: ensure at least one chat type identifier is provided
+    if (!bodyChatTypeId && !chatTypeParam) {
+      return reply.code(400).send({
+        success: false,
+        error: 'Chat type identification required',
+        details: 'Provide chatTypeParam or chatTypeId in the request body',
+      })
+    }
+
     let chatTypeId: ChatIdType
 
     if (chatTypeParam) {
       const resolved = await this.resolveChatTypeUseCase.execute(chatTypeParam, auditContext)
+
       if (!resolved) {
         return reply.code(400).send({
           success: false,
@@ -185,6 +195,7 @@ export class AIController {
           details: `Could not resolve chat type from: ${chatTypeParam}`,
         })
       }
+
       try {
         chatTypeId = new ChatId(resolved).getValue()
       } catch {
@@ -204,10 +215,10 @@ export class AIController {
         })
       }
     } else {
-      return reply.code(400).send({
+      // This should never happen due to early validation, but satisfies TypeScript
+      return reply.code(500).send({
         success: false,
-        error: 'Chat type identification required',
-        details: 'Provide chatTypeParam or chatTypeId in the request body',
+        error: 'Internal error: chat type resolution failed',
       })
     }
 
@@ -498,7 +509,9 @@ export class AIController {
 
     try {
       const result = await this.getChatDetailsUseCase.execute(auditContext)
+
       this.logger.debug(JSON.stringify(result))
+
       reply.code(200).send({
         success: true,
         data: result,

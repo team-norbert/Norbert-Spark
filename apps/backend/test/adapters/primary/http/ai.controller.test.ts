@@ -306,6 +306,7 @@ describe('AIController', () => {
         mockRequest.body = {
           id: uuidv7(),
           trigger: 'user-input',
+          chatTypeId: uuidv7(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
@@ -342,6 +343,7 @@ describe('AIController', () => {
           id: uuidv7(),
           messages: [],
           trigger: 'user-input',
+          chatTypeId: uuidv7(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
@@ -363,6 +365,7 @@ describe('AIController', () => {
             { id: '2', role: 'assistant', parts: [{ type: 'text', text: 'Hi there!' }] },
           ],
           trigger: 'user-input',
+          chatTypeId: uuidv7(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
@@ -400,6 +403,7 @@ describe('AIController', () => {
       it('should process valid chat request with existing chat', async () => {
         const chatId = uuidv7()
         const userId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [
@@ -408,6 +412,7 @@ describe('AIController', () => {
             { id: '3', role: 'user', parts: [{ type: 'text', text: 'How are you?' }] },
           ],
           trigger: 'user-input',
+          chatTypeId: chatTypeId,
         }
         mockRequest.user = {
           sub: new UserId(userId).getValue(),
@@ -451,10 +456,12 @@ describe('AIController', () => {
       it('should create new chat if chat does not exist', async () => {
         const chatId = uuidv7()
         const userId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
+          chatTypeId: chatTypeId,
         }
         mockRequest.user = {
           sub: new UserId(userId).getValue(),
@@ -481,10 +488,12 @@ describe('AIController', () => {
       it('should log debug message when processing chat', async () => {
         const chatId = uuidv7()
         const userId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
+          chatTypeId: chatTypeId,
         }
         mockRequest.user = {
           sub: new UserId(userId).getValue(),
@@ -509,10 +518,12 @@ describe('AIController', () => {
 
       it('should log info when creating new chat', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
+          chatTypeId: chatTypeId,
         }
         mockRequest.user = {
           sub: new UserId(uuidv7()).getValue(),
@@ -530,6 +541,7 @@ describe('AIController', () => {
 
       it('should log info when appending to existing chat', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [
@@ -538,6 +550,7 @@ describe('AIController', () => {
             { id: '3', role: 'user', parts: [{ type: 'text', text: 'How are you?' }] },
           ],
           trigger: 'user-input',
+          chatTypeId: chatTypeId,
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
@@ -558,6 +571,7 @@ describe('AIController', () => {
       it('should call streamText with correct parameters', async () => {
         const { streamText } = await import('ai')
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
 
         mockRequest.body = {
           id: chatId,
@@ -569,6 +583,7 @@ describe('AIController', () => {
             },
           ],
           trigger: 'user-input',
+          chatTypeId: chatTypeId,
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
@@ -598,10 +613,12 @@ describe('AIController', () => {
 
       it('should return stream response', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
+          chatTypeId: chatTypeId,
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
@@ -636,10 +653,12 @@ describe('AIController', () => {
 
       it('should handle use case errors gracefully', async () => {
         const chatId = uuidv7()
+        const chatTypeId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
+          chatTypeId: chatTypeId,
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockRejectedValue(new Error('Database error'))

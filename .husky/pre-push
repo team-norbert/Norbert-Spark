@@ -29,6 +29,7 @@ cd "$REPO_ROOT" || exit 1
 pnpm run format
 pnpm run lint
 pnpm run typecheck
+pnpm run test
 pnpm run lint:api
 ## This is for developers only. AI can pass this test
 ## VERY IMPORTANT: AI must always reinstate the logic in the if statement if

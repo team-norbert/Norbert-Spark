@@ -154,13 +154,14 @@ describe('EntityType Enum', () => {
       const values = Object.values(EntityType)
       expect(values).toContain('user')
       expect(values).toContain('chat')
+      expect(values).toContain('chat_type')
       expect(values).toContain('message')
       expect(values).toContain('part')
       expect(values).toContain('ai_options')
       expect(values).toContain('data_extraction')
       expect(values).toContain('company')
       expect(values).toContain('key_person')
-      expect(values).toHaveLength(8)
+      expect(values).toHaveLength(9)
     })
 
     it('should allow iteration for validation', () => {

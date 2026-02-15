@@ -5,6 +5,7 @@ import { db } from '../../../infrastructure/database/index.js'
 import { chatTypes } from '../../../infrastructure/database/schema.js'
 import type { AIContentPort } from '../../../application/ports/ai-content.port.js'
 import type { DBChatType } from '../../../infrastructure/database/schema.js'
+import { Uuid7Util } from '../../../shared/utils/uuid7.util.js'
 
 /**
  * Repository for managing AI chat content data access.
@@ -62,16 +63,22 @@ export class AIChatContentRepository implements AIContentPort {
   async resolveChatTypeByParam(param: string): Promise<string | null> {
     this.logger.debug('Resolving chat type by param', { param })
 
+    // Only check UUID column if param is a valid UUID to avoid PostgreSQL type casting errors
+    const isUUID = Uuid7Util.isValidUUID(param)
+
+    const conditions = [
+      eq(chatTypes.seoFriendlyId, param),
+      eq(chatTypes.seoFriendlyBase64Id, param),
+    ]
+
+    if (isUUID) {
+      conditions.unshift(eq(chatTypes.id, param))
+    }
+
     const result = await db
       .select({ id: chatTypes.id })
       .from(chatTypes)
-      .where(
-        or(
-          eq(chatTypes.id, param),
-          eq(chatTypes.seoFriendlyId, param),
-          eq(chatTypes.seoFriendlyBase64Id, param)
-        )
-      )
+      .where(or(...conditions))
       .limit(1)
 
     const resolved = result[0]?.id ?? null
