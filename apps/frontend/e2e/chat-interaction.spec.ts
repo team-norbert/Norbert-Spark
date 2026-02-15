@@ -99,9 +99,8 @@ test.describe('Chat Interaction', () => {
     const userMessageWrapper = page.getByTestId('user')
     await expect(userMessageWrapper).toBeVisible({ timeout: 10000 })
 
-    // Verify the message text
-    const messageParagraph = userMessageWrapper.locator('p')
-    await expect(messageParagraph).toContainText('User: hello', { timeout: 10000 })
+    // Verify the message text directly on the user message container
+    await expect(userMessageWrapper).toContainText('User: hello', { timeout: 10000 })
   })
 
   test('should navigate to chat page and verify form is disabled for new chat', async ({
