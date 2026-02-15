@@ -6,10 +6,7 @@ import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
-import type {
-  FetchChatChanges,
-  LoginFailedChanges,
-} from '../../domain/audit/audit-changes.types.js'
+import type { FetchChatChanges } from '../../domain/audit/audit-changes.types.js'
 /**
  * Use case for retrieving chat messages for a specific user
  *
