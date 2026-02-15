@@ -109,7 +109,13 @@ describe('getChatsByUserIdAction', () => {
     it('should handle single chat ID', async () => {
       const mockResponse: AIUserIdResponseSchemaType = {
         success: true,
-        data: [{ id: 'single-chat-id', chatTypeId: 'type-1', seoFriendlyId: 'chat-single' }],
+        data: [
+          {
+            id: '01942f8e-67a6-7e5f-af7b-8c9d0e1f2b3c',
+            chatTypeId: '01942f8e-0000-7000-8000-000000000004',
+            seoFriendlyId: 'chat-single',
+          },
+        ],
       }
 
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
