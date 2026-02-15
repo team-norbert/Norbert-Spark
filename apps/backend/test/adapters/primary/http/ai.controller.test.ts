@@ -338,6 +338,24 @@ describe('AIController', () => {
         })
       })
 
+      it('should return 400 if id has invalid ChatId format', async () => {
+        mockRequest.body = {
+          id: 'invalid-uuid-format',
+          trigger: 'user-input',
+          messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          chatTypeId: uuidv7(),
+        }
+
+        await controller.chat(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid id format',
+          details: 'incorrect ChatId format',
+        })
+      })
+
       it('should return 400 if no messages are provided', async () => {
         mockRequest.body = {
           id: uuidv7(),
