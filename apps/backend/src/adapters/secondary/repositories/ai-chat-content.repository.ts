@@ -57,14 +57,45 @@ export class AIChatContentRepository implements AIContentPort {
    * Queries the chat_types table matching the param against all three unique
    * identifier columns. Since all three are unique, at most one row will match.
    *
+   * Input validation:
+   * - Maximum length: 200 characters (prevents DoS with extremely long strings)
+   * - Format validation for non-UUID params: alphanumeric + hyphens only
+   * - Returns null for invalid inputs rather than querying the database
+   *
    * @param param - One of the three unique identifiers for a chat type
-   * @returns The UUID id of the matching chat type, or null if not found
+   * @returns The UUID id of the matching chat type, or null if not found or invalid
    */
   async resolveChatTypeByParam(param: string): Promise<string | null> {
     this.logger.debug('Resolving chat type by param', { param })
 
+    // Validate maximum length to prevent DoS attacks with extremely long strings
+    if (param.length > 200) {
+      this.logger.warn('Chat type param exceeds maximum length', {
+        param: param.substring(0, 50) + '...',
+        length: param.length,
+      })
+      return null
+    }
+
     // Only check UUID column if param is a valid UUID to avoid PostgreSQL type casting errors
     const isUUID = Uuid7Util.isValidUUID(param)
+
+    // For non-UUID params, validate format to provide better error handling
+    if (!isUUID) {
+      // Check if it matches seoFriendlyId format (lowercase alphanumeric + hyphens)
+      // or seoFriendlyBase64Id format (alphanumeric, exactly 22 chars)
+      const isSeoFriendlyId = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(param)
+      const isSeoFriendlyBase64Id = /^[A-Za-z0-9]{22}$/.test(param)
+
+      if (!isSeoFriendlyId && !isSeoFriendlyBase64Id) {
+        this.logger.debug('Chat type param has invalid format', {
+          param,
+          isSeoFriendlyId,
+          isSeoFriendlyBase64Id,
+        })
+        return null
+      }
+    }
 
     const conditions = [
       eq(chatTypes.seoFriendlyId, param),
