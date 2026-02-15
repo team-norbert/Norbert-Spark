@@ -278,7 +278,7 @@ This report documents the comparison between API endpoint implementations in `ap
   - **Implementation:** Uses camelCase: `createdAt`, `updatedAt`, `seoFriendlyId`, `seoFriendlyBase64Id` (TypeScript convention)
 
 **Severity:** 🔴 **CRITICAL** - Field naming convention inconsistency will break API consumers following the spec
-**Updated:** Change OpenAPI spec to match implementation's camelCase field names, or change implementation to use snake_case. Consistency is key. d
+**Updated:** Change OpenAPI spec to match implementation's camelCase field names, or change implementation to use snake_case. Consistency is key.
 **Recommendation:** Choose one convention and apply consistently:
 
 - **Option 1:** Update OpenAPI spec to use camelCase (aligns with JavaScript/TypeScript conventions)
