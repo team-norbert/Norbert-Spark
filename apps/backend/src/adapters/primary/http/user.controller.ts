@@ -388,12 +388,6 @@ export class UserController {
         ipAddress: request.ip,
         userAgent: request.headers['user-agent'] ?? null,
       }
-      const params = request.params as Record<string, unknown>
-      this.logger.debug(`Request params: ${JSON.stringify(params)}`)
-      const id = params.id as string
-      this.logger.debug(`Request id: ${id}`)
-      const userId = new UserId(id).getValue()
-      this.logger.debug(`Request userId: ${userId}`)
 
       // Authorization check: users can only access their own data unless they're admin/moderator
       const requestingUserId = request.user?.sub
@@ -406,6 +400,13 @@ export class UserController {
         })
         return
       }
+
+      const params = request.params as Record<string, unknown>
+      this.logger.debug(`Request params: ${JSON.stringify(params)}`)
+      const id = params.id as string
+      this.logger.debug(`Request id: ${id}`)
+      const userId = new UserId(id).getValue()
+      this.logger.debug(`Request userId: ${userId}`)
 
       // Check if user is trying to access someone else's data
       const isAccessingOwnData = requestingUserId === userId
