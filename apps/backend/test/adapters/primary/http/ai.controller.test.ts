@@ -306,7 +306,7 @@ describe('AIController', () => {
         mockRequest.body = {
           id: uuidv7(),
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
@@ -343,7 +343,7 @@ describe('AIController', () => {
           id: 'invalid-uuid-format',
           trigger: 'user-input',
           messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
-          chatTypeId: uuidv7(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
         }
 
         await controller.chat(mockRequest, mockReply)
@@ -367,7 +367,7 @@ describe('AIController', () => {
           id: uuidv7(),
           trigger: 'user-input',
           messages: [{ invalid: 'message' }],
-          chatTypeId: uuidv7(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
         }
 
         await controller.chat(mockRequest, mockReply)
@@ -475,7 +475,7 @@ describe('AIController', () => {
           id: uuidv7(),
           messages: [],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
@@ -497,7 +497,7 @@ describe('AIController', () => {
             { id: '2', role: 'assistant', parts: [{ type: 'text', text: 'Hi there!' }] },
           ],
           trigger: 'user-input',
-          chatTypeId: uuidv7(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
@@ -807,12 +807,12 @@ describe('AIController', () => {
         const mockChats: ChatWithType[] = [
           {
             id: new ChatId(uuidv7()).getValue(),
-            chatTypeId: uuidv7(),
+            chatTypeId: new ChatId(uuidv7()).getValue(),
             seoFriendlyId: 'chat-test-1',
           },
           {
             id: new ChatId(uuidv7()).getValue(),
-            chatTypeId: uuidv7(),
+            chatTypeId: new ChatId(uuidv7()).getValue(),
             seoFriendlyId: 'chat-test-2',
           },
         ]
@@ -877,7 +877,7 @@ describe('AIController', () => {
         const userId = new UserId(uuidv7()).getValue()
         const mockChats: ChatWithType[] = Array.from({ length: 10 }, (_, i) => ({
           id: new ChatId(uuidv7()).getValue(),
-          chatTypeId: uuidv7(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
           seoFriendlyId: `chat-test-${i + 1}`,
         }))
 
@@ -1047,12 +1047,12 @@ describe('AIController', () => {
         const mockChats: ChatWithType[] = [
           {
             id: new ChatId(uuidv7()).getValue(),
-            chatTypeId: uuidv7(),
+            chatTypeId: new ChatId(uuidv7()).getValue(),
             seoFriendlyId: 'chat-test-1',
           },
           {
             id: new ChatId(uuidv7()).getValue(),
-            chatTypeId: uuidv7(),
+            chatTypeId: new ChatId(uuidv7()).getValue(),
             seoFriendlyId: 'chat-test-2',
           },
         ]
@@ -1089,7 +1089,7 @@ describe('AIController', () => {
         const mockChats: ChatWithType[] = [
           {
             id: new ChatId(uuidv7()).getValue(),
-            chatTypeId: uuidv7(),
+            chatTypeId: new ChatId(uuidv7()).getValue(),
             seoFriendlyId: 'chat-test-1',
           },
         ]
@@ -1126,7 +1126,7 @@ describe('AIController', () => {
         const mockChats: ChatWithType[] = [
           {
             id: new ChatId(uuidv7()).getValue(),
-            chatTypeId: uuidv7(),
+            chatTypeId: new ChatId(uuidv7()).getValue(),
             seoFriendlyId: 'chat-test-1',
           },
         ]
@@ -1227,7 +1227,7 @@ describe('AIController', () => {
         const mockChats: ChatWithType[] = [
           {
             id: new ChatId(uuidv7()).getValue(),
-            chatTypeId: uuidv7(),
+            chatTypeId: new ChatId(uuidv7()).getValue(),
             seoFriendlyId: 'chat-test-1',
           },
         ]

@@ -137,7 +137,7 @@ export class AIRepository implements AIServicePort {
 
     return result.map((row) => ({
       id: row.id as ChatIdType,
-      chatTypeId: row.chatTypeId,
+      chatTypeId: row.chatTypeId as ChatIdType,
       seoFriendlyId: row.seoFriendlyId,
     }))
   }

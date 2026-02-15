@@ -86,10 +86,10 @@ export class AIChatContentRepository implements AIContentPort {
       this.logger.debug('Resolved chat type', { param, resolvedId: resolved })
       return resolved
     } catch (error) {
-      this.logger.error('Failed to resolve chat type by param', {
-        param,
-        error,
-      })
+      this.logger.error(
+        'Failed to resolve chat type by param',
+        error instanceof Error ? error : new Error(String(error))
+      )
       throw error
     }
   }
