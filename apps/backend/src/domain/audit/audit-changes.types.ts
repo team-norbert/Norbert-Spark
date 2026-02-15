@@ -51,7 +51,6 @@ export interface LoginFailedChanges {
 }
 
 export interface ChatTypeChange {
-  email?: string
   reason: string
   [key: string]: unknown
 }
