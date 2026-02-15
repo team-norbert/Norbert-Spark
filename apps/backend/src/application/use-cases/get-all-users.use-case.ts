@@ -11,7 +11,9 @@ export interface UserDto {
   email: string
   name: string
   role: string
+  twoFactorEnabled: boolean
   createdAt: Date
+  updatedAt: Date
 }
 
 /**
@@ -84,7 +86,9 @@ export class GetAllUsersUseCase {
           email: user.getEmail(),
           name: user.getName(),
           role: user.getRole(),
+          twoFactorEnabled: user.isTwoFactorEnabled(),
           createdAt: user.getCreatedAt(),
+          updatedAt: user.getUpdatedAt(),
         }
       })
 

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { UserController } from '../../../src/adapters/primary/http/user.controller.js'
-import { PostgresUserRepository } from '../../../src/adapters/secondary/repositories/user.repository.js'
+import { UserRepository } from '../../../src/adapters/secondary/repositories/user.repository.js'
 import { ResendService } from '../../../src/adapters/secondary/services/email.service.js'
 import { PinoLoggerService } from '../../../src/adapters/secondary/services/logger.service.js'
 import { RegisterUserUseCase } from '../../../src/application/use-cases/register-user.use-case.js'
@@ -73,7 +73,7 @@ vi.mock('../../../src/adapters/secondary/services/email.service.js', () => ({
 }))
 
 vi.mock('../../../src/adapters/secondary/repositories/user.repository.js', () => ({
-  PostgresUserRepository: vi.fn(function (this: any) {
+  UserRepository: vi.fn(function (this: any) {
     this.save = vi.fn()
     this.findById = vi.fn()
     this.findByEmail = vi.fn()
@@ -238,7 +238,10 @@ describe('Container', () => {
         container.registerUserUseCase,
         container.getAllUsersUseCase,
         // @ts-expect-error - Accessing private property for testing
-        container.deleteUsersUseCase
+        container.deleteUsersUseCase,
+        // @ts-expect-error - Accessing private property for testing
+        container.getUserByIdUseCase,
+        container.logger
       )
     })
 
@@ -466,7 +469,7 @@ describe('Container', () => {
       const loggerOrder = vi.mocked(PinoLoggerService).mock.invocationCallOrder[0]
       const appOrder = vi.mocked(createFastifyApp).mock.invocationCallOrder[0]
       const emailOrder = vi.mocked(ResendService).mock.invocationCallOrder[0]
-      const repoOrder = vi.mocked(PostgresUserRepository).mock.invocationCallOrder[0]
+      const repoOrder = vi.mocked(UserRepository).mock.invocationCallOrder[0]
 
       expect(validateOrder).toBeLessThan(loggerOrder!)
       expect(loggerOrder).toBeLessThan(appOrder!)

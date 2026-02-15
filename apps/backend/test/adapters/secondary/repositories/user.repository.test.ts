@@ -1,7 +1,7 @@
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { PostgresUserRepository } from '../../../../src/adapters/secondary/repositories/user.repository.js'
+import { UserRepository } from '../../../../src/adapters/secondary/repositories/user.repository.js'
 import { User } from '../../../../src/domain/entities/user.js'
 import { Email, type EmailType } from '../../../../src/domain/value-objects/email.js'
 import { Password } from '../../../../src/domain/value-objects/password.js'
@@ -23,8 +23,8 @@ vi.mock('../../../../src/infrastructure/database/index.js', () => ({
   },
 }))
 
-describe('PostgresUserRepository', () => {
-  let repository: PostgresUserRepository
+describe('UserRepository', () => {
+  let repository: UserRepository
   let testEmail: EmailType
   let testPassword: Password
   let testRole: Role
@@ -34,7 +34,7 @@ describe('PostgresUserRepository', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
 
-    repository = new PostgresUserRepository()
+    repository = new UserRepository()
     testEmail = new Email('test@example.com').getValue()
     testPassword = await Password.create('password123')
     testRole = new Role('user')
@@ -111,7 +111,16 @@ describe('PostgresUserRepository', () => {
       const userId = new UserId(uuidv7()).getValue()
       const email = new Email('oauth@example.com').getValue()
       const role = new Role('user')
-      const oauthUser = new User(userId, email, 'OAuth User', role, undefined, undefined, 'google')
+      const oauthUser = new User(
+        userId,
+        email,
+        'OAuth User',
+        role,
+        undefined,
+        new Date(),
+        new Date(),
+        'google'
+      )
 
       const mockReturning = vi.fn().mockResolvedValue([{ userId: userId }])
       const mockValues = vi.fn().mockReturnValue({ returning: mockReturning })
@@ -147,7 +156,8 @@ describe('PostgresUserRepository', () => {
         'Google User',
         role,
         undefined,
-        undefined,
+        new Date(),
+        new Date(),
         'google'
       )
 
@@ -174,7 +184,8 @@ describe('PostgresUserRepository', () => {
         'New User',
         role,
         undefined,
-        undefined,
+        new Date(),
+        new Date(),
         'google'
       )
 
@@ -200,7 +211,8 @@ describe('PostgresUserRepository', () => {
         'Duplicate User',
         role,
         undefined,
-        undefined,
+        new Date(),
+        new Date(),
         'google'
       )
 
@@ -222,7 +234,16 @@ describe('PostgresUserRepository', () => {
       const userId = new UserId(uuidv7()).getValue()
       const email = new Email('error@example.com').getValue()
       const role = new Role('user')
-      const oauthUser = new User(userId, email, 'Error User', role, undefined, undefined, 'google')
+      const oauthUser = new User(
+        userId,
+        email,
+        'Error User',
+        role,
+        undefined,
+        new Date(),
+        new Date(),
+        'google'
+      )
 
       const dbError = new Error('Connection failed')
 
@@ -240,7 +261,16 @@ describe('PostgresUserRepository', () => {
       const userId = new UserId(uuidv7()).getValue()
       const email = new Email('test@example.com').getValue()
       const role = new Role('user')
-      const oauthUser = new User(userId, email, 'Test User', role, undefined, undefined, 'google')
+      const oauthUser = new User(
+        userId,
+        email,
+        'Test User',
+        role,
+        undefined,
+        new Date(),
+        new Date(),
+        'google'
+      )
 
       const mockReturning = vi.fn().mockResolvedValue([])
       const mockValues = vi.fn().mockReturnValue({ returning: mockReturning })
@@ -266,7 +296,8 @@ describe('PostgresUserRepository', () => {
           'Test User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google',
           'google123'
         )
@@ -303,7 +334,8 @@ describe('PostgresUserRepository', () => {
           'Test User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google',
           'google123'
         )
@@ -338,7 +370,8 @@ describe('PostgresUserRepository', () => {
           'Test User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -372,7 +405,8 @@ describe('PostgresUserRepository', () => {
           'Test User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -406,7 +440,8 @@ describe('PostgresUserRepository', () => {
           'Test User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -448,7 +483,8 @@ describe('PostgresUserRepository', () => {
           'Test User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -481,7 +517,8 @@ describe('PostgresUserRepository', () => {
           'Test User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -525,7 +562,8 @@ describe('PostgresUserRepository', () => {
           'New User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google',
           'google123'
         )
@@ -559,7 +597,8 @@ describe('PostgresUserRepository', () => {
           'New User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google',
           'google123'
         )
@@ -599,7 +638,8 @@ describe('PostgresUserRepository', () => {
           'New User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -630,7 +670,8 @@ describe('PostgresUserRepository', () => {
           'New User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -660,7 +701,8 @@ describe('PostgresUserRepository', () => {
           'New User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -692,7 +734,8 @@ describe('PostgresUserRepository', () => {
           'Test User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -726,7 +769,8 @@ describe('PostgresUserRepository', () => {
           'Test User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -752,7 +796,8 @@ describe('PostgresUserRepository', () => {
           'Test User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -783,7 +828,8 @@ describe('PostgresUserRepository', () => {
           'Test User',
           role,
           undefined,
-          undefined,
+          new Date(),
+          new Date(),
           'google'
         )
 
@@ -928,7 +974,9 @@ describe('PostgresUserRepository', () => {
       const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      const result = await repository.findById('non-existent-id')
+      const result = await repository.findById(
+        new UserId('018f6a3c-9b2e-7c4a-b5d1-9f3a2e8c6b71').getValue()
+      )
 
       expect(result).toBeNull()
       expect(db.select).toHaveBeenCalledTimes(1)
@@ -950,7 +998,7 @@ describe('PostgresUserRepository', () => {
       const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      const result = await repository.findById(userId)
+      const result = await repository.findById(new UserId(userId).getValue())
 
       expect(result).toBeInstanceOf(User)
       expect(result?.id).toBe(userId)
@@ -965,7 +1013,7 @@ describe('PostgresUserRepository', () => {
       const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      await repository.findById('test-user-id')
+      await repository.findById(new UserId('018f6a3c-9b2e-7c4a-b5d1-9f3a2e8c6b71').getValue())
 
       expect(mockWhere).toHaveBeenCalledTimes(1)
     })
@@ -1155,7 +1203,7 @@ describe('PostgresUserRepository', () => {
       const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      const result = await repository.findById(userId)
+      const result = await repository.findById(new UserId(userId).getValue())
 
       expect(result).toBeInstanceOf(User)
       expect(result?.id).toBe(userId)
@@ -1179,7 +1227,7 @@ describe('PostgresUserRepository', () => {
       const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      const result = await repository.findById(userId)
+      const result = await repository.findById(new UserId(userId).getValue())
 
       expect(result).toBeInstanceOf(User)
       // Password should be properly converted from hash
@@ -1226,8 +1274,12 @@ describe('PostgresUserRepository', () => {
         const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
         vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-        await expect(repository.findById(userId)).rejects.toThrow(DatabaseException)
-        await expect(repository.findById(userId)).rejects.toThrow('Failed to find user by ID')
+        await expect(repository.findById(new UserId(userId).getValue())).rejects.toThrow(
+          DatabaseException
+        )
+        await expect(repository.findById(new UserId(userId).getValue())).rejects.toThrow(
+          'Failed to find user by ID'
+        )
       })
     })
 

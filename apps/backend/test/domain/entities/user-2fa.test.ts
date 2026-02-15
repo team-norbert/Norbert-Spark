@@ -38,6 +38,7 @@ describe('User Entity - Two-Factor Authentication', () => {
         role,
         password,
         new Date(),
+        new Date(),
         undefined,
         undefined,
         true,

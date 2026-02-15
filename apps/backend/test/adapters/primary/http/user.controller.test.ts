@@ -4,10 +4,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { UserController } from '../../../../src/adapters/primary/http/user.controller.js'
 import { RegisterUserDto } from '../../../../src/application/dtos/register-user.dto.js'
+import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import { DeleteUsersUseCase } from '../../../../src/application/use-cases/delete-users.use-case.js'
 import { GetAllUsersUseCase } from '../../../../src/application/use-cases/get-all-users.use-case.js'
+import { GetUserByIdUseCase } from '../../../../src/application/use-cases/get-user-by-id.use-case.js'
 import { RegisterUserUseCase } from '../../../../src/application/use-cases/register-user.use-case.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
+import { HttpStatus } from '../../../../src/shared/constants/http-status.js'
+import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
 
 // Helper function to create mock user with proper UserIdType
@@ -24,6 +28,8 @@ function createMockUser(
     name,
     role,
     createdAt,
+    updatedAt: createdAt,
+    twoFactorEnabled: false,
   }
 }
 
@@ -47,6 +53,8 @@ describe('UserController', () => {
   let mockRegisterUserUseCase: RegisterUserUseCase
   let mockGetAllUsersUseCase: GetAllUsersUseCase
   let mockDeleteUsersUseCase: DeleteUsersUseCase
+  let mockGetUserByIdUseCase: GetUserByIdUseCase
+  let mockLogger: LoggerPort
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
 
@@ -69,11 +77,26 @@ describe('UserController', () => {
       execute: vi.fn(),
     } as any
 
+    // Create mock get user by id use case
+    mockGetUserByIdUseCase = {
+      execute: vi.fn(),
+    } as any
+
+    // Create mock logger
+    mockLogger = {
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+    } as any
+
     // Create controller instance with mocked use case
     controller = new UserController(
       mockRegisterUserUseCase,
       mockGetAllUsersUseCase,
-      mockDeleteUsersUseCase
+      mockDeleteUsersUseCase,
+      mockGetUserByIdUseCase,
+      mockLogger
     )
 
     // Create mock Fastify reply with chainable methods
@@ -99,7 +122,9 @@ describe('UserController', () => {
       const instance = new UserController(
         mockRegisterUserUseCase,
         mockGetAllUsersUseCase,
-        mockDeleteUsersUseCase
+        mockDeleteUsersUseCase,
+        mockGetUserByIdUseCase,
+        mockLogger
       )
 
       expect(instance).toBeInstanceOf(UserController)
@@ -995,49 +1020,6 @@ describe('UserController', () => {
     })
   })
 
-  describe('getUser()', () => {
-    it('should return user by id from params', async () => {
-      const mockRequestWithParams = {
-        params: { id: 'user-123' },
-      } as FastifyRequest<{ Params: { id: string } }>
-
-      await controller.getUser(mockRequestWithParams, mockReply)
-
-      expect(mockReply.send).toHaveBeenCalledWith({ data: { id: 'user-123' }, success: true })
-    })
-
-    it('should handle different user ids', async () => {
-      const mockRequestWithParams = {
-        params: { id: 'user-456-xyz' },
-      } as FastifyRequest<{ Params: { id: string } }>
-
-      await controller.getUser(mockRequestWithParams, mockReply)
-
-      expect(mockReply.send).toHaveBeenCalledWith({ data: { id: 'user-456-xyz' }, success: true })
-    })
-
-    it('should extract id from request params', async () => {
-      const mockRequestWithParams = {
-        params: { id: 'test-id-789' },
-      } as FastifyRequest<{ Params: { id: string } }>
-
-      await controller.getUser(mockRequestWithParams, mockReply)
-
-      const sentResponse = vi.mocked(mockReply.send).mock.calls?.[0]?.[0]
-      expect(sentResponse).toEqual({ data: { id: 'test-id-789' }, success: true })
-    })
-
-    it('should call reply.send once', async () => {
-      const mockRequestWithParams = {
-        params: { id: 'user-123' },
-      } as FastifyRequest<{ Params: { id: string } }>
-
-      await controller.getUser(mockRequestWithParams, mockReply)
-
-      expect(mockReply.send).toHaveBeenCalledTimes(1)
-    })
-  })
-
   describe('integration', () => {
     it('should handle complete registration flow', async () => {
       const mockApp = {
@@ -1512,6 +1494,578 @@ describe('UserController', () => {
             error: expect.stringContaining('Invalid UUIDv7 format'),
           })
         )
+      })
+    })
+  })
+
+  describe('getUserById', () => {
+    const testUserId = uuidv7()
+    const requestingUserId = uuidv7()
+
+    beforeEach(() => {
+      mockRequest.params = { id: testUserId }
+      mockRequest.user = {
+        sub: requestingUserId,
+        roles: ['user'],
+      } as any
+    })
+
+    describe('successful retrieval', () => {
+      it('should retrieve user data when user accesses their own data', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId, // Same as the requested user
+          roles: ['user'],
+        } as any
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date('2024-01-01')),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date('2024-01-15')),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockGetUserByIdUseCase.execute).toHaveBeenCalledWith(
+          userId,
+          expect.objectContaining({
+            userId: userId,
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-agent',
+          })
+        )
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: {
+            id: userId,
+            email: 'user@example.com',
+            name: 'John Doe',
+            role: 'user',
+            twoFactorEnabled: false,
+            createdAt: expect.any(Date),
+            updatedAt: expect.any(Date),
+          },
+        })
+      })
+
+      it('should retrieve user data when admin accesses any user data', async () => {
+        const adminId = uuidv7()
+        const targetUserId = uuidv7()
+        mockRequest.params = { id: targetUserId }
+        mockRequest.user = {
+          sub: adminId, // Different from target user
+          roles: ['admin'],
+        } as any
+
+        const mockUserData = {
+          id: targetUserId,
+          getEmail: vi.fn().mockReturnValue('target@example.com'),
+          getName: vi.fn().mockReturnValue('Target User'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date('2024-01-01')),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date('2024-01-15')),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockGetUserByIdUseCase.execute).toHaveBeenCalled()
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: expect.objectContaining({
+            id: targetUserId,
+            email: 'target@example.com',
+            twoFactorEnabled: false,
+          }),
+        })
+      })
+
+      it('should retrieve user data when moderator accesses any user data', async () => {
+        const moderatorId = uuidv7()
+        const targetUserId = uuidv7()
+        mockRequest.params = { id: targetUserId }
+        mockRequest.user = {
+          sub: moderatorId,
+          roles: ['moderator'],
+        } as any
+
+        const mockUserData = {
+          id: targetUserId,
+          getEmail: vi.fn().mockReturnValue('target@example.com'),
+          getName: vi.fn().mockReturnValue('Target User'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date('2024-01-01')),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date('2024-01-15')),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockGetUserByIdUseCase.execute).toHaveBeenCalled()
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+
+      it('should call logger.debug with request parameters', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId,
+          roles: ['user'],
+        } as any
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request params'))
+        expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request id'))
+        expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request userId'))
+      })
+    })
+
+    describe('authorization', () => {
+      it('should return 401 when user is not authenticated', async () => {
+        mockRequest.user = undefined
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(401)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Unauthorized',
+        })
+        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 401 for unauthenticated user with invalid UUID before validating format', async () => {
+        mockRequest.params = { id: 'invalid-uuid' }
+        mockRequest.user = undefined
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(401)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Unauthorized',
+        })
+        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 403 when regular user tries to access another user data', async () => {
+        const userId1 = uuidv7()
+        const userId2 = uuidv7()
+        mockRequest.params = { id: userId2 }
+        mockRequest.user = {
+          sub: userId1, // Different from target user
+          roles: ['user'], // Not admin or moderator
+        } as any
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(403)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Forbidden: You can only access your own user data',
+        })
+        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should allow user to access their own data', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId, // Same user
+          roles: ['user'],
+        } as any
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockGetUserByIdUseCase.execute).toHaveBeenCalled()
+      })
+
+      it('should allow admin to access any user data', async () => {
+        const adminId = uuidv7()
+        const targetUserId = uuidv7()
+        mockRequest.params = { id: targetUserId }
+        mockRequest.user = {
+          sub: adminId,
+          roles: ['admin'],
+        } as any
+
+        const mockUserData = {
+          id: targetUserId,
+          getEmail: vi.fn().mockReturnValue('target@example.com'),
+          getName: vi.fn().mockReturnValue('Target User'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockGetUserByIdUseCase.execute).toHaveBeenCalled()
+      })
+
+      it('should allow moderator to access any user data', async () => {
+        const moderatorId = uuidv7()
+        const targetUserId = uuidv7()
+        mockRequest.params = { id: targetUserId }
+        mockRequest.user = {
+          sub: moderatorId,
+          roles: ['moderator'],
+        } as any
+
+        const mockUserData = {
+          id: targetUserId,
+          getEmail: vi.fn().mockReturnValue('target@example.com'),
+          getName: vi.fn().mockReturnValue('Target User'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockGetUserByIdUseCase.execute).toHaveBeenCalled()
+      })
+    })
+
+    describe('error handling', () => {
+      it('should return 404 when user is not found', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId,
+          roles: ['user'],
+        } as any
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(null)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(404)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'User not found',
+        })
+      })
+
+      it('should handle BaseException with custom status code', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId,
+          roles: ['admin'],
+        } as any
+
+        class CustomException extends BaseException {
+          constructor() {
+            super('Custom error', 'CUSTOM_ERROR' as any, HttpStatus.UNPROCESSABLE_ENTITY)
+          }
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockRejectedValue(new CustomException())
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(422)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Custom error',
+        })
+      })
+
+      it('should handle generic errors with 500 status code', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId,
+          roles: ['admin'],
+        } as any
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockRejectedValue(new Error('Unexpected error'))
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Unexpected error',
+        })
+      })
+
+      it('should handle invalid UUID format', async () => {
+        mockRequest.params = { id: 'invalid-uuid' }
+        mockRequest.user = {
+          sub: requestingUserId,
+          roles: ['admin'],
+        } as any
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid user id',
+        })
+      })
+
+      it('should handle error without message gracefully', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId,
+          roles: ['admin'],
+        } as any
+
+        const errorWithoutMessage = {} as Error
+        vi.mocked(mockGetUserByIdUseCase.execute).mockRejectedValue(errorWithoutMessage)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'An unexpected error occurred',
+        })
+      })
+    })
+
+    describe('audit context', () => {
+      it('should pass correct audit context to use case', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId,
+          roles: ['user'],
+        } as any
+        Object.defineProperty(mockRequest, 'ip', { value: '192.168.1.100', writable: true })
+        mockRequest.headers = { 'user-agent': 'Mozilla/5.0' }
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockGetUserByIdUseCase.execute).toHaveBeenCalledWith(
+          userId,
+          expect.objectContaining({
+            userId: userId,
+            ipAddress: '192.168.1.100',
+            userAgent: 'Mozilla/5.0',
+          })
+        )
+      })
+
+      it('should handle missing user agent', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId,
+          roles: ['user'],
+        } as any
+        mockRequest.headers = {}
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockGetUserByIdUseCase.execute).toHaveBeenCalledWith(
+          userId,
+          expect.objectContaining({
+            userAgent: null,
+          })
+        )
+      })
+
+      it('should handle IPv6 addresses', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId,
+          roles: ['user'],
+        } as any
+        Object.assign(mockRequest, { ip: '2001:0db8:85a3:0000:0000:8a2e:0370:7334' })
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockGetUserByIdUseCase.execute).toHaveBeenCalledWith(
+          userId,
+          expect.objectContaining({
+            ipAddress: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
+          })
+        )
+      })
+    })
+
+    describe('response format', () => {
+      it('should return all user fields in correct format', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId,
+          roles: ['user'],
+        } as any
+
+        const createdAt = new Date('2024-01-01')
+        const updatedAt = new Date('2024-01-15')
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(createdAt),
+          getUpdatedAt: vi.fn().mockReturnValue(updatedAt),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: {
+            id: userId,
+            email: 'user@example.com',
+            name: 'John Doe',
+            role: 'user',
+            twoFactorEnabled: false,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          },
+        })
+      })
+
+      it('should call getter methods on user entity', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId,
+          roles: ['user'],
+        } as any
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockUserData.getEmail).toHaveBeenCalled()
+        expect(mockUserData.getName).toHaveBeenCalled()
+        expect(mockUserData.getRole).toHaveBeenCalled()
+        expect(mockUserData.isTwoFactorEnabled).toHaveBeenCalled()
+        expect(mockUserData.getCreatedAt).toHaveBeenCalled()
+        expect(mockUserData.getUpdatedAt).toHaveBeenCalled()
+      })
+
+      it('should chain code and send methods', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = {
+          sub: userId,
+          roles: ['user'],
+        } as any
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledBefore(mockReply.send as any)
       })
     })
   })

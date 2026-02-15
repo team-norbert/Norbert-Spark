@@ -114,6 +114,7 @@ export class RegisterUserWithProviderUseCase {
       role,
       undefined,
       new Date(),
+      new Date(),
       dto.provider,
       dto.providerId
     )
