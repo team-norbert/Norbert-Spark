@@ -15,10 +15,10 @@
           "id",
           "name",
           "description",
-          "created_at",
-          "updated_at",
-          "seo_friendly_id",
-          "seo_friendly_base64_id"
+          "createdAt",
+          "updatedAt",
+          "seoFriendlyId",
+          "seoFriendlyBase64Id"
         ],
         "properties": {
           "id": {
@@ -40,22 +40,22 @@
             "maxLength": 500,
             "example": "A general-purpose AI assistant for everyday tasks"
           },
-          "created_at": {
+          "createdAt": {
             "type": "string",
             "format": "date-time",
             "example": "2024-01-15T10:30:00Z"
           },
-          "updated_at": {
+          "updatedAt": {
             "type": "string",
             "format": "date-time",
             "example": "2024-01-15T10:30:00Z"
           },
-          "seo_friendly_id": {
+          "seoFriendlyId": {
             "type": "string",
             "description": "SEO friendly slug for the chat type",
             "example": "general-assistant"
           },
-          "seo_friendly_base64_id": {
+          "seoFriendlyBase64Id": {
             "type": "string",
             "description": "Base64url encoded UUID for the chat type (22 characters)",
             "minLength": 22,
