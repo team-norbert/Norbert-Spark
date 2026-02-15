@@ -27,7 +27,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "../components/schemas/AIChatOptionResponse.json"
+              "$ref": "../components/schemas/AIChatOptionsResponse.json"
             }
           }
         }
