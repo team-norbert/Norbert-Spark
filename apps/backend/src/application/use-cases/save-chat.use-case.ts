@@ -2,9 +2,10 @@ import type { LoggerPort } from '../ports/logger.port.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { ChatIdType } from '../../domain/value-objects/chatID.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { EntityType, AuditAction } from '../../domain/audit/entity-type.enum.js'
+import type { ChatTypeChange } from '../../domain/audit/audit-changes.types.js'
 
 export class SaveChatUseCase {
   constructor(
@@ -28,15 +29,16 @@ export class SaveChatUseCase {
     this.logger.info(`Chat saved with ID: ${savedChatId}`)
 
     try {
-      await this.auditLog.log({
+      const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
         entityType: EntityType.CHAT,
         entityId: chatId,
         action: AuditAction.CREATE,
-        changes: { reason: 'chat_successfully_saved' },
+        changes: { reason: 'chat_successfully_saved' } satisfies ChatTypeChange,
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
-      })
+      }
+      await this.auditLog.log(auditEntry)
     } catch (error) {
       this.logger.error('Error logging audit for creating chat', error as Error, {
         userId: auditContext.userId,

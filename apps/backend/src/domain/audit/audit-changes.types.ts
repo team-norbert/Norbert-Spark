@@ -50,6 +50,12 @@ export interface LoginFailedChanges {
   [key: string]: unknown
 }
 
+export interface ChatTypeChange {
+  email?: string
+  reason: string
+  [key: string]: unknown
+}
+
 /**
  * Metadata tracked for logout actions
  */
@@ -125,4 +131,5 @@ export type AuditChanges =
   | RegistrationSuccessChanges
   | FetchChatChanges
   | FetchChatFailedChanges
+  | ChatTypeChange
   | Record<string, unknown> // Fallback for custom change structures
