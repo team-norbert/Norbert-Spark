@@ -1506,7 +1506,7 @@ describe('UserController', () => {
       mockRequest.params = { id: testUserId }
       mockRequest.user = {
         sub: requestingUserId,
-        roles: 'user',
+        roles: ['user'],
       } as any
     })
 
@@ -1516,7 +1516,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId, // Same as the requested user
-          roles: 'user',
+          roles: ['user'],
         } as any
 
         const mockUserData = {
@@ -1562,7 +1562,7 @@ describe('UserController', () => {
         mockRequest.params = { id: targetUserId }
         mockRequest.user = {
           sub: adminId, // Different from target user
-          roles: 'admin',
+          roles: ['admin'],
         } as any
 
         const mockUserData = {
@@ -1597,7 +1597,7 @@ describe('UserController', () => {
         mockRequest.params = { id: targetUserId }
         mockRequest.user = {
           sub: moderatorId,
-          roles: 'moderator',
+          roles: ['moderator'],
         } as any
 
         const mockUserData = {
@@ -1623,7 +1623,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId,
-          roles: 'user',
+          roles: ['user'],
         } as any
 
         const mockUserData = {
@@ -1680,7 +1680,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId2 }
         mockRequest.user = {
           sub: userId1, // Different from target user
-          roles: 'user', // Not admin or moderator
+          roles: ['user'], // Not admin or moderator
         } as any
 
         await controller.getUserById(mockRequest, mockReply)
@@ -1698,7 +1698,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId, // Same user
-          roles: 'user',
+          roles: ['user'],
         } as any
 
         const mockUserData = {
@@ -1725,7 +1725,7 @@ describe('UserController', () => {
         mockRequest.params = { id: targetUserId }
         mockRequest.user = {
           sub: adminId,
-          roles: 'admin',
+          roles: ['admin'],
         } as any
 
         const mockUserData = {
@@ -1752,7 +1752,7 @@ describe('UserController', () => {
         mockRequest.params = { id: targetUserId }
         mockRequest.user = {
           sub: moderatorId,
-          roles: 'moderator',
+          roles: ['moderator'],
         } as any
 
         const mockUserData = {
@@ -1780,7 +1780,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId,
-          roles: 'user',
+          roles: ['user'],
         } as any
 
         vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(null)
@@ -1799,7 +1799,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId,
-          roles: 'admin',
+          roles: ['admin'],
         } as any
 
         class CustomException extends BaseException {
@@ -1824,7 +1824,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId,
-          roles: 'admin',
+          roles: ['admin'],
         } as any
 
         vi.mocked(mockGetUserByIdUseCase.execute).mockRejectedValue(new Error('Unexpected error'))
@@ -1842,15 +1842,15 @@ describe('UserController', () => {
         mockRequest.params = { id: 'invalid-uuid' }
         mockRequest.user = {
           sub: requestingUserId,
-          roles: 'admin',
+          roles: ['admin'],
         } as any
 
         await controller.getUserById(mockRequest, mockReply)
 
-        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.code).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: expect.stringContaining('Invalid'),
+          error: 'Invalid user id',
         })
       })
 
@@ -1859,7 +1859,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId,
-          roles: 'admin',
+          roles: ['admin'],
         } as any
 
         const errorWithoutMessage = {} as Error
@@ -1881,7 +1881,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId,
-          roles: 'user',
+          roles: ['user'],
         } as any
         Object.defineProperty(mockRequest, 'ip', { value: '192.168.1.100', writable: true })
         mockRequest.headers = { 'user-agent': 'Mozilla/5.0' }
@@ -1915,7 +1915,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId,
-          roles: 'user',
+          roles: ['user'],
         } as any
         mockRequest.headers = {}
 
@@ -1946,7 +1946,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId,
-          roles: 'user',
+          roles: ['user'],
         } as any
         Object.assign(mockRequest, { ip: '2001:0db8:85a3:0000:0000:8a2e:0370:7334' })
 
@@ -1979,7 +1979,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId,
-          roles: 'user',
+          roles: ['user'],
         } as any
 
         const createdAt = new Date('2024-01-01')
@@ -2018,7 +2018,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId,
-          roles: 'user',
+          roles: ['user'],
         } as any
 
         const mockUserData = {
@@ -2048,7 +2048,7 @@ describe('UserController', () => {
         mockRequest.params = { id: userId }
         mockRequest.user = {
           sub: userId,
-          roles: 'user',
+          roles: ['user'],
         } as any
 
         const mockUserData = {

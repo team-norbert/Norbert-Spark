@@ -4,7 +4,7 @@ import { GetAllUsersUseCase } from '../../../application/use-cases/get-all-users
 import { GetUserByIdUseCase } from '../../../application/use-cases/get-user-by-id.use-case.js'
 import { RegisterUserDto } from '../../../application/dtos/register-user.dto.js'
 import { DeleteUsersDto } from '../../../application/dtos/delete-users.dto.js'
-import { UserId } from '../../../domain/value-objects/userID.js'
+import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
@@ -391,7 +391,7 @@ export class UserController {
 
       // Authorization check: users can only access their own data unless they're admin/moderator
       const requestingUserId = request.user?.sub
-      const userRole = request.user?.roles
+      const userRoles = request.user?.roles || []
 
       if (!requestingUserId) {
         reply.code(401).send({
@@ -403,14 +403,45 @@ export class UserController {
 
       const params = request.params as Record<string, unknown>
       this.logger.debug(`Request params: ${JSON.stringify(params)}`)
-      const id = params.id as string
+      const rawId = params.id
+
+      if (typeof rawId !== 'string') {
+        this.logger.debug(`Invalid id param type: ${typeof rawId}`)
+        reply.code(400).send({
+          success: false,
+          error: 'Invalid user id',
+        })
+        return
+      }
+
+      if (rawId.trim() === '') {
+        this.logger.debug(`Empty id param`)
+        reply.code(400).send({
+          success: false,
+          error: 'Invalid user id',
+        })
+        return
+      }
+
+      const id = rawId.trim()
       this.logger.debug(`Request id: ${id}`)
-      const userId = new UserId(id).getValue()
+
+      let userId: UserIdType
+      try {
+        userId = new UserId(id).getValue()
+      } catch {
+        this.logger.debug(`Failed to parse UserId from id: ${id}`)
+        reply.code(400).send({
+          success: false,
+          error: 'Invalid user id',
+        })
+        return
+      }
       this.logger.debug(`Request userId: ${userId}`)
 
       // Check if user is trying to access someone else's data
       const isAccessingOwnData = requestingUserId === userId
-      const isAdminOrModerator = userRole?.includes('admin') || userRole?.includes('moderator')
+      const isAdminOrModerator = userRoles.includes('admin') || userRoles.includes('moderator')
 
       if (!isAccessingOwnData && !isAdminOrModerator) {
         reply.code(403).send({
