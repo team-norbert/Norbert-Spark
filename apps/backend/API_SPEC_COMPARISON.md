@@ -354,6 +354,7 @@ This report documents the comparison between API endpoint implementations in `ap
 - 🔴 **CRITICAL - Authorization missing in spec:**
   - **OpenAPI spec:** No role-based authorization documented
   - **Implementation:** Requires JWT authentication (no role restrictions)
+    **Update:**: Changed from oauthSyncSecret to bearerAuth in OpenAPI spec
 - ⚠️ **Field naming:** Need to verify camelCase consistency between spec and implementation
 
 **Severity:** 🔴 **CRITICAL** - Authentication mechanism completely wrong in OpenAPI spec. Spec says oauthSyncSecret but implementation uses JWT.
