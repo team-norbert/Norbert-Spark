@@ -268,8 +268,9 @@ export async function middleware(request: Request) {
   let token
   try {
     token = await getToken({ req: request as never, secret: process.env.NEXTAUTH_SECRET })
-  } catch {
-    // If JWT decryption fails (e.g., invalid token), treat as unauthenticated
+  } catch (error) {
+    // If JWT decryption fails (e.g., invalid token), treat as unauthenticated but log for debugging
+    console.error('Failed to retrieve auth token in middleware:', error)
     token = null
   }
   const isAuthenticated = !!token
