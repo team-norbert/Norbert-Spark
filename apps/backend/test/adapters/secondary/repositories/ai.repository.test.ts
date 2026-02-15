@@ -102,6 +102,7 @@ describe('AIRepository', () => {
       expect(mockChatValues).toHaveBeenCalledWith({
         id: testChatIdString,
         userId: testUserIdString,
+        chatTypeId: '00000000-0000-0000-0000-000000000000', // Temporary placeholder
       })
 
       // Verify messages insert was called with correct data
