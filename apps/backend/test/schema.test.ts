@@ -914,6 +914,10 @@ describe('Database Schema', () => {
       expect(chats.userId.notNull).toBe(true)
     })
 
+    it('should have not null constraint on chats.chatTypeId', () => {
+      expect(chats.chatTypeId.notNull).toBe(true)
+    })
+
     it('should have not null constraint on messages.chatId', () => {
       expect(messages.chatId.notNull).toBe(true)
     })

@@ -23,7 +23,7 @@ describe('GetChatContentByChatIdUseCase', () => {
   let mockChat: {
     id: string
     userId: string
-    chatTypeId: string | null
+    chatTypeId: string
     name: string
     description: string
     createdAt: Date
@@ -55,7 +55,7 @@ describe('GetChatContentByChatIdUseCase', () => {
     mockChat = {
       id: testChatId,
       userId: 'test-user-id',
-      chatTypeId: null,
+      chatTypeId: uuidv7(),
       name: 'Test Chat',
       description: 'Test chat description',
       createdAt: new Date(),

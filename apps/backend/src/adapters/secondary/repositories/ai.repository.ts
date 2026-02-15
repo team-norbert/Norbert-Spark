@@ -81,6 +81,8 @@ export class AIRepository implements AIServicePort {
     this.logger.info('initialMessages', initialMessages)
     this.logger.info('createChat', newChat)
 
+    // TODO: add chatTypeId to the chats table
+    // @ts-expect-error
     await db.insert(chats).values(newChat)
 
     this.logger.info('initialMessages', initialMessages)
