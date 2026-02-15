@@ -3,12 +3,12 @@
 ## Example Usage
 
 ```typescript
-import { AIfetchChatResponseMessage } from "norberts-spark-sdk/models";
+import { AIfetchChatResponseMessage } from 'norberts-spark-sdk/models'
 
-let value: AIfetchChatResponseMessage = {};
+let value: AIfetchChatResponseMessage = {}
 ```
 
 ## Fields
 
-| Field       | Type        | Required    | Description |
-| ----------- | ----------- | ----------- | ----------- |
+| Field | Type | Required | Description |
+| ----- | ---- | -------- | ----------- |

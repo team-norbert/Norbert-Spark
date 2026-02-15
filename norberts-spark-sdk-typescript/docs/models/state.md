@@ -3,13 +3,13 @@
 ## Example Usage
 
 ```typescript
-import { State } from "norberts-spark-sdk/models";
+import { State } from 'norberts-spark-sdk/models'
 
-let value: State = "done";
+let value: State = 'done'
 ```
 
 ## Values
 
 ```typescript
-"done"
+'done'
 ```

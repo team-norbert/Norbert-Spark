@@ -1,48 +1,53 @@
 # norberts-spark-sdk
 
-Developer-friendly & type-safe Typescript SDK specifically catered to leverage *norberts-spark-sdk* API.
+Developer-friendly & type-safe Typescript SDK specifically catered to leverage _norberts-spark-sdk_ API.
 
 [![Built by Speakeasy](https://img.shields.io/badge/Built_by-SPEAKEASY-374151?style=for-the-badge&labelColor=f3f4f6)](https://www.speakeasy.com/?utm_source=norberts-spark-sdk&utm_campaign=typescript)
 [![License: MIT](https://img.shields.io/badge/LICENSE_//_MIT-3b5bdb?style=for-the-badge&labelColor=eff6ff)](https://opensource.org/licenses/MIT)
 
-
 <br /><br />
+
 > [!IMPORTANT]
 > This SDK is not yet ready for production use. To complete setup please follow the steps outlined in your [workspace](https://app.speakeasy.com/org/andy/norbert-spark). Delete this section before > publishing to a package manager.
 
 <!-- Start Summary [summary] -->
+
 ## Summary
 
 Norbert's Spark API: API for Norbert's Spark AI CRM application
+
 <!-- End Summary [summary] -->
 
 <!-- Start Table of Contents [toc] -->
+
 ## Table of Contents
+
 <!-- $toc-max-depth=2 -->
-* [norberts-spark-sdk](#norberts-spark-sdk)
-  * [SDK Installation](#sdk-installation)
-  * [Requirements](#requirements)
-  * [SDK Example Usage](#sdk-example-usage)
-  * [Authentication](#authentication)
-  * [Available Resources and Operations](#available-resources-and-operations)
-  * [Standalone functions](#standalone-functions)
-  * [Retries](#retries)
-  * [Error Handling](#error-handling)
-  * [Server Selection](#server-selection)
-  * [Custom HTTP Client](#custom-http-client)
-  * [Debugging](#debugging)
-* [Development](#development)
-  * [Maturity](#maturity)
-  * [Contributions](#contributions)
+
+- [norberts-spark-sdk](#norberts-spark-sdk)
+  - [SDK Installation](#sdk-installation)
+  - [Requirements](#requirements)
+  - [SDK Example Usage](#sdk-example-usage)
+  - [Authentication](#authentication)
+  - [Available Resources and Operations](#available-resources-and-operations)
+  - [Standalone functions](#standalone-functions)
+  - [Retries](#retries)
+  - [Error Handling](#error-handling)
+  - [Server Selection](#server-selection)
+  - [Custom HTTP Client](#custom-http-client)
+  - [Debugging](#debugging)
+- [Development](#development)
+  - [Maturity](#maturity)
+  - [Contributions](#contributions)
 
 <!-- End Table of Contents [toc] -->
 
 <!-- Start SDK Installation [installation] -->
+
 ## SDK Installation
 
 > [!TIP]
 > To finish publishing your SDK to npm and others you must [run your first generation action](https://www.speakeasy.com/docs/github-setup#step-by-step-guide).
-
 
 The SDK can be installed with either [npm](https://www.npmjs.com/), [pnpm](https://pnpm.io/), [bun](https://bun.sh/) or [yarn](https://classic.yarnpkg.com/en/) package managers.
 
@@ -72,38 +77,43 @@ yarn add <UNSET>
 
 > [!NOTE]
 > This package is published with CommonJS and ES Modules (ESM) support.
+
 <!-- End SDK Installation [installation] -->
 
 <!-- Start Requirements [requirements] -->
+
 ## Requirements
 
 For supported JavaScript runtimes, please consult [RUNTIMES.md](RUNTIMES.md).
+
 <!-- End Requirements [requirements] -->
 
 <!-- Start SDK Example Usage [usage] -->
+
 ## SDK Example Usage
 
 ### Example
 
 ```typescript
-import { NorbertsSparkSDK } from "norberts-spark-sdk";
+import { NorbertsSparkSDK } from 'norberts-spark-sdk'
 
 const norbertsSparkSDK = new NorbertsSparkSDK({
-  bearerAuth: process.env["NORBERTSSPARKSDK_BEARER_AUTH"] ?? "",
-});
+  bearerAuth: process.env['NORBERTSSPARKSDK_BEARER_AUTH'] ?? '',
+})
 
 async function run() {
-  const result = await norbertsSparkSDK.health.getHealth();
+  const result = await norbertsSparkSDK.health.getHealth()
 
-  console.log(result);
+  console.log(result)
 }
 
-run();
-
+run()
 ```
+
 <!-- End SDK Example Usage [usage] -->
 
 <!-- Start Authentication [security] -->
+
 ## Authentication
 
 ### Per-Client Security Schemes
@@ -115,50 +125,55 @@ This SDK supports the following security scheme globally:
 | `bearerAuth` | http | HTTP Bearer | `NORBERTSSPARKSDK_BEARER_AUTH` |
 
 To authenticate with the API the `bearerAuth` parameter must be set when initializing the SDK client instance. For example:
+
 ```typescript
-import { NorbertsSparkSDK } from "norberts-spark-sdk";
+import { NorbertsSparkSDK } from 'norberts-spark-sdk'
 
 const norbertsSparkSDK = new NorbertsSparkSDK({
-  bearerAuth: process.env["NORBERTSSPARKSDK_BEARER_AUTH"] ?? "",
-});
+  bearerAuth: process.env['NORBERTSSPARKSDK_BEARER_AUTH'] ?? '',
+})
 
 async function run() {
-  const result = await norbertsSparkSDK.health.getHealth();
+  const result = await norbertsSparkSDK.health.getHealth()
 
-  console.log(result);
+  console.log(result)
 }
 
-run();
-
+run()
 ```
 
 ### Per-Operation Security Schemes
 
 Some operations in this SDK require the security scheme to be specified at the request level. For example:
-```typescript
-import { NorbertsSparkSDK } from "norberts-spark-sdk";
 
-const norbertsSparkSDK = new NorbertsSparkSDK();
+```typescript
+import { NorbertsSparkSDK } from 'norberts-spark-sdk'
+
+const norbertsSparkSDK = new NorbertsSparkSDK()
 
 async function run() {
-  const result = await norbertsSparkSDK.auth.oauthSync({
-    oauthSyncSecret: process.env["NORBERTSSPARKSDK_OAUTH_SYNC_SECRET"] ?? "",
-  }, {
-    provider: "google",
-    providerId: "1234567890",
-    email: "user@example.com",
-    name: "John Doe",
-  });
+  const result = await norbertsSparkSDK.auth.oauthSync(
+    {
+      oauthSyncSecret: process.env['NORBERTSSPARKSDK_OAUTH_SYNC_SECRET'] ?? '',
+    },
+    {
+      provider: 'google',
+      providerId: '1234567890',
+      email: 'user@example.com',
+      name: 'John Doe',
+    }
+  )
 
-  console.log(result);
+  console.log(result)
 }
 
-run();
-
+run()
 ```
+
 <!-- End Authentication [security] -->
 
 <!-- Start Available Resources and Operations [operations] -->
+
 ## Available Resources and Operations
 
 <details open>
@@ -166,54 +181,55 @@ run();
 
 ### [Ai](docs/sdks/ai/README.md)
 
-* [getAIResponse](docs/sdks/ai/README.md#getairesponse) - Get AI-generated response
-* [getAIChatsByUserId](docs/sdks/ai/README.md#getaichatsbyuserid) - Get chat IDs for user
-* [getAIFetchChatByChatId](docs/sdks/ai/README.md#getaifetchchatbychatid) - Fetch chat by chatId
-* [generatePresignedUrls](docs/sdks/ai/README.md#generatepresignedurls) - Generate presigned URLs for direct R2 upload
-* [extractData](docs/sdks/ai/README.md#extractdata) - Fetch data extracted from PDFs
-* [getAIChatDetails](docs/sdks/ai/README.md#getaichatdetails) - Get chat AI configuration
-* [getAIChatSettingsById](docs/sdks/ai/README.md#getaichatsettingsbyid) - Get specific chat AI settings by ID
-* [putAIChatSettingsById](docs/sdks/ai/README.md#putaichatsettingsbyid) - Update specific chat AI settings by ID
+- [getAIResponse](docs/sdks/ai/README.md#getairesponse) - Get AI-generated response
+- [getAIChatsByUserId](docs/sdks/ai/README.md#getaichatsbyuserid) - Get chat IDs for user
+- [getAIFetchChatByChatId](docs/sdks/ai/README.md#getaifetchchatbychatid) - Fetch chat by chatId
+- [generatePresignedUrls](docs/sdks/ai/README.md#generatepresignedurls) - Generate presigned URLs for direct R2 upload
+- [extractData](docs/sdks/ai/README.md#extractdata) - Fetch data extracted from PDFs
+- [getAIChatDetails](docs/sdks/ai/README.md#getaichatdetails) - Get chat AI configuration
+- [getAIChatSettingsById](docs/sdks/ai/README.md#getaichatsettingsbyid) - Get specific chat AI settings by ID
+- [putAIChatSettingsById](docs/sdks/ai/README.md#putaichatsettingsbyid) - Update specific chat AI settings by ID
 
 ### [Auth](docs/sdks/auth/README.md)
 
-* [loginUser](docs/sdks/auth/README.md#loginuser) - Authenticate a user
-* [oauthSync](docs/sdks/auth/README.md#oauthsync) - Synchronize OAuth user data
+- [loginUser](docs/sdks/auth/README.md#loginuser) - Authenticate a user
+- [oauthSync](docs/sdks/auth/README.md#oauthsync) - Synchronize OAuth user data
 
 ### [Chat](docs/sdks/chat/README.md)
 
-* [getAIChatsByUserId](docs/sdks/chat/README.md#getaichatsbyuserid) - Get chat IDs for user
-* [getAIFetchChatByChatId](docs/sdks/chat/README.md#getaifetchchatbychatid) - Fetch chat by chatId
-* [extractData](docs/sdks/chat/README.md#extractdata) - Fetch data extracted from PDFs
-* [getAIChatDetails](docs/sdks/chat/README.md#getaichatdetails) - Get chat AI configuration
-* [getChatTypes](docs/sdks/chat/README.md#getchattypes) - Get list of chat types
-* [getAIChatSettingsById](docs/sdks/chat/README.md#getaichatsettingsbyid) - Get specific chat AI settings by ID
-* [putAIChatSettingsById](docs/sdks/chat/README.md#putaichatsettingsbyid) - Update specific chat AI settings by ID
+- [getAIChatsByUserId](docs/sdks/chat/README.md#getaichatsbyuserid) - Get chat IDs for user
+- [getAIFetchChatByChatId](docs/sdks/chat/README.md#getaifetchchatbychatid) - Fetch chat by chatId
+- [extractData](docs/sdks/chat/README.md#extractdata) - Fetch data extracted from PDFs
+- [getAIChatDetails](docs/sdks/chat/README.md#getaichatdetails) - Get chat AI configuration
+- [getChatTypes](docs/sdks/chat/README.md#getchattypes) - Get list of chat types
+- [getAIChatSettingsById](docs/sdks/chat/README.md#getaichatsettingsbyid) - Get specific chat AI settings by ID
+- [putAIChatSettingsById](docs/sdks/chat/README.md#putaichatsettingsbyid) - Update specific chat AI settings by ID
 
 ### [Company](docs/sdks/company/README.md)
 
-* [getCompanyDetails](docs/sdks/company/README.md#getcompanydetails) - Get Company and key person details
-* [updateCompanyDetails](docs/sdks/company/README.md#updatecompanydetails) - Update Company and key person details
+- [getCompanyDetails](docs/sdks/company/README.md#getcompanydetails) - Get Company and key person details
+- [updateCompanyDetails](docs/sdks/company/README.md#updatecompanydetails) - Update Company and key person details
 
 ### [Data](docs/sdks/data/README.md)
 
-* [generatePresignedUrls](docs/sdks/data/README.md#generatepresignedurls) - Generate presigned URLs for direct R2 upload
+- [generatePresignedUrls](docs/sdks/data/README.md#generatepresignedurls) - Generate presigned URLs for direct R2 upload
 
 ### [Health](docs/sdks/health/README.md)
 
-* [getHealth](docs/sdks/health/README.md#gethealth) - Health check
+- [getHealth](docs/sdks/health/README.md#gethealth) - Health check
 
 ### [Users](docs/sdks/users/README.md)
 
-* [registerUser](docs/sdks/users/README.md#registeruser) - Register a new user
-* [getUserById](docs/sdks/users/README.md#getuserbyid) - Get user by ID
-* [getAllUsers](docs/sdks/users/README.md#getallusers) - Get all users
-* [deleteUsers](docs/sdks/users/README.md#deleteusers) - Delete users
+- [registerUser](docs/sdks/users/README.md#registeruser) - Register a new user
+- [getUserById](docs/sdks/users/README.md#getuserbyid) - Get user by ID
+- [getAllUsers](docs/sdks/users/README.md#getallusers) - Get all users
+- [deleteUsers](docs/sdks/users/README.md#deleteusers) - Delete users
 
 </details>
 <!-- End Available Resources and Operations [operations] -->
 
 <!-- Start Standalone functions [standalone-funcs] -->
+
 ## Standalone functions
 
 All the methods listed above are available as standalone functions. These
@@ -258,22 +274,24 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 <!-- End Standalone functions [standalone-funcs] -->
 
 <!-- Start Retries [retries] -->
+
 ## Retries
 
-Some of the endpoints in this SDK support retries.  If you use the SDK without any configuration, it will fall back to the default retry strategy provided by the API.  However, the default retry strategy can be overridden on a per-operation basis, or across the entire SDK.
+Some of the endpoints in this SDK support retries. If you use the SDK without any configuration, it will fall back to the default retry strategy provided by the API. However, the default retry strategy can be overridden on a per-operation basis, or across the entire SDK.
 
 To change the default retry strategy for a single API call, simply provide a retryConfig object to the call:
+
 ```typescript
-import { NorbertsSparkSDK } from "norberts-spark-sdk";
+import { NorbertsSparkSDK } from 'norberts-spark-sdk'
 
 const norbertsSparkSDK = new NorbertsSparkSDK({
-  bearerAuth: process.env["NORBERTSSPARKSDK_BEARER_AUTH"] ?? "",
-});
+  bearerAuth: process.env['NORBERTSSPARKSDK_BEARER_AUTH'] ?? '',
+})
 
 async function run() {
   const result = await norbertsSparkSDK.health.getHealth({
     retries: {
-      strategy: "backoff",
+      strategy: 'backoff',
       backoff: {
         initialInterval: 1,
         maxInterval: 50,
@@ -282,22 +300,22 @@ async function run() {
       },
       retryConnectionErrors: false,
     },
-  });
+  })
 
-  console.log(result);
+  console.log(result)
 }
 
-run();
-
+run()
 ```
 
 If you'd like to override the default retry strategy for all operations that support retries, you can provide a retryConfig at SDK initialization:
+
 ```typescript
-import { NorbertsSparkSDK } from "norberts-spark-sdk";
+import { NorbertsSparkSDK } from 'norberts-spark-sdk'
 
 const norbertsSparkSDK = new NorbertsSparkSDK({
   retryConfig: {
-    strategy: "backoff",
+    strategy: 'backoff',
     backoff: {
       initialInterval: 1,
       maxInterval: 50,
@@ -306,21 +324,22 @@ const norbertsSparkSDK = new NorbertsSparkSDK({
     },
     retryConnectionErrors: false,
   },
-  bearerAuth: process.env["NORBERTSSPARKSDK_BEARER_AUTH"] ?? "",
-});
+  bearerAuth: process.env['NORBERTSSPARKSDK_BEARER_AUTH'] ?? '',
+})
 
 async function run() {
-  const result = await norbertsSparkSDK.health.getHealth();
+  const result = await norbertsSparkSDK.health.getHealth()
 
-  console.log(result);
+  console.log(result)
 }
 
-run();
-
+run()
 ```
+
 <!-- End Retries [retries] -->
 
 <!-- Start Error Handling [errors] -->
+
 ## Error Handling
 
 [`NorbertsSparkSDKError`](./src/models/errors/norberts-spark-sdk-error.ts) is the base class for all HTTP error responses. It has the following properties:
@@ -335,68 +354,73 @@ run();
 | `error.data$`       |            | Optional. Some errors may contain structured data. [See Error Classes](#error-classes). |
 
 ### Example
-```typescript
-import { NorbertsSparkSDK } from "norberts-spark-sdk";
-import * as errors from "norberts-spark-sdk/models/errors";
 
-const norbertsSparkSDK = new NorbertsSparkSDK();
+```typescript
+import { NorbertsSparkSDK } from 'norberts-spark-sdk'
+import * as errors from 'norberts-spark-sdk/models/errors'
+
+const norbertsSparkSDK = new NorbertsSparkSDK()
 
 async function run() {
   try {
     const result = await norbertsSparkSDK.users.registerUser({
-      email: "john.doe@example.com",
-      password: "SecurePass123!",
-      name: "John Doe",
-    });
+      email: 'john.doe@example.com',
+      password: 'SecurePass123!',
+      name: 'John Doe',
+    })
 
-    console.log(result);
+    console.log(result)
   } catch (error) {
     // The base class for HTTP error responses
     if (error instanceof errors.NorbertsSparkSDKError) {
-      console.log(error.message);
-      console.log(error.statusCode);
-      console.log(error.body);
-      console.log(error.headers);
+      console.log(error.message)
+      console.log(error.statusCode)
+      console.log(error.body)
+      console.log(error.headers)
 
       // Depending on the method different errors may be thrown
       if (error instanceof errors.ErrorT) {
-        console.log(error.data$.success); // boolean
-        console.log(error.data$.error); // string
+        console.log(error.data$.success) // boolean
+        console.log(error.data$.error) // string
       }
     }
   }
 }
 
-run();
-
+run()
 ```
 
 ### Error Classes
+
 **Primary error:**
-* [`NorbertsSparkSDKError`](./src/models/errors/norberts-spark-sdk-error.ts): The base class for HTTP error responses.
+
+- [`NorbertsSparkSDKError`](./src/models/errors/norberts-spark-sdk-error.ts): The base class for HTTP error responses.
 
 <details><summary>Less common errors (7)</summary>
 
 <br />
 
 **Network errors:**
-* [`ConnectionError`](./src/models/errors/http-client-errors.ts): HTTP client was unable to make a request to a server.
-* [`RequestTimeoutError`](./src/models/errors/http-client-errors.ts): HTTP request timed out due to an AbortSignal signal.
-* [`RequestAbortedError`](./src/models/errors/http-client-errors.ts): HTTP request was aborted by the client.
-* [`InvalidRequestError`](./src/models/errors/http-client-errors.ts): Any input used to create a request is invalid.
-* [`UnexpectedClientError`](./src/models/errors/http-client-errors.ts): Unrecognised or unexpected error.
 
+- [`ConnectionError`](./src/models/errors/http-client-errors.ts): HTTP client was unable to make a request to a server.
+- [`RequestTimeoutError`](./src/models/errors/http-client-errors.ts): HTTP request timed out due to an AbortSignal signal.
+- [`RequestAbortedError`](./src/models/errors/http-client-errors.ts): HTTP request was aborted by the client.
+- [`InvalidRequestError`](./src/models/errors/http-client-errors.ts): Any input used to create a request is invalid.
+- [`UnexpectedClientError`](./src/models/errors/http-client-errors.ts): Unrecognised or unexpected error.
 
 **Inherit from [`NorbertsSparkSDKError`](./src/models/errors/norberts-spark-sdk-error.ts)**:
-* [`ErrorT`](./src/models/errors/error-t.ts): Standard error response object. Applicable to 17 of 25 methods.*
-* [`ResponseValidationError`](./src/models/errors/response-validation-error.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
+
+- [`ErrorT`](./src/models/errors/error-t.ts): Standard error response object. Applicable to 17 of 25 methods.\*
+- [`ResponseValidationError`](./src/models/errors/response-validation-error.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>
 
 \* Check [the method documentation](#available-resources-and-operations) to see if the error is applicable.
+
 <!-- End Error Handling [errors] -->
 
 <!-- Start Server Selection [server] -->
+
 ## Server Selection
 
 ### Select Server by Index
@@ -413,46 +437,47 @@ You can override the default server globally by passing a server index to the `s
 #### Example
 
 ```typescript
-import { NorbertsSparkSDK } from "norberts-spark-sdk";
+import { NorbertsSparkSDK } from 'norberts-spark-sdk'
 
 const norbertsSparkSDK = new NorbertsSparkSDK({
   serverIdx: 0,
-  bearerAuth: process.env["NORBERTSSPARKSDK_BEARER_AUTH"] ?? "",
-});
+  bearerAuth: process.env['NORBERTSSPARKSDK_BEARER_AUTH'] ?? '',
+})
 
 async function run() {
-  const result = await norbertsSparkSDK.health.getHealth();
+  const result = await norbertsSparkSDK.health.getHealth()
 
-  console.log(result);
+  console.log(result)
 }
 
-run();
-
+run()
 ```
 
 ### Override Server URL Per-Client
 
 The default server can also be overridden globally by passing a URL to the `serverURL: string` optional parameter when initializing the SDK client instance. For example:
+
 ```typescript
-import { NorbertsSparkSDK } from "norberts-spark-sdk";
+import { NorbertsSparkSDK } from 'norberts-spark-sdk'
 
 const norbertsSparkSDK = new NorbertsSparkSDK({
-  serverURL: "https://127.0.0.1:3001",
-  bearerAuth: process.env["NORBERTSSPARKSDK_BEARER_AUTH"] ?? "",
-});
+  serverURL: 'https://127.0.0.1:3001',
+  bearerAuth: process.env['NORBERTSSPARKSDK_BEARER_AUTH'] ?? '',
+})
 
 async function run() {
-  const result = await norbertsSparkSDK.health.getHealth();
+  const result = await norbertsSparkSDK.health.getHealth()
 
-  console.log(result);
+  console.log(result)
 }
 
-run();
-
+run()
 ```
+
 <!-- End Server Selection [server] -->
 
 <!-- Start Custom HTTP Client [http-client] -->
+
 ## Custom HTTP Client
 
 The TypeScript SDK makes API calls using an `HTTPClient` that wraps the native
@@ -466,46 +491,49 @@ used to integrate a third-party HTTP client or when writing tests to mock out
 the HTTP client and feed in fixtures.
 
 The following example shows how to:
+
 - route requests through a proxy server using [undici](https://www.npmjs.com/package/undici)'s ProxyAgent
 - use the `"beforeRequest"` hook to add a custom header and a timeout to requests
 - use the `"requestError"` hook to log errors
 
 ```typescript
-import { NorbertsSparkSDK } from "norberts-spark-sdk";
-import { ProxyAgent } from "undici";
-import { HTTPClient } from "norberts-spark-sdk/lib/http";
+import { NorbertsSparkSDK } from 'norberts-spark-sdk'
+import { ProxyAgent } from 'undici'
+import { HTTPClient } from 'norberts-spark-sdk/lib/http'
 
-const dispatcher = new ProxyAgent("http://proxy.example.com:8080");
+const dispatcher = new ProxyAgent('http://proxy.example.com:8080')
 
 const httpClient = new HTTPClient({
   // 'fetcher' takes a function that has the same signature as native 'fetch'.
   fetcher: (input, init) =>
     // 'dispatcher' is specific to undici and not part of the standard Fetch API.
     fetch(input, { ...init, dispatcher } as RequestInit),
-});
+})
 
-httpClient.addHook("beforeRequest", (request) => {
+httpClient.addHook('beforeRequest', (request) => {
   const nextRequest = new Request(request, {
-    signal: request.signal || AbortSignal.timeout(5000)
-  });
+    signal: request.signal || AbortSignal.timeout(5000),
+  })
 
-  nextRequest.headers.set("x-custom-header", "custom value");
+  nextRequest.headers.set('x-custom-header', 'custom value')
 
-  return nextRequest;
-});
+  return nextRequest
+})
 
-httpClient.addHook("requestError", (error, request) => {
-  console.group("Request Error");
-  console.log("Reason:", `${error}`);
-  console.log("Endpoint:", `${request.method} ${request.url}`);
-  console.groupEnd();
-});
+httpClient.addHook('requestError', (error, request) => {
+  console.group('Request Error')
+  console.log('Reason:', `${error}`)
+  console.log('Endpoint:', `${request.method} ${request.url}`)
+  console.groupEnd()
+})
 
-const sdk = new NorbertsSparkSDK({ httpClient: httpClient });
+const sdk = new NorbertsSparkSDK({ httpClient: httpClient })
 ```
+
 <!-- End Custom HTTP Client [http-client] -->
 
 <!-- Start Debugging [debug] -->
+
 ## Debugging
 
 You can setup your SDK to emit debug logs for SDK requests and responses.
@@ -516,12 +544,13 @@ You can pass a logger that matches `console`'s interface as an SDK option.
 > Beware that debug logging will reveal secrets, like API tokens in headers, in log messages printed to a console or files. It's recommended to use this feature only during local development and not in production.
 
 ```typescript
-import { NorbertsSparkSDK } from "norberts-spark-sdk";
+import { NorbertsSparkSDK } from 'norberts-spark-sdk'
 
-const sdk = new NorbertsSparkSDK({ debugLogger: console });
+const sdk = new NorbertsSparkSDK({ debugLogger: console })
 ```
 
 You can also enable a default debug logger by setting an environment variable `NORBERTSSPARKSDK_DEBUG` to true.
+
 <!-- End Debugging [debug] -->
 
 <!-- Placeholder for Future Speakeasy SDK Sections -->
@@ -536,7 +565,7 @@ looking for the latest version.
 
 ## Contributions
 
-While we value open-source contributions to this SDK, this library is generated programmatically. Any manual changes added to internal files will be overwritten on the next generation. 
-We look forward to hearing your feedback. Feel free to open a PR or an issue with a proof of concept and we'll do our best to include it in a future release. 
+While we value open-source contributions to this SDK, this library is generated programmatically. Any manual changes added to internal files will be overwritten on the next generation.
+We look forward to hearing your feedback. Feel free to open a PR or an issue with a proof of concept and we'll do our best to include it in a future release.
 
 ### SDK Created by [Speakeasy](https://www.speakeasy.com/?utm_source=norberts-spark-sdk&utm_campaign=typescript)

@@ -10,6 +10,7 @@ This directory contains example scripts demonstrating how to use the norberts-sp
 ## Setup
 
 1. Copy `.env.template` to `.env`:
+
    ```bash
    cp .env.template .env
    ```
@@ -27,5 +28,3 @@ npm run build && npx tsx example.ts
 ## Creating new examples
 
 Duplicate an existing example file, they won't be overwritten by the generation process.
-
-

@@ -3,19 +3,19 @@
  */
 
 // Not needed if lax mode
-import * as z from "zod/v4-mini";
-import { startCountingDefaultToZeroValue } from "./default-to-zero-value.js";
-import { RFCDate } from "./rfcdate.js";
-import { startCountingUnrecognized } from "./unrecognized.js";
+import * as z from 'zod/v4-mini'
+import { startCountingDefaultToZeroValue } from './default-to-zero-value.js'
+import { RFCDate } from './rfcdate.js'
+import { startCountingUnrecognized } from './unrecognized.js'
 
 interface Candidate {
-  data: unknown;
+  data: unknown
   /** Total number of fields in the parsed data */
-  fieldCount: number;
+  fieldCount: number
   /** Number of fields which only matched due to lax parsing */
-  inexactCount: number;
+  inexactCount: number
   /** Number of fields which defaulted to zero values */
-  zeroDefaultCount: number;
+  zeroDefaultCount: number
 }
 
 /**
@@ -24,84 +24,82 @@ interface Candidate {
  */
 export function smartUnion<
   Options extends readonly [z.ZodMiniType, z.ZodMiniType, ...z.ZodMiniType[]],
->(
-  options: Options,
-): z.ZodMiniType<z.output<Options[number]>, z.input<Options[number]>> {
+>(options: Options): z.ZodMiniType<z.output<Options[number]>, z.input<Options[number]>> {
   return z.pipe(
     z.unknown(),
     z.transform((input, ctx) => {
-      const candidates: Candidate[] = [];
-      const errors: z.core.$ZodIssue[][] = options.map(() => []);
+      const candidates: Candidate[] = []
+      const errors: z.core.$ZodIssue[][] = options.map(() => [])
 
-      const parentUnrecognizedCtr = startCountingUnrecognized();
-      const parentZeroDefaultCtr = startCountingDefaultToZeroValue();
+      const parentUnrecognizedCtr = startCountingUnrecognized()
+      const parentZeroDefaultCtr = startCountingDefaultToZeroValue()
 
       // Filter out invalid options
       for (const [i, option] of options.entries()) {
-        const unrecognizedCtr = startCountingUnrecognized();
-        const zeroDefaultCtr = startCountingDefaultToZeroValue();
-        const result = option.safeParse(input);
-        const inexactCount = unrecognizedCtr.end();
-        const zeroDefaultCount = zeroDefaultCtr.end();
+        const unrecognizedCtr = startCountingUnrecognized()
+        const zeroDefaultCtr = startCountingDefaultToZeroValue()
+        const result = option.safeParse(input)
+        const inexactCount = unrecognizedCtr.end()
+        const zeroDefaultCount = zeroDefaultCtr.end()
         if (result.success) {
           candidates.push({
             data: result.data,
             inexactCount,
             zeroDefaultCount,
             fieldCount: -1, // We'll count this later if needed
-          });
-          continue;
+          })
+          continue
         }
-        errors[i]!.push(...result.error.issues);
+        errors[i]!.push(...result.error.issues)
       }
 
       // No valid options
       if (candidates.length === 0) {
-        parentUnrecognizedCtr.end(0);
-        parentZeroDefaultCtr.end(0);
+        parentUnrecognizedCtr.end(0)
+        parentZeroDefaultCtr.end(0)
         ctx.issues.push({
           input: input,
-          code: "invalid_union",
+          code: 'invalid_union',
           errors: errors,
-        });
-        return z.NEVER;
+        })
+        return z.NEVER
       }
 
-      let best = candidates[0]!;
+      let best = candidates[0]!
 
       // Find the best option
       for (const candidate of candidates) {
         // Minor optimization to avoid counting fields if there's only one candidate
         if (candidates.length > 1) {
-          candidate.fieldCount = countFieldsRecursive(candidate.data);
+          candidate.fieldCount = countFieldsRecursive(candidate.data)
         }
-        best = better(candidate, best);
+        best = better(candidate, best)
       }
 
       // The cost of this union should be the cost of the best candidate not all the candidates
-      parentUnrecognizedCtr.end(best.inexactCount);
-      parentZeroDefaultCtr.end(best.zeroDefaultCount);
+      parentUnrecognizedCtr.end(best.inexactCount)
+      parentZeroDefaultCtr.end(best.zeroDefaultCount)
 
-      return best.data;
-    }),
-  ) as any;
+      return best.data
+    })
+  ) as any
 }
 
 function better(a: Candidate, b: Candidate): Candidate {
   // First prefer exact matches over inexact ones
-  const aIsExact = a.inexactCount === 0;
-  const bIsExact = b.inexactCount === 0;
+  const aIsExact = a.inexactCount === 0
+  const bIsExact = b.inexactCount === 0
   if (aIsExact !== bIsExact) {
-    return aIsExact ? a : b;
+    return aIsExact ? a : b
   }
 
   // Then compare field counts
-  const actualFieldCountA = a.fieldCount - a.zeroDefaultCount;
-  const actualFieldCountB = b.fieldCount - b.zeroDefaultCount;
+  const actualFieldCountA = a.fieldCount - a.zeroDefaultCount
+  const actualFieldCountB = b.fieldCount - b.zeroDefaultCount
   if (actualFieldCountA !== actualFieldCountB) {
-    return actualFieldCountA > actualFieldCountB ? a : b;
+    return actualFieldCountA > actualFieldCountB ? a : b
   }
-  return a.inexactCount < b.inexactCount ? a : b;
+  return a.inexactCount < b.inexactCount ? a : b
 }
 
 /**
@@ -111,43 +109,43 @@ function better(a: Candidate, b: Candidate): Candidate {
  * inexactCount: number of primitive values that are not unrecognized enum values
  */
 function countFieldsRecursive(parsed: unknown): number {
-  let fieldCount = 0;
+  let fieldCount = 0
 
-  const queue: unknown[] = [parsed];
-  let index = 0;
+  const queue: unknown[] = [parsed]
+  let index = 0
 
   while (index < queue.length) {
-    const value = queue[index++];
+    const value = queue[index++]
     if (value === undefined) {
-      continue;
+      continue
     }
 
     // Check if it's a primitive value
-    const type = typeof value;
+    const type = typeof value
     if (
-      value === null
-      || type === "number"
-      || type === "string"
-      || type === "boolean"
-      || type === "bigint"
-      || value instanceof Date
-      || value instanceof RFCDate
+      value === null ||
+      type === 'number' ||
+      type === 'string' ||
+      type === 'boolean' ||
+      type === 'bigint' ||
+      value instanceof Date ||
+      value instanceof RFCDate
     ) {
-      fieldCount++;
-      continue;
+      fieldCount++
+      continue
     }
 
     // Handle arrays
     if (Array.isArray(value)) {
-      queue.push(...value);
-      continue;
+      queue.push(...value)
+      continue
     }
 
     // Handle objects
-    if (type === "object") {
-      queue.push(...Object.values(value));
+    if (type === 'object') {
+      queue.push(...Object.values(value))
     }
   }
 
-  return fieldCount;
+  return fieldCount
 }

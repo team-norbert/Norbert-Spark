@@ -5,17 +5,17 @@ Response returned after successful OAuth user synchronization
 ## Example Usage
 
 ```typescript
-import { OAuthSyncResponse } from "norberts-spark-sdk/models";
+import { OAuthSyncResponse } from 'norberts-spark-sdk/models'
 
 let value: OAuthSyncResponse = {
   success: true,
-  message: "OAuth user sync completed",
-};
+  message: 'OAuth user sync completed',
+}
 ```
 
 ## Fields
 
-| Field                                         | Type                                          | Required                                      | Description                                   | Example                                       |
-| --------------------------------------------- | --------------------------------------------- | --------------------------------------------- | --------------------------------------------- | --------------------------------------------- |
-| `success`                                     | *boolean*                                     | :heavy_check_mark:                            | N/A                                           | true                                          |
-| `message`                                     | *string*                                      | :heavy_check_mark:                            | Success message confirming the sync operation | OAuth user sync completed                     |
+| Field     | Type      | Required           | Description                                   | Example                   |
+| --------- | --------- | ------------------ | --------------------------------------------- | ------------------------- |
+| `success` | _boolean_ | :heavy_check_mark: | N/A                                           | true                      |
+| `message` | _string_  | :heavy_check_mark: | Success message confirming the sync operation | OAuth user sync completed |

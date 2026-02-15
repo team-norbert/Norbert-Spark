@@ -3,15 +3,15 @@
 ## Example Usage
 
 ```typescript
-import { OauthSyncSecurity } from "norberts-spark-sdk/models/operations";
+import { OauthSyncSecurity } from 'norberts-spark-sdk/models/operations'
 
 let value: OauthSyncSecurity = {
-  oauthSyncSecret: "<value>",
-};
+  oauthSyncSecret: '<value>',
+}
 ```
 
 ## Fields
 
-| Field              | Type               | Required           | Description        |
-| ------------------ | ------------------ | ------------------ | ------------------ |
-| `oauthSyncSecret`  | *string*           | :heavy_check_mark: | N/A                |
+| Field             | Type     | Required           | Description |
+| ----------------- | -------- | ------------------ | ----------- |
+| `oauthSyncSecret` | _string_ | :heavy_check_mark: | N/A         |

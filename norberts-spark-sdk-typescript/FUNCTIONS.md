@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > This section is useful if you are using a bundler and targetting browsers and
-> runtimes where the size of an application affects performance and load times. 
+> runtimes where the size of an application affects performance and load times.
 
 Every method in this SDK is also available as a standalone function. This
 alternative API is suitable when targetting the browser or serverless runtimes
@@ -19,26 +19,26 @@ specific category of applications.
 ## Example
 
 ```typescript
-import { NorbertsSparkSDKCore } from "norberts-spark-sdk/core.js";
-import { healthGetHealth } from "norberts-spark-sdk/funcs/health-get-health.js";
+import { NorbertsSparkSDKCore } from 'norberts-spark-sdk/core.js'
+import { healthGetHealth } from 'norberts-spark-sdk/funcs/health-get-health.js'
 
 // Use `NorbertsSparkSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
 const norbertsSparkSDK = new NorbertsSparkSDKCore({
-  bearerAuth: process.env["NORBERTSSPARKSDK_BEARER_AUTH"] ?? "",
-});
+  bearerAuth: process.env['NORBERTSSPARKSDK_BEARER_AUTH'] ?? '',
+})
 
 async function run() {
-  const res = await healthGetHealth(norbertsSparkSDK);
+  const res = await healthGetHealth(norbertsSparkSDK)
   if (res.ok) {
-    const { value: result } = res;
-    console.log(result);
+    const { value: result } = res
+    console.log(result)
   } else {
-    console.log("healthGetHealth failed:", res.error);
+    console.log('healthGetHealth failed:', res.error)
   }
 }
 
-run();
+run()
 ```
 
 ## Result types
@@ -64,22 +64,22 @@ render useful content under all states (loading, success, error and so on).
 The general pattern when calling standalone functions looks like this:
 
 ```typescript
-import { Core } from "<sdk-package-name>";
-import { fetchSomething } from "<sdk-package-name>/funcs/fetchSomething.js";
+import { Core } from '<sdk-package-name>'
+import { fetchSomething } from '<sdk-package-name>/funcs/fetchSomething.js'
 
-const client = new Core();
+const client = new Core()
 
 async function run() {
-  const result = await fetchSomething(client, { id: "123" });
+  const result = await fetchSomething(client, { id: '123' })
   if (!result.ok) {
     // You can throw the error or handle it. It's your choice now.
-    throw result.error;
+    throw result.error
   }
 
-  console.log(result.value);
+  console.log(result.value)
 }
 
-run();
+run()
 ```
 
 Notably, `result.error` above will have an explicit type compared to a try-catch

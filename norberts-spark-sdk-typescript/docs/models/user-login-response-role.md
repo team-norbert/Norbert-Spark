@@ -3,9 +3,9 @@
 ## Example Usage
 
 ```typescript
-import { UserLoginResponseRole } from "norberts-spark-sdk/models";
+import { UserLoginResponseRole } from 'norberts-spark-sdk/models'
 
-let value: UserLoginResponseRole = "user";
+let value: UserLoginResponseRole = 'user'
 ```
 
 ## Values
@@ -13,5 +13,5 @@ let value: UserLoginResponseRole = "user";
 This is an open enum. Unrecognized values will be captured as the `Unrecognized<string>` branded type.
 
 ```typescript
-"user" | "admin" | "moderator" | Unrecognized<string>
+;'user' | 'admin' | 'moderator' | Unrecognized<string>
 ```

@@ -3,9 +3,9 @@
 ## Example Usage
 
 ```typescript
-import { Status } from "norberts-spark-sdk/models/operations";
+import { Status } from 'norberts-spark-sdk/models/operations'
 
-let value: Status = "ok";
+let value: Status = 'ok'
 ```
 
 ## Values
@@ -13,5 +13,5 @@ let value: Status = "ok";
 This is an open enum. Unrecognized values will be captured as the `Unrecognized<string>` branded type.
 
 ```typescript
-"ok" | "degraded" | "down" | Unrecognized<string>
+;'ok' | 'degraded' | 'down' | Unrecognized<string>
 ```

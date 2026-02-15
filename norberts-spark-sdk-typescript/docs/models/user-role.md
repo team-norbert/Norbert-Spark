@@ -5,9 +5,9 @@ User's role in the system
 ## Example Usage
 
 ```typescript
-import { UserRole } from "norberts-spark-sdk/models";
+import { UserRole } from 'norberts-spark-sdk/models'
 
-let value: UserRole = "user";
+let value: UserRole = 'user'
 ```
 
 ## Values
@@ -15,5 +15,5 @@ let value: UserRole = "user";
 This is an open enum. Unrecognized values will be captured as the `Unrecognized<string>` branded type.
 
 ```typescript
-"user" | "admin" | "moderator" | Unrecognized<string>
+;'user' | 'admin' | 'moderator' | Unrecognized<string>
 ```

@@ -38,8 +38,8 @@ so on):
 {
   "compilerOptions": {
     "target": "es2020", // or higher
-    "lib": ["es2020", "dom", "dom.iterable"]
-  }
+    "lib": ["es2020", "dom", "dom.iterable"],
+  },
 }
 ```
 
