@@ -112,7 +112,7 @@ describe('RegisterUserUseCase', () => {
           entityType: EntityType.USER,
           entityId: mockUserId,
           action: AuditAction.CREATE,
-          changes: { email: 'john@example.com', reason: 'new_user' },
+          changes: { reason: 'new_user' },
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent,
         })
@@ -259,7 +259,7 @@ describe('RegisterUserUseCase', () => {
           entityType: EntityType.USER,
           entityId: 'duplicate@example.com',
           action: AuditAction.REGISTRATION_FAILED,
-          changes: { email: 'duplicate@example.com', reason: 'duplicate_email' },
+          changes: { reason: 'duplicate_email' },
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent,
         })

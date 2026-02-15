@@ -974,7 +974,9 @@ describe('UserRepository', () => {
       const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      const result = await repository.findById(new UserId('non-existent-id').getValue())
+      const result = await repository.findById(
+        new UserId('018f6a3c-9b2e-7c4a-b5d1-9f3a2e8c6b71').getValue()
+      )
 
       expect(result).toBeNull()
       expect(db.select).toHaveBeenCalledTimes(1)
@@ -1011,7 +1013,7 @@ describe('UserRepository', () => {
       const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      await repository.findById(new UserId('test-user-id').getValue())
+      await repository.findById(new UserId('018f6a3c-9b2e-7c4a-b5d1-9f3a2e8c6b71').getValue())
 
       expect(mockWhere).toHaveBeenCalledTimes(1)
     })
