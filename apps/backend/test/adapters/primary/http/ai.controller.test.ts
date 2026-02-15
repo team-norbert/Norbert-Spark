@@ -406,6 +406,29 @@ describe('AIController', () => {
         })
       })
 
+      it('should return 400 if resolveChatTypeUseCase returns null', async () => {
+        const chatTypeParam = 'invalid-chat-type'
+
+        mockRequest.body = {
+          id: uuidv7(),
+          trigger: 'user-input',
+          messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          chatTypeParam: chatTypeParam,
+        }
+
+        // Mock resolveChatTypeUseCase to return null
+        vi.mocked(mockResolveChatTypeUseCase.execute).mockResolvedValue(null)
+
+        await controller.chat(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid chat type parameter',
+          details: `Could not resolve chat type from: ${chatTypeParam}`,
+        })
+      })
+
       it('should return 400 if no messages are provided', async () => {
         mockRequest.body = {
           id: uuidv7(),
