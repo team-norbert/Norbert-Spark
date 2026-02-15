@@ -66,7 +66,7 @@ export class AIController {
     app.get(
       '/ai/chats/config',
       {
-        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+        preHandler: [authMiddleware],
       },
       this.getAIChatDetails.bind(this)
     )

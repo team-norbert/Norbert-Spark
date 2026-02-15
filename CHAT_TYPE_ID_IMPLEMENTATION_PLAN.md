@@ -6,6 +6,19 @@ Replace the temporary placeholder at `apps/backend/src/adapters/secondary/reposi
 
 ---
 
+## OpenAPI Schema Naming Convention
+
+The OpenAPI schemas have been renamed for clarity:
+
+| Schema File                  | Describes                                                     | DB Table          |
+| ---------------------------- | ------------------------------------------------------------- | ----------------- |
+| `AIChatTypesResponse.json`   | Chat type listings (id, name, description, SEO fields)        | `chat_types`      |
+| `AIChatOptionsResponse.json` | AI model configuration (prompt, maxTokens, temperature, etc.) | `chat_ai_options` |
+
+The former `/ai/chats/types` endpoint has been removed from the OpenAPI spec. The `GET /ai/chats/config` endpoint returns `AIChatTypesResponse` data and is now accessible to **all authenticated users** (role restriction removed). The existing `getAIChatConfig.server.ts` server action and `useAIChatConfig` hook can be reused for the landing page — no new endpoint, server action, or hook is needed.
+
+---
+
 ## Hybrid Strategy Summary
 
 | Concern                    | Approach                                                                |
@@ -67,13 +80,9 @@ The URL carries `chatTypeId` for navigation and bookmarkability. The backend ext
   - Fix the existing bug at line 168 where `const chatTypeId = new ChatId(id).getValue()` incorrectly derives chatTypeId from the chat's own `id`. This must now come from `body.chatTypeId`.
 - **`getAIChatsByUserId()` method**: Update the response to include `chatTypeId` alongside each chat ID (the use case now returns enriched objects).
 
-### 6. Backend — New Endpoint for Chat Types (All Authenticated Users)
+### 6. Backend — Chat Types Endpoint (No Changes Needed)
 
-**File**: `apps/backend/src/adapters/primary/http/ai.controller.ts`
-
-- **Problem**: The existing `GET /ai/chats/config` endpoint requires `admin` or `moderator` role. Regular users need to see chat types on the landing page.
-- **Solution**: Add a new route `GET /ai/chat-types` with `authMiddleware` only (no role restriction). It reuses `GetChatDetailsUseCase` but returns a minimal payload (id, name, description, seoFriendlyId) suitable for the selection UI.
-- **Alternative**: If you prefer not to add a new endpoint, relax the role constraint on the existing one. However, that would expose admin-level detail (seoFriendlyBase64Id, timestamps) to all users.
+The `requireRole(['admin', 'moderator'])` middleware has been removed from the existing `GET /ai/chats/config` endpoint. It now requires only `authMiddleware`, making it accessible to all authenticated users. No new endpoint is needed — the frontend landing page will call the existing endpoint via the existing `getAIChatConfig.server.ts` server action and `useAIChatConfig` hook.
 
 ### 7. Backend — DI Container
 
@@ -87,9 +96,8 @@ The URL carries `chatTypeId` for navigation and bookmarkability. The backend ext
 **File**: `apps/frontend/src/app/ai/page.tsx`
 
 - **Current**: Renders `AIChatView` directly with `useAIChat()` (no id → disabled chat).
-- **Change**: Convert to a chat-type selection page. Fetch available chat types via a new hook/server action that calls `GET /ai/chat-types`. Display a list/grid of chat types. On selection, navigate to `/ai/{chatTypeId}/{uuidv7()}`.
-- **New server action needed**: `getChatTypes.server.ts` calling the new `GET /ai/chat-types` endpoint (authenticated, no admin role required).
-- **New hook needed**: `useChatTypes.ts` wrapping the server action in React Query.
+- **Change**: Convert to a chat-type selection page. Fetch available chat types using the existing `useAIChatConfig` hook (which calls `getAIChatConfig.server.ts` → `GET /api/v1/ai/chats/config`). Display a list/grid of chat types. On selection, navigate to `/ai/{chatTypeId}/{uuidv7()}`.
+- **No new server action or hook needed**: The existing `getAIChatConfig.server.ts` and `useAIChatConfig` hook already fetch chat types from the now-public `/ai/chats/config` endpoint.
 
 ### 9. Frontend — New Two-Segment Chat Route
 
@@ -144,7 +152,7 @@ The URL carries `chatTypeId` for navigation and bookmarkability. The backend ext
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │ Landing Page: /ai                                                   │
-│ → GET /api/v1/ai/chat-types (auth only, no admin role)             │
+│ → GET /api/v1/ai/chats/config (auth only, returns chat types)      │
 │ → User clicks "General Assistant"                                   │
 │ → router.push(`/ai/${chatTypeId}/${uuidv7()}`)                     │
 └──────────────────────────┬──────────────────────────────────────────┘
@@ -191,7 +199,7 @@ The URL carries `chatTypeId` for navigation and bookmarkability. The backend ext
 | 3   | `apps/backend/src/adapters/secondary/repositories/ai.repository.ts`         | Modify `createChat`, `getChatsByUserId`                   |
 | 4   | `apps/backend/src/application/use-cases/save-chat.use-case.ts`              | Add `chatTypeId` parameter                                |
 | 5   | `apps/backend/src/application/use-cases/get-chats-by-userid.use-case.ts`    | Change return type                                        |
-| 6   | `apps/backend/src/adapters/primary/http/ai.controller.ts`                   | Extract `chatTypeId` from body, add new endpoint, fix bug |
+| 6   | `apps/backend/src/adapters/primary/http/ai.controller.ts`                   | Extract `chatTypeId` from body, fix bug (no new endpoint) |
 | 7   | `apps/frontend/src/app/ai/page.tsx`                                         | Rewrite as chat-type selection page                       |
 | 8   | `apps/frontend/src/app/ai/[chatTypeId]/[chatId]/page.tsx`                   | New file (replaces `[id]/page.tsx`)                       |
 | 9   | `apps/frontend/src/app/ai/[id]/page.tsx`                                    | Delete                                                    |
@@ -199,8 +207,6 @@ The URL carries `chatTypeId` for navigation and bookmarkability. The backend ext
 | 11  | `apps/frontend/src/view/client-components/AIChatView.tsx`                   | Update sidebar links and types                            |
 | 12  | `apps/frontend/src/view/hooks/useUserChats.ts`                              | Type change (automatic via schema)                        |
 | 13  | `apps/frontend/src/infrastructure/serverActions/getChatsByUserId.server.ts` | Type change (automatic via schema)                        |
-| 14  | `apps/frontend/src/infrastructure/serverActions/getChatTypes.server.ts`     | New server action                                         |
-| 15  | `apps/frontend/src/view/hooks/queries/useChatTypes.ts`                      | New hook                                                  |
 
 ---
 
@@ -218,9 +224,8 @@ The URL carries `chatTypeId` for navigation and bookmarkability. The backend ext
 ## Risk Mitigation
 
 1. **Backwards compatibility**: The shared schema change is a breaking change. Frontend and backend must be deployed together.
-2. **Admin-only config endpoint**: Regular users currently cannot fetch chat types. A new `GET /ai/chat-types` endpoint is needed.
-3. **Existing chat data**: Any existing chats in the database will have `NULL` or the placeholder `chatTypeId`. A migration script may be needed to backfill these with the correct `chatTypeId`.
-4. **Single chat type today**: The implementation should work with one chat type but must not hard-code assumptions — the landing page naturally handles N chat types.
+2. **Existing chat data**: Any existing chats in the database will have `NULL` or the placeholder `chatTypeId`. A migration script may be needed to backfill these with the correct `chatTypeId`.
+3. **Single chat type today**: The implementation should work with one chat type but must not hard-code assumptions — the landing page naturally handles N chat types.
 
 ---
 
@@ -230,10 +235,9 @@ The URL carries `chatTypeId` for navigation and bookmarkability. The backend ext
 2. Backend port interface (`AIServicePort`)
 3. Backend repository (`AIRepository`)
 4. Backend use cases (`SaveChatUseCase`, `GetChatsByUserIdUseCase`)
-5. Backend controller (`AIController` — body extraction, new endpoint, response shape)
-6. Frontend server actions and hooks (new `getChatTypes`, update `useUserChats` types)
-7. Frontend pages (`/ai` landing, `/ai/[chatTypeId]/[chatId]` chat page)
-8. Frontend view components (`useAIChat` hook, `AIChatView` sidebar)
-9. Delete old `/ai/[id]` route
-10. Fix all tests
-11. Typecheck and full test run
+5. Backend controller (`AIController` — body extraction, response shape, fix bug)
+6. Frontend pages (`/ai` landing with existing `useAIChatConfig`, `/ai/[chatTypeId]/[chatId]` chat page)
+7. Frontend view components (`useAIChat` hook, `AIChatView` sidebar, `useUserChats` type update)
+8. Delete old `/ai/[id]` route
+9. Fix all tests
+10. Typecheck and full test run
