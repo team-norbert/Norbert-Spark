@@ -90,11 +90,14 @@ test.describe('JWT Token Expiration', () => {
       },
     ])
 
-    // Step 4: Trigger a server action that would call the backend
+    // Step 4: Reload with invalid JWT and wait for redirect
+    // The middleware will detect the invalid JWT and redirect to /signin
     await page.reload()
 
-    // Step 5: Should be redirected to signin
+    // Step 5: Wait for the redirect to complete
     await page.waitForURL(/\/signin/, { timeout: 20000 })
+
+    // Step 6: Verify we're on signin page
     expect(page.url()).toContain('/signin')
   })
 
