@@ -22,9 +22,9 @@ const SEO_FRIENDLY_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 /**
  * Regex pattern for validating seoFriendlyBase64Id format
- * - Must be exactly 22 alphanumeric characters (base64 without padding)
+ * - Must be exactly 22 base64url characters (A-Z, a-z, 0-9, '-' or '_', without padding)
  */
-const SEO_FRIENDLY_BASE64_ID_PATTERN = /^[A-Za-z0-9]{22}$/
+const SEO_FRIENDLY_BASE64_ID_PATTERN = /^[A-Za-z0-9_-]{22}$/
 
 /**
  * Repository for managing AI chat content data access.
