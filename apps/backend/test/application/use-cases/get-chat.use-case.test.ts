@@ -381,7 +381,7 @@ describe('GetChatUseCase', () => {
       })
     })
 
-    it('should not throw if logger fails', async () => {
+    it('should throw if logger fails', async () => {
       const mockChatData = createMockChatResponse(1)
       vi.mocked(mockAIRepository.getChatResponse).mockResolvedValue(mockChatData)
       vi.mocked(mockLogger.info).mockImplementation(() => {
