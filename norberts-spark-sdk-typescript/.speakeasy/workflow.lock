@@ -1,0 +1,25 @@
+speakeasyVersion: 1.717.0
+sources: {}
+targets:
+    norberts-spark-sdk:
+        source: Norbert's Spark API
+workflow:
+    workflowVersion: 1.0.0
+    speakeasyVersion: latest
+    sources:
+        Norbert's Spark API:
+            inputs:
+                - location: ../packages/shared/src/openapi.json
+            output: .speakeasy/out.openapi.yaml
+            registry:
+                location: registry.speakeasyapi.dev/andy/norbert-spark/norbert's-spark-api
+    targets:
+        norberts-spark-sdk:
+            target: typescript
+            source: Norbert's Spark API
+            codeSamples:
+                registry:
+                    location: registry.speakeasyapi.dev/andy/norbert-spark/norbert's-spark-api-typescript-code-samples
+                labelOverride:
+                    fixedValue: Typescript (SDK)
+                blocking: false
