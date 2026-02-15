@@ -85,8 +85,6 @@ export class AIChatContentRepository implements AIContentPort {
    * @returns The UUID id of the matching chat type, or null if not found or invalid
    */
   async resolveChatTypeByParam(param: string): Promise<string | null> {
-    this.logger.debug('Resolving chat type by param', { param })
-
     // Validate maximum length to prevent DoS attacks with extremely long strings
     if (param.length > MAX_PARAM_LENGTH) {
       this.logger.warn('Chat type param exceeds maximum length', {
@@ -95,6 +93,12 @@ export class AIChatContentRepository implements AIContentPort {
       })
       return null
     }
+
+    // Log with truncated param to prevent large log entries
+    this.logger.debug('Resolving chat type by param', {
+      param: param.length > 50 ? param.substring(0, 50) + '...' : param,
+      length: param.length,
+    })
 
     // Only check UUID column if param is a valid UUID to avoid PostgreSQL type casting errors
     const isUUID = Uuid7Util.isValidUUID(param)
@@ -106,7 +110,8 @@ export class AIChatContentRepository implements AIContentPort {
 
       if (!isSeoFriendlyId && !isSeoFriendlyBase64Id) {
         this.logger.debug('Chat type param has invalid format', {
-          param,
+          param: param.length > 50 ? param.substring(0, 50) + '...' : param,
+          length: param.length,
           isSeoFriendlyId,
           isSeoFriendlyBase64Id,
         })
