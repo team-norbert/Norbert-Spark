@@ -429,6 +429,29 @@ describe('AIController', () => {
         })
       })
 
+      it('should return 500 if resolved chat type ID is invalid', async () => {
+        const chatTypeParam = 'some-chat-type'
+        const invalidResolvedId = 'not-a-valid-uuid'
+
+        mockRequest.body = {
+          id: uuidv7(),
+          trigger: 'user-input',
+          messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          chatTypeParam: chatTypeParam,
+        }
+
+        // Mock resolveChatTypeUseCase to return an invalid UUID
+        vi.mocked(mockResolveChatTypeUseCase.execute).mockResolvedValue(invalidResolvedId)
+
+        await controller.chat(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid resolved chat type ID',
+        })
+      })
+
       it('should return 400 if no messages are provided', async () => {
         mockRequest.body = {
           id: uuidv7(),
