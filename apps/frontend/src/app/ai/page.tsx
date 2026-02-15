@@ -77,7 +77,10 @@ export default function AIChatLandingPage() {
         >
           {chatTypes.map((chatType) => (
             <Card key={chatType.id} elevation={2}>
-              <CardActionArea onClick={() => handleSelectChatType(chatType.seoFriendlyId)}>
+              <CardActionArea
+                onClick={() => handleSelectChatType(chatType.seoFriendlyId)}
+                aria-label={`Create new ${chatType.name} chat`}
+              >
                 <CardContent sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
                   <ChatIcon color="primary" sx={{ mt: 0.5 }} />
                   <Box>
