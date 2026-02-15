@@ -123,6 +123,21 @@ export class AIRepository implements AIServicePort {
     return chatId
   }
 
+  /**
+   * Retrieves all chats for a user with their associated chat type information.
+   *
+   * Data Integrity Guarantees:
+   * 1. The INNER JOIN is safe because chats.chatTypeId has a NOT NULL constraint
+   *    (see schema.ts line 694: .notNull())
+   * 2. Foreign key constraint ensures referential integrity: chats.chatTypeId
+   *    references chat_types.id with onDelete: 'restrict' (schema.ts line 695)
+   * 3. Database index on chats.chat_type_id ensures efficient joins (schema.ts line 705)
+   * 4. No orphaned chats can exist - the FK constraint prevents deletion of
+   *    chat_types while chats reference them
+   *
+   * @param userId - The user's ID to filter chats by
+   * @returns Array of chats with id, chatTypeId, and seoFriendlyId
+   */
   async getChatsByUserId(userId: UserIdType): Promise<ChatWithType[]> {
     const result = await db
       .select({
@@ -137,7 +152,7 @@ export class AIRepository implements AIServicePort {
 
     return result.map((row) => ({
       id: row.id as ChatIdType,
-      chatTypeId: row.chatTypeId,
+      chatTypeId: row.chatTypeId as ChatIdType,
       seoFriendlyId: row.seoFriendlyId,
     }))
   }
