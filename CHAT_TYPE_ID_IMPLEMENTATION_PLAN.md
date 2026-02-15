@@ -249,8 +249,25 @@ The `requireRole(['admin', 'moderator'])` middleware has been removed from the e
 ## Risk Mitigation
 
 1. **Backwards compatibility**: The shared schema change is a breaking change. Frontend and backend must be deployed together.
-2. **Existing chat data**: Any existing chats in the database will have `NULL` or the placeholder `chatTypeId`. A migration script may be needed to backfill these with the correct `chatTypeId`.
+2. **Existing chat data**: Any existing chats in the database will have `NULL` or the placeholder `chatTypeId`. A migration script may be needed to backfill these with the correct `chatTypeId`. See `apps/backend/docs/CHAT_TYPE_ID_DATA_INTEGRITY.md` for detailed migration strategy and data integrity guarantees.
 3. **Single chat type today**: The implementation should work with one chat type but must not hard-code assumptions — the landing page naturally handles N chat types.
+
+### Database Integrity Guarantees
+
+The database schema includes multiple layers of protection against data integrity issues:
+
+- **Foreign Key Constraint**: `chats.chatTypeId` references `chat_types.id` with `onDelete: 'restrict'` (schema.ts:695)
+  - Prevents insertion of chats with invalid chatTypeId
+  - Prevents deletion of chat types that are referenced by chats
+- **NOT NULL Constraint**: `chats.chatTypeId` has `.notNull()` (schema.ts:694)
+  - Ensures every chat has a valid chat type
+  - Makes INNER JOIN operations safe (no rows excluded due to NULL values)
+- **Database Index**: `chats_chat_type_id_idx` on `chats.chatTypeId` (schema.ts:705)
+  - Optimizes JOIN performance
+  - Ensures efficient queries filtering by chatTypeId
+
+For detailed information about data integrity, migration procedures, and verification queries, see:
+**`apps/backend/docs/CHAT_TYPE_ID_DATA_INTEGRITY.md`**
 
 ---
 
