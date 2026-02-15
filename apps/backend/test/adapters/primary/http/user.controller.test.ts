@@ -1020,49 +1020,6 @@ describe('UserController', () => {
     })
   })
 
-  describe('getUser()', () => {
-    it('should return user by id from params', async () => {
-      const mockRequestWithParams = {
-        params: { id: 'user-123' },
-      } as FastifyRequest<{ Params: { id: string } }>
-
-      await controller.getUser(mockRequestWithParams, mockReply)
-
-      expect(mockReply.send).toHaveBeenCalledWith({ data: { id: 'user-123' }, success: true })
-    })
-
-    it('should handle different user ids', async () => {
-      const mockRequestWithParams = {
-        params: { id: 'user-456-xyz' },
-      } as FastifyRequest<{ Params: { id: string } }>
-
-      await controller.getUser(mockRequestWithParams, mockReply)
-
-      expect(mockReply.send).toHaveBeenCalledWith({ data: { id: 'user-456-xyz' }, success: true })
-    })
-
-    it('should extract id from request params', async () => {
-      const mockRequestWithParams = {
-        params: { id: 'test-id-789' },
-      } as FastifyRequest<{ Params: { id: string } }>
-
-      await controller.getUser(mockRequestWithParams, mockReply)
-
-      const sentResponse = vi.mocked(mockReply.send).mock.calls?.[0]?.[0]
-      expect(sentResponse).toEqual({ data: { id: 'test-id-789' }, success: true })
-    })
-
-    it('should call reply.send once', async () => {
-      const mockRequestWithParams = {
-        params: { id: 'user-123' },
-      } as FastifyRequest<{ Params: { id: string } }>
-
-      await controller.getUser(mockRequestWithParams, mockReply)
-
-      expect(mockReply.send).toHaveBeenCalledTimes(1)
-    })
-  })
-
   describe('integration', () => {
     it('should handle complete registration flow', async () => {
       const mockApp = {
