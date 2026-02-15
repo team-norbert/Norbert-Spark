@@ -8,6 +8,25 @@ import type { DBChatType } from '../../../infrastructure/database/schema.js'
 import { Uuid7Util } from '../../../shared/utils/uuid7.util.js'
 
 /**
+ * Maximum allowed length for chat type parameter to prevent DoS attacks
+ */
+const MAX_PARAM_LENGTH = 200
+
+/**
+ * Regex pattern for validating seoFriendlyId format
+ * - Must be lowercase alphanumeric with hyphens
+ * - Cannot start or end with hyphens
+ * - Cannot have consecutive hyphens
+ */
+const SEO_FRIENDLY_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+/**
+ * Regex pattern for validating seoFriendlyBase64Id format
+ * - Must be exactly 22 alphanumeric characters (base64 without padding)
+ */
+const SEO_FRIENDLY_BASE64_ID_PATTERN = /^[A-Za-z0-9]{22}$/
+
+/**
  * Repository for managing AI chat content data access.
  *
  * This class implements the AIContentPort interface and provides methods to
@@ -69,7 +88,7 @@ export class AIChatContentRepository implements AIContentPort {
     this.logger.debug('Resolving chat type by param', { param })
 
     // Validate maximum length to prevent DoS attacks with extremely long strings
-    if (param.length > 200) {
+    if (param.length > MAX_PARAM_LENGTH) {
       this.logger.warn('Chat type param exceeds maximum length', {
         param: param.substring(0, 50) + '...',
         length: param.length,
@@ -82,10 +101,8 @@ export class AIChatContentRepository implements AIContentPort {
 
     // For non-UUID params, validate format to provide better error handling
     if (!isUUID) {
-      // Check if it matches seoFriendlyId format (lowercase alphanumeric + hyphens)
-      // or seoFriendlyBase64Id format (alphanumeric, exactly 22 chars)
-      const isSeoFriendlyId = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(param)
-      const isSeoFriendlyBase64Id = /^[A-Za-z0-9]{22}$/.test(param)
+      const isSeoFriendlyId = SEO_FRIENDLY_ID_PATTERN.test(param)
+      const isSeoFriendlyBase64Id = SEO_FRIENDLY_BASE64_ID_PATTERN.test(param)
 
       if (!isSeoFriendlyId && !isSeoFriendlyBase64Id) {
         this.logger.debug('Chat type param has invalid format', {
