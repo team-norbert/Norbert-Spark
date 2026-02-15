@@ -1524,6 +1524,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('user@example.com'),
           getName: vi.fn().mockReturnValue('John Doe'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date('2024-01-01')),
           getUpdatedAt: vi.fn().mockReturnValue(new Date('2024-01-15')),
         }
@@ -1548,6 +1549,7 @@ describe('UserController', () => {
             email: 'user@example.com',
             name: 'John Doe',
             role: 'user',
+            twoFactorEnabled: false,
             createdAt: expect.any(Date),
             updatedAt: expect.any(Date),
           },
@@ -1568,6 +1570,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('target@example.com'),
           getName: vi.fn().mockReturnValue('Target User'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date('2024-01-01')),
           getUpdatedAt: vi.fn().mockReturnValue(new Date('2024-01-15')),
         }
@@ -1583,6 +1586,7 @@ describe('UserController', () => {
           data: expect.objectContaining({
             id: targetUserId,
             email: 'target@example.com',
+            twoFactorEnabled: false,
           }),
         })
       })
@@ -1601,6 +1605,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('target@example.com'),
           getName: vi.fn().mockReturnValue('Target User'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date('2024-01-01')),
           getUpdatedAt: vi.fn().mockReturnValue(new Date('2024-01-15')),
         }
@@ -1626,6 +1631,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('user@example.com'),
           getName: vi.fn().mockReturnValue('John Doe'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date()),
           getUpdatedAt: vi.fn().mockReturnValue(new Date()),
         }
@@ -1686,6 +1692,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('user@example.com'),
           getName: vi.fn().mockReturnValue('John Doe'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date()),
           getUpdatedAt: vi.fn().mockReturnValue(new Date()),
         }
@@ -1712,6 +1719,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('target@example.com'),
           getName: vi.fn().mockReturnValue('Target User'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date()),
           getUpdatedAt: vi.fn().mockReturnValue(new Date()),
         }
@@ -1738,6 +1746,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('target@example.com'),
           getName: vi.fn().mockReturnValue('Target User'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date()),
           getUpdatedAt: vi.fn().mockReturnValue(new Date()),
         }
@@ -1868,6 +1877,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('user@example.com'),
           getName: vi.fn().mockReturnValue('John Doe'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date()),
           getUpdatedAt: vi.fn().mockReturnValue(new Date()),
         }
@@ -1900,6 +1910,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('user@example.com'),
           getName: vi.fn().mockReturnValue('John Doe'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date()),
           getUpdatedAt: vi.fn().mockReturnValue(new Date()),
         }
@@ -1930,6 +1941,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('user@example.com'),
           getName: vi.fn().mockReturnValue('John Doe'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date()),
           getUpdatedAt: vi.fn().mockReturnValue(new Date()),
         }
@@ -1964,6 +1976,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('user@example.com'),
           getName: vi.fn().mockReturnValue('John Doe'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(createdAt),
           getUpdatedAt: vi.fn().mockReturnValue(updatedAt),
         }
@@ -1979,6 +1992,7 @@ describe('UserController', () => {
             email: 'user@example.com',
             name: 'John Doe',
             role: 'user',
+            twoFactorEnabled: false,
             createdAt: createdAt,
             updatedAt: updatedAt,
           },
@@ -1998,6 +2012,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('user@example.com'),
           getName: vi.fn().mockReturnValue('John Doe'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date()),
           getUpdatedAt: vi.fn().mockReturnValue(new Date()),
         }
@@ -2009,6 +2024,7 @@ describe('UserController', () => {
         expect(mockUserData.getEmail).toHaveBeenCalled()
         expect(mockUserData.getName).toHaveBeenCalled()
         expect(mockUserData.getRole).toHaveBeenCalled()
+        expect(mockUserData.isTwoFactorEnabled).toHaveBeenCalled()
         expect(mockUserData.getCreatedAt).toHaveBeenCalled()
         expect(mockUserData.getUpdatedAt).toHaveBeenCalled()
       })
@@ -2026,6 +2042,7 @@ describe('UserController', () => {
           getEmail: vi.fn().mockReturnValue('user@example.com'),
           getName: vi.fn().mockReturnValue('John Doe'),
           getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
           getCreatedAt: vi.fn().mockReturnValue(new Date()),
           getUpdatedAt: vi.fn().mockReturnValue(new Date()),
         }
