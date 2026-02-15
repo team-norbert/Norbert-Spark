@@ -436,6 +436,7 @@ export class UserController {
           email: data?.getEmail(),
           name: data?.getName(),
           role: data?.getRole(),
+          twoFactorEnabled: data?.isTwoFactorEnabled(),
           createdAt: data?.getCreatedAt(),
           updatedAt: data?.getUpdatedAt(),
         },
