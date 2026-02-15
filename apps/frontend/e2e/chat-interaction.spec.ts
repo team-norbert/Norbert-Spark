@@ -77,7 +77,8 @@ test.describe('Chat Interaction', () => {
     expect(urlParts[1]).toBe('heart-darkness')
 
     // Verify the third segment is a UUIDv7 (format: 8-4-4-4-12 hex characters)
-    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-([1-8])[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-([1-8])[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
     expect(urlParts[2]).toMatch(uuidPattern)
 
     // Wait for page to fully load
