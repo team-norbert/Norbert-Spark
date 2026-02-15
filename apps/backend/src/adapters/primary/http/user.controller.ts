@@ -405,8 +405,17 @@ export class UserController {
       this.logger.debug(`Request params: ${JSON.stringify(params)}`)
       const rawId = params.id
 
-      if (typeof rawId !== 'string' || rawId.trim() === '') {
-        this.logger.debug(`Invalid or missing id param: ${String(rawId)}`)
+      if (typeof rawId !== 'string') {
+        this.logger.debug(`Invalid id param type: ${typeof rawId}`)
+        reply.code(400).send({
+          success: false,
+          error: 'Invalid user id',
+        })
+        return
+      }
+
+      if (rawId.trim() === '') {
+        this.logger.debug(`Empty id param`)
         reply.code(400).send({
           success: false,
           error: 'Invalid user id',
