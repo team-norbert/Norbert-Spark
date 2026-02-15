@@ -356,6 +356,56 @@ describe('AIController', () => {
         })
       })
 
+      it('should return 400 with "Invalid request body" if validateUIMessages throws an error', async () => {
+        // Import validateUIMessages from the mock
+        const { validateUIMessages } = await import('ai')
+
+        // Make validateUIMessages throw an error for this test
+        vi.mocked(validateUIMessages).mockRejectedValueOnce(new Error('Invalid message structure'))
+
+        mockRequest.body = {
+          id: uuidv7(),
+          trigger: 'user-input',
+          messages: [{ invalid: 'message' }],
+          chatTypeId: uuidv7(),
+        }
+
+        await controller.chat(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid request body',
+          details: 'Invalid message structure',
+        })
+
+        // Restore the default mock behavior for subsequent tests
+        vi.mocked(validateUIMessages).mockImplementation(async ({ messages }) => {
+          if (!Array.isArray(messages)) {
+            throw new Error('messages must be an array')
+          }
+          return messages
+        })
+      })
+
+      it('should return 400 if neither chatTypeId nor chatTypeParam is provided', async () => {
+        mockRequest.body = {
+          id: uuidv7(),
+          trigger: 'user-input',
+          messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          // Intentionally omit both chatTypeId and chatTypeParam
+        }
+
+        await controller.chat(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Chat type identification required',
+          details: 'Provide chatTypeParam or chatTypeId in the request body',
+        })
+      })
+
       it('should return 400 if no messages are provided', async () => {
         mockRequest.body = {
           id: uuidv7(),
