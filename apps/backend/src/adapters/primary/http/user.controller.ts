@@ -17,15 +17,28 @@ import type { LoggerPort } from '../../../application/ports/logger.port.js'
  * Acts as the primary adapter in the hexagonal architecture, translating HTTP requests
  * into use case executions and formatting responses.
  *
+ * Key features:
+ * - User registration with JWT token generation
+ * - User retrieval by ID with authorization checks
+ * - Batch user deletion with admin authorization
+ * - Paginated user listing for admin/moderator roles
+ * - Comprehensive error handling and audit logging
+ *
  * @class UserController
  * @example
  * ```typescript
- * const controller = new UserController(registerUseCase, getAllUsersUseCase)
+ * const controller = new UserController(
+ *   registerUserUseCase,
+ *   getAllUsersUseCase,
+ *   deleteUsersUseCase,
+ *   getUserByIdUseCase,
+ *   logger
+ * )
  * controller.registerRoutes(fastifyApp)
  * ```
  */
 export class UserController {
-  /**x
+  /**
    * Creates an instance of UserController
    * @param {RegisterUserUseCase} registerUserUseCase - Use case for registering new users
    * @param {GetAllUsersUseCase} getAllUsersUseCase - Use case for retrieving all users
@@ -45,9 +58,13 @@ export class UserController {
    * Registers all user-related routes with the Fastify application
    *
    * Configures the following endpoints:
-   * - POST /users/register - Register a new user
-   * - GET /users - Retrieve all users with pagination
-   * - GET /users/:id - Retrieve a specific user by ID (incomplete - returns stub response)
+   * - POST /users/register - Register a new user (public)
+   * - GET /users - Retrieve all users with pagination (admin/moderator only)
+   * - GET /users/:id - Retrieve a specific user by ID (authenticated, with authorization)
+   * - DELETE /users - Batch delete users (admin only)
+   *
+   * Authentication and authorization middleware are applied per route as needed.
+   * All routes follow consistent response patterns with success/error structures.
    *
    * @param {FastifyInstance} app - The Fastify application instance
    * @example
@@ -310,6 +327,60 @@ export class UserController {
     }
   }
 
+  /**
+   * Handles GET /users/:id endpoint to retrieve a specific user by their ID
+   *
+   * This endpoint retrieves detailed user information with authorization checks:
+   * 1. Authenticates the requesting user (JWT required)
+   * 2. Extracts user ID from URL parameters and validates format
+   * 3. Performs authorization check:
+   *    - Users can access their own data
+   *    - Admin and moderator roles can access any user's data
+   * 4. Retrieves user from repository via use case
+   * 5. Returns user data with all public fields
+   *
+   * **Authentication**: Required (JWT token)
+   * **Authorization**: Own data OR admin/moderator role
+   *
+   * @param {FastifyRequest} request - Fastify request object
+   * @param {object} request.params - URL parameters
+   * @param {string} request.params.id - User ID (UUIDv7 format)
+   * @param {object} request.user - Authenticated user information from JWT
+   * @param {string} request.user.sub - Requesting user's ID
+   * @param {string} request.user.roles - Requesting user's role
+   * @param {string} request.ip - Client IP address for audit logging
+   * @param {object} request.headers - Request headers
+   * @param {string} request.headers['user-agent'] - User agent string
+   * @param {FastifyReply} reply - Fastify reply object for sending response
+   *
+   * @returns {Promise<void>} Sends HTTP response with user data or error
+   *
+   * @throws {401} When user is not authenticated
+   * @throws {403} When user tries to access another user's data without proper role
+   * @throws {404} When requested user is not found
+   * @throws {500} When invalid UUID format or server error occurs
+   *
+   * @example
+   * ```typescript
+   * // Success response (200)
+   * {
+   *   success: true,
+   *   data: {
+   *     id: '01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a',
+   *     email: 'user@example.com',
+   *     name: 'John Doe',
+   *     role: 'user',
+   *     createdAt: '2024-01-01T00:00:00.000Z',
+   *     updatedAt: '2024-01-15T00:00:00.000Z'
+   *   }
+   * }
+   *
+   * // Error responses
+   * { success: false, error: 'Unauthorized' } // 401
+   * { success: false, error: 'Forbidden: You can only access your own user data' } // 403
+   * { success: false, error: 'User not found' } // 404
+   * ```
+   */
   async getUserById(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       const auditContext = {
