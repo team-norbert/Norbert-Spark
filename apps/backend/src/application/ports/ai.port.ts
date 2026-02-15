@@ -5,7 +5,7 @@ import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 
 export interface ChatWithType {
   id: ChatIdType
-  chatTypeId: string
+  chatTypeId: ChatIdType
   seoFriendlyId: string
 }
 
