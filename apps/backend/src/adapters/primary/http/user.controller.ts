@@ -432,13 +432,13 @@ export class UserController {
       reply.code(200).send({
         success: true,
         data: {
-          id: data?.id,
-          email: data?.getEmail(),
-          name: data?.getName(),
-          role: data?.getRole(),
-          twoFactorEnabled: data?.isTwoFactorEnabled(),
-          createdAt: data?.getCreatedAt(),
-          updatedAt: data?.getUpdatedAt(),
+          id: data.id,
+          email: data.getEmail(),
+          name: data.getName(),
+          role: data.getRole(),
+          twoFactorEnabled: data.isTwoFactorEnabled(),
+          createdAt: data.getCreatedAt(),
+          updatedAt: data.getUpdatedAt(),
         },
       })
     } catch (error) {
