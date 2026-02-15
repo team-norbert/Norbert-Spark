@@ -6,10 +6,6 @@ const TEST_CREDENTIALS = {
   password: 'Admin123!',
 } as const
 
-// These tests are skipped because the Next.js dev server takes too long to compile
-// the /ai route on first access. They work correctly in isolation but timeout when
-// run as part of the full suite due to dev mode compilation overhead.
-// TODO: Enable these tests when running against a production build or with precompiled pages.
 test.describe('Chat Interaction', () => {
   test.describe.configure({ mode: 'serial' })
   test.setTimeout(90000) // 90 second timeout
@@ -53,18 +49,72 @@ test.describe('Chat Interaction', () => {
     })
   }
 
-  // Skip reason: Next.js dev server takes >60s to compile /ai route on first access
-  test.skip('should navigate to chat page and verify form is disabled for new chat', async ({
+  test('should navigate to chat page and make basic interaction', async ({ context, page }) => {
+    await signInAndNavigateToAI(context, page)
+
+    // Verify the chat type selection instruction text
+    const instructionText = page.getByTestId('chat-type-selection-instruction')
+    await expect(instructionText).toBeVisible({ timeout: 10000 })
+    await expect(instructionText).toContainText(
+      'Select an AI assistant to start a new conversation.'
+    )
+
+    // Find and click the Heart of Darkness chat type card button
+    const heartDarknessCard = page.getByTestId('chat-type-card-heart-darkness')
+    await expect(heartDarknessCard).toBeVisible({ timeout: 10000 })
+
+    const cardButton = heartDarknessCard.locator('button')
+    await cardButton.click()
+
+    // Wait for navigation to the new chat page
+    await page.waitForURL(/\/ai\/heart-darkness\/[0-9a-f-]+/, { timeout: 30000 })
+
+    // Verify URL segments: /ai/heart-darkness/{uuidv7}
+    const currentUrl = page.url()
+    const urlParts = new URL(currentUrl).pathname.split('/').filter(Boolean)
+
+    expect(urlParts[0]).toBe('ai')
+    expect(urlParts[1]).toBe('heart-darkness')
+
+    // Verify the third segment is a UUIDv7 (format: 8-4-4-4-12 hex characters)
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-([1-8])[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    expect(urlParts[2]).toMatch(uuidPattern)
+
+    // Wait for page to fully load
+    await page.waitForLoadState('load', { timeout: 30000 })
+
+    // Type "hello" in the chat input textarea
+    const chatInput = page.getByRole('textbox', { name: 'Ask a question about The' })
+    await expect(chatInput).toBeVisible({ timeout: 10000 })
+    await expect(chatInput).toBeEnabled({ timeout: 5000 })
+    await chatInput.fill('hello')
+
+    // Click the send button
+    const sendButton = page.getByTestId('send-button')
+    await expect(sendButton).toBeVisible()
+    await sendButton.click()
+
+    // Wait for the user message to appear in the UI
+    const userMessageWrapper = page.getByTestId('user')
+    await expect(userMessageWrapper).toBeVisible({ timeout: 10000 })
+
+    // Verify the message text directly on the user message container
+    await expect(userMessageWrapper).toContainText('User: hello', { timeout: 10000 })
+  })
+
+  test('should navigate to chat page and verify form is disabled for new chat', async ({
     context,
     page,
   }) => {
     await signInAndNavigateToAI(context, page)
 
-    // Verify form elements are disabled - use simple selectors
-    const textInput = page.getByTestId('chat-text-input')
-    await expect(textInput).toBeVisible({ timeout: 10000 })
+    // Find and click the Heart of Darkness chat type card button
+    const heartDarknessCard = page.getByTestId('chat-type-card-heart-darkness')
+    await expect(heartDarknessCard).toBeVisible({ timeout: 10000 })
 
-    await expect(textInput).toBeDisabled({ timeout: 5000 })
+    const cardButton = heartDarknessCard.locator('button')
+    await cardButton.click()
 
     // Verify submit button is disabled (IconButton with type="submit")
     const submitBtn = page.locator('button[type="submit"]')
@@ -76,24 +126,21 @@ test.describe('Chat Interaction', () => {
     await expect(fileUploadButton).toBeDisabled()
   })
 
-  // Skip reason: Next.js dev server takes >60s to compile /ai route on first access
-  test.skip('should display error message in UI when API request fails', async ({
-    context,
-    page,
-  }) => {
+  test('should display error message in UI when API request fails', async ({ context, page }) => {
     await signInAndNavigateToAI(context, page)
 
-    // Click "New Chat" button to enable the form - ensure we click the visible one
-    const newChatButton = page.getByTestId('new-chat-button').first()
-    await expect(newChatButton).toBeVisible({ timeout: 10000 })
+    // Find and click the Heart of Darkness chat type card button
+    const heartDarknessCard = page.getByTestId('chat-type-card-heart-darkness')
+    await expect(heartDarknessCard).toBeVisible({ timeout: 10000 })
 
-    // Wait for React hydration to complete
-    await page.waitForTimeout(500)
+    const cardButton = heartDarknessCard.locator('button')
+    await cardButton.click()
 
-    await newChatButton.click()
+    // Wait for navigation to the new chat page
+    await page.waitForURL(/\/ai\/heart-darkness\/[0-9a-f-]+/, { timeout: 30000 })
 
-    // Wait for URL to change to a new chat ID
-    await expect(page).toHaveURL(/\/ai\/[a-f0-9-]+/, { timeout: 10000 })
+    // Wait for page to fully load
+    await page.waitForLoadState('load', { timeout: 30000 })
 
     // Intercept API request and return an error response
     await page.route('**/api/v1/ai/**', (route) => {
@@ -108,12 +155,13 @@ test.describe('Chat Interaction', () => {
     })
 
     // Type a message and submit
-    const textInput = page.getByPlaceholder('Ask a question about The Heart of Darkness...')
-    await expect(textInput).toBeVisible()
-    await expect(textInput).toBeEnabled()
-    await textInput.fill('Test message that will trigger an error')
+    const chatInput = page.getByRole('textbox', { name: 'Ask a question about The' })
+    await expect(chatInput).toBeVisible({ timeout: 10000 })
+    await expect(chatInput).toBeEnabled({ timeout: 5000 })
+    await chatInput.fill('Test message that will trigger an error')
 
-    const submitBtn = page.locator('button[type="submit"]')
+    const submitBtn = page.getByTestId('send-button')
+    await expect(submitBtn).toBeVisible()
     await submitBtn.click()
 
     // Wait for and verify the error Alert is displayed

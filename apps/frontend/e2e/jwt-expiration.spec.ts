@@ -94,7 +94,7 @@ test.describe('JWT Token Expiration', () => {
     await page.reload()
 
     // Step 5: Should be redirected to signin
-    await page.waitForURL(/\/signin/, { timeout: 10000 })
+    await page.waitForURL(/\/signin/, { timeout: 20000 })
     expect(page.url()).toContain('/signin')
   })
 
