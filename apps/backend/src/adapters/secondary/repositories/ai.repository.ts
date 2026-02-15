@@ -71,7 +71,6 @@ export class AIRepository implements AIServicePort {
     userId: UserIdType,
     initialMessages: UIMessage[] = []
   ): Promise<string> {
-
     const newChat = {
       userId: userId,
       id: chatId,

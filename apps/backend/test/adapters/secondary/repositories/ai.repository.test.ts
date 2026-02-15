@@ -101,7 +101,7 @@ describe('AIRepository', () => {
       // Verify chat insert was called with correct data
       expect(mockChatValues).toHaveBeenCalledWith({
         id: testChatIdString,
-        userId: testUserIdString
+        userId: testUserIdString,
       })
 
       // Verify messages insert was called with correct data
