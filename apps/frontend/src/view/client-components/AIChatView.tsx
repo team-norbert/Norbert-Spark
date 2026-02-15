@@ -60,6 +60,8 @@ interface AIChatViewProps {
   readonly chats: ChatItem[] | undefined
   readonly isChatsError: boolean
   readonly isLoadingChats: boolean
+  readonly accordionHeader: string
+  readonly accordionBody: string
   readonly onDrawerToggle: () => void
   readonly onErrorClose: () => void
   readonly onFileSelect: (file: File | null) => void
@@ -73,6 +75,8 @@ interface AIChatViewProps {
 }
 
 export function AIChatView({
+  accordionBody,
+  accordionHeader,
   chats,
   currentChatId,
   disabled,
@@ -199,10 +203,7 @@ export function AIChatView({
     <Wrapper>
       <PageHeader title="AI Chat" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
 
-      <AccordionComponent
-        header="Chat Information"
-        body="This is an AI-powered chat interface where you can ask questions and get responses."
-      />
+      <AccordionComponent header={accordionHeader} body={accordionBody} />
 
       <Box sx={{ display: 'flex', flex: 1, mb: 2, gap: 2, minHeight: 0, overflow: 'hidden' }}>
         {/* Mobile drawer */}

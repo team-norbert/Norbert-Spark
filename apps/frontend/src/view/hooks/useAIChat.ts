@@ -219,6 +219,11 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
     isChatsError,
     isLoadingChats,
 
+    // Accordion configuration
+    accordionHeader: 'Chat Information',
+    accordionBody:
+      'This is an AI-powered chat interface where you can ask questions and get responses.',
+
     // Handlers
     handleSubmit,
     handleFileSelect,

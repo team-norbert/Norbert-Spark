@@ -18,11 +18,7 @@ export const AccordionComponent = ({ body, header, id }: AccordionComponentProps
 
   return (
     <Accordion>
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        aria-controls={contentId}
-        id={headerId}
-      >
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls={contentId} id={headerId}>
         <Typography>{header}</Typography>
       </AccordionSummary>
       <AccordionDetails id={contentId}>
