@@ -126,23 +126,21 @@ test.describe('Chat Interaction', () => {
     await expect(fileUploadButton).toBeDisabled()
   })
 
-  test.skip('should display error message in UI when API request fails', async ({
-    context,
-    page,
-  }) => {
+  test('should display error message in UI when API request fails', async ({ context, page }) => {
     await signInAndNavigateToAI(context, page)
 
-    // Click "New Chat" button to enable the form - ensure we click the visible one
-    const newChatButton = page.getByTestId('new-chat-button').first()
-    await expect(newChatButton).toBeVisible({ timeout: 10000 })
+    // Find and click the Heart of Darkness chat type card button
+    const heartDarknessCard = page.getByTestId('chat-type-card-heart-darkness')
+    await expect(heartDarknessCard).toBeVisible({ timeout: 10000 })
 
-    // Wait for React hydration to complete
-    await page.waitForTimeout(500)
+    const cardButton = heartDarknessCard.locator('button')
+    await cardButton.click()
 
-    await newChatButton.click()
+    // Wait for navigation to the new chat page
+    await page.waitForURL(/\/ai\/heart-darkness\/[0-9a-f-]+/, { timeout: 30000 })
 
-    // Wait for URL to change to a new chat ID
-    await expect(page).toHaveURL(/\/ai\/[a-f0-9-]+/, { timeout: 10000 })
+    // Wait for page to fully load
+    await page.waitForLoadState('load', { timeout: 30000 })
 
     // Intercept API request and return an error response
     await page.route('**/api/v1/ai/**', (route) => {
@@ -157,12 +155,13 @@ test.describe('Chat Interaction', () => {
     })
 
     // Type a message and submit
-    const textInput = page.getByPlaceholder('Ask a question about The Heart of Darkness...')
-    await expect(textInput).toBeVisible()
-    await expect(textInput).toBeEnabled()
-    await textInput.fill('Test message that will trigger an error')
+    const chatInput = page.getByRole('textbox', { name: 'Ask a question about The' })
+    await expect(chatInput).toBeVisible({ timeout: 10000 })
+    await expect(chatInput).toBeEnabled({ timeout: 5000 })
+    await chatInput.fill('Test message that will trigger an error')
 
-    const submitBtn = page.locator('button[type="submit"]')
+    const submitBtn = page.getByTestId('send-button')
+    await expect(submitBtn).toBeVisible()
     await submitBtn.click()
 
     // Wait for and verify the error Alert is displayed
