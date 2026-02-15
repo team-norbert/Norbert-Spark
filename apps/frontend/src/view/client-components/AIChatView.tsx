@@ -27,6 +27,7 @@ import type { UIDataTypes, UIMessagePart, UITools } from 'ai'
 import { useRouter } from 'next/navigation.js'
 import React from 'react'
 
+import { AccordionComponent } from '@/view/client-components/AccordionComponent.js'
 import { ChatInput } from '@/view/client-components/ChatInputComponent.js'
 import { Message } from '@/view/client-components/MessageComponent.js'
 import { MessageIntroComponent } from '@/view/client-components/MessageIntroComponent.js'
@@ -197,6 +198,11 @@ export function AIChatView({
   return (
     <Wrapper>
       <PageHeader title="AI Chat" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
+
+      <AccordionComponent
+        header="Chat Information"
+        body="This is an AI-powered chat interface where you can ask questions and get responses."
+      />
 
       <Box sx={{ display: 'flex', flex: 1, mb: 2, gap: 2, minHeight: 0, overflow: 'hidden' }}>
         {/* Mobile drawer */}
