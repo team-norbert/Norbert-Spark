@@ -75,14 +75,22 @@ export class AIChatContentRepository implements AIContentPort {
       conditions.unshift(eq(chatTypes.id, param))
     }
 
-    const result = await db
-      .select({ id: chatTypes.id })
-      .from(chatTypes)
-      .where(or(...conditions))
-      .limit(1)
+    try {
+      const result = await db
+        .select({ id: chatTypes.id })
+        .from(chatTypes)
+        .where(or(...conditions))
+        .limit(1)
 
-    const resolved = result[0]?.id ?? null
-    this.logger.debug('Resolved chat type', { param, resolvedId: resolved })
-    return resolved
+      const resolved = result[0]?.id ?? null
+      this.logger.debug('Resolved chat type', { param, resolvedId: resolved })
+      return resolved
+    } catch (error) {
+      this.logger.error('Failed to resolve chat type by param', {
+        param,
+        error,
+      })
+      throw error
+    }
   }
 }
