@@ -48,7 +48,12 @@ export default function AIChatLandingPage() {
         <Typography variant="h5" gutterBottom>
           Choose a Chat Type
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mb: 3 }}
+          data-testid="chat-type-selection-instruction"
+        >
           Select an AI assistant to start a new conversation.
         </Typography>
 
@@ -76,7 +81,11 @@ export default function AIChatLandingPage() {
           }}
         >
           {chatTypes.map((chatType) => (
-            <Card key={chatType.id} elevation={2}>
+            <Card
+              key={chatType.id}
+              elevation={2}
+              data-testid={`chat-type-card-${chatType.seoFriendlyId}`}
+            >
               <CardActionArea
                 onClick={() => handleSelectChatType(chatType.seoFriendlyId)}
                 aria-label={`Create new ${chatType.name} chat`}

@@ -61,6 +61,7 @@ export const ChatInput = ({
         inputProps={{
           'data-testid': 'chat-text-input',
         }}
+        data-testid="chat-text-input"
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
