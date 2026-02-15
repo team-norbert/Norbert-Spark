@@ -5,7 +5,11 @@ import type { MessageSchemaType } from '@norberts-spark/shared'
 import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
+import type {
+  FetchChatChanges,
+  LoginFailedChanges,
+} from '../../domain/audit/audit-changes.types.js'
 /**
  * Use case for retrieving chat messages for a specific user
  *
@@ -74,15 +78,19 @@ export class GetChatUseCase {
       })
 
       try {
-        await this.auditLog.log({
+        const auditEntry: CreateAuditLogDTO = {
           userId: auditContext.userId,
           entityType: EntityType.CHAT,
           entityId: chatID,
           action: AuditAction.FETCH,
-          changes: { reason: 'chat_successfully_retrieved' },
+          changes: {
+            chatIds: chatData.map((chat) => chat.chat.id),
+            reason: 'chat_successfully_retrieved',
+          } satisfies FetchChatChanges,
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent ?? undefined,
-        })
+        }
+        await this.auditLog.log(auditEntry)
       } catch (error) {
         this.logger.error('Error logging audit for chat retrieval', error as Error, {
           userId: auditContext.userId,

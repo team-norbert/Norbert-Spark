@@ -230,7 +230,10 @@ describe('GetChatUseCase', () => {
         entityType: EntityType.CHAT,
         entityId: testChatId,
         action: AuditAction.FETCH,
-        changes: { reason: 'chat_successfully_retrieved' },
+        changes: {
+          chatIds: mockChatData.map((chat) => chat.chat.id),
+          reason: 'chat_successfully_retrieved',
+        },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent,
       })
@@ -287,7 +290,10 @@ describe('GetChatUseCase', () => {
         entityType: EntityType.CHAT,
         entityId: testChatId,
         action: AuditAction.FETCH,
-        changes: { reason: 'chat_successfully_retrieved' },
+        changes: {
+          chatIds: mockChatData.map((chat) => chat.chat.id),
+          reason: 'chat_successfully_retrieved',
+        },
         ipAddress: contextWithoutUserAgent.ipAddress,
         userAgent: undefined,
       })
@@ -310,7 +316,10 @@ describe('GetChatUseCase', () => {
         entityType: EntityType.CHAT,
         entityId: testChatId,
         action: AuditAction.FETCH,
-        changes: { reason: 'chat_successfully_retrieved' },
+        changes: {
+          chatIds: mockChatData.map((chat) => chat.chat.id),
+          reason: 'chat_successfully_retrieved',
+        },
         ipAddress: customContext.ipAddress,
         userAgent: customContext.userAgent,
       })
