@@ -103,7 +103,7 @@ test.describe('Chat Interaction', () => {
     await expect(messageParagraph).toContainText('User: hello', { timeout: 10000 })
   })
 
-  test.skip('should navigate to chat page and verify form is disabled for new chat', async ({
+  test('should navigate to chat page and verify form is disabled for new chat', async ({
     context,
     page,
   }) => {
