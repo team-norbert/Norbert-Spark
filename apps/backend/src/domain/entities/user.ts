@@ -119,7 +119,15 @@ export class User {
    * const email = new Email('john@example.com').getValue()
    * const password = await Password.create('myPassword123')
    * const role = new Role('user')
-   * const user = new User(undefined, email, 'John Smith', role, password)
+   * const user = new User(
+   *   undefined,      // Let DB generate ID
+   *   email,
+   *   'John Smith',
+   *   role,
+   *   password,
+   *   new Date(),     // createdAt
+   *   new Date()      // updatedAt
+   * )
    *
    * // Existing user with provided ID
    * const userId = new UserId('01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a').getValue()
