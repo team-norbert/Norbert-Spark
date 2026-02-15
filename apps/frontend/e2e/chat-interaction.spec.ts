@@ -49,17 +49,14 @@ test.describe('Chat Interaction', () => {
     })
   }
 
-  test('should navigate to chat page and make basic interaction', async ({
-    context,
-    page,
-  }) => {
+  test('should navigate to chat page and make basic interaction', async ({ context, page }) => {
     await signInAndNavigateToAI(context, page)
 
     // Verify the chat type selection instruction text
     const instructionText = page.getByTestId('chat-type-selection-instruction')
     await expect(instructionText).toBeVisible({ timeout: 10000 })
     await expect(instructionText).toContainText(
-      'Select an AI assistant to start a new conversation.',
+      'Select an AI assistant to start a new conversation.'
     )
 
     // Find and click the Heart of Darkness chat type card button
@@ -106,8 +103,10 @@ test.describe('Chat Interaction', () => {
     await expect(messageParagraph).toContainText('User: hello', { timeout: 10000 })
   })
 
-
-  test.skip('should navigate to chat page and verify form is disabled for new chat', async ({ context, page }) => {
+  test.skip('should navigate to chat page and verify form is disabled for new chat', async ({
+    context,
+    page,
+  }) => {
     await signInAndNavigateToAI(context, page)
 
     // Find and click the Heart of Darkness chat type card button
