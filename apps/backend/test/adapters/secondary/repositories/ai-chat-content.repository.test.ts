@@ -130,11 +130,24 @@ describe('AIChatContentRepository', () => {
   })
 
   describe('resolveChatTypeByParam', () => {
+    // Test data for validation scenarios
+    const validUUID = uuidv7()
+    const validSeoFriendlyId = 'general-assistant'
+    const validBase64Id = 'AbCdEfGhIjKlMnOpQrStUv'
     describe('successful resolution by UUID', () => {
       it('should resolve chat type when param is a valid UUID', async () => {
         const chatTypeId = uuidv7()
         const param = uuidv7()
 
+        // Helper function to setup mock database query
+        const setupMockQuery = (mockResult: any[]) => {
+          const mockLimit = vi.fn().mockResolvedValue(mockResult)
+          const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit })
+          const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
+          const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
+          vi.mocked(db.select).mockReturnValue(mockSelect() as any)
+          return { mockLimit, mockWhere, mockFrom, mockSelect }
+        }
         vi.mocked(Uuid7Util.isValidUUID).mockReturnValue(true)
 
         const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId }])
@@ -147,7 +160,10 @@ describe('AIChatContentRepository', () => {
 
         expect(result).toBe(chatTypeId)
         expect(Uuid7Util.isValidUUID).toHaveBeenCalledWith(param)
-        expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', { param })
+        expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', {
+          param,
+          length: param.length,
+        })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolved chat type', {
           param,
           resolvedId: chatTypeId,
@@ -191,7 +207,10 @@ describe('AIChatContentRepository', () => {
 
         expect(result).toBe(chatTypeId)
         expect(Uuid7Util.isValidUUID).toHaveBeenCalledWith(param)
-        expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', { param })
+        expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', {
+          param,
+          length: param.length,
+        })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolved chat type', {
           param,
           resolvedId: chatTypeId,
@@ -234,7 +253,10 @@ describe('AIChatContentRepository', () => {
         const result = await repository.resolveChatTypeByParam(param)
 
         expect(result).toBe(chatTypeId)
-        expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', { param })
+        expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', {
+          param,
+          length: param.length,
+        })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolved chat type', {
           param,
           resolvedId: chatTypeId,
@@ -257,7 +279,10 @@ describe('AIChatContentRepository', () => {
         const result = await repository.resolveChatTypeByParam(param)
 
         expect(result).toBeNull()
-        expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', { param })
+        expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', {
+          param,
+          length: param.length,
+        })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolved chat type', {
           param,
           resolvedId: null,
@@ -383,7 +408,10 @@ describe('AIChatContentRepository', () => {
 
         await expect(repository.resolveChatTypeByParam(param)).rejects.toThrow('Database error')
 
-        expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', { param })
+        expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', {
+          param,
+          length: param.length,
+        })
         // Second debug log won't be called because of the error
       })
     })

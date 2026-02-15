@@ -8,6 +8,25 @@ import type { DBChatType } from '../../../infrastructure/database/schema.js'
 import { Uuid7Util } from '../../../shared/utils/uuid7.util.js'
 
 /**
+ * Maximum allowed length for chat type parameter to prevent DoS attacks
+ */
+const MAX_PARAM_LENGTH = 200
+
+/**
+ * Regex pattern for validating seoFriendlyId format
+ * - Must be lowercase alphanumeric with hyphens
+ * - Cannot start or end with hyphens
+ * - Cannot have consecutive hyphens
+ */
+const SEO_FRIENDLY_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+/**
+ * Regex pattern for validating seoFriendlyBase64Id format
+ * - Must be exactly 22 base64url characters (A-Z, a-z, 0-9, '-' or '_', without padding)
+ */
+const SEO_FRIENDLY_BASE64_ID_PATTERN = /^[A-Za-z0-9_-]{22}$/
+
+/**
  * Repository for managing AI chat content data access.
  *
  * This class implements the AIContentPort interface and provides methods to
@@ -57,14 +76,48 @@ export class AIChatContentRepository implements AIContentPort {
    * Queries the chat_types table matching the param against all three unique
    * identifier columns. Since all three are unique, at most one row will match.
    *
+   * Input validation:
+   * - Maximum length: 200 characters (prevents DoS with extremely long strings)
+   * - Format validation for non-UUID params: alphanumeric + hyphens only
+   * - Returns null for invalid inputs rather than querying the database
+   *
    * @param param - One of the three unique identifiers for a chat type
-   * @returns The UUID id of the matching chat type, or null if not found
+   * @returns The UUID id of the matching chat type, or null if not found or invalid
    */
   async resolveChatTypeByParam(param: string): Promise<string | null> {
-    this.logger.debug('Resolving chat type by param', { param })
+    // Validate maximum length to prevent DoS attacks with extremely long strings
+    if (param.length > MAX_PARAM_LENGTH) {
+      this.logger.warn('Chat type param exceeds maximum length', {
+        param: param.substring(0, 50) + '...',
+        length: param.length,
+      })
+      return null
+    }
+
+    // Log with truncated param to prevent large log entries
+    this.logger.debug('Resolving chat type by param', {
+      param: param.length > 50 ? param.substring(0, 50) + '...' : param,
+      length: param.length,
+    })
 
     // Only check UUID column if param is a valid UUID to avoid PostgreSQL type casting errors
     const isUUID = Uuid7Util.isValidUUID(param)
+
+    // For non-UUID params, validate format to provide better error handling
+    if (!isUUID) {
+      const isSeoFriendlyId = SEO_FRIENDLY_ID_PATTERN.test(param)
+      const isSeoFriendlyBase64Id = SEO_FRIENDLY_BASE64_ID_PATTERN.test(param)
+
+      if (!isSeoFriendlyId && !isSeoFriendlyBase64Id) {
+        this.logger.debug('Chat type param has invalid format', {
+          param: param.length > 50 ? param.substring(0, 50) + '...' : param,
+          length: param.length,
+          isSeoFriendlyId,
+          isSeoFriendlyBase64Id,
+        })
+        return null
+      }
+    }
 
     const conditions = [
       eq(chatTypes.seoFriendlyId, param),
