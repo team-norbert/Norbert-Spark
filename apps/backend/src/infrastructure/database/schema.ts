@@ -690,7 +690,9 @@ export const chats = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),
-    chatTypeId: uuid('chat_type_id').references(() => chatTypes.id, { onDelete: 'restrict' }),
+    chatTypeId: uuid('chat_type_id')
+      .notNull()
+      .references(() => chatTypes.id, { onDelete: 'restrict' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

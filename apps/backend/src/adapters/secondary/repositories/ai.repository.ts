@@ -71,9 +71,11 @@ export class AIRepository implements AIServicePort {
     userId: UserIdType,
     initialMessages: UIMessage[] = []
   ): Promise<string> {
+    // TODO: chatTypeId should be passed as a parameter once the use case is updated
     const newChat = {
       userId: userId,
       id: chatId,
+      chatTypeId: '00000000-0000-0000-0000-000000000000', // Temporary placeholder - will be updated in separate PR
     }
 
     this.logger.info('chatId', chatId)
