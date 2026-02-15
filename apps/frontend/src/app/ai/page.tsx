@@ -1,6 +1,5 @@
 'use client'
 
-import AddIcon from '@mui/icons-material/Add'
 import ChatIcon from '@mui/icons-material/Chat'
 import {
   Alert,
