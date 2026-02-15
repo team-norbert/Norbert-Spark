@@ -24,6 +24,7 @@ import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { GetChatAiOptionsUseCase } from '../../../application/use-cases/get-chat-ai-options.use-case.js'
+import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-chat-type.use-case.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -36,7 +37,8 @@ export class AIController {
     private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase,
     private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase,
     private readonly getChatDetailsUseCase: GetChatDetailsUseCase,
-    private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase
+    private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase,
+    private readonly resolveChatTypeUseCase: ResolveChatTypeUseCase
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
@@ -111,6 +113,7 @@ export class AIController {
       this.logger.info('Request body:', {
         id: body?.id,
         trigger: body?.trigger,
+        chatTypeParam: body?.chatTypeParam,
         chatTypeId: body?.chatTypeId,
         messages: body?.messages,
       })
@@ -163,11 +166,53 @@ export class AIController {
     // Conversion of string request.user.sub id to UserIdType branded type
     // happens in middleware so no need to instantiate a new UserId here
     const userId = request.user.sub
+    const chatId = new ChatId(id).getValue()
 
-    // Convert string id to ChatIdType branded type
-    const chatTypeId = new ChatId(id).getValue()
+    // Resolve chatTypeId from URI parameter (chatTypeParam) or fallback to body.chatTypeId
+    // The chatTypeParam can be any of: UUID id, seo_friendly_id, or seo_friendly_base64_id
+    const requestBody = request.body as any
+    const chatTypeParam = requestBody?.chatTypeParam as string | undefined
+    const bodyChatTypeId = requestBody?.chatTypeId as string | undefined
+
+    let chatTypeId: ChatIdType
+
+    if (chatTypeParam) {
+      const resolved = await this.resolveChatTypeUseCase.execute(chatTypeParam, auditContext)
+      if (!resolved) {
+        return reply.code(400).send({
+          success: false,
+          error: 'Invalid chat type parameter',
+          details: `Could not resolve chat type from: ${chatTypeParam}`,
+        })
+      }
+      try {
+        chatTypeId = new ChatId(resolved).getValue()
+      } catch {
+        return reply.code(500).send({
+          success: false,
+          error: 'Invalid resolved chat type ID',
+        })
+      }
+    } else if (bodyChatTypeId) {
+      try {
+        chatTypeId = new ChatId(bodyChatTypeId).getValue()
+      } catch {
+        return reply.code(400).send({
+          success: false,
+          error: 'Invalid chatTypeId format',
+          details: 'chatTypeId must be a valid UUID v7',
+        })
+      }
+    } else {
+      return reply.code(400).send({
+        success: false,
+        error: 'Chat type identification required',
+        details: 'Provide chatTypeParam or chatTypeId in the request body',
+      })
+    }
 
     this.logger.debug('Processing chat request', {
+      chatId,
       chatTypeId,
       userId,
       messageCount: messages.length,
@@ -178,11 +223,7 @@ export class AIController {
       (msg) => msg.role === 'user' || msg.role === 'assistant'
     ) as any[]
 
-    const chat = await this.getChatUseCase.execute(
-      chatTypeId,
-      userAndAssistantMessages,
-      auditContext
-    )
+    const chat = await this.getChatUseCase.execute(chatId, userAndAssistantMessages, auditContext)
 
     this.logger.info('Received chat', { chat: chat ?? null })
 
@@ -204,13 +245,9 @@ export class AIController {
 
     if (!chat) {
       this.logger.info('Chat does not exist, creating new chat', { id })
-      await this.saveChatUseCase.execute(chatTypeId, userId, messages, auditContext)
+      await this.saveChatUseCase.execute(chatId, userId, chatTypeId, messages, auditContext)
     } else {
-      await this.appendChatUseCase.execute(
-        chatTypeId,
-        [mostRecentMessage as UIMessage],
-        auditContext
-      )
+      await this.appendChatUseCase.execute(chatId, [mostRecentMessage as UIMessage], auditContext)
       this.logger.info('Chat exists, appending most recent message', { id })
     }
 
@@ -293,7 +330,7 @@ export class AIController {
         // Just the newly generated assistant message
         // Good for persisting only the latest response
         this.logger.debug('Response message', { responseMessage })
-        await this.appendChatUseCase.execute(chatTypeId, [responseMessage], auditContext)
+        await this.appendChatUseCase.execute(chatId, [responseMessage], auditContext)
       },
     })
   }

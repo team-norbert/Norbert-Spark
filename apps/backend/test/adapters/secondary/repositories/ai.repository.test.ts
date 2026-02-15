@@ -55,6 +55,7 @@ describe('AIRepository', () => {
       const testUserIdString = '019b6742-b220-7e5c-a4cd-459ff52f6579'
       const testChatId = new ChatId(testChatIdString).getValue()
       const testUserId = new UserId(testUserIdString).getValue()
+      const testChatTypeId = new ChatId(uuidv7()).getValue()
 
       const initialMessages: UIMessage[] = [
         {
@@ -92,7 +93,12 @@ describe('AIRepository', () => {
         .mockReturnValueOnce(mockPartsInsert() as any)
 
       // Act: Call createChat with the test data
-      const result = await repository.createChat(testChatId, testUserId, initialMessages)
+      const result = await repository.createChat(
+        testChatId,
+        testUserId,
+        testChatTypeId,
+        initialMessages
+      )
 
       // Assert: Verify the chat was created successfully
       expect(result).toBe(testChatIdString)

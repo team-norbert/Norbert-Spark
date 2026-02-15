@@ -18,6 +18,7 @@ import { GetChatDetailsUseCase } from '../../application/use-cases/get-chat-deta
 import { GetAIAdminUseCase } from '../../application/use-cases/get-ai-admin.use-case.js'
 import { PutAIAdminUseCase } from '../../application/use-cases/put-ai-admin.use-case.js'
 import { GetChatAiOptionsUseCase } from '../../application/use-cases/get-chat-ai-options.use-case.js'
+import { ResolveChatTypeUseCase } from '../../application/use-cases/resolve-chat-type.use-case.js'
 import { GetCompanyDetailsUseCase } from '../../application/use-cases/get-company-details.use-case.js'
 import { PutCompanyDetailsUseCase } from '../../application/use-cases/put-company-details.use-case.js'
 import { GetUserByIdUseCase } from '../../application/use-cases/get-user-by-id.use-case.js'
@@ -109,6 +110,7 @@ export class Container {
   private readonly getAIAdminUseCase: GetAIAdminUseCase
   private readonly putAIAdminUseCase: PutAIAdminUseCase
   private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase
+  private readonly resolveChatTypeUseCase: ResolveChatTypeUseCase
   private readonly getCompanyDetailsUseCase: GetCompanyDetailsUseCase
   private readonly putCompanyDetailsUseCase: PutCompanyDetailsUseCase
   private readonly getUserByIdUseCase: GetUserByIdUseCase
@@ -274,6 +276,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.auditLog,
       this.aiChatOptionsRepository
     )
+    this.resolveChatTypeUseCase = new ResolveChatTypeUseCase(
+      this.logger,
+      this.auditLog,
+      this.aiChatContentRepository
+    )
     this.getCompanyDetailsUseCase = new GetCompanyDetailsUseCase(
       this.logger,
       this.auditLog,
@@ -309,7 +316,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.getChatsByUserIdUseCase,
       this.getChatContentByChatIdUseCase,
       this.getChatDetailsUseCase,
-      this.getChatAiOptionsUseCase
+      this.getChatAiOptionsUseCase,
+      this.resolveChatTypeUseCase
     )
     this.aiExtractDataController = new AIExtractDataController(
       this.logger,

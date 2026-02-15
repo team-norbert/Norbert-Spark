@@ -106,7 +106,6 @@ CREATE TABLE IF NOT EXISTS documents (
     checksum TEXT,
     status TEXT NOT NULL DEFAULT 'processing'
         CHECK (status IN ('processing', 'indexed', 'failed', 'archived')),
-
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

@@ -48,9 +48,21 @@ describe('getChatsByUserIdAction', () => {
       const mockResponse: AIUserIdResponseSchemaType = {
         success: true,
         data: [
-          '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e',
-          '01942f8e-67a4-7c3d-8e5f-6a7b8c9d0e1f',
-          '01942f8e-67a5-7d4e-9f6a-7b8c9d0e1f2a',
+          {
+            id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e',
+            chatTypeId: '01942f8e-0000-7000-8000-000000000001',
+            seoFriendlyId: 'chat-test-1',
+          },
+          {
+            id: '01942f8e-67a4-7c3d-8e5f-6a7b8c9d0e1f',
+            chatTypeId: '01942f8e-0000-7000-8000-000000000002',
+            seoFriendlyId: 'chat-test-2',
+          },
+          {
+            id: '01942f8e-67a5-7d4e-9f6a-7b8c9d0e1f2a',
+            chatTypeId: '01942f8e-0000-7000-8000-000000000003',
+            seoFriendlyId: 'chat-test-3',
+          },
         ],
       }
 
@@ -97,7 +109,7 @@ describe('getChatsByUserIdAction', () => {
     it('should handle single chat ID', async () => {
       const mockResponse: AIUserIdResponseSchemaType = {
         success: true,
-        data: ['single-chat-id'],
+        data: [{ id: 'single-chat-id', chatTypeId: 'type-1', seoFriendlyId: 'chat-single' }],
       }
 
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
@@ -276,7 +288,13 @@ describe('getChatsByUserIdAction', () => {
     it('should pass through backend response as-is', async () => {
       const mockResponse: AIUserIdResponseSchemaType = {
         success: true,
-        data: ['id1', 'id2', 'id3', 'id4', 'id5'],
+        data: [
+          { id: 'id1', chatTypeId: 'type-1', seoFriendlyId: 'chat-1' },
+          { id: 'id2', chatTypeId: 'type-2', seoFriendlyId: 'chat-2' },
+          { id: 'id3', chatTypeId: 'type-3', seoFriendlyId: 'chat-3' },
+          { id: 'id4', chatTypeId: 'type-4', seoFriendlyId: 'chat-4' },
+          { id: 'id5', chatTypeId: 'type-5', seoFriendlyId: 'chat-5' },
+        ],
       }
 
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
@@ -378,7 +396,11 @@ describe('getChatsByUserIdAction', () => {
     })
 
     it('should handle very long chat ID arrays', async () => {
-      const longArray = Array.from({ length: 1000 }, (_, i) => `chat-id-${i}`)
+      const longArray = Array.from({ length: 1000 }, (_, i) => ({
+        id: `chat-id-${i}`,
+        chatTypeId: `type-${i}`,
+        seoFriendlyId: `chat-test-${i}`,
+      }))
       const mockResponse: AIUserIdResponseSchemaType = {
         success: true,
         data: longArray,

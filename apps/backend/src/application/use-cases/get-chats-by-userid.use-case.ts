@@ -1,7 +1,7 @@
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 import type { LoggerPort } from '../ports/logger.port.js'
-import type { AIServicePort } from '../ports/ai.port.js'
+import type { AIServicePort, ChatWithType } from '../ports/ai.port.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
@@ -17,10 +17,10 @@ export class GetChatsByUserIdUseCase {
     private readonly auditLog: AuditLogPort
   ) {}
 
-  async execute(userId: UserIdType, auditContext: AuditContext): Promise<ChatIdType[]> {
+  async execute(userId: UserIdType, auditContext: AuditContext): Promise<ChatWithType[]> {
     this.logger.info(`Getting chats for user ID: ${userId}`)
 
-    let chats: ChatIdType[]
+    let chats: ChatWithType[]
     try {
       chats = await this.aiRepository.getChatsByUserId(userId)
     } catch (error) {
@@ -63,7 +63,7 @@ export class GetChatsByUserIdUseCase {
         action: AuditAction.FETCH,
         changes: {
           reason: 'chat_successfully_retrieved_by_userid',
-          chatIds: chats,
+          chatIds: chats.map((c) => c.id),
         } satisfies FetchChatChanges,
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,

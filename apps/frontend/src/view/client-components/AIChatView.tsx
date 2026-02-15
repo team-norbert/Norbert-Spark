@@ -41,6 +41,12 @@ interface MessageType {
   role: string
 }
 
+interface ChatItem {
+  id: string
+  chatTypeId: string
+  seoFriendlyId: string
+}
+
 interface AIChatViewProps {
   readonly errorMessage: string
   readonly input: string
@@ -50,7 +56,7 @@ interface AIChatViewProps {
   readonly disabled: boolean
   readonly mobileOpen: boolean
   readonly currentChatId?: string
-  readonly chats: string[] | undefined
+  readonly chats: ChatItem[] | undefined
   readonly isChatsError: boolean
   readonly isLoadingChats: boolean
   readonly onDrawerToggle: () => void
@@ -151,11 +157,11 @@ export function AIChatView({
               </Box>
             </ListItem>
           ) : chats && chats.length > 0 ? (
-            chats.map((chatId) => (
+            chats.map((chat) => (
               <ListItemButton
-                key={chatId}
-                selected={currentChatId === chatId}
-                onClick={() => router.push(`/ai/${chatId}`)}
+                key={chat.id}
+                selected={currentChatId === chat.id}
+                onClick={() => router.push(`/ai/${chat.seoFriendlyId}/${chat.id}`)}
               >
                 <ListItemIcon>
                   <ChatIcon fontSize="small" />
@@ -164,12 +170,12 @@ export function AIChatView({
                   primary={
                     <Typography variant="body2" noWrap>
                       {/* TODO: will add full metadata at a later date */}
-                      Chat {chatId.slice(0, 8)}...
+                      Chat {chat.id.slice(0, 8)}...
                     </Typography>
                   }
                   secondary={
                     <Typography variant="caption" noWrap color="text.secondary">
-                      {currentChatId === chatId ? 'Active' : 'Previous chat'}
+                      {currentChatId === chat.id ? 'Active' : 'Previous chat'}
                     </Typography>
                   }
                 />

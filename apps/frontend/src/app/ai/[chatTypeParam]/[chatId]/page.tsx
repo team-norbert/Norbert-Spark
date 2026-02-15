@@ -10,17 +10,27 @@ import { useFetchChat } from '@/view/hooks/useFetchChat.js'
 const logger = createLogger({ prefix: 'AIChatPage' })
 
 /**
- * AI Chat page following DDD architecture.
- * This page is minimal and declarative - it only orchestrates the hook and component.
- * Business logic is in the hook, presentation is in the component.
+ * AI Chat page with two-segment dynamic route: /ai/[chatTypeParam]/[chatId]
+ *
+ * The chatTypeParam can be any of the three unique identifiers from the chat_types table:
+ * - UUID id (e.g., "019c6003-28df-722a-a79d-0ce2b2f826df")
+ * - seo_friendly_id slug (e.g., "chat-heart-darkness")
+ * - seo_friendly_base64_id (e.g., "AZxgAyjfciqnnQzisvgm3w")
+ *
+ * The backend resolves this parameter to the actual chatTypeId UUID.
+ * If the parameter is not present, it falls back to chatTypeId in the POST body.
  */
-export default function AIChatPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function AIChatPage({
+  params,
+}: {
+  params: Promise<{ chatTypeParam: string; chatId: string }>
+}) {
+  const { chatId, chatTypeParam } = use(params)
 
-  logger.info('Rendering AIChatPage with ID:', id)
+  logger.info('Rendering AIChatPage with chatTypeParam:', chatTypeParam, 'chatId:', chatId)
 
   // Fetch the chat data from the backend
-  const { data: chatData, isError: isFetchError, isLoading: isFetchingChat } = useFetchChat(id)
+  const { data: chatData, isError: isFetchError, isLoading: isFetchingChat } = useFetchChat(chatId)
 
   logger.info('isLoading', isFetchingChat)
   logger.info('isFetchError', isFetchError)
@@ -48,7 +58,7 @@ export default function AIChatPage({ params }: { params: Promise<{ id: string }>
     mobileOpen,
     selectedFile,
     status,
-  } = useAIChat({ id, initialMessages: chatData?.messages })
+  } = useAIChat({ id: chatId, chatTypeParam, initialMessages: chatData?.messages })
 
   logger.info('Rendering AIChatPage with messages:', messages)
 

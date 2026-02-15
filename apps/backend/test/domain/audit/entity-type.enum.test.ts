@@ -101,6 +101,7 @@ describe('EntityType Enum', () => {
         const labels: Record<EntityType, string> = {
           [EntityType.USER]: 'User',
           [EntityType.CHAT]: 'Chat',
+          [EntityType.CHAT_TYPE]: 'Chat Type',
           [EntityType.MESSAGE]: 'Message',
           [EntityType.PART]: 'Part',
           [EntityType.AI_OPTIONS]: 'AI Options',

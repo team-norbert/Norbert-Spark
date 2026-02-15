@@ -16,7 +16,11 @@ describe('useUserChats', () => {
   let mockGetChatsByUserIdAction: ReturnType<typeof vi.fn>
 
   const TEST_USER_ID = '01234567-89ab-cdef-0123-456789abcdef'
-  const TEST_CHAT_IDS = ['chat-id-1', 'chat-id-2', 'chat-id-3']
+  const TEST_CHAT_IDS = [
+    { id: 'chat-id-1', chatTypeId: 'type-1', seoFriendlyId: 'chat-test-1' },
+    { id: 'chat-id-2', chatTypeId: 'type-2', seoFriendlyId: 'chat-test-2' },
+    { id: 'chat-id-3', chatTypeId: 'type-3', seoFriendlyId: 'chat-test-3' },
+  ]
 
   // Helper to create a wrapper with QueryClient
   function createWrapper() {
@@ -93,7 +97,7 @@ describe('useUserChats', () => {
     it('should return single chat ID', async () => {
       const mockResponse: AIUserIdResponseSchemaType = {
         success: true,
-        data: ['single-chat-id'],
+        data: [{ id: 'single-chat-id', chatTypeId: 'type-1', seoFriendlyId: 'chat-single' }],
       }
       mockGetChatsByUserIdAction.mockResolvedValue(mockResponse)
 
@@ -105,12 +109,18 @@ describe('useUserChats', () => {
         expect(result.current.isSuccess).toBe(true)
       })
 
-      expect(result.current.data).toEqual(['single-chat-id'])
+      expect(result.current.data).toEqual([
+        { id: 'single-chat-id', chatTypeId: 'type-1', seoFriendlyId: 'chat-single' },
+      ])
       expect(result.current.data).toHaveLength(1)
     })
 
     it('should handle many chat IDs', async () => {
-      const manyChatIds = Array.from({ length: 100 }, (_, i) => `chat-id-${i}`)
+      const manyChatIds = Array.from({ length: 100 }, (_, i) => ({
+        id: `chat-id-${i}`,
+        chatTypeId: `type-${i}`,
+        seoFriendlyId: `chat-test-${i}`,
+      }))
       const mockResponse: AIUserIdResponseSchemaType = {
         success: true,
         data: manyChatIds,

@@ -1,4 +1,4 @@
-import { desc } from 'drizzle-orm'
+import { desc, eq, or } from 'drizzle-orm'
 
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { db } from '../../../infrastructure/database/index.js'
@@ -47,5 +47,35 @@ export class AIChatContentRepository implements AIContentPort {
   async fetchChatContent(): Promise<DBChatType[]> {
     this.logger.debug('Fetching chatContent from chat_types table')
     return db.select().from(chatTypes).orderBy(desc(chatTypes.createdAt))
+  }
+
+  /**
+   * Resolves a chat type parameter (id, seoFriendlyId, or seoFriendlyBase64Id)
+   * to the actual UUID id of the chat type.
+   *
+   * Queries the chat_types table matching the param against all three unique
+   * identifier columns. Since all three are unique, at most one row will match.
+   *
+   * @param param - One of the three unique identifiers for a chat type
+   * @returns The UUID id of the matching chat type, or null if not found
+   */
+  async resolveChatTypeByParam(param: string): Promise<string | null> {
+    this.logger.debug('Resolving chat type by param', { param })
+
+    const result = await db
+      .select({ id: chatTypes.id })
+      .from(chatTypes)
+      .where(
+        or(
+          eq(chatTypes.id, param),
+          eq(chatTypes.seoFriendlyId, param),
+          eq(chatTypes.seoFriendlyBase64Id, param)
+        )
+      )
+      .limit(1)
+
+    const resolved = result[0]?.id ?? null
+    this.logger.debug('Resolved chat type', { param, resolvedId: resolved })
+    return resolved
   }
 }

@@ -2,7 +2,31 @@
 
 ## Goal
 
-Replace the temporary placeholder at `apps/backend/src/adapters/secondary/repositories/ai.repository.ts:84` with the real `chatTypeId` value, using a hybrid of Approach 4 (Landing Page) and Approach 3 (Body-Only).
+Replace the temporary placeholder at `apps/backend/src/adapters/secondary/repositories/ai.repository.ts:84` with the real `chatTypeId` value, using **URI state** to connect the right `chatTypeId` from `chat_types` to each chat.
+
+### URI Structure
+
+The chat type is identified via a URL parameter that can be **any of the three unique identifiers** from the `chat_types` table:
+
+```
+https://localhost:4321/ai/{chatTypeParam}/{chatId}
+```
+
+Examples (all pointing to the same chat type, same chat):
+
+```
+https://localhost:4321/ai/chat-019c6003-28df-722a-a79d-0ce2b2f826df/019c613f-8284-74b5-93f0-77fbb1e1724e
+https://localhost:4321/ai/chat-heart-darkness/019c613f-8284-74b5-93f0-77fbb1e1724e
+https://localhost:4321/ai/chat-AZxgAyjfciqnnQzisvgm3w/019c613f-8284-74b5-93f0-77fbb1e1724e
+```
+
+| Column                   | Example Value                          | URL Segment                                 |
+| ------------------------ | -------------------------------------- | ------------------------------------------- |
+| `id` (UUID)              | `019c6003-28df-722a-a79d-0ce2b2f826df` | `chat-019c6003-28df-722a-a79d-0ce2b2f826df` |
+| `seo_friendly_id` (slug) | `chat-heart-darkness`                  | `chat-heart-darkness`                       |
+| `seo_friendly_base64_id` | `AZxgAyjfciqnnQzisvgm3w`               | `chat-AZxgAyjfciqnnQzisvgm3w`               |
+
+**Fallback**: If the URL parameter is not present, the `chatTypeId` UUID is passed directly in the POST request body.
 
 ---
 
@@ -19,16 +43,17 @@ The former `/ai/chats/types` endpoint has been removed from the OpenAPI spec. Th
 
 ---
 
-## Hybrid Strategy Summary
+## Strategy Summary
 
-| Concern                    | Approach                                                                |
-| -------------------------- | ----------------------------------------------------------------------- |
-| **Frontend URL structure** | Two-segment: `/ai/[chatTypeId]/[chatId]` (Approach 4)                   |
-| **Chat type selection**    | Landing page at `/ai` lists available types (Approach 4)                |
-| **Backend delivery**       | `chatTypeId` sent in POST request body (Approach 3)                     |
-| **Sidebar links**          | Constructed from `chatTypeId` + `chatId` returned by `getChatsByUserId` |
+| Concern                    | Approach                                                                   |
+| -------------------------- | -------------------------------------------------------------------------- |
+| **Frontend URL structure** | Two-segment: `/ai/[chatTypeParam]/[chatId]`                                |
+| **Chat type selection**    | Landing page at `/ai` lists available types                                |
+| **Chat type resolution**   | `chatTypeParam` sent in POST body → backend resolves via 3 unique columns  |
+| **Fallback**               | If no `chatTypeParam`, `chatTypeId` UUID sent directly in body             |
+| **Sidebar links**          | Constructed from `seoFriendlyId` + `chatId` returned by `getChatsByUserId` |
 
-The URL carries `chatTypeId` for navigation and bookmarkability. The backend extracts `chatTypeId` from the request body — not from the URL — keeping the API RESTful and decoupled from the frontend's routing scheme.
+The URL carries a human-readable or unique identifier for navigation and bookmarkability. The backend resolves `chatTypeParam` against `chat_types.id`, `chat_types.seo_friendly_id`, and `chat_types.seo_friendly_base64_id` (all unique columns) to obtain the actual UUID `chatTypeId`.
 
 ---
 

@@ -3,6 +3,7 @@ import { desc, eq, asc, sql } from 'drizzle-orm'
 import { db } from '../../../infrastructure/database/index.js'
 import {
   chats,
+  chatTypes,
   messages,
   parts,
   type DBMessageSelect,
@@ -14,6 +15,8 @@ import type { ChatIdType } from '../../../domain/value-objects/chatID.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { mapUIMessagePartsToDBParts } from '../../../shared/mapper/index.js'
 import { isArray } from '@norberts-spark/shared'
+
+import type { ChatWithType } from '../../../application/ports/ai.port.js'
 
 export type ChatResponseResult = {
   chat: typeof chats.$inferSelect
@@ -69,20 +72,21 @@ export class AIRepository implements AIServicePort {
   async createChat(
     chatId: ChatIdType,
     userId: UserIdType,
+    chatTypeId: ChatIdType,
     initialMessages: UIMessage[] = []
   ): Promise<string> {
     const newChat = {
       userId: userId,
       id: chatId,
+      chatTypeId: chatTypeId,
     }
 
     this.logger.info('chatId', chatId)
     this.logger.info('userId', userId)
+    this.logger.info('chatTypeId', chatTypeId)
     this.logger.info('initialMessages', initialMessages)
     this.logger.info('createChat', newChat)
 
-    // TODO: add chatTypeId to the chats table
-    // @ts-expect-error
     await db.insert(chats).values(newChat)
 
     this.logger.info('initialMessages', initialMessages)
@@ -119,16 +123,23 @@ export class AIRepository implements AIServicePort {
     return chatId
   }
 
-  async getChatsByUserId(userId: UserIdType): Promise<ChatIdType[]> {
+  async getChatsByUserId(userId: UserIdType): Promise<ChatWithType[]> {
     const result = await db
       .select({
         id: chats.id,
+        chatTypeId: chats.chatTypeId,
+        seoFriendlyId: chatTypes.seoFriendlyId,
       })
       .from(chats)
+      .innerJoin(chatTypes, eq(chats.chatTypeId, chatTypes.id))
       .where(eq(chats.userId, userId))
       .orderBy(desc(chats.updatedAt))
 
-    return result.map((row) => row.id as ChatIdType)
+    return result.map((row) => ({
+      id: row.id as ChatIdType,
+      chatTypeId: row.chatTypeId,
+      seoFriendlyId: row.seoFriendlyId,
+    }))
   }
 
   async getChatDetails(): Promise<void> {

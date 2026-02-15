@@ -3,6 +3,7 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIController } from '../../../../src/adapters/primary/http/ai.controller.js'
+import type { ChatWithType } from '../../../../src/application/ports/ai.port.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import type { AppendedChatUseCase } from '../../../../src/application/use-cases/append-chat.use-case.js'
 import type { GetChatUseCase } from '../../../../src/application/use-cases/get-chat.use-case.js'
@@ -10,6 +11,7 @@ import type { GetChatAiOptionsUseCase } from '../../../../src/application/use-ca
 import type { GetChatContentByChatIdUseCase } from '../../../../src/application/use-cases/get-chat-content-by-chat-id.use-case.js'
 import type { GetChatDetailsUseCase } from '../../../../src/application/use-cases/get-chat-details.use-case.js'
 import type { GetChatsByUserIdUseCase } from '../../../../src/application/use-cases/get-chats-by-userid.use-case.js'
+import type { ResolveChatTypeUseCase } from '../../../../src/application/use-cases/resolve-chat-type.use-case.js'
 import type { SaveChatUseCase } from '../../../../src/application/use-cases/save-chat.use-case.js'
 import { ChatId } from '../../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
@@ -61,6 +63,7 @@ describe('AIController', () => {
   let mockGetChatContentByChatIdUseCase: GetChatContentByChatIdUseCase
   let mockGetChatDetailsUseCase: GetChatDetailsUseCase
   let mockGetChatAiOptionsUseCase: GetChatAiOptionsUseCase
+  let mockResolveChatTypeUseCase: ResolveChatTypeUseCase
   let mockLogger: LoggerPort
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
@@ -100,6 +103,10 @@ describe('AIController', () => {
       }),
     } as any
 
+    mockResolveChatTypeUseCase = {
+      execute: vi.fn(),
+    } as any
+
     // Create mock logger
     mockLogger = {
       info: vi.fn(),
@@ -117,7 +124,8 @@ describe('AIController', () => {
       mockGetChatsByUserIdUseCase,
       mockGetChatContentByChatIdUseCase,
       mockGetChatDetailsUseCase,
-      mockGetChatAiOptionsUseCase
+      mockGetChatAiOptionsUseCase,
+      mockResolveChatTypeUseCase
     )
 
     // Create mock Fastify reply with chainable methods
@@ -153,7 +161,8 @@ describe('AIController', () => {
         mockGetChatsByUserIdUseCase,
         mockGetChatContentByChatIdUseCase,
         mockGetChatDetailsUseCase,
-        mockGetChatAiOptionsUseCase
+        mockGetChatAiOptionsUseCase,
+        mockResolveChatTypeUseCase
       )
 
       expect(instance).toBeInstanceOf(AIController)
@@ -169,7 +178,8 @@ describe('AIController', () => {
         mockGetChatsByUserIdUseCase,
         mockGetChatContentByChatIdUseCase,
         mockGetChatDetailsUseCase,
-        mockGetChatAiOptionsUseCase
+        mockGetChatAiOptionsUseCase,
+        mockResolveChatTypeUseCase
       )
 
       expect(instance).toBeDefined()
@@ -643,7 +653,18 @@ describe('AIController', () => {
     describe('successful scenarios', () => {
       it('should retrieve chats for a valid userId', async () => {
         const userId = new UserId(uuidv7()).getValue()
-        const mockChats = [new ChatId(uuidv7()).getValue(), new ChatId(uuidv7()).getValue()]
+        const mockChats: ChatWithType[] = [
+          {
+            id: new ChatId(uuidv7()).getValue(),
+            chatTypeId: uuidv7(),
+            seoFriendlyId: 'chat-test-1',
+          },
+          {
+            id: new ChatId(uuidv7()).getValue(),
+            chatTypeId: uuidv7(),
+            seoFriendlyId: 'chat-test-2',
+          },
+        ]
 
         mockRequest.params = { userId }
         mockRequest.user = {
@@ -703,7 +724,11 @@ describe('AIController', () => {
 
       it('should handle multiple chats for a user', async () => {
         const userId = new UserId(uuidv7()).getValue()
-        const mockChats = Array.from({ length: 10 }, () => new ChatId(uuidv7()).getValue())
+        const mockChats: ChatWithType[] = Array.from({ length: 10 }, (_, i) => ({
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: uuidv7(),
+          seoFriendlyId: `chat-test-${i + 1}`,
+        }))
 
         mockRequest.params = { userId }
         mockRequest.user = {
@@ -868,7 +893,18 @@ describe('AIController', () => {
     describe('authorization', () => {
       it('should allow user to access their own chat history', async () => {
         const userId = new UserId(uuidv7()).getValue()
-        const mockChats = [new ChatId(uuidv7()).getValue(), new ChatId(uuidv7()).getValue()]
+        const mockChats: ChatWithType[] = [
+          {
+            id: new ChatId(uuidv7()).getValue(),
+            chatTypeId: uuidv7(),
+            seoFriendlyId: 'chat-test-1',
+          },
+          {
+            id: new ChatId(uuidv7()).getValue(),
+            chatTypeId: uuidv7(),
+            seoFriendlyId: 'chat-test-2',
+          },
+        ]
 
         mockRequest.params = { userId }
         mockRequest.user = {
@@ -899,7 +935,13 @@ describe('AIController', () => {
       it('should allow admin to access any user chat history', async () => {
         const targetUserId = new UserId(uuidv7()).getValue()
         const adminUserId = new UserId(uuidv7()).getValue()
-        const mockChats = [new ChatId(uuidv7()).getValue()]
+        const mockChats: ChatWithType[] = [
+          {
+            id: new ChatId(uuidv7()).getValue(),
+            chatTypeId: uuidv7(),
+            seoFriendlyId: 'chat-test-1',
+          },
+        ]
 
         mockRequest.params = { userId: targetUserId }
         mockRequest.user = {
@@ -930,7 +972,13 @@ describe('AIController', () => {
       it('should allow moderator to access any user chat history', async () => {
         const targetUserId = new UserId(uuidv7()).getValue()
         const moderatorUserId = new UserId(uuidv7()).getValue()
-        const mockChats = [new ChatId(uuidv7()).getValue()]
+        const mockChats: ChatWithType[] = [
+          {
+            id: new ChatId(uuidv7()).getValue(),
+            chatTypeId: uuidv7(),
+            seoFriendlyId: 'chat-test-1',
+          },
+        ]
 
         mockRequest.params = { userId: targetUserId }
         mockRequest.user = {
@@ -1025,7 +1073,13 @@ describe('AIController', () => {
       it('should allow user with both admin and moderator roles to access any user chat history', async () => {
         const targetUserId = new UserId(uuidv7()).getValue()
         const adminUserId = new UserId(uuidv7()).getValue()
-        const mockChats = [new ChatId(uuidv7()).getValue()]
+        const mockChats: ChatWithType[] = [
+          {
+            id: new ChatId(uuidv7()).getValue(),
+            chatTypeId: uuidv7(),
+            seoFriendlyId: 'chat-test-1',
+          },
+        ]
 
         mockRequest.params = { userId: targetUserId }
         mockRequest.user = {
