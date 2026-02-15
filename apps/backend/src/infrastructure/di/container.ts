@@ -20,8 +20,9 @@ import { PutAIAdminUseCase } from '../../application/use-cases/put-ai-admin.use-
 import { GetChatAiOptionsUseCase } from '../../application/use-cases/get-chat-ai-options.use-case.js'
 import { GetCompanyDetailsUseCase } from '../../application/use-cases/get-company-details.use-case.js'
 import { PutCompanyDetailsUseCase } from '../../application/use-cases/put-company-details.use-case.js'
+import { GetUserByIdUseCase } from '../../application/use-cases/get-user-by-id.use-case.js'
 // Adapters
-import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
+import { UserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
 import { ResendService } from '../../adapters/secondary/services/email.service.js'
 import { PinoLoggerService } from '../../adapters/secondary/services/logger.service.js'
@@ -83,7 +84,7 @@ export class Container {
   public readonly tokenGenerator: JwtTokenGeneratorService
 
   // Repositories
-  public readonly userRepository: PostgresUserRepository
+  public readonly userRepository: UserRepository
   public readonly aiRepository: AIRepository
   public readonly bucketService: BucketService
   public readonly aiChatContentRepository: AIChatContentRepository
@@ -110,6 +111,7 @@ export class Container {
   private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase
   private readonly getCompanyDetailsUseCase: GetCompanyDetailsUseCase
   private readonly putCompanyDetailsUseCase: PutCompanyDetailsUseCase
+  private readonly getUserByIdUseCase: GetUserByIdUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -198,7 +200,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.tokenGenerator = new JwtTokenGeneratorService()
 
     // Initialize repositories (secondary adapters)
-    this.userRepository = new PostgresUserRepository()
+    this.userRepository = new UserRepository()
     this.aiRepository = new AIRepository(this.logger)
     this.aiChatContentRepository = new AIChatContentRepository(this.logger)
     this.auditLog = new AuditLogRepository(this.logger)
@@ -282,11 +284,18 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.auditLog,
       this.companyRepository
     )
+    this.getUserByIdUseCase = new GetUserByIdUseCase(
+      this.userRepository,
+      this.logger,
+      this.auditLog
+    )
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
       this.registerUserUseCase,
       this.getAllUsersUseCase,
-      this.deleteUsersUseCase
+      this.deleteUsersUseCase,
+      this.getUserByIdUseCase,
+      this.logger
     )
     this.authController = new AuthController(
       this.loginUserUseCase,

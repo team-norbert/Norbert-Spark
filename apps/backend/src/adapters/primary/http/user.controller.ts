@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { RegisterUserUseCase } from '../../../application/use-cases/register-user.use-case.js'
 import { GetAllUsersUseCase } from '../../../application/use-cases/get-all-users.use-case.js'
+import { GetUserByIdUseCase } from '../../../application/use-cases/get-user-by-id.use-case.js'
 import { RegisterUserDto } from '../../../application/dtos/register-user.dto.js'
 import { DeleteUsersDto } from '../../../application/dtos/delete-users.dto.js'
 import { UserId } from '../../../domain/value-objects/userID.js'
@@ -8,6 +9,7 @@ import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { DeleteUsersUseCase } from '../../../application/use-cases/delete-users.use-case.js'
+import type { LoggerPort } from '../../../application/ports/logger.port.js'
 /**
  * HTTP controller for user-related endpoints
  *
@@ -23,16 +25,20 @@ import { DeleteUsersUseCase } from '../../../application/use-cases/delete-users.
  * ```
  */
 export class UserController {
-  /**
+  /**x
    * Creates an instance of UserController
    * @param {RegisterUserUseCase} registerUserUseCase - Use case for registering new users
    * @param {GetAllUsersUseCase} getAllUsersUseCase - Use case for retrieving all users
    * @param {DeleteUsersUseCase} deleteUsersUseCase - Use case for deleting users
+   * @param {GetUserByIdUseCase} getUserByIdUseCase - Use case for retrieving a user by ID
+   * @param {LoggerPort} logger - Logger for tracking operations and debugging
    */
   constructor(
     private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly getAllUsersUseCase: GetAllUsersUseCase,
-    private readonly deleteUsersUseCase: DeleteUsersUseCase
+    private readonly deleteUsersUseCase: DeleteUsersUseCase,
+    private readonly getUserByIdUseCase: GetUserByIdUseCase,
+    private readonly logger: LoggerPort
   ) {}
 
   /**
@@ -62,9 +68,9 @@ export class UserController {
     app.get(
       '/users/:id',
       {
-        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+        preHandler: [authMiddleware],
       },
-      this.getUser.bind(this)
+      this.getUserById.bind(this)
     )
     app.delete(
       '/users',
@@ -292,6 +298,76 @@ export class UserController {
       reply.code(201).send({
         success: true,
         data: result,
+      })
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'An unexpected error occurred'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
+  }
+
+  async getUserById(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      const auditContext = {
+        userId: request.user?.sub ?? null,
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] ?? null,
+      }
+      const params = request.params as Record<string, unknown>
+      this.logger.debug(`Request params: ${JSON.stringify(params)}`)
+      const id = params.id as string
+      this.logger.debug(`Request id: ${id}`)
+      const userId = new UserId(id).getValue()
+      this.logger.debug(`Request userId: ${userId}`)
+
+      // Authorization check: users can only access their own data unless they're admin/moderator
+      const requestingUserId = request.user?.sub
+      const userRole = request.user?.roles
+
+      if (!requestingUserId) {
+        reply.code(401).send({
+          success: false,
+          error: 'Unauthorized',
+        })
+        return
+      }
+
+      // Check if user is trying to access someone else's data
+      const isAccessingOwnData = requestingUserId === userId
+      const isAdminOrModerator = userRole?.includes('admin') || userRole?.includes('moderator')
+
+      if (!isAccessingOwnData && !isAdminOrModerator) {
+        reply.code(403).send({
+          success: false,
+          error: 'Forbidden: You can only access your own user data',
+        })
+        return
+      }
+
+      const data = await this.getUserByIdUseCase.execute(userId, auditContext)
+
+      if (!data) {
+        reply.code(404).send({
+          success: false,
+          error: 'User not found',
+        })
+        return
+      }
+
+      reply.code(200).send({
+        success: true,
+        data: {
+          id: data?.id,
+          email: data?.getEmail(),
+          name: data?.getName(),
+          role: data?.getRole(),
+          createdAt: data?.getCreatedAt(),
+          updatedAt: data?.getUpdatedAt(),
+        },
       })
     } catch (error) {
       const err = error as Error

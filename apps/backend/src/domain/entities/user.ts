@@ -52,6 +52,7 @@ export class User {
    * @param role - User's role (RoleType branded type for type safety)
    * @param password - User's hashed password (PasswordType branded type for type safety, optional for OAuth users)
    * @param createdAt - Timestamp when the user was created (defaults to current date/time)
+   * @param updatedAt
    * @param provider - Authentication provider (optional, for OAuth users)
    * @param providerId - Unique identifier from the authentication provider (optional, for OAuth users)
    * @param twoFactorEnabled - Whether two-factor authentication is enabled (defaults to false)
@@ -79,6 +80,7 @@ export class User {
     private role: RoleType,
     private password?: PasswordType,
     private createdAt: Date = new Date(),
+    private updatedAt: Date = new Date(),
     private provider?: string,
     private providerId?: string,
     private twoFactorEnabled: boolean = false,
@@ -269,6 +271,10 @@ export class User {
    */
   getCreatedAt(): Date {
     return this.createdAt
+  }
+
+  getUpdatedAt(): Date {
+    return this.updatedAt
   }
 
   /**

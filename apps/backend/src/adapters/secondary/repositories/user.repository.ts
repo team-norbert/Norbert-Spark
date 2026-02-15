@@ -55,7 +55,7 @@ import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js
  * @see {@link UserRepositoryPort} for the port interface definition
  * @see {@link User} for the domain entity
  */
-export class PostgresUserRepository implements UserRepositoryPort {
+export class UserRepository implements UserRepositoryPort {
   /**
    * Persists a new user entity to the database
    *
@@ -351,7 +351,7 @@ export class PostgresUserRepository implements UserRepositoryPort {
    * }
    * ```
    */
-  async findById(id: string): Promise<User | null> {
+  async findById(id: UserIdType): Promise<User | null> {
     try {
       const result = await db.select().from(user).where(eq(user.userId, id))
 
@@ -587,6 +587,7 @@ export class PostgresUserRepository implements UserRepositoryPort {
       role,
       password,
       record.createdAt,
+      record.updatedAt,
       record.provider ?? undefined,
       record.providerId ?? undefined,
       record.twoFactorEnabled,

@@ -11,14 +11,10 @@ import { ConflictException } from '../../shared/exceptions/conflict.exception.js
 import { DatabaseUtil } from '../../shared/utils/database.util.js'
 import { EnvConfig } from '../../infrastructure/config/env.config.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
-import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
+import type { AuditLogPort } from '../ports/audit-log.port.js'
 import { EntityType } from '../../domain/audit/entity-type.enum.js'
 import { AuditAction } from '../../domain/audit/entity-type.enum.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
-import type {
-  RegistrationFailedChanges,
-  RegistrationSuccessChanges,
-} from '../../domain/audit/audit-changes.types.js'
 
 /**
  * Use case for registering a new user in the system
@@ -111,7 +107,16 @@ export class RegisterUserUseCase {
     const password = dto.password ? await Password.create(dto.password) : undefined
 
     // Create user entity without ID - PostgreSQL will generate UUIDv7 via uuidv7() function
-    const user = new User(undefined, email, dto.name, role, password, undefined, dto.provider)
+    const user = new User(
+      undefined,
+      email,
+      dto.name,
+      role,
+      password,
+      new Date(),
+      new Date(),
+      dto.provider
+    )
 
     // Persist user with race condition handling
     // The database has a unique constraint on email, so if two concurrent requests
@@ -124,45 +129,36 @@ export class RegisterUserUseCase {
     } catch (error) {
       this.logger.error('Failed to save user', error as Error, { email: dto.email })
       if (DatabaseUtil.isDuplicateKeyError(error)) {
-        // For failed registration: entityId = email (no user entity created yet)
-        const auditEntry: CreateAuditLogDTO = {
+        await this.auditLog.log({
           userId: auditContext.userId,
           entityType: EntityType.USER,
           entityId: String(email),
           action: AuditAction.REGISTRATION_FAILED,
-          changes: {
-            email: dto.email,
-            reason: 'duplicate_email',
-          } satisfies RegistrationFailedChanges,
+          changes: { reason: 'duplicate_email' },
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent ?? undefined,
-        }
-        await this.auditLog.log(auditEntry)
+        })
         throw new ConflictException('User with this email already exists', { email: dto.email })
       }
       throw error
     }
 
     try {
-      // For successful registration: entityId = userId (user entity now exists)
-      const auditEntry: CreateAuditLogDTO = {
+      await this.auditLog.log({
         userId: userId,
         entityType: EntityType.USER,
-        entityId: String(userId),
+        entityId: userId,
         action: AuditAction.CREATE,
-        changes: {
-          email: dto.email,
-          reason: 'new_user',
-        } satisfies RegistrationSuccessChanges,
+        changes: { reason: 'new_user' },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
-      }
-      await this.auditLog.log(auditEntry)
+      })
     } catch (error) {
       this.logger.error('Failed to write audit log for user registration', error as Error, {
         userId: userId,
         email: dto.email,
       })
+      // Don't fail registration if audit logging fails
     }
 
     // Send welcome email

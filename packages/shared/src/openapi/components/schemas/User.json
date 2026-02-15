@@ -1,7 +1,7 @@
 {
   "type": "object",
   "description": "User profile information",
-  "required": ["id", "email", "name", "role", "createdAt"],
+  "required": ["id", "email", "name", "role", "createdAt", "twoFactorEnabled", "updatedAt"],
   "properties": {
     "id": {
       "type": "string",
@@ -23,10 +23,21 @@
       "example": "user",
       "description": "User's role in the system"
     },
+    "twoFactorEnabled": {
+      "type": "boolean",
+      "example": false,
+      "description": "Indicates whether the user has two-factor authentication enabled"
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
       "example": "2035-01-01T00:00:00.000Z"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2035-01-02T00:00:00.000Z",
+      "description": "Timestamp of the last update to the user's profile"
     }
   }
 }

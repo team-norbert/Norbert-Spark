@@ -128,6 +128,7 @@ This report documents the comparison between API endpoint implementations in `ap
   - **Implementation:** Accepts and validates `limit` (1-100) and `offset` (0+) query params
 
 **Severity:** 🔴 **CRITICAL** - Response structure completely different. OpenAPI expects flat array, implementation wraps with success/pagination.
+**Status:** Fixed critical issue by updating OpenAPI spec to match implementation response structure.
 
 **Recommendation:** Update OpenAPI spec to:
 
