@@ -5,7 +5,7 @@ import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { EntityType, AuditAction } from '../../domain/audit/entity-type.enum.js'
-import type { ChatTypeChange } from '../../domain/audit/audit-changes.types.js'
+import type { UpdateChanges } from '../../domain/audit/audit-changes.types.js'
 
 export class SaveChatUseCase {
   constructor(
@@ -34,7 +34,7 @@ export class SaveChatUseCase {
         entityType: EntityType.CHAT,
         entityId: chatId,
         action: AuditAction.CREATE,
-        changes: { reason: 'chat_successfully_saved' } satisfies ChatTypeChange,
+        changes: { reason: 'chat_successfully_saved' } satisfies UpdateChanges,
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
