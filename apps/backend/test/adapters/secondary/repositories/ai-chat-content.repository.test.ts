@@ -139,15 +139,15 @@ describe('AIChatContentRepository', () => {
         const chatTypeId = uuidv7()
         const param = uuidv7()
 
-    // Helper function to setup mock database query
-    const setupMockQuery = (mockResult: any[]) => {
-      const mockLimit = vi.fn().mockResolvedValue(mockResult)
-      const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit })
-      const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
-      const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
-      vi.mocked(db.select).mockReturnValue(mockSelect() as any)
-      return { mockLimit, mockWhere, mockFrom, mockSelect }
-    }
+        // Helper function to setup mock database query
+        const setupMockQuery = (mockResult: any[]) => {
+          const mockLimit = vi.fn().mockResolvedValue(mockResult)
+          const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit })
+          const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
+          const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
+          vi.mocked(db.select).mockReturnValue(mockSelect() as any)
+          return { mockLimit, mockWhere, mockFrom, mockSelect }
+        }
         vi.mocked(Uuid7Util.isValidUUID).mockReturnValue(true)
 
         const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId }])
