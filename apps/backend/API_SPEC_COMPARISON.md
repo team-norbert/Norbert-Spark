@@ -278,7 +278,7 @@ This report documents the comparison between API endpoint implementations in `ap
   - **Implementation:** Uses camelCase: `createdAt`, `updatedAt`, `seoFriendlyId`, `seoFriendlyBase64Id` (TypeScript convention)
 
 **Severity:** 🔴 **CRITICAL** - Field naming convention inconsistency will break API consumers following the spec
-**Updated:** Change OpenAPI spec to match implementation's camelCase field names, or change implementation to use snake_case. Consistency is key.
+**Resolution:** Update the OpenAPI spec to match the implementation's camelCase field names, ensuring consistent field naming across the API contract and codebase.
 **Recommendation:** Choose one convention and apply consistently:
 
 - **Option 1:** Update OpenAPI spec to use camelCase (aligns with JavaScript/TypeScript conventions)
@@ -354,6 +354,7 @@ This report documents the comparison between API endpoint implementations in `ap
 - 🔴 **CRITICAL - Authorization missing in spec:**
   - **OpenAPI spec:** No role-based authorization documented
   - **Implementation:** Requires JWT authentication (no role restrictions)
+    **Update:** Changed from oauthSyncSecret to bearerAuth in OpenAPI spec
 - ⚠️ **Field naming:** Need to verify camelCase consistency between spec and implementation
 
 **Severity:** 🔴 **CRITICAL** - Authentication mechanism completely wrong in OpenAPI spec. Spec says oauthSyncSecret but implementation uses JWT.
