@@ -54,7 +54,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
   // Filter chat types based on search query (client-side filtering)
   const filteredChatTypes = searchQuery
     ? chatTypes.filter((chatType) => {
-        const query = searchQuery.toLowerCase()
+        const query = searchQuery.trim().toLowerCase()
         return (
           chatType.name.toLowerCase().includes(query) ||
           chatType.description.toLowerCase().includes(query) ||
