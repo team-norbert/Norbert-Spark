@@ -15,12 +15,14 @@ interface UseChatTypesPageReturn {
   handlePaginationChange: (model: GridPaginationModel) => void
   handleSearchChange: (query: string) => void
   handleCloseErrorMessage: () => void
+  hasQueryError: boolean
 }
 
 /**
  * Custom hook for Chat Types page logic following DDD architecture.
  * Handles chat types configuration data fetching, pagination, search, and error states.
  * Uses TanStack Query for automatic caching, refetching, and state management.
+ * Implements server-side pagination where the hook slices data and tracks the total count.
  */
 export function useChatTypesPage(): UseChatTypesPageReturn {
   const [searchQuery, setSearchQuery] = useState('')
@@ -29,6 +31,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     pageSize: 10,
   })
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [errorDismissed, setErrorDismissed] = useState(false)
 
   // Use TanStack Query hook for data fetching with automatic caching
   const { chatTypes, error, isLoading } = useAIChatConfig()
@@ -45,6 +48,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
 
   const handleCloseErrorMessage = () => {
     setErrorMessage(null)
+    setErrorDismissed(true)
   }
 
   // Filter chat types based on search query (client-side filtering)
@@ -60,14 +64,18 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
       })
     : chatTypes
 
-  // Calculate pagination
+  // Calculate pagination - hook handles slicing for server-side pagination mode
   const startIndex = paginationModel.page * paginationModel.pageSize
   const endIndex = startIndex + paginationModel.pageSize
   const paginatedChatTypes = filteredChatTypes.slice(startIndex, endIndex)
 
+  // Determine which error to show - prefer query error unless dismissed
+  const hasQueryError = Boolean(error?.message)
+  const displayError = hasQueryError && !errorDismissed ? error?.message || null : errorMessage
+
   return {
     chatTypes: paginatedChatTypes,
-    error: error?.message || errorMessage,
+    error: displayError,
     loading: isLoading,
     searchQuery,
     paginationModel,
@@ -75,5 +83,6 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     handlePaginationChange,
     handleSearchChange,
     handleCloseErrorMessage,
+    hasQueryError,
   }
 }
