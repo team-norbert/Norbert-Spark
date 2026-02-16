@@ -2,7 +2,6 @@
 
 import { Alert, Box, Container, TextField, Tooltip, Typography } from '@mui/material'
 import { DataGrid, type GridColDef, type GridPaginationModel } from '@mui/x-data-grid'
-import { useState } from 'react'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
 
@@ -25,7 +24,7 @@ interface ChatTypesPageProps {
 /**
  * Chat Types page component following DDD architecture.
  * This is a presentational component - all logic is handled by the hook.
- * Displays chat types configuration in a DataGrid.
+ * Displays chat types configuration in a read-only DataGrid.
  */
 export function ChatTypesPage({
   chatTypes,
@@ -40,39 +39,7 @@ export function ChatTypesPage({
   rowCount,
   searchQuery,
 }: ChatTypesPageProps) {
-  // State for inline editing
-  const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null)
-  const [editedValue, setEditedValue] = useState<string>('')
-
-  // Handle entering edit mode
-  const handleStartEdit = (id: string, field: string, currentValue: string) => {
-    setEditingCell({ id, field })
-    setEditedValue(currentValue)
-  }
-
-  // Handle exiting edit mode and saving
-  const handleSaveEdit = () => {
-    if (!editingCell) return
-    // TODO: Implement API call to save the edited value
-    console.log(
-      'Saving edited value:',
-      editedValue,
-      'for field:',
-      editingCell.field,
-      'id:',
-      editingCell.id
-    )
-    setEditingCell(null)
-    setEditedValue('')
-  }
-
-  // Handle canceling edit
-  const handleCancelEdit = () => {
-    setEditingCell(null)
-    setEditedValue('')
-  }
-
-  // Define columns for the DataGrid
+  // Define columns for the DataGrid - all read-only
   const columns: GridColDef<ChatType>[] = [
     {
       field: 'id',
@@ -111,133 +78,64 @@ export function ChatTypesPage({
       headerName: 'Name',
       width: 200,
       flex: 1,
-      renderCell: (params) => {
-        const isEditing = editingCell?.id === params.row.id && editingCell?.field === 'name'
-
-        if (isEditing) {
-          return (
-            <TextField
-              value={editedValue}
-              onChange={(e) => setEditedValue(e.target.value)}
-              onBlur={handleSaveEdit}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSaveEdit()
-                } else if (e.key === 'Escape') {
-                  handleCancelEdit()
-                }
-              }}
-              fullWidth
-              size="small"
-              variant="standard"
-              sx={{
-                '& .MuiInputBase-root': {
-                  fontSize: '0.875rem',
-                },
-              }}
-            />
-          )
-        }
-
-        return (
-          <Tooltip
-            title={params.value || ''}
-            arrow
-            placement="top"
-            slotProps={{
-              tooltip: {
-                sx: {
-                  fontSize: '1rem',
-                  maxWidth: 500,
-                },
+      renderCell: (params) => (
+        <Tooltip
+          title={params.value || ''}
+          arrow
+          placement="top"
+          slotProps={{
+            tooltip: {
+              sx: {
+                fontSize: '1rem',
+                maxWidth: 500,
               },
+            },
+          }}
+        >
+          <Box
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              width: '100%',
             }}
           >
-            <Box
-              onClick={() => handleStartEdit(params.row.id, 'name', params.value || '')}
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                width: '100%',
-                cursor: 'pointer',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
-            >
-              {params.value}
-            </Box>
-          </Tooltip>
-        )
-      },
+            {params.value}
+          </Box>
+        </Tooltip>
+      ),
     },
     {
       field: 'seoFriendlyId',
       headerName: 'SEO Friendly ID',
       width: 200,
       flex: 1,
-      renderCell: (params) => {
-        const isEditing =
-          editingCell?.id === params.row.id && editingCell?.field === 'seoFriendlyId'
-
-        if (isEditing) {
-          return (
-            <TextField
-              value={editedValue}
-              onChange={(e) => setEditedValue(e.target.value)}
-              onBlur={handleSaveEdit}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSaveEdit()
-                } else if (e.key === 'Escape') {
-                  handleCancelEdit()
-                }
-              }}
-              fullWidth
-              size="small"
-              variant="standard"
-              sx={{
-                '& .MuiInputBase-root': {
-                  fontSize: '0.875rem',
-                },
-              }}
-            />
-          )
-        }
-
-        return (
-          <Tooltip
-            title={params.value || ''}
-            arrow
-            placement="top"
-            slotProps={{
-              tooltip: {
-                sx: {
-                  fontSize: '1rem',
-                  maxWidth: 500,
-                },
+      renderCell: (params) => (
+        <Tooltip
+          title={params.value || ''}
+          arrow
+          placement="top"
+          slotProps={{
+            tooltip: {
+              sx: {
+                fontSize: '1rem',
+                maxWidth: 500,
               },
+            },
+          }}
+        >
+          <Box
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              width: '100%',
             }}
           >
-            <Box
-              onClick={() => handleStartEdit(params.row.id, 'seoFriendlyId', params.value || '')}
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                width: '100%',
-                cursor: 'pointer',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
-            >
-              {params.value}
-            </Box>
-          </Tooltip>
-        )
-      },
+            {params.value}
+          </Box>
+        </Tooltip>
+      ),
     },
     {
       field: 'seoFriendlyBase64Id',
@@ -276,66 +174,32 @@ export function ChatTypesPage({
       headerName: 'Description',
       width: 350,
       flex: 2,
-      renderCell: (params) => {
-        const isEditing = editingCell?.id === params.row.id && editingCell?.field === 'description'
-
-        if (isEditing) {
-          return (
-            <TextField
-              value={editedValue}
-              onChange={(e) => setEditedValue(e.target.value)}
-              onBlur={handleSaveEdit}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSaveEdit()
-                } else if (e.key === 'Escape') {
-                  handleCancelEdit()
-                }
-              }}
-              fullWidth
-              size="small"
-              variant="standard"
-              sx={{
-                '& .MuiInputBase-root': {
-                  fontSize: '0.875rem',
-                },
-              }}
-            />
-          )
-        }
-
-        return (
-          <Tooltip
-            title={params.value || ''}
-            arrow
-            placement="top"
-            slotProps={{
-              tooltip: {
-                sx: {
-                  fontSize: '1rem',
-                  maxWidth: 500,
-                },
+      renderCell: (params) => (
+        <Tooltip
+          title={params.value || ''}
+          arrow
+          placement="top"
+          slotProps={{
+            tooltip: {
+              sx: {
+                fontSize: '1rem',
+                maxWidth: 500,
               },
+            },
+          }}
+        >
+          <Box
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              width: '100%',
             }}
           >
-            <Box
-              onClick={() => handleStartEdit(params.row.id, 'description', params.value || '')}
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                width: '100%',
-                cursor: 'pointer',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
-            >
-              {params.value}
-            </Box>
-          </Tooltip>
-        )
-      },
+            {params.value}
+          </Box>
+        </Tooltip>
+      ),
     },
     {
       field: 'createdAt',
@@ -452,7 +316,7 @@ export function ChatTypesPage({
           columns={columns}
           loading={loading}
           rowCount={rowCount}
-          paginationMode="client"
+          paginationMode="server"
           paginationModel={paginationModel}
           onPaginationModelChange={onPaginationChange}
           pageSizeOptions={[5, 10, 25, 50]}
