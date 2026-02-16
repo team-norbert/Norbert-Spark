@@ -28,25 +28,19 @@ export class GetChatsByUserIdUseCase {
         userId,
       })
 
-      try {
-        const auditEntry: CreateAuditLogDTO = {
-          userId: auditContext.userId,
-          entityType: EntityType.CHAT,
-          entityId: userId,
-          action: AuditAction.FETCH_FAILED,
-          changes: {
-            reason: 'chat_retrieval_failed',
-            errorMessage: error instanceof Error ? error.message : 'Unknown error',
-          } satisfies FetchChatFailedChanges,
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        }
-        await this.auditLog.log(auditEntry)
-      } catch (auditError) {
-        this.logger.error('Error logging audit for failed chat retrieval', auditError as Error, {
-          userId: auditContext.userId,
-        })
+      const auditEntry: CreateAuditLogDTO = {
+        userId: auditContext.userId,
+        entityType: EntityType.CHAT,
+        entityId: userId,
+        action: AuditAction.FETCH_FAILED,
+        changes: {
+          reason: 'chat_retrieval_failed',
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        } satisfies FetchChatFailedChanges,
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
       }
+      await this.auditLog.log(auditEntry)
 
       throw error
     }

@@ -148,23 +148,19 @@ export class LoginUserUseCase {
     const user = await this.userRepository.findByEmail(dto.email)
 
     if (!user) {
-      try {
-        const auditEntry: CreateAuditLogDTO = {
-          userId: null,
-          entityType: EntityType.USER,
-          entityId: null,
-          action: AuditAction.LOGIN_FAILED,
-          changes: {
-            email: dto.email,
-            reason: 'user_not_found',
-          } satisfies LoginFailedChanges,
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        }
-        await this.auditLog.log(auditEntry)
-      } catch (error) {
-        this.logger.error('Error logging audit for user retrieval', error as Error, { user })
+      const auditEntry: CreateAuditLogDTO = {
+        userId: null,
+        entityType: EntityType.USER,
+        entityId: null,
+        action: AuditAction.LOGIN_FAILED,
+        changes: {
+          email: dto.email,
+          reason: 'user_not_found',
+        } satisfies LoginFailedChanges,
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
       }
+      await this.auditLog.log(auditEntry)
 
       this.logger.warn('Login failed: User not found', { email: dto.email })
       throw new UnauthorizedException('Invalid email or password')

@@ -5,6 +5,8 @@
  * for different audit log actions instead of using Record<string, any>.
  */
 
+import { extractDateLiteralSource } from 'eslint-plugin-codegen/dist/bundled-esm-modules/types/arktype/out/parser/shift/operand/date.js'
+
 /**
  * Changes tracked when an entity is created
  */
@@ -24,6 +26,13 @@ export interface UpdateChanges {
   after?: Record<string, unknown>
 }
 
+export interface FileUploadChanges {
+  reason: string
+  fileType?: string
+  fileSize?: number
+  fileName?: string
+  [key: string]: unknown
+}
 /**
  * Changes tracked when an entity is deleted
  */
@@ -131,4 +140,5 @@ export type AuditChanges =
   | FetchChatChanges
   | FetchChatFailedChanges
   | ChatTypeChange
+  | FileUploadChanges
   | Record<string, unknown> // Fallback for custom change structures

@@ -2,9 +2,10 @@ import type { LoggerPort } from '../ports/logger.port.js'
 import type { UIMessage } from 'ai'
 import type { AIServicePort } from '../ports/ai.port.js'
 import type { ChatIdType } from '../../domain/value-objects/chatID.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { EntityType, AuditAction } from '../../domain/audit/entity-type.enum.js'
+import type { DeleteChanges } from '../../domain/audit/audit-changes.types.js'
 
 export interface AppendedChatResult {
   chatId: string
@@ -35,21 +36,16 @@ export class AppendedChatUseCase {
     this.logger.debug('Appended chat', { chatId: chatIdString, messages })
     await this.aiService.appendToChatMessages(chatIdString, messages)
 
-    try {
-      await this.auditLog.log({
-        userId: auditContext.userId,
-        entityType: EntityType.CHAT,
-        entityId: chatId,
-        action: AuditAction.UPDATE,
-        changes: { reason: 'chat_successfuly_appended' },
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      })
-    } catch (error) {
-      this.logger.error('Error logging audit for appending chat', error as Error, {
-        userId: auditContext.userId,
-      })
+    const auditEntry: CreateAuditLogDTO = {
+      userId: auditContext.userId,
+      entityType: EntityType.CHAT,
+      entityId: chatId,
+      action: AuditAction.UPDATE,
+      changes: { reason: 'chat_successfuly_appended' },
+      ipAddress: auditContext.ipAddress,
+      userAgent: auditContext.userAgent ?? undefined,
     }
+    await this.auditLog.log(auditEntry)
 
     // This is a placeholder return value
     return {

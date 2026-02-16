@@ -1,11 +1,12 @@
 import type { LoggerPort } from '../ports/logger.port.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { CompanyDetailsPort } from '../ports/company.repository.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import type { CompanyUpdate, KeyPersonUpdate } from '../dtos/update-company.dto.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { Uuid } from '../../domain/value-objects/uuid.js'
 import type { DBCompanySelect, DBKeyPersonSelect } from '../../infrastructure/database/schema.js'
+import type { LoginFailedChanges } from '../../domain/audit/audit-changes.types.js'
 
 /**
  * Data structure for updating company and/or key person details.
@@ -225,43 +226,33 @@ export class PutCompanyDetailsUseCase {
     }
 
     if (resultPutCompanyDetails) {
-      try {
-        await this.auditLog.log({
-          userId: auditContext.userId,
-          entityType: EntityType.COMPANY,
-          entityId: new Uuid(data?.company?.companyId as string).getValue(),
-          action: AuditAction.UPDATE,
-          changes: {
-            reason: 'company_details_updated_successfully',
-          },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        })
-      } catch (error) {
-        this.logger.error('Error logging audit for company details update', error as Error, {
-          userId: auditContext.userId,
-        })
+      const auditEntry: CreateAuditLogDTO = {
+        userId: auditContext.userId,
+        entityType: EntityType.COMPANY,
+        entityId: new Uuid(data?.company?.companyId as string).getValue(),
+        action: AuditAction.UPDATE,
+        changes: {
+          reason: 'company_details_updated_successfully',
+        },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
       }
+      await this.auditLog.log(auditEntry)
     }
 
     if (resultPutKeyPersonDetails && data.keyPerson?.keyPersonId) {
-      try {
-        await this.auditLog.log({
-          userId: auditContext.userId,
-          entityType: EntityType.KEY_PERSON,
-          entityId: new Uuid(data.keyPerson.keyPersonId).getValue(),
-          action: AuditAction.UPDATE,
-          changes: {
-            reason: 'key_person_details_updated_successfully',
-          },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        })
-      } catch (error) {
-        this.logger.error('Error logging audit for key person details update', error as Error, {
-          userId: auditContext.userId,
-        })
+      const auditEntry: CreateAuditLogDTO = {
+        userId: auditContext.userId,
+        entityType: EntityType.KEY_PERSON,
+        entityId: new Uuid(data.keyPerson.keyPersonId).getValue(),
+        action: AuditAction.UPDATE,
+        changes: {
+          reason: 'key_person_details_updated_successfully',
+        },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
       }
+      await this.auditLog.log(auditEntry)
     }
 
     return {

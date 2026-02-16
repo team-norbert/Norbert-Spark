@@ -11,10 +11,11 @@ import { ConflictException } from '../../shared/exceptions/conflict.exception.js
 import { DatabaseUtil } from '../../shared/utils/database.util.js'
 import { EnvConfig } from '../../infrastructure/config/env.config.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import { EntityType } from '../../domain/audit/entity-type.enum.js'
 import { AuditAction } from '../../domain/audit/entity-type.enum.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
+import { Uuid } from '../../domain/value-objects/uuid.js'
 
 /**
  * Use case for registering a new user in the system
@@ -129,7 +130,7 @@ export class RegisterUserUseCase {
     } catch (error) {
       this.logger.error('Failed to save user', error as Error, { email: dto.email })
       if (DatabaseUtil.isDuplicateKeyError(error)) {
-        await this.auditLog.log({
+        const auditEntry: CreateAuditLogDTO = {
           userId: auditContext.userId,
           entityType: EntityType.USER,
           entityId: String(email),
@@ -137,29 +138,23 @@ export class RegisterUserUseCase {
           changes: { reason: 'duplicate_email' },
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent ?? undefined,
-        })
+        }
+        await this.auditLog.log(auditEntry)
         throw new ConflictException('User with this email already exists', { email: dto.email })
       }
       throw error
     }
 
-    try {
-      await this.auditLog.log({
-        userId: userId,
-        entityType: EntityType.USER,
-        entityId: userId,
-        action: AuditAction.CREATE,
-        changes: { reason: 'new_user' },
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      })
-    } catch (error) {
-      this.logger.error('Failed to write audit log for user registration', error as Error, {
-        userId: userId,
-        email: dto.email,
-      })
-      // Don't fail registration if audit logging fails
+    const auditEntry: CreateAuditLogDTO = {
+      userId: userId,
+      entityType: EntityType.USER,
+      entityId: userId,
+      action: AuditAction.CREATE,
+      changes: { reason: 'new_user' },
+      ipAddress: auditContext.ipAddress,
+      userAgent: auditContext.userAgent ?? undefined,
     }
+    await this.auditLog.log(auditEntry)
 
     // Send welcome email
     try {
