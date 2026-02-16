@@ -88,7 +88,7 @@
     "eslint-plugin-security": "^3.0.1",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-sort-destructure-keys": "^2.0.0",
-    "jsdom": "^28.0.0",
+    "jsdom": "^28.1.0",
     "null-loader": "^4.0.1",
     "postgres": "^3.4.8",
     "shx": "0.4.0",
