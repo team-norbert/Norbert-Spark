@@ -2,11 +2,19 @@ import 'modern-normalize/modern-normalize.css'
 import 'streamdown/styles.css'
 
 import type { Metadata } from 'next'
+import { Roboto_Mono } from 'next/font/google'
 import React from 'react'
 
 import { QueryProvider } from './providers/QueryProvider.js'
 import { SessionProvider } from './providers/SessionProvider.js'
 import ThemeRegistry from './ThemeRegistry.js'
+
+const robotoMono = Roboto_Mono({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-roboto-mono',
+})
 
 export const metadata: Metadata = {
   title: "Norbert's Spark",
@@ -19,15 +27,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={robotoMono.variable}>
       <body>
         <SessionProvider>
           <QueryProvider>
