@@ -35,16 +35,24 @@ services:
 
   # Nginx is not necessary, but demonstrates how
   # one might use a reverse proxy in front of the broker,
-  # and includes the use of a self-signed TLS certificate
-  nginx:
-    image: nginx:alpine
-    depends_on:
-      - pact-broker
-    volumes:
-      - ./ssl/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./ssl:/etc/nginx/ssl
-    ports:
-      - "443:443"
-      - "80:80"
+  # and includes the use of a self-signed TLS certificate.
+  #
+  # NOTE: The nginx service is disabled because the ./ssl directory
+  # does not exist in this repository, and Docker bind mounts to
+  # missing host paths will cause `docker compose up` to fail.
+  # To re-enable nginx, create an ./ssl directory alongside this
+  # file with nginx.conf and certificate/key files, then uncomment
+  # the service definition below.
+  #
+  # nginx:
+  #   image: nginx:alpine
+  #   depends_on:
+  #     - pact-broker
+  #   volumes:
+  #     - ./ssl/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  #     - ./ssl:/etc/nginx/ssl
+  #   ports:
+  #     - "443:443"
+  #     - "80:80"
 volumes:
   postgres-volume:
