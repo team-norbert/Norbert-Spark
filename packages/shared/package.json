@@ -45,7 +45,7 @@
     }
   },
   "devDependencies": {
-    "@redocly/cli": "^2.18.0",
+    "@redocly/cli": "^2.18.2",
     "@stoplight/spectral-cli": "^6.15.0",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/eslint-plugin": "^1.6.7",
