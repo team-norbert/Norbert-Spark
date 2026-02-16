@@ -257,7 +257,7 @@ describe('RegisterUserUseCase', () => {
         expect(mockAuditLog.log).toHaveBeenCalledWith({
           userId: null,
           entityType: EntityType.USER,
-          entityId: expect.any(String), // String(email) returns "[object Object]" for Email value objects
+          entityId: 'duplicate@example.com',
           action: AuditAction.REGISTRATION_FAILED,
           changes: { reason: 'duplicate_email' },
           ipAddress: auditContext.ipAddress,
