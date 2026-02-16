@@ -651,7 +651,7 @@ describe('useChatTypesPage', () => {
 
       expect(result.current.searchQuery).toBe('  technical  ')
       // Should still find results despite whitespace
-      expect(result.current.chatTypes.length).toBeGreaterThanOrEqual(0)
+      expect(result.current.chatTypes.length).toBeGreaterThan(0)
     })
   })
 
