@@ -78,6 +78,7 @@ export class ExtractDataUseCase {
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
 
       return { buffer: result, fileType }
@@ -96,6 +97,7 @@ export class ExtractDataUseCase {
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
       throw error
     }

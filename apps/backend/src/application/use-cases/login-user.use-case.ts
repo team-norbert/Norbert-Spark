@@ -160,6 +160,7 @@ export class LoginUserUseCase {
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
 
       this.logger.warn('Login failed: User not found', { email: dto.email })
@@ -192,6 +193,7 @@ export class LoginUserUseCase {
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent ?? undefined,
         }
+        // AuditLogPort.log() never throws per contract
         await this.auditLog.log(auditEntry)
       } catch (error) {
         this.logger.error('Error logging audit for failed password verification', error as Error, {
@@ -217,6 +219,7 @@ export class LoginUserUseCase {
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
     } catch (error) {
       this.logger.error('Error logging audit for successful login', error as Error, {

@@ -86,6 +86,7 @@ export class GetChatUseCase {
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
     } else {
       this.logger.info('No chat data found for user', { chatID })

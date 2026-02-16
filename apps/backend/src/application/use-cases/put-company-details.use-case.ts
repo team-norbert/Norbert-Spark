@@ -235,6 +235,7 @@ export class PutCompanyDetailsUseCase {
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
     }
 
@@ -250,6 +251,7 @@ export class PutCompanyDetailsUseCase {
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
     }
 

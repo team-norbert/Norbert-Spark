@@ -138,6 +138,7 @@ export class RegisterUserUseCase {
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent ?? undefined,
         }
+        // AuditLogPort.log() never throws per contract
         await this.auditLog.log(auditEntry)
         throw new ConflictException('User with this email already exists', { email: dto.email })
       }
@@ -153,6 +154,7 @@ export class RegisterUserUseCase {
       ipAddress: auditContext.ipAddress,
       userAgent: auditContext.userAgent ?? undefined,
     }
+    // AuditLogPort.log() never throws per contract
     await this.auditLog.log(auditEntry)
 
     // Send welcome email

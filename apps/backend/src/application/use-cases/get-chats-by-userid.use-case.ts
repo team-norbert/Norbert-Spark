@@ -40,6 +40,7 @@ export class GetChatsByUserIdUseCase {
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
 
       throw error
@@ -61,6 +62,7 @@ export class GetChatsByUserIdUseCase {
       ipAddress: auditContext.ipAddress,
       userAgent: auditContext.userAgent ?? undefined,
     }
+    // AuditLogPort.log() never throws per contract
     await this.auditLog.log(auditEntry)
 
     return chats

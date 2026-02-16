@@ -72,6 +72,7 @@ export class PresignedUploadUrlUseCase {
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
 
       this.logger.info('Presigned URLs generated successfully', {
