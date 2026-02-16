@@ -335,7 +335,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 'use server'
 
 import { logger } from '@/application/services/logger.service.js'
-import type { RegisterUserData, RegisterUserResponse } from '@/domain/schema/index.js'
+import type { RegisterUserData, RegisterUserResponse } from '@/domain/schemas/index.js'
 
 export async function registerUserAction(data: RegisterUserData): Promise<RegisterUserResponse> {
   try {
