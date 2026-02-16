@@ -37,6 +37,8 @@ export default function AIChatPage({
   logger.info('Chat data:', chatData?.messages)
 
   const {
+    accordionBody,
+    accordionHeader,
     chats,
     currentChatId,
     disabled,
@@ -64,6 +66,8 @@ export default function AIChatPage({
 
   return (
     <AIChatView
+      accordionBody={accordionBody}
+      accordionHeader={accordionHeader}
       chats={chats}
       currentChatId={currentChatId}
       disabled={disabled}

@@ -79,13 +79,13 @@ describe('AccordionComponent', () => {
 
   describe('Accessibility', () => {
     it('should have proper aria-controls attribute', () => {
-      const { container } = render(<AccordionComponent {...defaultProps} />)
+      const { container } = render(<AccordionComponent {...defaultProps} id="panel" />)
       const accordionSummary = container.querySelector('.MuiAccordionSummary-root')
       expect(accordionSummary).toHaveAttribute('aria-controls', 'panel-content')
     })
 
     it('should have proper id attribute on summary', () => {
-      const { container } = render(<AccordionComponent {...defaultProps} />)
+      const { container } = render(<AccordionComponent {...defaultProps} id="panel" />)
       const accordionSummary = container.querySelector('.MuiAccordionSummary-root')
       expect(accordionSummary).toHaveAttribute('id', 'panel-header')
     })
