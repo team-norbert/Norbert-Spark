@@ -15,15 +15,15 @@ services:
   pact-broker:
     image: "pactfoundation/pact-broker:2.113.0-pactbroker2.107.1"
     ports:
-      - "9292:9292"
+      - "${PACT_BROKER_PORT}:${PACT_BROKER_PORT}"
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      PACT_BROKER_PORT: '9292'
+      PACT_BROKER_PORT: ${PACT_BROKER_PORT}
       PACT_BROKER_DATABASE_URL: ${PACT_BROKER_DATABASE_URL}
-      PACT_BROKER_LOG_LEVEL: INFO
-      PACT_BROKER_SQL_LOG_LEVEL: DEBUG
+      PACT_BROKER_LOG_LEVEL: ${PACT_BROKER_LOG_LEVEL}
+      PACT_BROKER_SQL_LOG_LEVEL: ${PACT_BROKER_SQL_LOG_LEVEL}
       # PACT_BROKER_DATABASE_CONNECT_MAX_RETRIES is only needed for docker-compose
       # because the database takes longer to start up than the puma process
       # Should not be needed in production.
