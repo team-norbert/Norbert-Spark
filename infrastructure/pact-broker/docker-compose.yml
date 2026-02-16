@@ -7,27 +7,32 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+    container_name: pact-broker-postgres
+    restart: unless-stopped
+    shm_size: 256mb
+    healthcheck:
+      test: psql postgres --command "select 1" -U postgres
     volumes:
       - postgres-volume:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-pact_broker}
 
   pact-broker:
     image: "pactfoundation/pact-broker:2.113.0-pactbroker2.107.1"
+    container_name: pact-broker
+    restart: unless-stopped
     ports:
-      - "${PACT_BROKER_PORT}:${PACT_BROKER_PORT}"
+      - "${PACT_BROKER_PORT:-9292}:${PACT_BROKER_PORT:-9292}"
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      PACT_BROKER_PORT: ${PACT_BROKER_PORT}
-      PACT_BROKER_DATABASE_URL: ${PACT_BROKER_DATABASE_URL}
-      PACT_BROKER_LOG_LEVEL: ${PACT_BROKER_LOG_LEVEL}
-      PACT_BROKER_SQL_LOG_LEVEL: ${PACT_BROKER_SQL_LOG_LEVEL}
+      PACT_BROKER_PORT: ${PACT_BROKER_PORT:-9292}
+      PACT_BROKER_DATABASE_URL: ${PACT_BROKER_DATABASE_URL:-postgres://postgres:postgres@postgres:5432/pact_broker}
+      PACT_BROKER_LOG_LEVEL: ${PACT_BROKER_LOG_LEVEL:-INFO}
+      PACT_BROKER_SQL_LOG_LEVEL: ${PACT_BROKER_SQL_LOG_LEVEL:-WARN}
       # PACT_BROKER_DATABASE_CONNECT_MAX_RETRIES is only needed for docker-compose
       # because the database takes longer to start up than the puma process
       # Should not be needed in production.
