@@ -741,7 +741,7 @@ pnpm build
 - `pnpm format` - Format code across all workspaces with Prettier
 - `pnpm format:check` - Check code formatting across all workspaces with Prettier
 - `pnpm test` - Run tests across all workspaces
-- `pnpm run test:e2e` - Run Playwright E2E tests in the frontend workspace
+- `pnpm test:e2e` - Run Playwright E2E tests in the frontend workspace
 
 ## Frontend Development
 
