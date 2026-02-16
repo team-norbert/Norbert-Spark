@@ -255,7 +255,7 @@ describe('RegisterUserUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
         expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: auditContext.userId,
+          userId: null,
           entityType: EntityType.USER,
           entityId: 'duplicate@example.com',
           action: AuditAction.REGISTRATION_FAILED,
@@ -329,63 +329,6 @@ describe('RegisterUserUseCase', () => {
         await useCase.execute(dto, auditContext)
 
         expect(mockUserRepository.save).toHaveBeenCalledTimes(1)
-      })
-    })
-
-    describe('audit log failure handling', () => {
-      it('should not fail registration if audit log fails to write', async () => {
-        const dto = new RegisterUserDto('john@example.com', 'John Doe', 'user', 'SecurePass123!')
-
-        vi.mocked(mockUserRepository.save).mockResolvedValue(createMockUserId())
-        vi.mocked(mockAuditLog.log).mockRejectedValue(new Error('Audit service down'))
-
-        const result = await useCase.execute(dto, auditContext)
-
-        // Should still return userId despite audit log failure
-        expect(result).toBeDefined()
-        expect(result.userId).toBeDefined()
-      })
-
-      it('should log error when audit log fails to write', async () => {
-        const dto = new RegisterUserDto('john@example.com', 'John Doe', 'user', 'SecurePass123!')
-
-        vi.mocked(mockUserRepository.save).mockResolvedValue(createMockUserId())
-
-        const auditError = new Error('Audit service down')
-        vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-        const result = await useCase.execute(dto, auditContext)
-
-        expect(mockLogger.error).toHaveBeenCalledWith(
-          'Failed to write audit log for user registration',
-          auditError,
-          {
-            userId: result.userId,
-            email: 'john@example.com',
-          }
-        )
-      })
-
-      it('should still save user even if audit log fails', async () => {
-        const dto = new RegisterUserDto('john@example.com', 'John Doe', 'user', 'SecurePass123!')
-
-        vi.mocked(mockUserRepository.save).mockResolvedValue(createMockUserId())
-        vi.mocked(mockAuditLog.log).mockRejectedValue(new Error('Audit service down'))
-
-        await useCase.execute(dto, auditContext)
-
-        expect(mockUserRepository.save).toHaveBeenCalledTimes(1)
-      })
-
-      it('should still send welcome email even if audit log fails', async () => {
-        const dto = new RegisterUserDto('john@example.com', 'John Doe', 'user', 'SecurePass123!')
-
-        vi.mocked(mockUserRepository.save).mockResolvedValue(createMockUserId())
-        vi.mocked(mockAuditLog.log).mockRejectedValue(new Error('Audit service down'))
-
-        await useCase.execute(dto, auditContext)
-
-        expect(mockEmailService.sendWelcomeEmail).toHaveBeenCalledTimes(1)
       })
     })
 

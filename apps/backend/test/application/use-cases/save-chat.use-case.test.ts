@@ -663,47 +663,6 @@ describe('SaveChatUseCase', () => {
       )
     })
 
-    it('should still save chat successfully even if audit logging fails', async () => {
-      const messages = createMockMessages()
-      const auditError = new Error('Audit service unavailable')
-      vi.mocked(mockAIRepository.createChat).mockResolvedValue(testChatId)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-      const result = await useCase.execute(
-        testChatId,
-        testUserId,
-        testChatTypeId,
-        messages,
-        auditContext
-      )
-
-      expect(result).toBe(testChatId)
-      expect(mockAIRepository.createChat).toHaveBeenCalledTimes(1)
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for creating chat',
-        auditError,
-        { userId: auditContext.userId }
-      )
-    })
-
-    it('should log error when audit log throws exception', async () => {
-      const messages = createMockMessages()
-      const auditError = new Error('Database connection failed')
-      vi.mocked(mockAIRepository.createChat).mockResolvedValue(testChatId)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-      await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
-
-      expect(mockLogger.error).toHaveBeenCalledTimes(1)
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for creating chat',
-        expect.any(Error),
-        expect.objectContaining({
-          userId: testUserId,
-        })
-      )
-    })
-
     it('should include correct entityId and entityType in audit log', async () => {
       const messages = createMockMessages()
       const specificChatId = new ChatId(uuidv7()).getValue()

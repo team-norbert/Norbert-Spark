@@ -24,6 +24,13 @@ export interface UpdateChanges {
   after?: Record<string, unknown>
 }
 
+export interface FileUploadChanges {
+  reason: string
+  fileType?: string
+  fileSize?: number
+  fileName?: string
+  [key: string]: unknown
+}
 /**
  * Changes tracked when an entity is deleted
  */
@@ -131,4 +138,5 @@ export type AuditChanges =
   | FetchChatChanges
   | FetchChatFailedChanges
   | ChatTypeChange
+  | FileUploadChanges
   | Record<string, unknown> // Fallback for custom change structures

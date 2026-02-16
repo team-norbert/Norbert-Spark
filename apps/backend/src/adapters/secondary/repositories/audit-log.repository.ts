@@ -10,6 +10,10 @@ import { redactCreateAuditLogDTO } from '../../../domain/audit/redact-sensitive-
 export class AuditLogRepository implements AuditLogPort {
   constructor(private readonly logger: LoggerPort) {}
 
+  /**
+   * Creates an audit log entry. Never throws - errors are logged but not propagated.
+   * This ensures audit logging failures don't disrupt business operations.
+   */
   async log(entry: CreateAuditLogDTO): Promise<void> {
     try {
       // Redact sensitive data before storing in database

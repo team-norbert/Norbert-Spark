@@ -36,26 +36,21 @@ export class ResolveChatTypeUseCase {
         this.logger.warn(`Chat type not found for param: ${param}`)
       }
 
-      try {
-        const auditEntry: CreateAuditLogDTO = {
-          userId: auditContext.userId,
-          entityType: EntityType.CHAT_TYPE,
-          entityId: param,
-          action: resolvedId ? AuditAction.FETCH : AuditAction.FETCH_FAILED,
-          changes: {
-            reason: resolvedId ? 'chat_type_resolved_successfully' : 'chat_type_resolution_failed',
-            param,
-            resolvedId,
-          } satisfies ChatTypeChange,
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        }
-        await this.auditLog.log(auditEntry)
-      } catch (auditError) {
-        this.logger.error('Error logging audit for chat type resolution', auditError as Error, {
-          userId: auditContext.userId,
-        })
+      const auditEntry: CreateAuditLogDTO = {
+        userId: auditContext.userId,
+        entityType: EntityType.CHAT_TYPE,
+        entityId: param,
+        action: resolvedId ? AuditAction.FETCH : AuditAction.FETCH_FAILED,
+        changes: {
+          reason: resolvedId ? 'chat_type_resolved_successfully' : 'chat_type_resolution_failed',
+          param,
+          resolvedId,
+        } satisfies ChatTypeChange,
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
+      await this.auditLog.log(auditEntry)
 
       return resolvedId
     } catch (error) {

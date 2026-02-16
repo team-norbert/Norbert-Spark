@@ -43,35 +43,30 @@ export class PutAIAdminUseCase {
     dto: PutAIAdminDTO,
     reason: string
   ): Promise<void> {
-    try {
-      const auditEntry: CreateAuditLogDTO = {
-        userId: auditContext.userId,
-        entityType: EntityType.AI_OPTIONS,
-        entityId: id,
-        action: AuditAction.UPDATE,
-        changes: {
-          reason,
-          after: {
-            prompt: dto.prompt,
-            maxTokens: dto.maxTokens,
-            temperature: dto.temperature,
-            topP: dto.topP,
-            frequencyPenalty: dto.frequencyPenalty,
-            presencePenalty: dto.presencePenalty,
-            topK: dto.topK,
-            stopSequences: dto.stopSequences,
-            seed: dto.seed,
-            maxRetries: dto.maxRetries,
-          },
-        } satisfies UpdateChanges,
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      }
-      await this.auditLog.log(auditEntry)
-    } catch (error) {
-      this.logger.error('Error logging audit for chat AI options update', error as Error, {
-        userId: auditContext.userId,
-      })
+    const auditEntry: CreateAuditLogDTO = {
+      userId: auditContext.userId,
+      entityType: EntityType.AI_OPTIONS,
+      entityId: id,
+      action: AuditAction.UPDATE,
+      changes: {
+        reason,
+        after: {
+          prompt: dto.prompt,
+          maxTokens: dto.maxTokens,
+          temperature: dto.temperature,
+          topP: dto.topP,
+          frequencyPenalty: dto.frequencyPenalty,
+          presencePenalty: dto.presencePenalty,
+          topK: dto.topK,
+          stopSequences: dto.stopSequences,
+          seed: dto.seed,
+          maxRetries: dto.maxRetries,
+        },
+      } satisfies UpdateChanges,
+      ipAddress: auditContext.ipAddress,
+      userAgent: auditContext.userAgent ?? undefined,
     }
+    // AuditLogPort.log() never throws per contract
+    await this.auditLog.log(auditEntry)
   }
 }

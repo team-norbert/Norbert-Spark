@@ -333,52 +333,6 @@ describe('GetChatsByUserIdUseCase', () => {
       )
     })
 
-    it('should still return chats successfully even if audit logging fails', async () => {
-      const mockChats: ChatWithType[] = [
-        {
-          id: new ChatId(uuidv7()).getValue(),
-          chatTypeId: new ChatId(uuidv7()).getValue(),
-          seoFriendlyId: 'chat-test-1',
-        },
-        {
-          id: new ChatId(uuidv7()).getValue(),
-          chatTypeId: new ChatId(uuidv7()).getValue(),
-          seoFriendlyId: 'chat-test-2',
-        },
-      ]
-      const auditError = new Error('Audit service unavailable')
-      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-      const result = await useCase.execute(testUserId, auditContext)
-
-      expect(result).toEqual(mockChats)
-      expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledTimes(1)
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for chat retrieval',
-        auditError,
-        { userId: auditContext.userId }
-      )
-    })
-
-    it('should log error when audit log throws exception', async () => {
-      const mockChats: ChatWithType[] = []
-      const auditError = new Error('Database connection failed')
-      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-      await useCase.execute(testUserId, auditContext)
-
-      expect(mockLogger.error).toHaveBeenCalledTimes(1)
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for chat retrieval',
-        expect.any(Error),
-        expect.objectContaining({
-          userId: testUserId,
-        })
-      )
-    })
-
     it('should include correct entityId and entityType in audit log', async () => {
       const mockChats: ChatWithType[] = [
         {

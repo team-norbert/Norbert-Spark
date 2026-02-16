@@ -121,25 +121,22 @@ export class DeleteUsersUseCase {
       throw error
     }
 
-    try {
-      const auditEntry: CreateAuditLogDTO = {
-        userId: auditContext.userId,
-        entityType: EntityType.USER,
-        entityId: userIds.join(','),
-        action: AuditAction.DELETE,
-        changes: {
-          deleted: {
-            userIds: userIds,
-            count: userIds.length,
-          },
-        } satisfies DeleteChanges,
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      }
-      await this.auditLog.log(auditEntry)
-    } catch (error) {
-      this.logger.error('Error logging audit for user deletion', error as Error, { userIds })
+    const auditEntry: CreateAuditLogDTO = {
+      userId: auditContext.userId,
+      entityType: EntityType.USER,
+      entityId: userIds.join(','),
+      action: AuditAction.DELETE,
+      changes: {
+        deleted: {
+          userIds: userIds,
+          count: userIds.length,
+        },
+      } satisfies DeleteChanges,
+      ipAddress: auditContext.ipAddress,
+      userAgent: auditContext.userAgent ?? undefined,
     }
+    // AuditLogPort.log() never throws per contract
+    await this.auditLog.log(auditEntry)
 
     return true
   }

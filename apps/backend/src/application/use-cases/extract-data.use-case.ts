@@ -1,10 +1,11 @@
 import type { LoggerPort } from '../ports/logger.port.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { BucketPort } from '../ports/bucket.service.port.js'
 import { ExtractDataDto } from '../dtos/extract-data.dto.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { UnprocessableEntityException } from '../../shared/exceptions/unprocessable-entity.exception.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
+import type { FileUploadChanges } from '../../domain/audit/audit-changes.types.js'
 /**
  * Detect file type from buffer by checking magic bytes (file signature)
  */
@@ -68,15 +69,17 @@ export class ExtractDataUseCase {
         fileType,
       })
 
-      await this.auditLog.log({
+      const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
         entityType: EntityType.DATA_EXTRACTION,
         entityId: GetObjectCommandKeys.fileKey,
         action: AuditAction.FETCH,
-        changes: { reason: 'get_from_bucket', fileType },
+        changes: { reason: 'get_from_bucket', fileType } satisfies FileUploadChanges,
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
-      })
+      }
+      // AuditLogPort.log() never throws per contract
+      await this.auditLog.log(auditEntry)
 
       return { buffer: result, fileType }
     } catch (error) {
@@ -84,15 +87,18 @@ export class ExtractDataUseCase {
         'Error during data extraction',
         error instanceof Error ? error : new Error(String(error))
       )
-      await this.auditLog.log({
+
+      const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
         entityType: EntityType.DATA_EXTRACTION,
         entityId: GetObjectCommandKeys.fileKey,
         action: AuditAction.FETCH,
-        changes: { reason: 'get_from_bucket_failed' },
+        changes: { reason: 'get_from_bucket_failed' } satisfies FileUploadChanges,
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
-      })
+      }
+      // AuditLogPort.log() never throws per contract
+      await this.auditLog.log(auditEntry)
       throw error
     }
   }

@@ -74,25 +74,20 @@ export class GetChatUseCase {
         messageCount: chatData.length,
       })
 
-      try {
-        const auditEntry: CreateAuditLogDTO = {
-          userId: auditContext.userId,
-          entityType: EntityType.CHAT,
-          entityId: chatID,
-          action: AuditAction.FETCH,
-          changes: {
-            chatIds: chatData.map((chat) => chat.chat.id),
-            reason: 'chat_successfully_retrieved',
-          } satisfies FetchChatChanges,
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        }
-        await this.auditLog.log(auditEntry)
-      } catch (error) {
-        this.logger.error('Error logging audit for chat retrieval', error as Error, {
-          userId: auditContext.userId,
-        })
+      const auditEntry: CreateAuditLogDTO = {
+        userId: auditContext.userId,
+        entityType: EntityType.CHAT,
+        entityId: chatID,
+        action: AuditAction.FETCH,
+        changes: {
+          chatIds: chatData.map((chat) => chat.chat.id),
+          reason: 'chat_successfully_retrieved',
+        } satisfies FetchChatChanges,
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
+      await this.auditLog.log(auditEntry)
     } else {
       this.logger.info('No chat data found for user', { chatID })
       return null

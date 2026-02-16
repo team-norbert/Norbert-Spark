@@ -202,20 +202,6 @@ describe('PresignedUploadUrlUseCase', () => {
         )
       })
 
-      it('should continue execution even if audit log fails', async () => {
-        const files = [{ filename: 'test.pdf', mimetype: 'application/pdf' }] as any
-        vi.mocked(mockAuditLog.log).mockRejectedValue(new Error('Audit log error'))
-
-        const result = await useCase.execute(files, auditContext)
-
-        expect(result.uploadUrls).toHaveLength(1)
-        expect(mockLogger.error).toHaveBeenCalledWith(
-          'Error logging audit for data extraction upload',
-          expect.any(Error),
-          { userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' }
-        )
-      })
-
       it('should preserve file order in results', async () => {
         const files = [
           { filename: 'first.pdf', mimetype: 'application/pdf' },
@@ -369,29 +355,6 @@ describe('PresignedUploadUrlUseCase', () => {
     })
 
     describe('audit logging', () => {
-      it('should not fail execution if audit log throws error', async () => {
-        const files = [{ filename: 'test.pdf', mimetype: 'application/pdf' }] as any
-        vi.mocked(mockAuditLog.log).mockRejectedValue(new Error('Database connection lost'))
-
-        const result = await useCase.execute(files, auditContext)
-
-        expect(result.uploadUrls).toHaveLength(1)
-      })
-
-      it('should log audit error with userId context', async () => {
-        const files = [{ filename: 'test.pdf', mimetype: 'application/pdf' }] as any
-        const auditError = new Error('Audit service unavailable')
-        vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-        await useCase.execute(files, auditContext)
-
-        expect(mockLogger.error).toHaveBeenCalledWith(
-          'Error logging audit for data extraction upload',
-          auditError,
-          { userId: '0196f0c2-3b9a-7a1c-9d4e-2f6b8c0a1234' }
-        )
-      })
-
       it('should include file metadata in audit log', async () => {
         const files = [
           { filename: 'report.pdf', mimetype: 'application/pdf' },

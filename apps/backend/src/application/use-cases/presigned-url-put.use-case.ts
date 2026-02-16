@@ -1,5 +1,5 @@
 import type { LoggerPort } from '../ports/logger.port.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { BucketPort } from '../ports/bucket.service.port.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { EnvConfig } from '../../infrastructure/config/env.config.js'
@@ -7,6 +7,7 @@ import { uuidv7 } from 'uuidv7'
 import type { MultipartFile } from '@fastify/multipart'
 import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
+import type { LoginFailedChanges } from '../../domain/audit/audit-changes.types.js'
 
 interface PresignedUploadUrl {
   filename: string
@@ -55,28 +56,24 @@ export class PresignedUploadUrlUseCase {
         })
       }
 
-      try {
-        await this.auditLog.log({
-          userId: auditContext.userId,
-          entityType: EntityType.USER,
-          entityId: auditContext.userId,
-          action: AuditAction.CREATE,
-          changes: {
-            action: 'data_extraction_upload_initialized',
-            fileCount: files.length,
-            files: files.map((f) => ({
-              filename: f.filename,
-              mimetype: f.mimetype,
-            })),
-          },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        })
-      } catch (error) {
-        this.logger.error('Error logging audit for data extraction upload', error as Error, {
-          userId: auditContext.userId,
-        })
+      const auditEntry: CreateAuditLogDTO = {
+        userId: auditContext.userId,
+        entityType: EntityType.USER,
+        entityId: auditContext.userId,
+        action: AuditAction.CREATE,
+        changes: {
+          action: 'data_extraction_upload_initialized',
+          fileCount: files.length,
+          files: files.map((f) => ({
+            filename: f.filename,
+            mimetype: f.mimetype,
+          })),
+        },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
+      await this.auditLog.log(auditEntry)
 
       this.logger.info('Presigned URLs generated successfully', {
         fileCount: uploadUrls.length,

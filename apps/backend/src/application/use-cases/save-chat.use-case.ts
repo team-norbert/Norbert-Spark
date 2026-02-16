@@ -28,22 +28,17 @@ export class SaveChatUseCase {
     const savedChatId = await this.aiRepository.createChat(chatId, userId, chatTypeId, messages)
     this.logger.info(`Chat saved with ID: ${savedChatId}`)
 
-    try {
-      const auditEntry: CreateAuditLogDTO = {
-        userId: auditContext.userId,
-        entityType: EntityType.CHAT,
-        entityId: chatId,
-        action: AuditAction.CREATE,
-        changes: { reason: 'chat_successfully_saved' } satisfies UpdateChanges,
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      }
-      await this.auditLog.log(auditEntry)
-    } catch (error) {
-      this.logger.error('Error logging audit for creating chat', error as Error, {
-        userId: auditContext.userId,
-      })
+    const auditEntry: CreateAuditLogDTO = {
+      userId: auditContext.userId,
+      entityType: EntityType.CHAT,
+      entityId: chatId,
+      action: AuditAction.CREATE,
+      changes: { reason: 'chat_successfully_saved' } satisfies UpdateChanges,
+      ipAddress: auditContext.ipAddress,
+      userAgent: auditContext.userAgent ?? undefined,
     }
+    // AuditLogPort.log() never throws per contract
+    await this.auditLog.log(auditEntry)
 
     return savedChatId
   }
