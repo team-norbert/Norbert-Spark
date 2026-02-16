@@ -2,7 +2,7 @@
 
 import type { LoginDTO } from '@norberts-spark/shared'
 
-import type { LoginResponse } from '@/domain/auth/index.js'
+import type { LoginResponse } from '@/domain/schemas/index.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { backendRequest } from '@/infrastructure/serverActions/baseServerAction.js'
 

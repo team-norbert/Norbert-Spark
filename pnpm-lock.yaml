@@ -343,9 +343,6 @@ importers:
       node-fetch:
         specifier: ^3.3.2
         version: 3.3.2
-      obscured:
-        specifier: ^2.0.4
-        version: 2.0.4
       react:
         specifier: ^19.2.4
         version: 19.2.4
@@ -13249,7 +13246,7 @@ snapshots:
       '@babel/plugin-syntax-jsx': 7.28.6(@babel/core@7.29.0)
       lodash: 4.17.23
       picomatch: 2.3.1
-      styled-components: 5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@19.2.4))(react-is@19.2.4)(react@19.2.4)
+      styled-components: 5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@17.0.2))(react-is@19.2.4)(react@17.0.2)
     transitivePeerDependencies:
       - '@babel/core'
       - supports-color
@@ -17461,7 +17458,7 @@ snapshots:
       react: 17.0.2
       react-dom: 17.0.2(react@17.0.2)
       redoc: 2.0.0(core-js@3.48.0)(encoding@0.1.13)(mobx@6.15.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)(styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@17.0.2))(react-is@19.2.4)(react@17.0.2))(webpack@5.104.1)
-      styled-components: 5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@19.2.4))(react-is@19.2.4)(react@19.2.4)
+      styled-components: 5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@17.0.2))(react-is@19.2.4)(react@17.0.2)
       yargs: 17.7.2
     transitivePeerDependencies:
       - '@babel/core'
@@ -17498,7 +17495,7 @@ snapshots:
       slugify: 1.4.7
       stickyfill: 1.1.1
       style-loader: 3.3.4(webpack@5.104.1)
-      styled-components: 5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@19.2.4))(react-is@19.2.4)(react@19.2.4)
+      styled-components: 5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@17.0.2))(react-is@19.2.4)(react@17.0.2)
       swagger2openapi: 7.0.8(encoding@0.1.13)
       url-template: 2.0.8
     transitivePeerDependencies:
@@ -18313,7 +18310,7 @@ snapshots:
     dependencies:
       inline-style-parser: 0.2.7
 
-  styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@19.2.4))(react-is@19.2.4)(react@19.2.4):
+  styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@17.0.2))(react-is@19.2.4)(react@17.0.2):
     dependencies:
       '@babel/helper-module-imports': 7.28.6(supports-color@5.5.0)
       '@babel/traverse': 7.29.0(supports-color@5.5.0)
@@ -18323,7 +18320,7 @@ snapshots:
       babel-plugin-styled-components: 2.1.4(@babel/core@7.29.0)(styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@17.0.2))(react-is@19.2.4)(react@17.0.2))(supports-color@5.5.0)
       css-to-react-native: 3.2.0
       hoist-non-react-statics: 3.3.2
-      react: 19.2.4
+      react: 17.0.2
       react-dom: 17.0.2(react@17.0.2)
       react-is: 19.2.4
       shallowequal: 1.1.0

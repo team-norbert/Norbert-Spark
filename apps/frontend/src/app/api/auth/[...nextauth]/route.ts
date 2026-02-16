@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth'
 
-import { authOptions } from '@/lib/auth-config.js'
+import { authOptions } from '@/lib/auth/auth-config.js'
 
 // @ts-expect-error - NextAuth types issue with App Router
 const handler = NextAuth(authOptions)

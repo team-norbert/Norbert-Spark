@@ -1,5 +1,5 @@
 import { createLogger } from '@/infrastructure/logging/logger.js'
-import { getAuthToken } from '@/lib/auth.js'
+import { getAuthToken } from '@/lib/auth/auth.js'
 
 const logger = createLogger({ prefix: '[api:extract-data]' })
 

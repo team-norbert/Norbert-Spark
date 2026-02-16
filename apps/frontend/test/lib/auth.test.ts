@@ -12,7 +12,7 @@ import {
   requireRole,
   withAuth,
   withRole,
-} from '@/lib/auth.js'
+} from '@/lib/auth/auth.js'
 
 // Mock next-auth
 vi.mock('next-auth', () => ({

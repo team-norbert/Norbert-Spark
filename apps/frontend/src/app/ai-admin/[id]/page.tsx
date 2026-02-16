@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation.js'
 
-import { hasAnyRole } from '@/lib/auth.js'
+import { hasAnyRole } from '@/lib/auth/auth.js'
 import AIOptionsForm from '@/view/client-components/AIOptionsForm.js'
 
 export default async function AIAdminDetailPage({ params }: { params: Promise<{ id: string }> }) {

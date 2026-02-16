@@ -1,0 +1,57 @@
+AI NOTE: This document is adapted from the backend hexagonal architecture guide. However,
+for Next.js / React 19 the architecture will never be exactly the same as a backend service.
+The goal is to keep the same principles and ideas but adapt them to the frontend world.
+The main architectural difference is that the frontend introduces a dedicated view layer
+(for UI components and presentation logic) that does not exist in the backend.
+
+Frontend-specific goals:
+- Independence: Domain logic doesn't depend on frameworks or tools
+- Replaceability: Adapters can be replaced without changing core logic
+- End-to-end verification: The architecture still supports full request–response cycle tests
+HEXAGONAL ARCHITECTURE OVERVIEW (Ports and Adapters Pattern)
+
+The hexagonal architecture (also known as ports and adapters) organizes code
+to isolate the core business logic from external concerns. This makes the
+application more maintainable, testable, and adaptable to change.
+
+CORE PRINCIPLES:
+
+1. Dependency Rule: Dependencies point inward toward the domain
+   Infrastructure → Adapters → Application → Domain
+   
+2. Ports: Interfaces that define how the application communicates
+   - Primary/Driving Ports: How external world uses our application (use cases)
+   - Secondary/Driven Ports: How our application uses external world (repositories)
+
+3. Adapters: Concrete implementations of ports
+   - Primary/Driving Adapters: HTTP controllers, CLI, GraphQL (inbound)
+   - Secondary/Driven Adapters: Database repos, external APIs (outbound)
+
+DIRECTORY STRUCTURE:
+
+frontend/src/
+├── app/                 # This is Next.js specific code mostly for pages. Kept slim
+├── domain/              # Core business logic (center of hexagon)
+│   ├── ai/              # Immutable domain concepts related to AI
+│   ├── schema/          # Authentication and authorization logic
+│   ├── user/            # User-related domain logic
+│   └── events/          # Domain events and event handlers
+│
+├── infrastructure /     # Technical implementation details
+│   ├── logging /        # Logging utilities
+│   ├── serverActions /  # Calling APIs from the backend
+│
+├── lib /                # Third-party libraries and utilities
+│   ├── auth/            # Authentication utilities
+│
+├── view/                # Technical implementation of UI
+│   ├── client-components/ # UI client-side components
+│   ├── hooks/           # Hooks for data fetching and state management
+│       ├── queries/     # React query hooks
+│
+└── shared/              # Common utilities across layers
+    ├── types/           # TypeScript types and interfaces
+    ├── utils/           # General utility functions
+    ├── constants/       # routes.ts is for defining application routes and paths
+    ├── exceptions/      # Custom error classes
+    └── guards/          # Route guards and authentication checks

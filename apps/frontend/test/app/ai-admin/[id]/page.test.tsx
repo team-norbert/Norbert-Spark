@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation.js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import AIAdminDetailPage from '@/app/ai-admin/[id]/page.js'
-import { hasAnyRole } from '@/lib/auth.js'
+import { hasAnyRole } from '@/lib/auth/auth.js'
 
 // Mock the auth module
 vi.mock('@/lib/auth.js', () => ({

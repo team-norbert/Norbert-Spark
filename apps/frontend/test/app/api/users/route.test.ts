@@ -9,7 +9,7 @@ vi.mock('@/lib/auth.js', () => ({
 }))
 
 // Import after mock
-const { getAuthToken } = await import('@/lib/auth.js')
+const { getAuthToken } = await import('@/lib/auth/auth.js')
 
 describe('GET /api/users', () => {
   const mockEnv = {

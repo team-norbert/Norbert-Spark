@@ -1,7 +1,7 @@
 'use server'
 
 import type { PutAIChatSettings } from '@/domain/ai/chat-config.js'
-import { getAuthToken } from '@/lib/auth.js'
+import { getAuthToken } from '@/lib/auth/auth.js'
 
 import { backendRequest } from './baseServerAction.js'
 

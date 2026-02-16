@@ -20,7 +20,7 @@ vi.mock('@/infrastructure/logging/logger.js', () => ({
 }))
 
 // Import after mock
-const { getAuthToken } = await import('@/lib/auth.js')
+const { getAuthToken } = await import('@/lib/auth/auth.js')
 
 describe('GET /api/extract-data/[fileKey]', () => {
   const mockAccessToken = 'mock-jwt-token'

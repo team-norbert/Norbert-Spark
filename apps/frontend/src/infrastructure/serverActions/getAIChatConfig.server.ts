@@ -2,7 +2,7 @@
 
 import type { AIChatOptionsResponse } from '@/domain/ai/chat-config.js'
 import { backendRequest } from '@/infrastructure/serverActions/baseServerAction.js'
-import { getAuthToken } from '@/lib/auth.js'
+import { getAuthToken } from '@/lib/auth/auth.js'
 
 /**
  * Server Action to fetch AI chat configuration
