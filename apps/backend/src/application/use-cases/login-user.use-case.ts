@@ -180,52 +180,40 @@ export class LoginUserUseCase {
     const isPasswordValid = await user.verifyPassword(dto.password)
 
     if (!isPasswordValid) {
-      try {
-        const auditEntry: CreateAuditLogDTO = {
-          userId: user.id,
-          entityType: EntityType.USER,
-          entityId: user.id,
-          action: AuditAction.LOGIN_FAILED,
-          changes: {
-            email: dto.email,
-            reason: 'invalid_password',
-          } satisfies LoginFailedChanges,
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        }
-        // AuditLogPort.log() never throws per contract
-        await this.auditLog.log(auditEntry)
-      } catch (error) {
-        this.logger.error('Error logging audit for failed password verification', error as Error, {
-          user,
-        })
+      const auditEntry: CreateAuditLogDTO = {
+        userId: user.id,
+        entityType: EntityType.USER,
+        entityId: user.id,
+        action: AuditAction.LOGIN_FAILED,
+        changes: {
+          email: dto.email,
+          reason: 'invalid_password',
+        } satisfies LoginFailedChanges,
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
       }
+      // AuditLogPort.log() never throws per contract
+      await this.auditLog.log(auditEntry)
       this.logger.warn('Login failed: Invalid password', { email: dto.email, userId: user.id })
       throw new UnauthorizedException('Invalid email or password')
     }
 
     this.logger.info('User logged in successfully', { userId: user.id, email: dto.email })
 
-    try {
-      const auditEntry: CreateAuditLogDTO = {
-        userId: user.id,
-        entityType: EntityType.USER,
-        entityId: user.id,
-        action: AuditAction.LOGIN,
-        changes: {
-          email: dto.email,
-          success: true,
-        } satisfies LoginChanges,
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      }
-      // AuditLogPort.log() never throws per contract
-      await this.auditLog.log(auditEntry)
-    } catch (error) {
-      this.logger.error('Error logging audit for successful login', error as Error, {
-        user,
-      })
+    const auditEntry: CreateAuditLogDTO = {
+      userId: user.id,
+      entityType: EntityType.USER,
+      entityId: user.id,
+      action: AuditAction.LOGIN,
+      changes: {
+        email: dto.email,
+        success: true,
+      } satisfies LoginChanges,
+      ipAddress: auditContext.ipAddress,
+      userAgent: auditContext.userAgent ?? undefined,
     }
+    // AuditLogPort.log() never throws per contract
+    await this.auditLog.log(auditEntry)
 
     // Generate JWT access token
     const accessToken = this.tokenGenerator.generateToken({

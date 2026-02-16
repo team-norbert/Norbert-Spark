@@ -26,7 +26,7 @@ export class GetAIAdminUseCase {
       action: AuditAction.FETCH,
       changes: {
         reason: 'chat_successfully_db_chat_options_retrieved',
-      } satisfies ChatTypeChange,
+      },
       ipAddress: auditContext.ipAddress,
       userAgent: auditContext.userAgent ?? undefined,
     }
