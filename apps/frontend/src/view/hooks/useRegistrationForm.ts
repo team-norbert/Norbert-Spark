@@ -92,7 +92,7 @@ export function useRegistrationForm() {
     if (!formData.password) {
       newErrors.password = 'Password is required'
     } else {
-      const result = PasswordSchema.safeParse(formData)
+      const result = PasswordSchema.safeParse(formData.password)
       if (!result.success) {
         newErrors.password =
           result.error.issues[0]?.message || 'Password must be at least 12 characters'

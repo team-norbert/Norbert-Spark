@@ -4,7 +4,7 @@ import { GET } from '@/app/api/users/route.js'
 import type { PaginatedUsersResponse } from '@/domain/user/user.js'
 
 // Mock the auth helper
-vi.mock('@/lib/auth.js', () => ({
+vi.mock('@/lib/auth/auth.js', () => ({
   getAuthToken: vi.fn(),
 }))
 

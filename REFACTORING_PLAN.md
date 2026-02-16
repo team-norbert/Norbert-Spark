@@ -335,7 +335,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 'use server'
 
 import { logger } from '@/application/services/logger.service.js'
-import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index.js'
+import type { RegisterUserData, RegisterUserResponse } from '@/domain/schema/index.js'
 
 export async function registerUserAction(data: RegisterUserData): Promise<RegisterUserResponse> {
   try {
@@ -426,7 +426,7 @@ export async function findAllUsersAction(params?: {
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { registerUserAction } from '@/application/actions/server/registerUser.server.js'
-import type { RegisterUserData } from '@/domain/auth/index.js'
+import type { RegisterUserData } from '@/domain/schemas/index.js'
 
 export function useRegisterUser() {
   const queryClient = useQueryClient()
@@ -483,7 +483,7 @@ export function useUsers(params?: { limit?: number; offset?: number }) {
 
 import { useState } from 'react'
 import { useRegisterUser } from './queries/useRegisterUser.js'
-import type { RegisterUserData } from '@/domain/auth/index.js'
+import type { RegisterUserData } from '@/domain/schemas/index.js'
 
 export function useRegistrationForm() {
   const [formData, setFormData] = useState<RegisterUserData>({

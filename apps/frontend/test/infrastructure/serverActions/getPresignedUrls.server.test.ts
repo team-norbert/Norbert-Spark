@@ -20,7 +20,7 @@ describe('getPresignedUrls', () => {
 
     // Mock auth token getter
     mockGetAuthToken = vi.fn()
-    vi.doMock('@/lib/auth.js', () => ({
+    vi.doMock('@/lib/auth/auth.js', () => ({
       getAuthToken: mockGetAuthToken,
     }))
 

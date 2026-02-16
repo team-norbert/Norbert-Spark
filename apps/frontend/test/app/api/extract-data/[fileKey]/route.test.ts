@@ -5,7 +5,7 @@ import { GET } from '@/app/api/extract-data/[fileKey]/route.js'
 // ReadableStream and TextEncoder are Node.js globals in tests
 
 // Mock the auth helper
-vi.mock('@/lib/auth.js', () => ({
+vi.mock('@/lib/auth/auth.js', () => ({
   getAuthToken: vi.fn(),
 }))
 
