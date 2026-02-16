@@ -131,9 +131,9 @@ describe('AIChatContentRepository', () => {
 
   describe('resolveChatTypeByParam', () => {
     // Test data for validation scenarios
-    const validUUID = uuidv7()
-    const validSeoFriendlyId = 'general-assistant'
-    const validBase64Id = 'AbCdEfGhIjKlMnOpQrStUv'
+    const _validUUID = uuidv7()
+    const _validSeoFriendlyId = 'general-assistant'
+    const _validBase64Id = 'AbCdEfGhIjKlMnOpQrStUv'
     describe('successful resolution by UUID', () => {
       it('should resolve chat type when param is a valid UUID', async () => {
         const chatTypeId = uuidv7()

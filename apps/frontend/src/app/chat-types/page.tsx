@@ -1,10 +1,26 @@
-import React from 'react'
+import { redirect } from 'next/navigation.js'
 
-export default function Home() {
-  return (
-    <div>
-      <h1>Placeholder page</h1>
-      <p>This is a simple Next.js page.</p>
-    </div>
-  )
+import { hasAnyRole } from '@/lib/auth/auth.js'
+
+import { ChatTypesPageClient } from './ChatTypesPageClient.js'
+
+/**
+ * Chat Types page with role-based access control.
+ * Only users with 'admin' or 'ai-admin' roles can access this page.
+ * Server Component that checks authentication before rendering.
+ */
+export default async function ChatTypesPage() {
+  // Check if user has any of the required roles ('admin' or 'ai-admin')
+  const hasAccess = await hasAnyRole(['admin', 'ai-admin'])
+
+  // Redirect to signin if user doesn't have required role
+  if (!hasAccess) {
+    const searchParams = new URLSearchParams({
+      callbackUrl: `/chat-types`,
+      error: 'unauthorized',
+    })
+    redirect(`/signin?${searchParams.toString()}`)
+  }
+
+  return <ChatTypesPageClient />
 }
