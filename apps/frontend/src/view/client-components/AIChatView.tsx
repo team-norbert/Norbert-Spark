@@ -27,6 +27,7 @@ import type { UIDataTypes, UIMessagePart, UITools } from 'ai'
 import { useRouter } from 'next/navigation.js'
 import React from 'react'
 
+import { AccordionComponent } from '@/view/client-components/AccordionComponent.js'
 import { ChatInput } from '@/view/client-components/ChatInputComponent.js'
 import { Message } from '@/view/client-components/MessageComponent.js'
 import { MessageIntroComponent } from '@/view/client-components/MessageIntroComponent.js'
@@ -59,6 +60,8 @@ interface AIChatViewProps {
   readonly chats: ChatItem[] | undefined
   readonly isChatsError: boolean
   readonly isLoadingChats: boolean
+  readonly accordionHeader: string
+  readonly accordionBody: string
   readonly onDrawerToggle: () => void
   readonly onErrorClose: () => void
   readonly onFileSelect: (file: File | null) => void
@@ -72,6 +75,8 @@ interface AIChatViewProps {
 }
 
 export function AIChatView({
+  accordionBody,
+  accordionHeader,
   chats,
   currentChatId,
   disabled,
@@ -197,6 +202,8 @@ export function AIChatView({
   return (
     <Wrapper>
       <PageHeader title="AI Chat" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
+
+      <AccordionComponent header={accordionHeader} body={accordionBody} />
 
       <Box sx={{ display: 'flex', flex: 1, mb: 2, gap: 2, minHeight: 0, overflow: 'hidden' }}>
         {/* Mobile drawer */}

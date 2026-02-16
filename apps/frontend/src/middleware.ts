@@ -265,7 +265,14 @@ export async function middleware(request: Request) {
   // TypeScript workaround: next-auth's getToken expects a NextRequest/NextApiRequest-like type,
   // but in middleware we receive the native Fetch API Request. We intentionally cast to never here
   // to bypass this type mismatch, as documented in the middleware README and NextAuth docs.
-  const token = await getToken({ req: request as never, secret: process.env.NEXTAUTH_SECRET })
+  let token
+  try {
+    token = await getToken({ req: request as never, secret: process.env.NEXTAUTH_SECRET })
+  } catch (error) {
+    // If JWT decryption fails (e.g., invalid token), treat as unauthenticated but log for debugging
+    console.error('Failed to retrieve auth token in middleware:', error)
+    token = null
+  }
   const isAuthenticated = !!token
 
   const pathMatchesRoute = (route: string) => pathname === route || pathname.startsWith(`${route}/`)
