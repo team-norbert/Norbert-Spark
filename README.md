@@ -731,7 +731,7 @@ Build all workspaces:
 pnpm build
 ```
 
-## Available Scripts in the root of the monorepo:
+## Available Scripts
 
 - `pnpm dev` - Start development servers for all workspaces
 - `pnpm build` - Build all workspaces
