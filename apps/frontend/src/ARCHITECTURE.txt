@@ -31,6 +31,13 @@ DIRECTORY STRUCTURE:
 
 frontend/src/
 ├── app/                 # This is Next.js specific code mostly for pages. Kept slim
+│
+├── application/
+│   ├── actions/         # Use cases and application services
+│   ├── errors/          # Application-specific error classes
+│   ├── ports/           # Interfaces for the port and adapter pattern
+│   └── services/        # Application services that orchestrate domain logic and external interactions
+│
 ├── domain/              # Core business logic (center of hexagon)
 │   ├── ai/              # Immutable domain concepts related to AI
 │   ├── schema/          # Authentication and authorization logic
