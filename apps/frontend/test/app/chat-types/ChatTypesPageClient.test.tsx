@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { useRouter } from 'next/navigation.js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
