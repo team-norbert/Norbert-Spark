@@ -59,8 +59,6 @@ export function useRegistrationForm() {
   }
 
   const validateForm = (): boolean => {
-    // Obscure sensitive fields before validation
-    // formData
     const newErrors: FormErrors = {
       email: '',
       name: '',
