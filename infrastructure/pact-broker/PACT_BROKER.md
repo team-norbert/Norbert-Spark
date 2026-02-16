@@ -56,7 +56,7 @@ docker compose up -d
 This will:
 
 - Pull the PostgreSQL 18.1 Alpine image
-- Pull the Pact Broker 2.113.0 image (with pact-broker 2.107.1)
+- Pull the Pact Broker image (version specified in docker-compose.yml)
 - Create a PostgreSQL container with health checks
 - Create a Pact Broker container that depends on PostgreSQL
 - Expose Pact Broker on port 9292 (configurable via `.env`)
