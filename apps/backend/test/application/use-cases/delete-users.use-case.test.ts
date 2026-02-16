@@ -257,36 +257,7 @@ describe('DeleteUsersUseCase', () => {
         )
       })
 
-      it('should still return true even if audit logging fails', async () => {
-        const userIds = [createMockUserId()]
-        vi.mocked(mockAuditLog.log).mockRejectedValue(new Error('Audit log failed'))
-
-        const result = await useCase.execute(userIds, auditContext)
-
-        expect(result).toBe(true)
-      })
-
-      it('should log error if audit logging fails', async () => {
-        const userIds = [createMockUserId()]
-        const auditError = new Error('Audit log failed')
-        vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-        await useCase.execute(userIds, auditContext)
-
-        expect(mockLogger.error).toHaveBeenCalledTimes(1)
-        expect(mockLogger.error).toHaveBeenCalledWith(
-          'Error logging audit for user deletion',
-          auditError,
-          { userIds }
-        )
-      })
-
-      it('should not throw if audit logging fails', async () => {
-        const userIds = [createMockUserId()]
-        vi.mocked(mockAuditLog.log).mockRejectedValue(new Error('Audit log failed'))
-
-        await expect(useCase.execute(userIds, auditContext)).resolves.toBe(true)
-      })
+      // Audit logging is no longer wrapped in try-catch, so failures will propagate
     })
 
     describe('error handling', () => {

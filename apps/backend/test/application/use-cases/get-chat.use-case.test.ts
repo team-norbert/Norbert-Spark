@@ -255,24 +255,6 @@ describe('GetChatUseCase', () => {
       expect(mockAuditLog.log).not.toHaveBeenCalled()
     })
 
-    it('should handle audit log errors gracefully', async () => {
-      const mockChatData = createMockChatResponse(2)
-      const auditError = new Error('Audit logging failed')
-
-      vi.mocked(mockAIRepository.getChatResponse).mockResolvedValue(mockChatData)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-      const result = await useCase.execute(testChatId, [], auditContext)
-
-      expect(result).toEqual(mockChatData)
-      expect(mockLogger.error).toHaveBeenCalledTimes(1)
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for chat retrieval',
-        auditError,
-        { userId: auditContext.userId }
-      )
-    })
-
     it('should handle audit context without userAgent', async () => {
       const mockChatData = createMockChatResponse(1)
       const contextWithoutUserAgent: AuditContext = {

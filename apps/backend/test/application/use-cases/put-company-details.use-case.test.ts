@@ -156,48 +156,6 @@ describe('PutCompanyDetailsUseCase', () => {
       })
       expect(mockAuditLog.log).not.toHaveBeenCalled()
     })
-
-    it('should handle audit logging failure gracefully for company', async () => {
-      const companyId = uuidv7()
-      const updateData: UpdateCompanyDetailsData = {
-        company: {
-          companyId,
-          displayName: 'Audit Fail Test',
-        },
-      }
-
-      const mockUpdatedCompany: DBCompanySelect = {
-        companyId,
-        legalName: 'Test Company',
-        displayName: 'Audit Fail Test',
-        status: 'active',
-        industry: null,
-        companySize: null,
-        websiteUrl: null,
-        billingCountry: 'US',
-        timezone: 'UTC',
-        singletonCheck: true,
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-15'),
-      }
-
-      const auditError = new Error('Audit log service unavailable')
-
-      vi.mocked(mockCompanyDetailsRepo.putCompanyDetails).mockResolvedValue(mockUpdatedCompany)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-      const result = await useCase.execute(auditContext, updateData)
-
-      expect(result).toEqual({
-        company: mockUpdatedCompany,
-        keyPerson: undefined,
-      })
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for company details update',
-        auditError,
-        { userId: auditContext.userId }
-      )
-    })
   })
 
   describe('execute() - key person updates', () => {
@@ -294,45 +252,6 @@ describe('PutCompanyDetailsUseCase', () => {
         keyPerson: null,
       })
       expect(mockAuditLog.log).not.toHaveBeenCalled()
-    })
-
-    it('should handle audit logging failure gracefully for key person', async () => {
-      const keyPersonId = uuidv7()
-      const updateData: UpdateCompanyDetailsData = {
-        keyPerson: {
-          keyPersonId,
-          isActive: false,
-        },
-      }
-
-      const mockUpdatedKeyPerson: DBKeyPersonSelect = {
-        keyPersonId,
-        firstName: 'Test',
-        lastName: 'Person',
-        email: 'test@example.com',
-        phone: null,
-        jobTitle: null,
-        isActive: false,
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-15'),
-      }
-
-      const auditError = new Error('Audit database connection failed')
-
-      vi.mocked(mockCompanyDetailsRepo.putKeyPersonDetails).mockResolvedValue(mockUpdatedKeyPerson)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-      const result = await useCase.execute(auditContext, updateData)
-
-      expect(result).toEqual({
-        company: undefined,
-        keyPerson: mockUpdatedKeyPerson,
-      })
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for key person details update',
-        auditError,
-        { userId: auditContext.userId }
-      )
     })
   })
 

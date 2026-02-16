@@ -235,62 +235,6 @@ describe('GetAIAdminUseCase', () => {
         userAgent: undefined,
       })
     })
-
-    it('should catch and log audit log errors without throwing', async () => {
-      const chatTypeId = new Uuid(uuidv7()).getValue()
-      const mockOptions: DBChatAiOptions = {
-        id: new Uuid(uuidv7()).getValue(),
-        chatTypeId,
-        prompt: 'Test prompt',
-        maxTokens: 1000,
-        temperature: '0.6',
-        topP: '0.8',
-        frequencyPenalty: '0.0',
-        presencePenalty: '0.0',
-        topK: 30,
-        stopSequences: null,
-        seed: null,
-        maxRetries: 2,
-      }
-
-      const auditError = new Error('Audit log database connection failed')
-      vi.mocked(mockAiAdminPort.getAllChatAIOptions).mockResolvedValue(mockOptions)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
-
-      const result = await useCase.execute(chatTypeId, mockAuditContext)
-
-      expect(result).toEqual(mockOptions)
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error logging audit for chat admin retrieval',
-        auditError,
-        { userId: mockAuditContext.userId }
-      )
-    })
-
-    it('should still return result even if audit logging fails', async () => {
-      const chatTypeId = new Uuid(uuidv7()).getValue()
-      const mockOptions: DBChatAiOptions = {
-        id: new Uuid(uuidv7()).getValue(),
-        chatTypeId,
-        prompt: 'Test prompt',
-        maxTokens: 1000,
-        temperature: '0.6',
-        topP: '0.8',
-        frequencyPenalty: '0.0',
-        presencePenalty: '0.0',
-        topK: 30,
-        stopSequences: null,
-        seed: null,
-        maxRetries: 2,
-      }
-
-      vi.mocked(mockAiAdminPort.getAllChatAIOptions).mockResolvedValue(mockOptions)
-      vi.mocked(mockAuditLog.log).mockRejectedValue(new Error('Audit failed'))
-
-      const result = await useCase.execute(chatTypeId, mockAuditContext)
-
-      expect(result).toEqual(mockOptions)
-    })
   })
 
   describe('error handling', () => {
