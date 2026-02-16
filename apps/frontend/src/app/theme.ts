@@ -15,7 +15,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'].join(','),
+    fontFamily: 'var(--font-roboto-mono), monospace',
   },
 })
 

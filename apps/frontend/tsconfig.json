@@ -15,8 +15,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@@norberts-spark/shared": ["../../packages/shared/src/index.ts"],
-      "@@norberts-spark/shared/*": ["../../packages/shared/src/*"]
+      "@norberts-spark/shared": ["../../packages/shared/src/index.ts"],
+      "@norberts-spark/shared/*": ["../../packages/shared/src/*"]
     },
     "target": "ES2017"
   },

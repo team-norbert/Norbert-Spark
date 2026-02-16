@@ -3,6 +3,15 @@ import { describe, expect, it, vi } from 'vitest'
 
 import RootLayout from '@/app/layout.js'
 
+// Mock next/font/google
+vi.mock('next/font/google', () => ({
+  Roboto_Mono: () => ({
+    className: 'mocked-roboto-mono',
+    style: { fontFamily: 'Roboto Mono, monospace' },
+    variable: '--font-roboto-mono',
+  }),
+}))
+
 // Mock the providers to avoid dependencies
 vi.mock('../../src/app/providers/SessionProvider.js', () => ({
   SessionProvider: ({ children }: { children: React.ReactNode }) => (
