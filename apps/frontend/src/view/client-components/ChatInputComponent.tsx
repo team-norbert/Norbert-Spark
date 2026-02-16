@@ -72,7 +72,7 @@ export const ChatInput = ({
         <IconButton
           component="label"
           color="default"
-          disabled={isLoading || disabled}
+          disabled
           sx={{ alignSelf: 'flex-end' }}
           data-testid="file-upload-button"
         >

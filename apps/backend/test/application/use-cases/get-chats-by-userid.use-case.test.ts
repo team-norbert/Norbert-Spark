@@ -2,6 +2,7 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIRepository } from '../../../src/adapters/secondary/repositories/ai.repository.js'
+import type { ChatWithType } from '../../../src/application/ports/ai.port.js'
 import type { AuditLogPort } from '../../../src/application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { GetChatsByUserIdUseCase } from '../../../src/application/use-cases/get-chats-by-userid.use-case.js'
@@ -56,10 +57,22 @@ describe('GetChatsByUserIdUseCase', () => {
 
   describe('execute() - successful scenarios', () => {
     it('should retrieve chats for a user successfully', async () => {
-      const mockChats: ChatIdType[] = [
-        new ChatId(uuidv7()).getValue(),
-        new ChatId(uuidv7()).getValue(),
-        new ChatId(uuidv7()).getValue(),
+      const mockChats: ChatWithType[] = [
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-1',
+        },
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-2',
+        },
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-3',
+        },
       ]
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
@@ -76,7 +89,7 @@ describe('GetChatsByUserIdUseCase', () => {
     })
 
     it('should return empty array when user has no chats', async () => {
-      const mockChats: ChatIdType[] = []
+      const mockChats: ChatWithType[] = []
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
@@ -89,7 +102,13 @@ describe('GetChatsByUserIdUseCase', () => {
     })
 
     it('should return single chat when user has one chat', async () => {
-      const mockChats: ChatIdType[] = [new ChatId(uuidv7()).getValue()]
+      const mockChats: ChatWithType[] = [
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-1',
+        },
+      ]
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
@@ -102,9 +121,11 @@ describe('GetChatsByUserIdUseCase', () => {
     })
 
     it('should handle large number of chats', async () => {
-      const mockChats: ChatIdType[] = Array.from({ length: 100 }, () =>
-        new ChatId(uuidv7()).getValue()
-      )
+      const mockChats: ChatWithType[] = Array.from({ length: 100 }, (_, i) => ({
+        id: new ChatId(uuidv7()).getValue(),
+        chatTypeId: new ChatId(uuidv7()).getValue(),
+        seoFriendlyId: `chat-test-${i + 1}`,
+      }))
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
@@ -118,7 +139,7 @@ describe('GetChatsByUserIdUseCase', () => {
 
     it('should call logger with correct userId', async () => {
       const specificUserId = new UserId(uuidv7()).getValue()
-      const mockChats: ChatIdType[] = []
+      const mockChats: ChatWithType[] = []
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
@@ -160,7 +181,13 @@ describe('GetChatsByUserIdUseCase', () => {
 
   describe('execute() - logging behavior', () => {
     it('should log before and after repository call', async () => {
-      const mockChats: ChatIdType[] = [new ChatId(uuidv7()).getValue()]
+      const mockChats: ChatWithType[] = [
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-1',
+        },
+      ]
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
       await useCase.execute(testUserId, auditContext)
@@ -198,7 +225,7 @@ describe('GetChatsByUserIdUseCase', () => {
     it('should work with different valid user IDs', async () => {
       const userId1 = new UserId(uuidv7()).getValue()
       const userId2 = new UserId(uuidv7()).getValue()
-      const mockChats: ChatIdType[] = []
+      const mockChats: ChatWithType[] = []
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
@@ -210,10 +237,13 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledTimes(2)
     })
 
-    it('should return ChatIdType array from repository', async () => {
+    it('should return ChatWithType array from repository', async () => {
       const chatId1 = new ChatId(uuidv7()).getValue()
       const chatId2 = new ChatId(uuidv7()).getValue()
-      const mockChats: ChatIdType[] = [chatId1, chatId2]
+      const mockChats: ChatWithType[] = [
+        { id: chatId1, chatTypeId: new ChatId(uuidv7()).getValue(), seoFriendlyId: 'chat-test-1' },
+        { id: chatId2, chatTypeId: new ChatId(uuidv7()).getValue(), seoFriendlyId: 'chat-test-2' },
+      ]
 
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
@@ -223,16 +253,24 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(Array.isArray(result)).toBe(true)
       expect(result).toHaveLength(2)
       // Type assertion safe here because we just verified it's an array
-      expect((result as ChatIdType[])[0]).toBe(chatId1)
-      expect((result as ChatIdType[])[1]).toBe(chatId2)
+      expect((result as ChatWithType[])[0]!.id).toBe(chatId1)
+      expect((result as ChatWithType[])[1]!.id).toBe(chatId2)
     })
   })
 
   describe('execute() - audit logging', () => {
     it('should log audit event with correct parameters when chats are retrieved successfully', async () => {
-      const mockChats: ChatIdType[] = [
-        new ChatId(uuidv7()).getValue(),
-        new ChatId(uuidv7()).getValue(),
+      const mockChats: ChatWithType[] = [
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-1',
+        },
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-2',
+        },
       ]
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
@@ -246,7 +284,7 @@ describe('GetChatsByUserIdUseCase', () => {
         action: 'fetch',
         changes: {
           reason: 'chat_successfully_retrieved_by_userid',
-          chatIds: mockChats,
+          chatIds: mockChats.map((c) => c.id),
         },
         ipAddress: '127.0.0.1',
         userAgent: 'test-user-agent',
@@ -254,7 +292,7 @@ describe('GetChatsByUserIdUseCase', () => {
     })
 
     it('should log audit event with empty chatIds when no chats found', async () => {
-      const mockChats: ChatIdType[] = []
+      const mockChats: ChatWithType[] = []
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
       await useCase.execute(testUserId, auditContext)
@@ -270,7 +308,13 @@ describe('GetChatsByUserIdUseCase', () => {
     })
 
     it('should log audit event with null userAgent when not provided', async () => {
-      const mockChats: ChatIdType[] = [new ChatId(uuidv7()).getValue()]
+      const mockChats: ChatWithType[] = [
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-1',
+        },
+      ]
       const auditContextWithoutAgent = {
         userId: testUserId,
         ipAddress: '192.168.1.1',
@@ -290,9 +334,17 @@ describe('GetChatsByUserIdUseCase', () => {
     })
 
     it('should still return chats successfully even if audit logging fails', async () => {
-      const mockChats: ChatIdType[] = [
-        new ChatId(uuidv7()).getValue(),
-        new ChatId(uuidv7()).getValue(),
+      const mockChats: ChatWithType[] = [
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-1',
+        },
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-2',
+        },
       ]
       const auditError = new Error('Audit service unavailable')
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
@@ -310,7 +362,7 @@ describe('GetChatsByUserIdUseCase', () => {
     })
 
     it('should log error when audit log throws exception', async () => {
-      const mockChats: ChatIdType[] = []
+      const mockChats: ChatWithType[] = []
       const auditError = new Error('Database connection failed')
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
       vi.mocked(mockAuditLog.log).mockRejectedValue(auditError)
@@ -328,7 +380,13 @@ describe('GetChatsByUserIdUseCase', () => {
     })
 
     it('should include correct entityId and entityType in audit log', async () => {
-      const mockChats: ChatIdType[] = [new ChatId(uuidv7()).getValue()]
+      const mockChats: ChatWithType[] = [
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-1',
+        },
+      ]
       const specificUserId = new UserId(uuidv7()).getValue()
       const specificAuditContext = {
         userId: specificUserId,
@@ -370,10 +428,22 @@ describe('GetChatsByUserIdUseCase', () => {
     })
 
     it('should log audit with correct changes structure', async () => {
-      const mockChats: ChatIdType[] = [
-        new ChatId(uuidv7()).getValue(),
-        new ChatId(uuidv7()).getValue(),
-        new ChatId(uuidv7()).getValue(),
+      const mockChats: ChatWithType[] = [
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-1',
+        },
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-2',
+        },
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-3',
+        },
       ]
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
@@ -383,14 +453,20 @@ describe('GetChatsByUserIdUseCase', () => {
         expect.objectContaining({
           changes: {
             reason: 'chat_successfully_retrieved_by_userid',
-            chatIds: mockChats,
+            chatIds: mockChats.map((c) => c.id),
           },
         })
       )
     })
 
     it('should pass complete auditContext to audit log', async () => {
-      const mockChats: ChatIdType[] = [new ChatId(uuidv7()).getValue()]
+      const mockChats: ChatWithType[] = [
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-1',
+        },
+      ]
       const customAuditContext = {
         userId: new UserId(uuidv7()).getValue(),
         ipAddress: '10.0.0.1',
@@ -408,7 +484,7 @@ describe('GetChatsByUserIdUseCase', () => {
         action: 'fetch',
         changes: {
           reason: 'chat_successfully_retrieved_by_userid',
-          chatIds: mockChats,
+          chatIds: mockChats.map((c) => c.id),
         },
         ipAddress: customAuditContext.ipAddress,
         userAgent: customAuditContext.userAgent,
@@ -419,7 +495,11 @@ describe('GetChatsByUserIdUseCase', () => {
       const chatId1 = new ChatId(uuidv7()).getValue()
       const chatId2 = new ChatId(uuidv7()).getValue()
       const chatId3 = new ChatId(uuidv7()).getValue()
-      const mockChats: ChatIdType[] = [chatId1, chatId2, chatId3]
+      const mockChats: ChatWithType[] = [
+        { id: chatId1, chatTypeId: new ChatId(uuidv7()).getValue(), seoFriendlyId: 'chat-test-1' },
+        { id: chatId2, chatTypeId: new ChatId(uuidv7()).getValue(), seoFriendlyId: 'chat-test-2' },
+        { id: chatId3, chatTypeId: new ChatId(uuidv7()).getValue(), seoFriendlyId: 'chat-test-3' },
+      ]
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
       await useCase.execute(testUserId, auditContext)
@@ -434,7 +514,13 @@ describe('GetChatsByUserIdUseCase', () => {
     })
 
     it('should log audit with fetch action for retrieval operation', async () => {
-      const mockChats: ChatIdType[] = [new ChatId(uuidv7()).getValue()]
+      const mockChats: ChatWithType[] = [
+        {
+          id: new ChatId(uuidv7()).getValue(),
+          chatTypeId: new ChatId(uuidv7()).getValue(),
+          seoFriendlyId: 'chat-test-1',
+        },
+      ]
       vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(mockChats)
 
       await useCase.execute(testUserId, auditContext)

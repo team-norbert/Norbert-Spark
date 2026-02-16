@@ -27,6 +27,7 @@ import type { UIDataTypes, UIMessagePart, UITools } from 'ai'
 import { useRouter } from 'next/navigation.js'
 import React from 'react'
 
+import { AccordionComponent } from '@/view/client-components/AccordionComponent.js'
 import { ChatInput } from '@/view/client-components/ChatInputComponent.js'
 import { Message } from '@/view/client-components/MessageComponent.js'
 import { MessageIntroComponent } from '@/view/client-components/MessageIntroComponent.js'
@@ -41,6 +42,12 @@ interface MessageType {
   role: string
 }
 
+interface ChatItem {
+  id: string
+  chatTypeId: string
+  seoFriendlyId: string
+}
+
 interface AIChatViewProps {
   readonly errorMessage: string
   readonly input: string
@@ -50,9 +57,11 @@ interface AIChatViewProps {
   readonly disabled: boolean
   readonly mobileOpen: boolean
   readonly currentChatId?: string
-  readonly chats: string[] | undefined
+  readonly chats: ChatItem[] | undefined
   readonly isChatsError: boolean
   readonly isLoadingChats: boolean
+  readonly accordionHeader: string
+  readonly accordionBody: string
   readonly onDrawerToggle: () => void
   readonly onErrorClose: () => void
   readonly onFileSelect: (file: File | null) => void
@@ -66,6 +75,8 @@ interface AIChatViewProps {
 }
 
 export function AIChatView({
+  accordionBody,
+  accordionHeader,
   chats,
   currentChatId,
   disabled,
@@ -151,11 +162,11 @@ export function AIChatView({
               </Box>
             </ListItem>
           ) : chats && chats.length > 0 ? (
-            chats.map((chatId) => (
+            chats.map((chat) => (
               <ListItemButton
-                key={chatId}
-                selected={currentChatId === chatId}
-                onClick={() => router.push(`/ai/${chatId}`)}
+                key={chat.id}
+                selected={currentChatId === chat.id}
+                onClick={() => router.push(`/ai/${chat.seoFriendlyId}/${chat.id}`)}
               >
                 <ListItemIcon>
                   <ChatIcon fontSize="small" />
@@ -164,12 +175,12 @@ export function AIChatView({
                   primary={
                     <Typography variant="body2" noWrap>
                       {/* TODO: will add full metadata at a later date */}
-                      Chat {chatId.slice(0, 8)}...
+                      Chat {chat.id.slice(0, 8)}...
                     </Typography>
                   }
                   secondary={
                     <Typography variant="caption" noWrap color="text.secondary">
-                      {currentChatId === chatId ? 'Active' : 'Previous chat'}
+                      {currentChatId === chat.id ? 'Active' : 'Previous chat'}
                     </Typography>
                   }
                 />
@@ -191,6 +202,8 @@ export function AIChatView({
   return (
     <Wrapper>
       <PageHeader title="AI Chat" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
+
+      <AccordionComponent header={accordionHeader} body={accordionBody} />
 
       <Box sx={{ display: 'flex', flex: 1, mb: 2, gap: 2, minHeight: 0, overflow: 'hidden' }}>
         {/* Mobile drawer */}

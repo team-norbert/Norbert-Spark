@@ -394,7 +394,14 @@ describe('Middleware', () => {
       vi.mocked(getToken).mockRejectedValue(new Error('Token validation failed'))
       const request = createRequest('/admin')
 
-      await expect(middleware(request)).rejects.toThrow('Token validation failed')
+      const response = await middleware(request)
+
+      // When JWT decryption fails, user is treated as unauthenticated
+      // and redirected to signin
+      expect(response.status).toBe(302)
+      expect(response.headers.get('location')).toBe(
+        'http://localhost:3000/signin?callbackUrl=%2Fadmin'
+      )
     })
 
     it('should handle invalid NEXTAUTH_SECRET', async () => {

@@ -308,8 +308,11 @@ describe('useAIChat', () => {
   })
 
   describe('handleNewChat', () => {
-    it('should navigate to /ai/{uuid} route', () => {
-      const { result } = renderHook(() => useAIChat({ id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e' }))
+    it('should navigate to /ai/{chatTypeParam}/{uuid} route', () => {
+      const chatTypeParam = 'heart-darkness'
+      const { result } = renderHook(() =>
+        useAIChat({ id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e', chatTypeParam })
+      )
 
       act(() => {
         result.current.handleNewChat()
@@ -317,7 +320,7 @@ describe('useAIChat', () => {
 
       expect(mockPush).toHaveBeenCalledTimes(1)
       expect(mockPush.mock.calls[0]?.[0]).toMatch(
-        /^\/ai\/[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/
+        /^\/ai\/heart-darkness\/[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/
       )
     })
 
@@ -958,7 +961,10 @@ describe('useAIChat', () => {
     })
 
     it('should handle drawer toggle and new chat navigation', () => {
-      const { result } = renderHook(() => useAIChat({ id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e' }))
+      const chatTypeParam = 'heart-darkness'
+      const { result } = renderHook(() =>
+        useAIChat({ id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e', chatTypeParam })
+      )
 
       act(() => {
         result.current.handleDrawerToggle()
@@ -970,7 +976,7 @@ describe('useAIChat', () => {
       })
       expect(mockPush).toHaveBeenCalledTimes(1)
       expect(mockPush.mock.calls[0]?.[0]).toMatch(
-        /^\/ai\/[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/
+        /^\/ai\/heart-darkness\/[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/
       )
     })
 

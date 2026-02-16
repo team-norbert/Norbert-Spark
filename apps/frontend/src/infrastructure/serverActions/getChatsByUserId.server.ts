@@ -19,7 +19,7 @@ type BackendError = Error & {
  * Calls backend /ai/chats/{userId} endpoint server-side (single network hop)
  *
  * @param userId - The UUID v7 of the user
- * @returns Response with success flag and array of chat ID strings
+ * @returns Response with success flag and array of chat objects ({ id, chatTypeId, seoFriendlyId })
  */
 export async function getChatsByUserIdAction(userId: string): Promise<AIUserIdResponseSchemaType> {
   try {

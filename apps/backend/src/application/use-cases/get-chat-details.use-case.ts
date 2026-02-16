@@ -42,7 +42,7 @@ export class GetChatDetailsUseCase {
    * - Missing `seoFriendlyId` is generated from the chat type name using SEO utility
    * - Missing `seoFriendlyBase64Id` is generated from the chat type ID using base64url encoding
    *
-   * @param {AuditContext} auditContext - The audit context containing user information,
+   * @param {AuditContext} _auditContext - The audit context containing user information,
    *   IP address, and user agent for tracking purposes
    *
    * @returns {Promise<DBChatType[]>} A promise that resolves to an array of chat types,
@@ -64,7 +64,7 @@ export class GetChatDetailsUseCase {
    * // chatTypes[0].seoFriendlyBase64Id => 'AbCdEfGhIjKlMnOpQrStUv'
    * ```
    */
-  public async execute(auditContext: AuditContext): Promise<DBChatType[]> {
+  public async execute(_auditContext: AuditContext): Promise<DBChatType[]> {
     const result = await this.aiChatContent.fetchChatContent()
     this.logger.info(`Fetched ${result.length} chat types from AIContentPort`)
     return result.map((chatType: DBChatType) => {

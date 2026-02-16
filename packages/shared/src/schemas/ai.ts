@@ -189,9 +189,17 @@ export const AIReturnedResponseSchema = z.object({
   trigger: z.string(),
 })
 
+export const AIUserIdChatSchema = z.object({
+  id: z.uuid(),
+  chatTypeId: z.uuid(),
+  seoFriendlyId: z.string(),
+})
+
+export type AIUserIdChatSchemaType = z.infer<typeof AIUserIdChatSchema>
+
 export const AIUserIdResponseSchema = z.object({
   success: z.boolean(),
-  data: z.array(z.uuid()),
+  data: z.array(AIUserIdChatSchema),
 })
 
 export const AIFetchChatResponseSchema = z.object({

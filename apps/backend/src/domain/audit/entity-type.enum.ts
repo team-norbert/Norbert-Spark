@@ -1,6 +1,7 @@
 export const EntityType = {
   USER: 'user',
   CHAT: 'chat',
+  CHAT_TYPE: 'chat_type',
   MESSAGE: 'message',
   PART: 'part',
   AI_OPTIONS: 'ai_options',

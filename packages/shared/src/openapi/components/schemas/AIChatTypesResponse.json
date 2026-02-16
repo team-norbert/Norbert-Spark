@@ -1,26 +1,24 @@
 {
   "type": "object",
-  "description": "Structured response containing array of chat types",
+  "description": "Response returned when fetching AI chat options",
   "required": ["success", "data"],
   "properties": {
     "success": {
       "type": "boolean",
-      "description": "Indicates if the request was successful",
       "example": true
     },
     "data": {
       "type": "array",
-      "description": "Array of chat type objects",
       "items": {
         "type": "object",
         "required": [
           "id",
           "name",
-          "seoFriendlyId",
-          "seoFriendlyBase64Id",
           "description",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "seoFriendlyId",
+          "seoFriendlyBase64Id"
         ],
         "properties": {
           "id": {

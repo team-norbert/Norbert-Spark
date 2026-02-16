@@ -1,7 +1,8 @@
 {
   "type": "object",
-  "description": "AI-generated response object",
+  "description": "AI chat request object. Requires id, messages, and trigger, plus at least one of chatTypeParam or chatTypeId to identify which chat type this conversation belongs to.",
   "required": ["id", "messages", "trigger"],
+  "anyOf": [{ "required": ["chatTypeParam"] }, { "required": ["chatTypeId"] }],
   "properties": {
     "id": {
       "type": "string",
@@ -49,6 +50,21 @@
       "type": "string",
       "example": "submit-message",
       "description": "Indicates which user or system action caused this AI response to be generated. Implementations should use consistent, machine-readable identifiers (e.g. \"submit-message\")."
+    },
+    "chatTypeParam": {
+      "type": "string",
+      "description": "A flexible chat type identifier extracted from the URL. Can be any of the three unique identifiers from the chat_types table: the UUID id, the seo_friendly_id slug, or the seo_friendly_base64_id. The backend resolves this to the chat type UUID. At least one of chatTypeParam or chatTypeId must be provided.",
+      "examples": [
+        "019c6003-28df-722a-a79d-0ce2b2f826df",
+        "heart-darkness",
+        "AZxgAyjfciqnnQzisvgm3w"
+      ]
+    },
+    "chatTypeId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The direct UUID of the chat type. Used as a fallback when chatTypeParam is not provided. Must be a valid UUIDv7. At least one of chatTypeParam or chatTypeId must be provided.",
+      "example": "019c6003-28df-722a-a79d-0ce2b2f826df"
     }
   }
 }

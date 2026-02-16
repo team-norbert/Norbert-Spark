@@ -32,6 +32,7 @@ const ALLOWED_FILE_TYPES = [
 
 interface UseAIChatProps {
   id?: string
+  chatTypeParam?: string
   initialMessages?: any[]
 }
 
@@ -48,7 +49,7 @@ export function isValidUUIDv7(id: string | Buffer) {
 export function processUserUUID(id: string | Buffer) {
   return isValidUUIDv7(id)
 }
-export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
+export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps = {}) {
   const router = useRouter()
   const { data: session } = useSession()
 
@@ -56,8 +57,13 @@ export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
 
   const handleNewChat = () => {
     const newId = uuidv7()
-    logger.info('Creating new chat with ID:', newId)
-    router.push(`/ai/${newId}`)
+    if (chatTypeParam) {
+      logger.info('Creating new chat with chatTypeParam:', chatTypeParam, 'ID:', newId)
+      router.push(`/ai/${chatTypeParam}/${newId}`)
+    } else {
+      logger.info('No chatTypeParam, navigating to landing page')
+      router.push('/ai')
+    }
   }
 
   // State declarations - must be before useChat to avoid reference errors in callbacks
@@ -88,6 +94,7 @@ export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
     messages: initialMessages,
     transport: new DefaultChatTransport({
       api: process.env.NEXT_PUBLIC_POST_AI_CALLBACK_URL,
+      ...(chatTypeParam ? { body: { chatTypeParam } } : {}),
       fetch: (url, options) => {
         const accessToken = session?.accessToken
         return fetch(url, {
@@ -211,6 +218,11 @@ export function useAIChat({ id, initialMessages }: UseAIChatProps = {}) {
     chats,
     isChatsError,
     isLoadingChats,
+
+    // Accordion configuration
+    accordionHeader: 'Chat Information',
+    accordionBody:
+      'This is an AI-powered chat interface where you can ask questions and get responses.',
 
     // Handlers
     handleSubmit,

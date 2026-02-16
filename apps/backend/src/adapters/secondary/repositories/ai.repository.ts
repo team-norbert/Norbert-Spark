@@ -3,6 +3,7 @@ import { desc, eq, asc, sql } from 'drizzle-orm'
 import { db } from '../../../infrastructure/database/index.js'
 import {
   chats,
+  chatTypes,
   messages,
   parts,
   type DBMessageSelect,
@@ -14,6 +15,8 @@ import type { ChatIdType } from '../../../domain/value-objects/chatID.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { mapUIMessagePartsToDBParts } from '../../../shared/mapper/index.js'
 import { isArray } from '@norberts-spark/shared'
+
+import type { ChatWithType } from '../../../application/ports/ai.port.js'
 
 export type ChatResponseResult = {
   chat: typeof chats.$inferSelect
@@ -69,20 +72,21 @@ export class AIRepository implements AIServicePort {
   async createChat(
     chatId: ChatIdType,
     userId: UserIdType,
+    chatTypeId: ChatIdType,
     initialMessages: UIMessage[] = []
   ): Promise<string> {
     const newChat = {
       userId: userId,
       id: chatId,
+      chatTypeId: chatTypeId,
     }
 
     this.logger.info('chatId', chatId)
     this.logger.info('userId', userId)
+    this.logger.info('chatTypeId', chatTypeId)
     this.logger.info('initialMessages', initialMessages)
     this.logger.info('createChat', newChat)
 
-    // TODO: add chatTypeId to the chats table
-    // @ts-expect-error
     await db.insert(chats).values(newChat)
 
     this.logger.info('initialMessages', initialMessages)
@@ -119,16 +123,38 @@ export class AIRepository implements AIServicePort {
     return chatId
   }
 
-  async getChatsByUserId(userId: UserIdType): Promise<ChatIdType[]> {
+  /**
+   * Retrieves all chats for a user with their associated chat type information.
+   *
+   * Data Integrity Guarantees:
+   * 1. The INNER JOIN is safe because chats.chatTypeId has a NOT NULL constraint
+   *    (see schema.ts line 694: .notNull())
+   * 2. Foreign key constraint ensures referential integrity: chats.chatTypeId
+   *    references chat_types.id with onDelete: 'restrict' (schema.ts line 695)
+   * 3. Database index on chats.chat_type_id ensures efficient joins (schema.ts line 705)
+   * 4. No orphaned chats can exist - the FK constraint prevents deletion of
+   *    chat_types while chats reference them
+   *
+   * @param userId - The user's ID to filter chats by
+   * @returns Array of chats with id, chatTypeId, and seoFriendlyId
+   */
+  async getChatsByUserId(userId: UserIdType): Promise<ChatWithType[]> {
     const result = await db
       .select({
         id: chats.id,
+        chatTypeId: chats.chatTypeId,
+        seoFriendlyId: chatTypes.seoFriendlyId,
       })
       .from(chats)
+      .innerJoin(chatTypes, eq(chats.chatTypeId, chatTypes.id))
       .where(eq(chats.userId, userId))
       .orderBy(desc(chats.updatedAt))
 
-    return result.map((row) => row.id as ChatIdType)
+    return result.map((row) => ({
+      id: row.id as ChatIdType,
+      chatTypeId: row.chatTypeId as ChatIdType,
+      seoFriendlyId: row.seoFriendlyId,
+    }))
   }
 
   async getChatDetails(): Promise<void> {

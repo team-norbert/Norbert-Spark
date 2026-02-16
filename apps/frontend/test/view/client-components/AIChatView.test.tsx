@@ -21,6 +21,9 @@ describe('AIChatView Component', () => {
   const mockPush = vi.fn()
 
   const defaultProps = {
+    accordionHeader: 'Chat Information',
+    accordionBody:
+      'This is an AI-powered chat interface where you can ask questions and get responses.',
     chats: undefined,
     disabled: false,
     errorMessage: '',
