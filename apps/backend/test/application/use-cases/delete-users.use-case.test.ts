@@ -257,7 +257,7 @@ describe('DeleteUsersUseCase', () => {
         )
       })
 
-      // Audit logging is no longer wrapped in try-catch, so failures will propagate
+      // Note: the default AuditLogRepository.log() swallows its own errors, so audit logging failures do not propagate
     })
 
     describe('error handling', () => {
