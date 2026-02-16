@@ -7,11 +7,11 @@ import type { UUIDType } from '../../domain/value-objects/uuid.js'
 export interface AuditLogPort {
   /**
    * Create an audit log entry.
-   * 
+   *
    * IMPORTANT: Implementations MUST NOT throw errors. Audit logging failures should be logged
    * internally but never propagate to callers. This ensures that business operations are never
    * blocked by audit logging issues.
-   * 
+   *
    * @param entry - The audit log entry to create
    * @returns A promise that always resolves successfully
    */
