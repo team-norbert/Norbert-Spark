@@ -49,25 +49,20 @@ export class GetChatsByUserIdUseCase {
       `Retrieved ${chats.length} chat${chats.length === 1 ? '' : 's'} for user ID: ${userId}`
     )
 
-    try {
-      const auditEntry: CreateAuditLogDTO = {
-        userId: auditContext.userId,
-        entityType: EntityType.CHAT,
-        entityId: userId,
-        action: AuditAction.FETCH,
-        changes: {
-          reason: 'chat_successfully_retrieved_by_userid',
-          chatIds: chats.map((c) => c.id),
-        } satisfies FetchChatChanges,
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      }
-      await this.auditLog.log(auditEntry)
-    } catch (error) {
-      this.logger.error('Error logging audit for chat retrieval', error as Error, {
-        userId: auditContext.userId,
-      })
+    const auditEntry: CreateAuditLogDTO = {
+      userId: auditContext.userId,
+      entityType: EntityType.CHAT,
+      entityId: userId,
+      action: AuditAction.FETCH,
+      changes: {
+        reason: 'chat_successfully_retrieved_by_userid',
+        chatIds: chats.map((c) => c.id),
+      } satisfies FetchChatChanges,
+      ipAddress: auditContext.ipAddress,
+      userAgent: auditContext.userAgent ?? undefined,
     }
+    await this.auditLog.log(auditEntry)
+
     return chats
   }
 }
