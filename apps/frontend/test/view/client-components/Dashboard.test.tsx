@@ -213,6 +213,86 @@ describe('Dashboard Component', () => {
         expect(mockOnNavigate).toHaveBeenCalledTimes(1)
       })
     })
+
+    describe('AI Config Card', () => {
+      it('should NOT render AI Config card when canAccessAdmin is false', () => {
+        render(
+          <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        expect(screen.queryByText('AI Config')).not.toBeInTheDocument()
+        expect(screen.queryByText('Manage AI chat configuration')).not.toBeInTheDocument()
+        expect(screen.queryByTestId('SettingsIcon')).not.toBeInTheDocument()
+      })
+
+      it('should render AI Config card when canAccessAdmin is true', () => {
+        render(
+          <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        expect(screen.getByText('AI Config')).toBeInTheDocument()
+        expect(screen.getByText('Manage AI chat configuration')).toBeInTheDocument()
+        expect(screen.getByTestId('SettingsIcon')).toBeInTheDocument()
+      })
+
+      it('should call onNavigate with /ai-admin when AI Config card is clicked', () => {
+        render(
+          <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        const aiConfigCard = screen.getByText('AI Config').closest('.MuiCardActionArea-root')
+        fireEvent.click(aiConfigCard!)
+
+        expect(mockOnNavigate).toHaveBeenCalledWith('/ai-admin')
+        expect(mockOnNavigate).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    describe('Chat Types Card', () => {
+      it('should NOT render Chat Types card when canAccessAdmin is false', () => {
+        render(
+          <Dashboard canAccessAdmin={false} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        expect(screen.queryByText('Chat Types')).not.toBeInTheDocument()
+        expect(screen.queryByText('View chat types configuration')).not.toBeInTheDocument()
+        expect(screen.queryByTestId('CategoryIcon')).not.toBeInTheDocument()
+      })
+
+      it('should render Chat Types card when canAccessAdmin is true', () => {
+        render(
+          <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        expect(screen.getByText('Chat Types')).toBeInTheDocument()
+        expect(screen.getByText('View chat types configuration')).toBeInTheDocument()
+        expect(screen.getByTestId('CategoryIcon')).toBeInTheDocument()
+      })
+
+      it('should call onNavigate with /chat-types when Chat Types card is clicked', () => {
+        render(
+          <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        const chatTypesCard = screen.getByText('Chat Types').closest('.MuiCardActionArea-root')
+        fireEvent.click(chatTypesCard!)
+
+        expect(mockOnNavigate).toHaveBeenCalledWith('/chat-types')
+        expect(mockOnNavigate).toHaveBeenCalledTimes(1)
+      })
+
+      it('should render Chat Types card with correct icon and styling', () => {
+        render(
+          <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+        )
+
+        const categoryIcon = screen.getByTestId('CategoryIcon')
+        expect(categoryIcon).toBeInTheDocument()
+
+        const chatTypesCard = screen.getByText('Chat Types').closest('.MuiCard-root')
+        expect(chatTypesCard).toBeInTheDocument()
+      })
+    })
   })
 
   describe('Card Count Based on Role', () => {
@@ -225,13 +305,13 @@ describe('Dashboard Component', () => {
       expect(cards).toHaveLength(4) // Chat, Profile, Extract Data, Company Details
     })
 
-    it('should render exactly 6 cards when canAccessAdmin is true', () => {
+    it('should render exactly 7 cards when canAccessAdmin is true', () => {
       const { container } = render(
         <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
       )
 
       const cards = container.querySelectorAll('.MuiCard-root')
-      expect(cards).toHaveLength(6) // Chat, Profile, Extract Data, Company Details, Admin, AI Config
+      expect(cards).toHaveLength(7) // Chat, Profile, Extract Data, Company Details, Admin, AI Config, Chat Types
     })
   })
 
@@ -275,6 +355,22 @@ describe('Dashboard Component', () => {
 
       expect(screen.getByTestId('AdminPanelSettingsIcon')).toBeInTheDocument()
     })
+
+    it('should render SettingsIcon for AI Config card when admin access is granted', () => {
+      render(
+        <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+      )
+
+      expect(screen.getByTestId('SettingsIcon')).toBeInTheDocument()
+    })
+
+    it('should render CategoryIcon for Chat Types card when admin access is granted', () => {
+      render(
+        <Dashboard canAccessAdmin={true} onNavigate={mockOnNavigate} onSignOut={mockOnSignOut} />
+      )
+
+      expect(screen.getByTestId('CategoryIcon')).toBeInTheDocument()
+    })
   })
 
   describe('Navigation Callback Behavior', () => {
@@ -297,17 +393,23 @@ describe('Dashboard Component', () => {
         .getByText('Company Details')
         .closest('.MuiCardActionArea-root')
       const adminCard = screen.getByText('User Admin').closest('.MuiCardActionArea-root')
+      const aiConfigCard = screen.getByText('AI Config').closest('.MuiCardActionArea-root')
+      const chatTypesCard = screen.getByText('Chat Types').closest('.MuiCardActionArea-root')
 
       fireEvent.click(chatCard!)
       fireEvent.click(profileCard!)
       fireEvent.click(companyDetailsCard!)
       fireEvent.click(adminCard!)
+      fireEvent.click(aiConfigCard!)
+      fireEvent.click(chatTypesCard!)
 
-      expect(mockOnNavigate).toHaveBeenCalledTimes(4)
+      expect(mockOnNavigate).toHaveBeenCalledTimes(6)
       expect(mockOnNavigate).toHaveBeenNthCalledWith(1, '/ai')
       expect(mockOnNavigate).toHaveBeenNthCalledWith(2, '/profile')
       expect(mockOnNavigate).toHaveBeenNthCalledWith(3, '/company-details')
       expect(mockOnNavigate).toHaveBeenNthCalledWith(4, '/admin')
+      expect(mockOnNavigate).toHaveBeenNthCalledWith(5, '/ai-admin')
+      expect(mockOnNavigate).toHaveBeenNthCalledWith(6, '/chat-types')
     })
 
     it('should handle same card clicked multiple times', () => {
