@@ -31,7 +31,7 @@
     "split:api": "redocly split ./src/openapi.json --outDir ./src/openapi"
   },
   "dependencies": {
-    "ai": "^6.0.79",
+    "ai": "^6.0.86",
     "zod": "^4.3.5"
   },
   "exports": {
