@@ -5,7 +5,6 @@ import { ExtractDataDto } from '../dtos/extract-data.dto.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { UnprocessableEntityException } from '../../shared/exceptions/unprocessable-entity.exception.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
-import type { FileUploadChanges } from '../../domain/audit/audit-changes.types.js'
 /**
  * Detect file type from buffer by checking magic bytes (file signature)
  */
@@ -74,7 +73,7 @@ export class ExtractDataUseCase {
         entityType: EntityType.DATA_EXTRACTION,
         entityId: GetObjectCommandKeys.fileKey,
         action: AuditAction.FETCH,
-        changes: { reason: 'get_from_bucket', fileType } satisfies FileUploadChanges,
+        changes: { reason: 'get_from_bucket', fileType },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
@@ -93,7 +92,7 @@ export class ExtractDataUseCase {
         entityType: EntityType.DATA_EXTRACTION,
         entityId: GetObjectCommandKeys.fileKey,
         action: AuditAction.FETCH,
-        changes: { reason: 'get_from_bucket_failed' } satisfies FileUploadChanges,
+        changes: { reason: 'get_from_bucket_failed' },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
       }
