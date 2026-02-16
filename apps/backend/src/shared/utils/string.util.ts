@@ -125,12 +125,24 @@ export class StringUtil {
       return ''
     }
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    const bytes = crypto.randomBytes(length)
+    const charCount = chars.length
+    const maxByte = 256 - (256 % charCount)
     let result = ''
-    for (let i = 0; i < length; i++) {
-      // Map each byte to a character in the allowed set
-      result += chars.charAt(bytes[i]! % chars.length)
+
+    // Use rejection sampling to avoid modulo bias when mapping bytes to characters.
+    while (result.length < length) {
+      const bytesNeeded = length - result.length
+      const bytes = crypto.randomBytes(bytesNeeded)
+      for (let i = 0; i < bytes.length && result.length < length; i++) {
+        const byte = bytes[i]!
+        if (byte >= maxByte) {
+          // Discard this byte to avoid introducing bias
+          continue
+        }
+        result += chars.charAt(byte % charCount)
+      }
     }
+
     return result
   }
 
