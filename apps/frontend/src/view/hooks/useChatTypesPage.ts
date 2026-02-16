@@ -31,10 +31,14 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     pageSize: 10,
   })
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [errorDismissed, setErrorDismissed] = useState(false)
+  const [dismissedErrorMessage, setDismissedErrorMessage] = useState<string | null>(null)
 
   // Use TanStack Query hook for data fetching with automatic caching
   const { chatTypes, error, isLoading } = useAIChatConfig()
+
+  // Track if the current error has been dismissed
+  const currentErrorMessage = error?.message || null
+  const isDismissed = dismissedErrorMessage === currentErrorMessage
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query)
@@ -48,7 +52,8 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
 
   const handleCloseErrorMessage = () => {
     setErrorMessage(null)
-    setErrorDismissed(true)
+    // Store the dismissed error message to track which error was dismissed
+    setDismissedErrorMessage(currentErrorMessage)
   }
 
   // Filter chat types based on search query (client-side filtering)
@@ -70,8 +75,8 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
   const paginatedChatTypes = filteredChatTypes.slice(startIndex, endIndex)
 
   // Determine which error to show - prefer query error unless dismissed
-  const hasQueryError = Boolean(error?.message)
-  const displayError = hasQueryError && !errorDismissed ? error?.message || null : errorMessage
+  const hasQueryError = Boolean(currentErrorMessage)
+  const displayError = hasQueryError && !isDismissed ? currentErrorMessage : errorMessage
 
   return {
     chatTypes: paginatedChatTypes,
