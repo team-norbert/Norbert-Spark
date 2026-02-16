@@ -89,6 +89,30 @@
                   "success": false,
                   "error": "Last message must be from the user"
                 }
+              },
+              "missingChatType": {
+                "summary": "Missing chat type identifier",
+                "value": {
+                  "success": false,
+                  "error": "Chat type identification required",
+                  "details": "Provide chatTypeParam or chatTypeId in the request body"
+                }
+              },
+              "invalidChatTypeParam": {
+                "summary": "Unresolvable chat type parameter",
+                "value": {
+                  "success": false,
+                  "error": "Invalid chat type parameter",
+                  "details": "Could not resolve chat type from: nonexistent-slug"
+                }
+              },
+              "invalidChatTypeId": {
+                "summary": "Invalid chatTypeId UUID format",
+                "value": {
+                  "success": false,
+                  "error": "Invalid chatTypeId format",
+                  "details": "chatTypeId must be a valid UUID v7"
+                }
               }
             }
           }

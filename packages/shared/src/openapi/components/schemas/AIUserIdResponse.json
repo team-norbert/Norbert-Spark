@@ -10,11 +10,29 @@
     },
     "data": {
       "type": "array",
-      "description": "Array of UUID strings for previous AI chats",
+      "description": "Array of chat objects for previous AI chats, each containing the chat ID, its associated chat type ID, and the SEO-friendly slug for URL construction",
       "items": {
-        "type": "string",
-        "format": "uuid",
-        "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
+        "type": "object",
+        "required": ["id", "chatTypeId", "seoFriendlyId"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The unique chat identifier",
+            "example": "01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a"
+          },
+          "chatTypeId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The UUID of the chat type this chat belongs to",
+            "example": "019c6003-28df-722a-a79d-0ce2b2f826df"
+          },
+          "seoFriendlyId": {
+            "type": "string",
+            "description": "The SEO-friendly slug from the chat type, used for constructing human-readable URLs (e.g. /ai/chat-heart-darkness/{chatId})",
+            "example": "heart-darkness"
+          }
+        }
       }
     }
   }
