@@ -15,7 +15,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: ['Roboto Mono', 'monospace'].join(','),
+    fontFamily: 'var(--font-roboto-mono), monospace',
   },
 })
 
