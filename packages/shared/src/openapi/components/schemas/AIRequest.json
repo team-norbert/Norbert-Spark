@@ -2,10 +2,7 @@
   "type": "object",
   "description": "AI chat request object. Requires id, messages, and trigger, plus at least one of chatTypeParam or chatTypeId to identify which chat type this conversation belongs to.",
   "required": ["id", "messages", "trigger"],
-  "anyOf": [
-    { "required": ["chatTypeParam"] },
-    { "required": ["chatTypeId"] }
-  ],
+  "anyOf": [{ "required": ["chatTypeParam"] }, { "required": ["chatTypeId"] }],
   "properties": {
     "id": {
       "type": "string",
