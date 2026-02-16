@@ -5,7 +5,6 @@ import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { EntityType, AuditAction } from '../../domain/audit/entity-type.enum.js'
-import type { DeleteChanges } from '../../domain/audit/audit-changes.types.js'
 
 export interface AppendedChatResult {
   chatId: string
