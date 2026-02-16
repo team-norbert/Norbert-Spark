@@ -15,7 +15,6 @@ import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js
 import { EntityType } from '../../domain/audit/entity-type.enum.js'
 import { AuditAction } from '../../domain/audit/entity-type.enum.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
-import { Uuid } from '../../domain/value-objects/uuid.js'
 
 /**
  * Use case for registering a new user in the system
