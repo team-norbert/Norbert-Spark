@@ -6,8 +6,6 @@ import type { CompanyUpdate, KeyPersonUpdate } from '../dtos/update-company.dto.
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { Uuid } from '../../domain/value-objects/uuid.js'
 import type { DBCompanySelect, DBKeyPersonSelect } from '../../infrastructure/database/schema.js'
-import type { LoginFailedChanges } from '../../domain/audit/audit-changes.types.js'
-
 /**
  * Data structure for updating company and/or key person details.
  *
