@@ -671,8 +671,8 @@ This project is a monorepo with the following structure:
 
 ## Prerequisites
 
-- Node.js >> 22
-- PNPM >> 10
+- Node.js >= 22 < 25
+- PNPM >= 10
 - Docker and Docker Compose (for PostgreSQL)
 
 ## Getting Started
