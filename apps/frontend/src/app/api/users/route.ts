@@ -1,6 +1,6 @@
 import type { PaginatedUsersResponse } from '@/domain/user/user.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
-import { getAuthToken } from '@/lib/auth.js'
+import { getAuthToken } from '@/lib/auth/auth.js'
 
 const logger = createLogger({ prefix: 'UsersAPI' })
 

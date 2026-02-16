@@ -5,7 +5,7 @@ import { GET } from '@/app/api/extract-data/[fileKey]/route.js'
 // ReadableStream and TextEncoder are Node.js globals in tests
 
 // Mock the auth helper
-vi.mock('@/lib/auth.js', () => ({
+vi.mock('@/lib/auth/auth.js', () => ({
   getAuthToken: vi.fn(),
 }))
 
@@ -20,7 +20,7 @@ vi.mock('@/infrastructure/logging/logger.js', () => ({
 }))
 
 // Import after mock
-const { getAuthToken } = await import('@/lib/auth.js')
+const { getAuthToken } = await import('@/lib/auth/auth.js')
 
 describe('GET /api/extract-data/[fileKey]', () => {
   const mockAccessToken = 'mock-jwt-token'

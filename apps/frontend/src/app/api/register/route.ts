@@ -1,4 +1,4 @@
-import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index.js'
+import type { RegisterUserData, RegisterUserResponse } from '@/domain/schemas/index.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = createLogger({ minLevel: 'info', prefix: '[register:route]' })

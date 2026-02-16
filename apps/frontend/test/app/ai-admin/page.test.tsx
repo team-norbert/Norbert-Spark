@@ -2,12 +2,13 @@ import { redirect } from 'next/navigation.js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import AIAdminPage from '@/app/ai-admin/page.js'
-import { hasAnyRole } from '@/lib/auth.js'
 
 // Mock the auth module
-vi.mock('@/lib/auth.js', () => ({
+vi.mock('@/lib/auth/auth.js', () => ({
   hasAnyRole: vi.fn(),
 }))
+
+const { hasAnyRole } = await import('@/lib/auth/auth.js')
 
 // Mock next/navigation - redirect needs to throw to simulate Next.js behavior
 vi.mock('next/navigation.js', () => ({

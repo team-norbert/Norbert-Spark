@@ -1,0 +1,41 @@
+AI NOTE: This document is adapted from the backend hexagonal / domain-driven design architecture guide. However,
+for Next.js / React 19 the architecture will never be exactly the same as a backend service.
+The goal is to keep the same principles and ideas but adapt them to the frontend world.
+The main architectural difference is that the frontend introduces a dedicated view layer
+(for UI components and presentation logic) that does not exist in the backend.
+
+DIRECTORY STRUCTURE:
+
+frontend/src/
+├── app/                 # This is Next.js specific code mostly for pages. Kept slim
+│
+├── application/
+│   ├── actions/         # Use cases and application services
+│   ├── errors/          # Application-specific error classes
+│   ├── ports/           # Interfaces for the port and adapter pattern
+│   └── services/        # Application services that orchestrate domain logic and external interactions
+│
+├── domain/              # Core business logic (center of hexagon)
+│   ├── ai/              # Immutable domain concepts related to AI
+│   ├── schema/          # Authentication and authorization logic
+│   ├── user/            # User-related domain logic
+│   └── events/          # Domain events and event handlers
+│
+├── infrastructure /     # Technical implementation details
+│   ├── logging /        # Logging utilities
+│   ├── serverActions /  # Calling APIs from the backend
+│
+├── lib /                # Third-party libraries and utilities
+│   ├── auth/            # Authentication utilities
+│
+├── view/                # Technical implementation of UI
+│   ├── client-components/ # UI client-side components
+│   ├── hooks/           # Hooks for data fetching and state management
+│       ├── queries/     # React query hooks
+│
+└── shared/              # Common utilities across layers
+    ├── types/           # TypeScript types and interfaces
+    ├── utils/           # General utility functions
+    ├── constants/       # routes.ts is for defining application routes and paths
+    ├── exceptions/      # Custom error classes
+    └── guards/          # Route guards and authentication checks

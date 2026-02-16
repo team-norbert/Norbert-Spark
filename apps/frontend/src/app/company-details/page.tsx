@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation.js'
 
-import { hasAnyRole } from '@/lib/auth.js'
+import { hasAnyRole } from '@/lib/auth/auth.js'
 
 import { CompanyDetailsPageClient } from './CompanyDetailsPageClient.js'
 

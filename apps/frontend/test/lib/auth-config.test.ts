@@ -22,7 +22,7 @@ describe('authOptions Configuration', () => {
 
   // Import after mocks are set up
   const getAuthOptions = async () => {
-    const module = await import('@/lib/auth-config.js')
+    const module = await import('@/lib/auth/auth-config.js')
     return module.authOptions
   }
 
@@ -161,7 +161,7 @@ describe('authOptions Configuration', () => {
 
       // Re-import with new env var
       vi.resetModules()
-      const { authOptions } = await import('@/lib/auth-config.js')
+      const { authOptions } = await import('@/lib/auth/auth-config.js')
       const provider = authOptions.providers[0]
       // @ts-expect-error - accessing internal provider structure
       const authorize = provider.options?.authorize
@@ -1016,7 +1016,7 @@ describe('authOptions Configuration', () => {
   describe('Integration Tests', () => {
     it('should complete full authentication flow', async () => {
       vi.resetModules()
-      const { authOptions } = await import('@/lib/auth-config.js')
+      const { authOptions } = await import('@/lib/auth/auth-config.js')
 
       // Step 1: Authorize user
       const mockBackendResponse = {

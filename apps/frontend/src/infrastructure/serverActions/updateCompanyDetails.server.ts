@@ -2,7 +2,7 @@
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { backendRequest } from '@/infrastructure/serverActions/baseServerAction.js'
-import { getAuthToken } from '@/lib/auth.js'
+import { getAuthToken } from '@/lib/auth/auth.js'
 
 const logger = createLogger({ prefix: '[updateCompanyDetails:action]' })
 

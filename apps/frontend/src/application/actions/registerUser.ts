@@ -1,4 +1,4 @@
-import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index.js'
+import type { RegisterUserData, RegisterUserResponse } from '@/domain/schemas/index.js'
 import { UnifiedLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = new UnifiedLogger({ prefix: '[registerUser]' })

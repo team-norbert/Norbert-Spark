@@ -1,8 +1,7 @@
 import { useRouter } from 'next/navigation.js'
-import { obscured } from 'obscured'
 import { useState } from 'react'
 
-import { EmailSchema, NameSchema, PasswordSchema } from '@/domain/auth/index.js'
+import { EmailSchema, NameSchema, PasswordSchema } from '@/domain/schemas/index.js'
 import { useRegisterUser } from '@/view/hooks/queries/useRegisterUser.js'
 
 interface FormData extends Record<string, string> {
@@ -60,9 +59,6 @@ export function useRegistrationForm() {
   }
 
   const validateForm = (): boolean => {
-    // Obscure sensitive fields before validation
-    const obscuredData = obscured.obscureKeys(formData, ['password', 'confirmPassword'])
-
     const newErrors: FormErrors = {
       email: '',
       name: '',
@@ -94,7 +90,7 @@ export function useRegistrationForm() {
     if (!formData.password) {
       newErrors.password = 'Password is required'
     } else {
-      const result = PasswordSchema.safeParse(obscured.value(obscuredData.password))
+      const result = PasswordSchema.safeParse(formData.password)
       if (!result.success) {
         newErrors.password =
           result.error.issues[0]?.message || 'Password must be at least 12 characters'
@@ -104,9 +100,7 @@ export function useRegistrationForm() {
     // Confirm password validation
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password'
-    } else if (
-      obscured.value(obscuredData.password) !== obscured.value(obscuredData.confirmPassword)
-    ) {
+    } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match'
     }
 

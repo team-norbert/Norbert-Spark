@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { registerUser as registerUserAppAction } from '@/application/actions/registerUser.js'
-import type { RegisterUserData } from '@/domain/auth/index.js'
+import type { RegisterUserData } from '@/domain/schemas/index.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = createLogger({ prefix: '[useRegisterUser]' })

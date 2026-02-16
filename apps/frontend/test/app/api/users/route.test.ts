@@ -4,12 +4,12 @@ import { GET } from '@/app/api/users/route.js'
 import type { PaginatedUsersResponse } from '@/domain/user/user.js'
 
 // Mock the auth helper
-vi.mock('@/lib/auth.js', () => ({
+vi.mock('@/lib/auth/auth.js', () => ({
   getAuthToken: vi.fn(),
 }))
 
 // Import after mock
-const { getAuthToken } = await import('@/lib/auth.js')
+const { getAuthToken } = await import('@/lib/auth/auth.js')
 
 describe('GET /api/users', () => {
   const mockEnv = {

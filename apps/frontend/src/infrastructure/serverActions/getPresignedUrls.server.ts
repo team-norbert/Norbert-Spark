@@ -1,7 +1,7 @@
 'use server'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
-import { getAuthToken } from '@/lib/auth.js'
+import { getAuthToken } from '@/lib/auth/auth.js'
 
 import { backendRequest } from './baseServerAction.js'
 
