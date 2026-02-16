@@ -7,7 +7,7 @@ import type { AuditLogPort } from '../../../src/application/ports/audit-log.port
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { GetChatsByUserIdUseCase } from '../../../src/application/use-cases/get-chats-by-userid.use-case.js'
 import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
-import { ChatId, type ChatIdType } from '../../../src/domain/value-objects/chatID.js'
+import { ChatId, type ChatIdType as _ChatIdType } from '../../../src/domain/value-objects/chatID.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
 
