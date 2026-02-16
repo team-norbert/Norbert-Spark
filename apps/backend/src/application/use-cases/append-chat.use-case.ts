@@ -41,7 +41,7 @@ export class AppendedChatUseCase {
       entityType: EntityType.CHAT,
       entityId: chatId,
       action: AuditAction.UPDATE,
-      changes: { reason: 'chat_successfuly_appended' },
+      changes: { reason: 'chat_successfully_appended' },
       ipAddress: auditContext.ipAddress,
       userAgent: auditContext.userAgent ?? undefined,
     }
