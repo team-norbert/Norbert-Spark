@@ -45,7 +45,7 @@
           "type": "string",
           "minLength": 22,
           "maxLength": 22,
-          "description": "Base64url-encoded identifier (22 characters)",
+          "description": "Base64-encoded URL-safe identifier (22 characters)",
           "example": "AbCdEfGhIjKlMnOpQrStUv"
         },
         "description": {
