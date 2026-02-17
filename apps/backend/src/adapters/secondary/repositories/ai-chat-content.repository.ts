@@ -131,13 +131,13 @@ export class AIChatContentRepository implements AIContentPort {
 
     try {
       const result = await db.update(chatTypes).set(updateData).where(eq(chatTypes.id, details.id))
-      
+
       // Return null if no rows were updated (chat type not found)
       if (result.rowCount === 0) {
         this.logger.warn('No chat type found to update', { chatTypeId: details.id })
         return null
       }
-      
+
       this.logger.info('Successfully updated chat type details', { chatTypeId: details.id })
       return result
     } catch (error) {
