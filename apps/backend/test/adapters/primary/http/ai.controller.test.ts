@@ -2607,10 +2607,10 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(403)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Access denied. Admin or moderator role required to update company details',
+          error: 'Access denied. Admin or moderator role required to update chat types',
         })
         expect(mockLogger.warn).toHaveBeenCalledWith(
-          `Authorization check failed: User ${userId} attempted to update company details without admin/moderator role`
+          `Authorization check failed: User ${userId} attempted to update chat types without admin/moderator role`
         )
         expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
       })
@@ -2635,7 +2635,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(403)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Access denied. Admin or moderator role required to update company details',
+          error: 'Access denied. Admin or moderator role required to update chat types',
         })
         expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
       })

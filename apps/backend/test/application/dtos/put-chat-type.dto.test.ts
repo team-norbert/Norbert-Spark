@@ -224,13 +224,44 @@ describe('PutChatTypeDto', () => {
       )
     })
 
-    it('should accept empty string for seoFriendlyId', () => {
+    it('should throw ValidationException when seoFriendlyId is empty string', () => {
       const validUuid = uuidv7()
       const data = { id: validUuid, seoFriendlyId: '' }
 
+      expect(() => PutChatTypeDto.validate(data)).toThrow(ValidationException)
+      expect(() => PutChatTypeDto.validate(data)).toThrow(
+        'Invalid seoFriendlyId: must be a string between 1 and 200 characters'
+      )
+    })
+
+    it('should accept seoFriendlyId at minimum length (1 character)', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: 'a' }
+
       const dto = PutChatTypeDto.validate(data)
 
-      expect(dto.seoFriendlyId).toBe('')
+      expect(dto.seoFriendlyId).toBe('a')
+    })
+
+    it('should accept seoFriendlyId at maximum length (200 characters)', () => {
+      const validUuid = uuidv7()
+      const longSeoId = 'a'.repeat(200)
+      const data = { id: validUuid, seoFriendlyId: longSeoId }
+
+      const dto = PutChatTypeDto.validate(data)
+
+      expect(dto.seoFriendlyId).toBe(longSeoId)
+    })
+
+    it('should throw ValidationException when seoFriendlyId is too long', () => {
+      const validUuid = uuidv7()
+      const tooLongSeoId = 'a'.repeat(201)
+      const data = { id: validUuid, seoFriendlyId: tooLongSeoId }
+
+      expect(() => PutChatTypeDto.validate(data)).toThrow(ValidationException)
+      expect(() => PutChatTypeDto.validate(data)).toThrow(
+        'Invalid seoFriendlyId: must be a string between 1 and 200 characters'
+      )
     })
   })
 
