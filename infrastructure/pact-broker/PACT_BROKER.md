@@ -203,15 +203,15 @@ pact-broker can-i-deploy \
 
 The Pact Broker is configured via environment variables in `.env`:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `POSTGRES_USER` | `postgres` | PostgreSQL username |
-| `POSTGRES_PASSWORD` | (see `.env.example`) | PostgreSQL password (change in production!) |
-| `POSTGRES_DB` | `postgres` | PostgreSQL database name |
-| `PACT_BROKER_PORT` | `9292` | Port where Pact Broker is accessible |
-| `PACT_BROKER_DATABASE_URL` | (auto-generated) | PostgreSQL connection string |
-| `PACT_BROKER_LOG_LEVEL` | `INFO` | Application log level (DEBUG, INFO, WARN, ERROR) |
-| `PACT_BROKER_SQL_LOG_LEVEL` | `DEBUG` | SQL query log level |
+| Variable                    | Default              | Description                                      |
+| --------------------------- | -------------------- | ------------------------------------------------ |
+| `POSTGRES_USER`             | `postgres`           | PostgreSQL username                              |
+| `POSTGRES_PASSWORD`         | (see `.env.example`) | PostgreSQL password (change in production!)      |
+| `POSTGRES_DB`               | `postgres`           | PostgreSQL database name                         |
+| `PACT_BROKER_PORT`          | `9292`               | Port where Pact Broker is accessible             |
+| `PACT_BROKER_DATABASE_URL`  | (auto-generated)     | PostgreSQL connection string                     |
+| `PACT_BROKER_LOG_LEVEL`     | `INFO`               | Application log level (DEBUG, INFO, WARN, ERROR) |
+| `PACT_BROKER_SQL_LOG_LEVEL` | `DEBUG`              | SQL query log level                              |
 
 ### Custom Port
 
@@ -320,6 +320,7 @@ docker compose up -d
 ```
 
 Pact Broker will now be accessible via:
+
 - HTTP: `http://localhost` (redirects to HTTPS)
 - HTTPS: `https://localhost`
 
@@ -330,6 +331,7 @@ Pact Broker will now be accessible via:
 If port 9292 is already in use:
 
 1. Change the port in `.env`:
+
    ```env
    PACT_BROKER_PORT=9293
    ```
@@ -375,16 +377,19 @@ docker compose logs postgres
 If Pact Broker fails to initialize the database schema:
 
 1. Stop all services:
+
    ```bash
    docker compose down -v
    ```
 
 2. Start PostgreSQL first:
+
    ```bash
    docker compose up -d postgres
    ```
 
 3. Wait for PostgreSQL to be healthy:
+
    ```bash
    docker compose ps
    ```
