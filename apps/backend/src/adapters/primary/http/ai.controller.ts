@@ -562,11 +562,11 @@ export class AIController {
 
     if (!hasElevatedRole) {
       this.logger.warn(
-        `Authorization check failed: User ${authenticatedUserId} attempted to update company details without admin/moderator role`
+        `Authorization check failed: User ${authenticatedUserId} attempted to update chat types without admin/moderator role`
       )
       return reply.code(403).send({
         success: false,
-        error: 'Access denied. Admin or moderator role required to update company details',
+        error: 'Access denied. Admin or moderator role required to update chat types',
       })
     }
 
