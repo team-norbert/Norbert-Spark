@@ -263,6 +263,112 @@ describe('PutChatTypeDto', () => {
         'Invalid seoFriendlyId: must be a string between 1 and 200 characters'
       )
     })
+
+    it('should accept valid kebab-case seoFriendlyId', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: 'my-chat-type-123' }
+
+      const dto = PutChatTypeDto.validate(data)
+
+      expect(dto.seoFriendlyId).toBe('my-chat-type-123')
+    })
+
+    it('should accept seoFriendlyId with only lowercase letters', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: 'chattype' }
+
+      const dto = PutChatTypeDto.validate(data)
+
+      expect(dto.seoFriendlyId).toBe('chattype')
+    })
+
+    it('should accept seoFriendlyId with only numbers', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: '123' }
+
+      const dto = PutChatTypeDto.validate(data)
+
+      expect(dto.seoFriendlyId).toBe('123')
+    })
+
+    it('should accept seoFriendlyId with letters and numbers', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: 'chat123type456' }
+
+      const dto = PutChatTypeDto.validate(data)
+
+      expect(dto.seoFriendlyId).toBe('chat123type456')
+    })
+
+    it('should throw ValidationException when seoFriendlyId contains uppercase letters', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: 'Chat-Type' }
+
+      expect(() => PutChatTypeDto.validate(data)).toThrow(ValidationException)
+      expect(() => PutChatTypeDto.validate(data)).toThrow(
+        'Invalid seoFriendlyId: must contain only lowercase letters, numbers, and hyphens in kebab-case format'
+      )
+    })
+
+    it('should throw ValidationException when seoFriendlyId contains spaces', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: 'chat type' }
+
+      expect(() => PutChatTypeDto.validate(data)).toThrow(ValidationException)
+      expect(() => PutChatTypeDto.validate(data)).toThrow(
+        'Invalid seoFriendlyId: must contain only lowercase letters, numbers, and hyphens in kebab-case format'
+      )
+    })
+
+    it('should throw ValidationException when seoFriendlyId contains underscores', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: 'chat_type' }
+
+      expect(() => PutChatTypeDto.validate(data)).toThrow(ValidationException)
+      expect(() => PutChatTypeDto.validate(data)).toThrow(
+        'Invalid seoFriendlyId: must contain only lowercase letters, numbers, and hyphens in kebab-case format'
+      )
+    })
+
+    it('should throw ValidationException when seoFriendlyId starts with hyphen', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: '-chat-type' }
+
+      expect(() => PutChatTypeDto.validate(data)).toThrow(ValidationException)
+      expect(() => PutChatTypeDto.validate(data)).toThrow(
+        'Invalid seoFriendlyId: must contain only lowercase letters, numbers, and hyphens in kebab-case format'
+      )
+    })
+
+    it('should throw ValidationException when seoFriendlyId ends with hyphen', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: 'chat-type-' }
+
+      expect(() => PutChatTypeDto.validate(data)).toThrow(ValidationException)
+      expect(() => PutChatTypeDto.validate(data)).toThrow(
+        'Invalid seoFriendlyId: must contain only lowercase letters, numbers, and hyphens in kebab-case format'
+      )
+    })
+
+    it('should throw ValidationException when seoFriendlyId has consecutive hyphens', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: 'chat--type' }
+
+      expect(() => PutChatTypeDto.validate(data)).toThrow(ValidationException)
+      expect(() => PutChatTypeDto.validate(data)).toThrow(
+        'Invalid seoFriendlyId: must contain only lowercase letters, numbers, and hyphens in kebab-case format'
+      )
+    })
+
+    it('should throw ValidationException when seoFriendlyId contains special characters', () => {
+      const validUuid = uuidv7()
+      const data = { id: validUuid, seoFriendlyId: 'chat@type' }
+
+      expect(() => PutChatTypeDto.validate(data)).toThrow(ValidationException)
+      expect(() => PutChatTypeDto.validate(data)).toThrow(
+        'Invalid seoFriendlyId: must contain only lowercase letters, numbers, and hyphens in kebab-case format'
+      )
+    })
   })
 
   describe('validate() - description validation', () => {

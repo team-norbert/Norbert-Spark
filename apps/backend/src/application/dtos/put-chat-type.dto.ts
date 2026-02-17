@@ -17,7 +17,7 @@ import type { PutChatDetailsType } from '../../shared/types/index.js'
  * Validation rules:
  * - id: Required, must be a valid UUID v7 string
  * - name: Optional, 1-200 characters when provided
- * - seoFriendlyId: Optional, string format when provided
+ * - seoFriendlyId: Optional, must be kebab-case format (lowercase letters, numbers, and hyphens only)
  * - description: Optional, 1-500 characters when provided
  * - Null values are automatically converted to undefined for cleaner handling
  *
@@ -41,7 +41,7 @@ export class PutChatTypeDto {
    *
    * @param id - The UUID v7 identifier of the chat type to update (required)
    * @param name - The display name for the chat type (optional, 1-200 characters)
-   * @param seoFriendlyId - URL-friendly identifier for SEO purposes (optional)
+   * @param seoFriendlyId - URL-friendly identifier in kebab-case format (optional)
    * @param description - Detailed description of the chat type (optional, 1-500 characters)
    */
   constructor(
@@ -65,7 +65,7 @@ export class PutChatTypeDto {
    * @throws {ValidationException} If any field fails validation rules (returns 400 status code):
    * - id: Must be provided, must be a string, must be a valid UUID v7 format
    * - name: Must be a string between 1-200 characters when provided
-   * - seoFriendlyId: Must be a string when provided
+   * - seoFriendlyId: Must be a string in kebab-case format (lowercase letters, numbers, hyphens only)
    * - description: Must be a string between 1-500 characters when provided
    *
    * @example
@@ -121,6 +121,11 @@ export class PutChatTypeDto {
       if (seoFriendlyId.length < 1 || seoFriendlyId.length > 200) {
         throw new ValidationException(
           'Invalid seoFriendlyId: must be a string between 1 and 200 characters'
+        )
+      }
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(seoFriendlyId)) {
+        throw new ValidationException(
+          'Invalid seoFriendlyId: must contain only lowercase letters, numbers, and hyphens in kebab-case format'
         )
       }
     }
