@@ -13,7 +13,7 @@ Norbert's Spark currently uses a number of different third-party services, inclu
 - [Sentry](https://sentry.io/)
 - [Upstash Redis](https://upstash.com/)
 
-These will be replaced with AWS or self-hosted alternatives in the future.
+These are planned to be replaced with AWS or self-hosted alternatives in the future.
 
 The other difference between Norbert's Spark and other AI-SDK starter kits is that the backend is where the business logic resides, with the frontend being a thin client. This is in contrast to many AI-SDK starter kits where the frontend contains most of the business logic and directly calls the AI provider APIs. In Norbert's Spark, the frontend calls the backend API, which in turn calls the AI provider APIs. This architecture enhances security, maintainability, and scalability. This is a similar approach to what is called a headless CMS, where the frontend is decoupled from the backend.
 
