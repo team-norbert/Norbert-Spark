@@ -409,6 +409,35 @@ export class AIController {
       })
     }
 
+    // Authorization: ensure the requesting user either owns this userId or has admin/moderator privileges
+    const authUser = (request as any).user
+
+    if (!authUser || !authUser.id) {
+      this.logger.error('Missing authenticated user in getAIChatsByUserId')
+      return reply.code(401).send({
+        success: false,
+        error: 'Unauthorized',
+      })
+    }
+
+    const requestingUserId = authUser.id as string
+    const roles = (authUser.roles ?? authUser.role) as string[] | string | undefined
+
+    const isOwner = requestingUserId === (userId as unknown as string)
+    const isPrivileged =
+      Array.isArray(roles)
+        ? roles.includes('admin') || roles.includes('moderator')
+        : roles === 'admin' || roles === 'moderator'
+
+    if (!isOwner && !isPrivileged) {
+      this.logger.error(
+        `Forbidden access in getAIChatsByUserId: user ${requestingUserId} tried to access chats for user ${userId}`
+      )
+      return reply.code(403).send({
+        success: false,
+        error: 'Forbidden',
+      })
+    }
     try {
       const chatIds = await this.getChatsByUserIdUseCase.execute(userId, auditContext)
       reply.code(200).send({
