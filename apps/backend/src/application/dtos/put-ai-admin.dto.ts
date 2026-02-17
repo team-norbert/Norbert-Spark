@@ -2,7 +2,53 @@ import { isObject, isDefined, isString, isNumber } from '@norberts-spark/shared'
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 
+/**
+ * Data Transfer Object for AI admin configuration settings.
+ *
+ * This DTO encapsulates all configuration parameters for AI model behavior,
+ * including prompt text, token limits, sampling parameters, and retry settings.
+ * It provides validation to ensure all parameters fall within acceptable ranges
+ * for AI model providers (e.g., Google Gemini, OpenAI).
+ *
+ * @remarks
+ * All fields except prompt are optional, allowing partial updates of AI configuration.
+ * The validation ensures:
+ * - Prompt is a non-empty string
+ * - Numeric parameters are within model-specific ranges
+ * - Stop sequences are all strings
+ * - Null values are converted to undefined for cleaner handling
+ *
+ * @example
+ * ```typescript
+ * const dto = new PutAIAdminDTO(
+ *   'You are a helpful assistant',
+ *   8000,    // maxTokens
+ *   0.7,     // temperature
+ *   0.95,    // topP
+ *   0.5,     // frequencyPenalty
+ *   0.5,     // presencePenalty
+ *   40,      // topK
+ *   ['\n\n', 'END'], // stopSequences
+ *   12345,   // seed
+ *   3        // maxRetries
+ * )
+ * ```
+ */
 export class PutAIAdminDTO {
+  /**
+   * Creates an instance of PutAIAdminDTO.
+   *
+   * @param prompt - The system prompt or instruction for the AI model (required, non-empty)
+   * @param maxTokens - Maximum number of tokens to generate (0-100000)
+   * @param temperature - Sampling temperature for randomness (0-2, where 0 is deterministic)
+   * @param topP - Nucleus sampling parameter (0-1, cumulative probability threshold)
+   * @param frequencyPenalty - Penalty for token frequency (-2 to 2, reduces repetition)
+   * @param presencePenalty - Penalty for token presence (-2 to 2, encourages topic diversity)
+   * @param topK - Top-K sampling parameter (1-100, number of tokens to consider)
+   * @param stopSequences - Array of strings that stop generation when encountered
+   * @param seed - Random seed for reproducible generation (0-2147483647, max int32)
+   * @param maxRetries - Maximum number of retry attempts on failure (0-10)
+   */
   constructor(
     public readonly prompt: string,
     public readonly maxTokens?: number,
@@ -15,6 +61,41 @@ export class PutAIAdminDTO {
     public readonly seed?: number,
     public readonly maxRetries?: number
   ) {}
+
+  /**
+   * Validates and constructs a PutAIAdminDTO from raw data.
+   *
+   * Performs comprehensive validation of all AI configuration parameters,
+   * ensuring they meet the requirements of AI model providers. Throws
+   * TypeException or ValidationException if validation fails.
+   *
+   * @param data - Raw data object to validate (typically from HTTP request body)
+   * @returns A validated PutAIAdminDTO instance with null values converted to undefined
+   * @throws {TypeException} If data is not an object
+   * @throws {ValidationException} If any field fails validation rules:
+   * - prompt: Must be non-empty string
+   * - maxTokens: Must be number between 0-100000
+   * - temperature: Must be number between 0-2
+   * - topP: Must be number between 0-1
+   * - frequencyPenalty: Must be number between -2 to 2
+   * - presencePenalty: Must be number between -2 to 2
+   * - topK: Must be number between 1-100
+   * - stopSequences: Must be array of strings
+   * - seed: Must be number between 0-2147483647 (max int32)
+   * - maxRetries: Must be number between 0-10
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   const dto = PutAIAdminDTO.validate(requestBody)
+   *   // Use dto for AI configuration
+   * } catch (error) {
+   *   if (error instanceof ValidationException) {
+   *     console.error('Validation failed:', error.message)
+   *   }
+   * }
+   * ```
+   */
   static validate(data: any): PutAIAdminDTO {
     if (!isDefined(data) || !isObject(data)) {
       throw new TypeException('Invalid data: expected an object')
