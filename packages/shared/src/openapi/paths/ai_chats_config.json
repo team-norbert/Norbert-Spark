@@ -117,7 +117,7 @@
         }
       },
       "404": {
-        "description": "Not found - Chat configuration with specified ID does not exist",
+        "description": "Chat type not found",
         "content": {
           "application/json": {
             "schema": {
@@ -125,7 +125,7 @@
             },
             "example": {
               "success": false,
-              "error": "Chat configuration not found"
+              "error": "Chat type not found"
             }
           }
         }
