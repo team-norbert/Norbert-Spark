@@ -1,0 +1,73 @@
+{
+  "type": "object",
+  "description": "Response returned after successful chat type creation",
+  "required": ["success", "data"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "example": true
+    },
+    "data": {
+      "type": "object",
+      "description": "Chat type creation result data",
+      "required": [
+        "id",
+        "name",
+        "seoFriendlyId",
+        "seoFriendlyBase64Id",
+        "description",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for the chat type",
+          "example": "01933c89-6f67-7b3a-8e4c-123456789abc"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Display name of the chat type",
+          "example": "General Assistant"
+        },
+        "seoFriendlyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "description": "URL-friendly identifier using lowercase alphanumeric characters and hyphens",
+          "example": "general-assistant"
+        },
+        "seoFriendlyBase64Id": {
+          "type": "string",
+          "minLength": 22,
+          "maxLength": 22,
+          "description": "Base64-encoded URL-safe identifier (22 characters)",
+          "example": "AbCdEfGhIjKlMnOpQrStUv"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "Detailed description of the chat type's purpose and capabilities",
+          "example": "A general-purpose AI assistant for everyday tasks and conversations"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the chat type was created",
+          "example": "2026-02-17T10:30:00Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the chat type was last updated",
+          "example": "2026-02-17T10:30:00Z"
+        }
+      }
+    }
+  }
+}

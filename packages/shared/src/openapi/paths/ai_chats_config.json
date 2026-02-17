@@ -89,7 +89,7 @@
         "description": "AI chat type successfully updated"
       },
       "400": {
-        "description": "Invalid request data",
+        "description": "Bad request - Invalid input data",
         "content": {
           "application/json": {
             "schema": {
@@ -97,7 +97,7 @@
             },
             "example": {
               "success": false,
-              "error": "Invalid request data"
+              "error": "Invalid input data. Please check the request body for required fields and correct data types."
             }
           }
         }
@@ -140,6 +140,123 @@
             "example": {
               "success": false,
               "error": "Chat type not found"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Conflict - Duplicate SEO identifier",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Conflict: Another chat type with the same SEO identifier already exists. Please choose a unique SEO identifier."
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Internal server error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "post": {
+    "summary": "Create new chat AI configuration",
+    "description": "Creates a new chat type configuration. Only accessible by moderator or admin users.",
+    "operationId": "createAIChatType",
+    "tags": ["ai", "chat"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/CreateAIChatTypeRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "AI chat type successfully created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/CreateChatTypeResponse.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Bad request - Invalid input data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Invalid input data. Please check the request body for required fields and correct data types."
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - Missing or invalid authentication token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Authentication required"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - User does not have required role (admin or moderator)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Access denied. Admin or moderator role required to access chat configuration"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Conflict - Duplicate SEO identifier or name",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Conflict: Another chat type with the same name or SEO identifier already exists. Please choose a unique name and SEO identifier."
             }
           }
         }
