@@ -181,8 +181,15 @@
       }
     },
     "responses": {
-      "204": {
-        "description": "AI chat type successfully created"
+      "201": {
+        "description": "AI chat type successfully created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/CreateChatTypeResponse.json"
+            }
+          }
+        }
       },
       "401": {
         "description": "Unauthorized - Missing or invalid authentication token",
