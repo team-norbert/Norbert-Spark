@@ -25,6 +25,7 @@ import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { GetChatAiOptionsUseCase } from '../../../application/use-cases/get-chat-ai-options.use-case.js'
 import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-chat-type.use-case.js'
 import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
+import { PutChatDetailsUseCase } from '../../../application/use-cases/put-chat-details.use-case.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -38,7 +39,8 @@ export class AIController {
     private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase,
     private readonly getChatDetailsUseCase: GetChatDetailsUseCase,
     private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase,
-    private readonly resolveChatTypeUseCase: ResolveChatTypeUseCase
+    private readonly resolveChatTypeUseCase: ResolveChatTypeUseCase,
+    private readonly putChatDetailsUseCase: PutChatDetailsUseCase
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
@@ -571,8 +573,17 @@ export class AIController {
     try {
       const body = request.body as any
       const dto = PutChatTypeDto.validate(body)
-
-      // TODO: Implement the actual update logic using dto.id, dto.name, dto.seoFriendlyId, dto.description
+      const result = await this.putChatDetailsUseCase.execute(auditContext, dto)
+      if (!result) {
+        reply.code(404).send({
+          success: false,
+          error: 'AI chat type not found or update failed',
+        })
+        return
+      }
+      if (result) {
+        reply.status(204).send()
+      }
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500

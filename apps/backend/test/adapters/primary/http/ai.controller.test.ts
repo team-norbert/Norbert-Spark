@@ -13,6 +13,7 @@ import type { GetChatDetailsUseCase } from '../../../../src/application/use-case
 import type { GetChatsByUserIdUseCase } from '../../../../src/application/use-cases/get-chats-by-userid.use-case.js'
 import type { ResolveChatTypeUseCase } from '../../../../src/application/use-cases/resolve-chat-type.use-case.js'
 import type { SaveChatUseCase } from '../../../../src/application/use-cases/save-chat.use-case.js'
+import type { PutChatDetailsUseCase } from '../../../../src/application/use-cases/put-chat-details.use-case.js'
 import { ChatId } from '../../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { InternalErrorException } from '../../../../src/shared/exceptions/internal-error.exception.js'
@@ -64,6 +65,7 @@ describe('AIController', () => {
   let mockGetChatDetailsUseCase: GetChatDetailsUseCase
   let mockGetChatAiOptionsUseCase: GetChatAiOptionsUseCase
   let mockResolveChatTypeUseCase: ResolveChatTypeUseCase
+  let mockPutChatDetailsUseCase: PutChatDetailsUseCase
   let mockLogger: LoggerPort
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
@@ -107,6 +109,10 @@ describe('AIController', () => {
       execute: vi.fn(),
     } as any
 
+    mockPutChatDetailsUseCase = {
+      execute: vi.fn(),
+    } as any
+
     // Create mock logger
     mockLogger = {
       info: vi.fn(),
@@ -125,7 +131,8 @@ describe('AIController', () => {
       mockGetChatContentByChatIdUseCase,
       mockGetChatDetailsUseCase,
       mockGetChatAiOptionsUseCase,
-      mockResolveChatTypeUseCase
+      mockResolveChatTypeUseCase,
+      mockPutChatDetailsUseCase
     )
 
     // Create mock Fastify reply with chainable methods
@@ -162,7 +169,8 @@ describe('AIController', () => {
         mockGetChatContentByChatIdUseCase,
         mockGetChatDetailsUseCase,
         mockGetChatAiOptionsUseCase,
-        mockResolveChatTypeUseCase
+        mockResolveChatTypeUseCase,
+        mockPutChatDetailsUseCase
       )
 
       expect(instance).toBeInstanceOf(AIController)
@@ -179,7 +187,8 @@ describe('AIController', () => {
         mockGetChatContentByChatIdUseCase,
         mockGetChatDetailsUseCase,
         mockGetChatAiOptionsUseCase,
-        mockResolveChatTypeUseCase
+        mockResolveChatTypeUseCase,
+        mockPutChatDetailsUseCase
       )
 
       expect(instance).toBeDefined()

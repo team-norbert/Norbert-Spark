@@ -324,7 +324,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.getChatContentByChatIdUseCase,
       this.getChatDetailsUseCase,
       this.getChatAiOptionsUseCase,
-      this.resolveChatTypeUseCase
+      this.resolveChatTypeUseCase,
+      this.putChatDetailsUseCase
     )
     this.aiExtractDataController = new AIExtractDataController(
       this.logger,
