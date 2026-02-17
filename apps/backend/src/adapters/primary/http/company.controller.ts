@@ -228,31 +228,6 @@ export class CompanyController {
       userAgent: request.headers['user-agent'] ?? null,
     }
 
-    // Authorization check: Only admin/moderator roles can update company details
-    const authenticatedUserId = request.user?.sub
-    const userRoles = request.user?.roles || []
-
-    if (!authenticatedUserId) {
-      this.logger.warn('Authorization check failed: User not authenticated')
-      return reply.code(401).send({
-        success: false,
-        error: 'Authentication required',
-      })
-    }
-
-    // Check if user has admin/moderator role
-    const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
-
-    if (!hasElevatedRole) {
-      this.logger.warn(
-        `Authorization check failed: User ${authenticatedUserId} attempted to update company details without admin/moderator role`
-      )
-      return reply.code(403).send({
-        success: false,
-        error: 'Access denied. Admin or moderator role required to update company details',
-      })
-    }
-
     try {
       const dto = UpdateCompanyDTO.validate(request.body)
 

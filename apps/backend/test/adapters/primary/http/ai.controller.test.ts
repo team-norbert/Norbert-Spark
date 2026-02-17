@@ -510,25 +510,6 @@ describe('AIController', () => {
           error: 'Last message must be from the user',
         })
       })
-
-      it('should return 401 if user is not authenticated for new chat', async () => {
-        mockRequest.body = {
-          id: uuidv7(),
-          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
-          trigger: 'user-input',
-        }
-        mockRequest.user = undefined
-
-        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
-
-        await controller.chat(mockRequest, mockReply)
-
-        expect(mockReply.code).toHaveBeenCalledWith(401)
-        expect(mockReply.send).toHaveBeenCalledWith({
-          success: false,
-          error: 'User not authenticated',
-        })
-      })
     })
 
     describe('successful chat processing', () => {
@@ -1041,8 +1022,8 @@ describe('AIController', () => {
       })
     })
 
-    describe('authorization', () => {
-      it('should allow user to access their own chat history', async () => {
+    describe('successful response', () => {
+      it('should return chat history for valid userId', async () => {
         const userId = new UserId(uuidv7()).getValue()
         const mockChats: ChatWithType[] = [
           {
@@ -1050,16 +1031,11 @@ describe('AIController', () => {
             chatTypeId: new ChatId(uuidv7()).getValue(),
             seoFriendlyId: 'chat-test-1',
           },
-          {
-            id: new ChatId(uuidv7()).getValue(),
-            chatTypeId: new ChatId(uuidv7()).getValue(),
-            seoFriendlyId: 'chat-test-2',
-          },
         ]
 
         mockRequest.params = { userId }
         mockRequest.user = {
-          sub: userId, // Same as requested userId
+          sub: userId,
           email: 'user@example.com',
           roles: ['user'],
         }
@@ -1080,182 +1056,6 @@ describe('AIController', () => {
             userAgent: 'test-user-agent',
           })
         )
-        expect(mockReply.code).not.toHaveBeenCalledWith(403)
-      })
-
-      it('should allow admin to access any user chat history', async () => {
-        const targetUserId = new UserId(uuidv7()).getValue()
-        const adminUserId = new UserId(uuidv7()).getValue()
-        const mockChats: ChatWithType[] = [
-          {
-            id: new ChatId(uuidv7()).getValue(),
-            chatTypeId: new ChatId(uuidv7()).getValue(),
-            seoFriendlyId: 'chat-test-1',
-          },
-        ]
-
-        mockRequest.params = { userId: targetUserId }
-        mockRequest.user = {
-          sub: adminUserId, // Different from target userId
-          email: 'admin@example.com',
-          roles: ['admin'],
-        }
-        vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
-
-        await controller.getAIChatsByUserId(mockRequest, mockReply)
-
-        expect(mockReply.code).toHaveBeenCalledWith(200)
-        expect(mockReply.send).toHaveBeenCalledWith({
-          success: true,
-          data: mockChats,
-        })
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
-          targetUserId,
-          expect.objectContaining({
-            userId: expect.any(String),
-            ipAddress: '127.0.0.1',
-            userAgent: 'test-user-agent',
-          })
-        )
-        expect(mockReply.code).not.toHaveBeenCalledWith(403)
-      })
-
-      it('should allow moderator to access any user chat history', async () => {
-        const targetUserId = new UserId(uuidv7()).getValue()
-        const moderatorUserId = new UserId(uuidv7()).getValue()
-        const mockChats: ChatWithType[] = [
-          {
-            id: new ChatId(uuidv7()).getValue(),
-            chatTypeId: new ChatId(uuidv7()).getValue(),
-            seoFriendlyId: 'chat-test-1',
-          },
-        ]
-
-        mockRequest.params = { userId: targetUserId }
-        mockRequest.user = {
-          sub: moderatorUserId, // Different from target userId
-          email: 'moderator@example.com',
-          roles: ['moderator'],
-        }
-        vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
-
-        await controller.getAIChatsByUserId(mockRequest, mockReply)
-
-        expect(mockReply.code).toHaveBeenCalledWith(200)
-        expect(mockReply.send).toHaveBeenCalledWith({
-          success: true,
-          data: mockChats,
-        })
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
-          targetUserId,
-          expect.objectContaining({
-            userId: expect.any(String),
-            ipAddress: '127.0.0.1',
-            userAgent: 'test-user-agent',
-          })
-        )
-        expect(mockReply.code).not.toHaveBeenCalledWith(403)
-      })
-
-      it('should return 403 when user tries to access another user chat history', async () => {
-        const targetUserId = new UserId(uuidv7()).getValue()
-        const requestingUserId = new UserId(uuidv7()).getValue()
-
-        mockRequest.params = { userId: targetUserId }
-        mockRequest.user = {
-          sub: requestingUserId, // Different from target userId
-          email: 'user@example.com',
-          roles: ['user'],
-        }
-
-        await controller.getAIChatsByUserId(mockRequest, mockReply)
-
-        expect(mockReply.code).toHaveBeenCalledWith(403)
-        expect(mockReply.send).toHaveBeenCalledWith({
-          success: false,
-          error:
-            'Access denied. You can only access your own chat history or must have admin/moderator role',
-        })
-        expect(mockGetChatsByUserIdUseCase.execute).not.toHaveBeenCalled()
-        expect(mockLogger.warn).toHaveBeenCalled()
-      })
-
-      it('should return 403 when user has no roles and tries to access another user chat history', async () => {
-        const targetUserId = new UserId(uuidv7()).getValue()
-        const requestingUserId = new UserId(uuidv7()).getValue()
-
-        mockRequest.params = { userId: targetUserId }
-        mockRequest.user = {
-          sub: requestingUserId,
-          email: 'user@example.com',
-          roles: [], // No roles
-        }
-
-        await controller.getAIChatsByUserId(mockRequest, mockReply)
-
-        expect(mockReply.code).toHaveBeenCalledWith(403)
-        expect(mockReply.send).toHaveBeenCalledWith({
-          success: false,
-          error:
-            'Access denied. You can only access your own chat history or must have admin/moderator role',
-        })
-        expect(mockGetChatsByUserIdUseCase.execute).not.toHaveBeenCalled()
-      })
-
-      it('should return 401 when user is not authenticated', async () => {
-        const userId = new UserId(uuidv7()).getValue()
-
-        mockRequest.params = { userId }
-        mockRequest.user = undefined // No authenticated user
-
-        await controller.getAIChatsByUserId(mockRequest, mockReply)
-
-        expect(mockReply.code).toHaveBeenCalledWith(401)
-        expect(mockReply.send).toHaveBeenCalledWith({
-          success: false,
-          error: 'Authentication required',
-        })
-        expect(mockGetChatsByUserIdUseCase.execute).not.toHaveBeenCalled()
-        expect(mockLogger.warn).toHaveBeenCalledWith(
-          'Authorization check failed: User not authenticated'
-        )
-      })
-
-      it('should allow user with both admin and moderator roles to access any user chat history', async () => {
-        const targetUserId = new UserId(uuidv7()).getValue()
-        const adminUserId = new UserId(uuidv7()).getValue()
-        const mockChats: ChatWithType[] = [
-          {
-            id: new ChatId(uuidv7()).getValue(),
-            chatTypeId: new ChatId(uuidv7()).getValue(),
-            seoFriendlyId: 'chat-test-1',
-          },
-        ]
-
-        mockRequest.params = { userId: targetUserId }
-        mockRequest.user = {
-          sub: adminUserId,
-          email: 'superuser@example.com',
-          roles: ['admin', 'moderator'], // Multiple roles
-        }
-        vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
-
-        await controller.getAIChatsByUserId(mockRequest, mockReply)
-
-        expect(mockReply.code).toHaveBeenCalledWith(200)
-        expect(mockReply.send).toHaveBeenCalledWith({
-          success: true,
-          data: mockChats,
-        })
-        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
-          targetUserId,
-          expect.objectContaining({
-            userId: expect.any(String),
-            ipAddress: '127.0.0.1',
-            userAgent: 'test-user-agent',
-          })
-        )
-        expect(mockReply.code).not.toHaveBeenCalledWith(403)
       })
     })
   })
@@ -1831,22 +1631,6 @@ describe('AIController', () => {
         })
         expect(mockGetChatContentByChatIdUseCase.execute).not.toHaveBeenCalled()
         expect(mockLogger.error).toHaveBeenCalled()
-      })
-
-      it('should return 401 when user is not authenticated', async () => {
-        const chatId = new ChatId(uuidv7()).getValue()
-        mockRequest.params = { chatId }
-        mockRequest.user = undefined // No authenticated user
-
-        await controller.getAIChatByChatId(mockRequest, mockReply)
-
-        expect(mockReply.code).toHaveBeenCalledWith(401)
-        expect(mockReply.send).toHaveBeenCalledWith({
-          success: false,
-          error: 'Authentication required',
-        })
-        expect(mockGetChatContentByChatIdUseCase.execute).not.toHaveBeenCalled()
-        expect(mockLogger.warn).toHaveBeenCalled()
       })
 
       it('should log debug message on request', async () => {

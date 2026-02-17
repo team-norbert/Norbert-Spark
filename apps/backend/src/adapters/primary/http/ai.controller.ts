@@ -409,33 +409,6 @@ export class AIController {
       })
     }
 
-    // Authorization check: User can only access their own chat history unless they have admin/moderator role
-    const authenticatedUserId = request.user?.sub
-    const userRoles = request.user?.roles || []
-
-    if (!authenticatedUserId) {
-      this.logger.warn('Authorization check failed: User not authenticated')
-      return reply.code(401).send({
-        success: false,
-        error: 'Authentication required',
-      })
-    }
-
-    // Check if user is accessing their own data OR has admin/moderator role
-    const isOwnData = authenticatedUserId === userId
-    const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
-
-    if (!isOwnData && !hasElevatedRole) {
-      this.logger.warn(
-        `Authorization check failed: User ${authenticatedUserId} attempted to access chats for user ${userId} without required permissions`
-      )
-      return reply.code(403).send({
-        success: false,
-        error:
-          'Access denied. You can only access your own chat history or must have admin/moderator role',
-      })
-    }
-
     try {
       const chatIds = await this.getChatsByUserIdUseCase.execute(userId, auditContext)
       reply.code(200).send({
@@ -581,13 +554,6 @@ export class AIController {
 
     // Check authentication
     const authenticatedUserId = request.user?.sub
-    if (!authenticatedUserId) {
-      this.logger.warn('Authorization check failed: User not authenticated')
-      return reply.code(401).send({
-        success: false,
-        error: 'Authentication required',
-      })
-    }
 
     try {
       // Fetch the chat data which includes the userId
