@@ -413,11 +413,15 @@ describe('AdminPage', () => {
     })
 
     it('should show correct page size options', () => {
-      render(<AdminPage {...defaultProps} />)
+      const { container } = render(<AdminPage {...defaultProps} />)
 
-      // Click on page size selector
-      const pageSizeButton = screen.getByRole('combobox', { name: /rows per page/i })
-      fireEvent.mouseDown(pageSizeButton)
+      // MUI DataGrid v8 uses aria-labelledby with two IDs for the page-size
+      // combobox. JSDOM cannot compute the accessible name from that pattern,
+      // so Testing Library's getByRole('combobox') fails to find the element.
+      // Use a direct DOM query instead.
+      const pageSizeSelect = container.querySelector('[role="combobox"]')
+      expect(pageSizeSelect).toBeInTheDocument()
+      fireEvent.mouseDown(pageSizeSelect!)
 
       // Should show options 10, 25, 50, 100
       expect(screen.getByRole('option', { name: '10' })).toBeInTheDocument()
@@ -1218,10 +1222,15 @@ describe('AdminPage', () => {
     })
 
     it('should have correct page size options', () => {
-      render(<AdminPage {...defaultProps} />)
+      const { container } = render(<AdminPage {...defaultProps} />)
 
-      const pageSizeButton = screen.getByRole('combobox', { name: /rows per page/i })
-      fireEvent.mouseDown(pageSizeButton)
+      // MUI DataGrid v8 uses aria-labelledby with two IDs for the page-size
+      // combobox. JSDOM cannot compute the accessible name from that pattern,
+      // so Testing Library's getByRole('combobox') fails to find the element.
+      // Use a direct DOM query instead.
+      const pageSizeSelect = container.querySelector('[role="combobox"]')
+      expect(pageSizeSelect).toBeInTheDocument()
+      fireEvent.mouseDown(pageSizeSelect!)
 
       // pageSizeOptions={[10, 25, 50, 100]}
       expect(screen.getByRole('option', { name: '10' })).toBeInTheDocument()
