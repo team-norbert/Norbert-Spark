@@ -53,7 +53,7 @@
     },
     "chatTypeParam": {
       "type": "string",
-      "description": "A flexible chat type identifier extracted from the URL. Can be any of the three unique identifiers from the chat_types table: the UUID id, the seo_friendly_id slug, or the seo_friendly_base64_id. The backend resolves this to the chat type UUID. At least one of chatTypeParam or chatTypeId must be provided.",
+      "description": "A flexible chat type identifier extracted from the URL. Can be any of the three unique identifiers from the chat_types table: the UUID id, the seoFriendlyId slug, or the seoFriendlyBase64Id. The backend resolves this to the chat type UUID. At least one of chatTypeParam or chatTypeId must be provided.",
       "examples": [
         "019c6003-28df-722a-a79d-0ce2b2f826df",
         "heart-darkness",
