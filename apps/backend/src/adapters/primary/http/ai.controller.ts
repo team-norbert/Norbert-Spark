@@ -572,7 +572,7 @@ export class AIController {
       userAgent: request.headers['user-agent'] ?? null,
     }
 
-    // Authorization check: Only admin/moderator roles can update company details
+    // Authorization check: Only admin/moderator roles can update chat types details
     const authenticatedUserId = request.user?.sub
     const userRoles = request.user?.roles || []
 
