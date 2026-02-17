@@ -428,8 +428,8 @@ export class UserController {
       this.logger.debug(`Request userId: ${userId}`)
 
       // Authorization check: users can only access their own data unless they're admin/moderator
-      const requestingUserId = request.user?.sub
-      const userRoles = request.user?.roles || []
+      const requestingUserId = request.user.sub
+      const userRoles = request.user.roles
 
       // Check if user is trying to access someone else's data
       const isAccessingOwnData = requestingUserId === userId
