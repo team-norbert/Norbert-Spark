@@ -14,6 +14,7 @@ src/openapi/
 │   ├── users_{id}.json
 │   ├── auth_login.json
 │   ├── auth_oauth-sync.json
+│   ├── company_details.json
 │   ├── ai_chat.json
 │   ├── ai_chats_{userId}.json
 │   ├── ai_fetchChat_{chatId}.json
@@ -22,8 +23,25 @@ src/openapi/
 │   ├── ai_chats_config.json
 │   └── ai_chats_config_{id}_settings.json
 └── components/           # Reusable components
-    ├── schemas/
-    └── securitySchemes/
+    └── schemas/
+        ├── AIChatOptionsResponse.json
+        ├── AIChatTypesResponse.json
+        ├── AIRequest.json
+        ├── AIUserIdResponse.json
+        ├── AIfetchChatResponse.json
+        ├── CompanyDetailsRequest.json
+        ├── CompanyDetailsResponse.json
+        ├── Error.json
+        ├── OAuthSyncRequest.json
+        ├── OAuthSyncResponse.json
+        ├── PaginatedUsersResponse.json
+        ├── PutRequestAIChatSettings.json
+        ├── RegisterUserRequest.json
+        ├── RegisterUserResponse.json
+        ├── UpdateAIChatTypeRequest.json
+        ├── User.json
+        ├── UserLoginRequest.json
+        └── UserLoginResponse.json
 ```
 
 ## Workflow
