@@ -86,7 +86,7 @@
     },
     "responses": {
       "204": {
-        "description": "AI chat types successfully updated"
+        "description": "AI chat type successfully updated"
       },
       "401": {
         "description": "Unauthorized - Missing or invalid authentication token",
