@@ -409,6 +409,27 @@ export class AIController {
       })
     }
 
+    // Resource-based authorization: allow access only if the requester owns the
+    // userId or has an elevated role (admin or moderator).
+    const authUser = (request as any).user
+
+    if (!authUser) {
+      return reply.code(401).send({
+        success: false,
+        error: 'Unauthorized',
+      })
+    }
+
+    const roles: string[] = Array.isArray(authUser.roles) ? authUser.roles : []
+    const isAdminOrModerator =
+      roles.includes('admin') || roles.includes('moderator')
+
+    if (!isAdminOrModerator && authUser.id !== userId) {
+      return reply.code(403).send({
+        success: false,
+        error: 'Forbidden',
+      })
+    }
     // Authorization: ensure the requesting user either owns this userId or has admin/moderator privileges
     const authUser = (request as any).user
 
