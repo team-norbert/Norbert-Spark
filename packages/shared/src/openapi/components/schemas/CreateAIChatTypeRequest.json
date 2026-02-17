@@ -8,7 +8,7 @@
       "example": "Customer Support Chat",
       "description": "Unique name for the AI chat type",
       "minLength": 1,
-      "maxLength": 100
+      "maxLength": 200
     },
     "description": {
       "type": "string",
