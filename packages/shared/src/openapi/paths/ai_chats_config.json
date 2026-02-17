@@ -205,6 +205,20 @@
           }
         }
       },
+      "400": {
+        "description": "Bad request - Invalid input data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Invalid input data. Please check the request body for required fields and correct data types."
+            }
+          }
+        }
+      },
       "401": {
         "description": "Unauthorized - Missing or invalid authentication token",
         "content": {
@@ -229,6 +243,20 @@
             "example": {
               "success": false,
               "error": "Access denied. Admin or moderator role required to access chat configuration"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Conflict - Duplicate SEO identifier or name",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Conflict: Another chat type with the same name or SEO identifier already exists. Please choose a unique name and SEO identifier."
             }
           }
         }
