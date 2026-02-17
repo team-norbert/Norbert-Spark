@@ -13,7 +13,7 @@
     "description": {
       "type": "string",
       "example": "A chat type designed for handling customer support inquiries",
-      "description": "Detailed description of the AI chat type's purpose and use case",
+      "description": "Detailed description of the chat type",
       "minLength": 1,
       "maxLength": 500
     }
