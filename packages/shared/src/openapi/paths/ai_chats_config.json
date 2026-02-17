@@ -63,5 +63,87 @@
         }
       }
     }
+  },
+  "put": {
+    "summary": "Update chat AI configuration",
+    "description": "Updates the chat types configuration. Only accessible by moderator or admin users.",
+    "operationId": "updateAIChatDetails",
+    "tags": ["ai", "chat"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/UpdateAIChatTypeRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "204": {
+        "description": "AI chat type successfully updated"
+      },
+      "401": {
+        "description": "Unauthorized - Missing or invalid authentication token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Authentication required"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - User does not have required role (admin or moderator)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Access denied. Admin role required to access chat configuration"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Chat type not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Chat type not found"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Internal server error"
+            }
+          }
+        }
+      }
+    }
   }
 }
