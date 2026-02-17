@@ -71,6 +71,41 @@ export class AIChatContentRepository implements AIContentPort {
     return db.select().from(chatTypes).orderBy(desc(chatTypes.createdAt))
   }
 
+  /**
+   * Updates details for an existing chat type.
+   *
+   * Applies partial updates to a chat type record identified by its UUID. Only
+   * the fields provided in the {@link PutChatTypeDto} are updated; any
+   * `undefined` fields are ignored. The `updated_at` timestamp is managed by
+   * the `chat_types_updated_at` database trigger.
+   *
+   * @param {PutChatTypeDto} details - The chat type data to update.
+   * @param {string} details.id - The UUID of the chat type to update.
+   * @param {string} [details.name] - Optional new name for the chat type.
+   * @param {string} [details.description] - Optional new description for the chat type.
+   * @param {string} [details.seoFriendlyId] - Optional new SEO-friendly identifier
+   *   for the chat type. When provided, it should already satisfy any
+   *   domain-level validation rules.
+   *
+   * @returns {Promise<QueryResult>} A promise that resolves with the result of
+   *   the underlying SQL UPDATE operation executed against the `chat_types`
+   *   table.
+   *
+   * @throws {Error} If the database update fails due to connectivity issues,
+   *   constraint violations, or other underlying database errors.
+   *
+   * @example
+   * ```typescript
+   * const repository = new AIChatContentRepository(logger)
+   *
+   * await repository.putChatTypeDetails({
+   *   id: 'c0a8015e-7c3b-4e3e-9e89-2f0f1c4a1234',
+   *   name: 'Product Support Chat',
+   *   description: 'AI assistant for product-related customer support',
+   *   seoFriendlyId: 'product-support-chat',
+   * })
+   * ```
+   */
   async putChatTypeDetails(details: PutChatTypeDto): Promise<QueryResult> {
     this.logger.debug('Updating chat type details', { chatTypeId: details.id })
 
