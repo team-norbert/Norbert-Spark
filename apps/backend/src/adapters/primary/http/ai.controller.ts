@@ -581,9 +581,7 @@ export class AIController {
         })
         return
       }
-      if (result) {
-        reply.status(204).send()
-      }
+      reply.status(204).send()
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
