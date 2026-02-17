@@ -418,8 +418,10 @@ describe('AdminPage', () => {
       // MUI DataGrid v8 uses aria-labelledby with two IDs for the page-size
       // combobox. JSDOM cannot compute the accessible name from that pattern,
       // so Testing Library's getByRole('combobox') fails to find the element.
-      // Use a direct DOM query instead.
-      const pageSizeSelect = container.querySelector('[role="combobox"]')
+      // Use a direct DOM query instead, scoped to the pagination area.
+      const pagination = container.querySelector('.MuiTablePagination-root')
+      expect(pagination).toBeInTheDocument()
+      const pageSizeSelect = pagination?.querySelector('[role="combobox"]') as HTMLElement | null
       expect(pageSizeSelect).toBeInTheDocument()
       fireEvent.mouseDown(pageSizeSelect!)
 
@@ -1227,8 +1229,8 @@ describe('AdminPage', () => {
       // MUI DataGrid v8 uses aria-labelledby with two IDs for the page-size
       // combobox. JSDOM cannot compute the accessible name from that pattern,
       // so Testing Library's getByRole('combobox') fails to find the element.
-      // Use a direct DOM query instead.
-      const pageSizeSelect = container.querySelector('[role="combobox"]')
+      // Use a direct DOM query instead, scoped to the pagination component.
+      const pageSizeSelect = container.querySelector('.MuiTablePagination-root [role="combobox"]')
       expect(pageSizeSelect).toBeInTheDocument()
       fireEvent.mouseDown(pageSizeSelect!)
 
