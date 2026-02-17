@@ -1058,6 +1058,97 @@ describe('AIController', () => {
         )
       })
     })
+
+    describe('authorization', () => {
+      it('should allow admins to access any user chats', async () => {
+        const targetUserId = new UserId(uuidv7()).getValue()
+        const adminUserId = new UserId(uuidv7()).getValue()
+        const mockChats: ChatWithType[] = [
+          {
+            id: new ChatId(uuidv7()).getValue(),
+            chatTypeId: new ChatId(uuidv7()).getValue(),
+            seoFriendlyId: 'admin-chat-test-1',
+          },
+        ]
+
+        mockRequest.params = { userId: targetUserId }
+        mockRequest.user = {
+          sub: adminUserId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
+
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockChats,
+        })
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
+          targetUserId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
+      })
+
+      it('should allow moderators to access any user chats', async () => {
+        const targetUserId = new UserId(uuidv7()).getValue()
+        const moderatorUserId = new UserId(uuidv7()).getValue()
+        const mockChats: ChatWithType[] = [
+          {
+            id: new ChatId(uuidv7()).getValue(),
+            chatTypeId: new ChatId(uuidv7()).getValue(),
+            seoFriendlyId: 'moderator-chat-test-1',
+          },
+        ]
+
+        mockRequest.params = { userId: targetUserId }
+        mockRequest.user = {
+          sub: moderatorUserId,
+          email: 'moderator@example.com',
+          roles: ['moderator'],
+        }
+        vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
+
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockChats,
+        })
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(
+          targetUserId,
+          expect.objectContaining({
+            userId: expect.any(String),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
+      })
+
+      it('should prevent regular users from accessing other users chats', async () => {
+        const targetUserId = new UserId(uuidv7()).getValue()
+        const requestingUserId = new UserId(uuidv7()).getValue()
+
+        mockRequest.params = { userId: targetUserId }
+        mockRequest.user = {
+          sub: requestingUserId,
+          email: 'user@example.com',
+          roles: ['user'],
+        }
+
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(403)
+        expect(mockGetChatsByUserIdUseCase.execute).not.toHaveBeenCalled()
+      })
+    })
   })
 
   describe('getAIChatDetails()', () => {
