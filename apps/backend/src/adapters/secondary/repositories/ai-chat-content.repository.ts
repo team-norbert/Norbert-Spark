@@ -1,4 +1,5 @@
 import { desc, eq, or } from 'drizzle-orm'
+import type { QueryResult } from 'pg'
 
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { db } from '../../../infrastructure/database/index.js'
@@ -6,6 +7,7 @@ import { chatTypes } from '../../../infrastructure/database/schema.js'
 import type { AIContentPort } from '../../../application/ports/ai-content.port.js'
 import type { DBChatType } from '../../../infrastructure/database/schema.js'
 import { Uuid7Util } from '../../../shared/utils/uuid7.util.js'
+import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
 
 /**
  * Maximum allowed length for chat type parameter to prevent DoS attacks
@@ -67,6 +69,39 @@ export class AIChatContentRepository implements AIContentPort {
   async fetchChatContent(): Promise<DBChatType[]> {
     this.logger.debug('Fetching chatContent from chat_types table')
     return db.select().from(chatTypes).orderBy(desc(chatTypes.createdAt))
+  }
+
+  async putChatTypeDetails(details: PutChatTypeDto): Promise<QueryResult> {
+    this.logger.debug('Updating chat type details', { chatTypeId: details.id })
+
+    // Build update object with only the provided optional fields
+    // Note: updated_at is automatically handled by the chat_types_updated_at trigger
+    const updateData: Partial<{
+      name: string
+      description: string
+      seoFriendlyId: string
+    }> = {}
+
+    if (details.name !== undefined) {
+      updateData.name = details.name
+    }
+
+    if (details.description !== undefined) {
+      updateData.description = details.description
+    }
+
+    if (details.seoFriendlyId !== undefined) {
+      updateData.seoFriendlyId = details.seoFriendlyId
+    }
+
+    try {
+      const result = await db.update(chatTypes).set(updateData).where(eq(chatTypes.id, details.id))
+      this.logger.info('Successfully updated chat type details', { chatTypeId: details.id })
+      return result
+    } catch (error) {
+      this.logger.error('Error updating chat type details', error as Error)
+      throw error
+    }
   }
 
   /**

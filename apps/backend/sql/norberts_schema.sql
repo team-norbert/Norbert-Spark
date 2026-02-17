@@ -574,6 +574,13 @@ CREATE TRIGGER chats_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION touch_updated_at();
 
+DROP TRIGGER IF EXISTS chat_types_updated_at ON chat_types;
+CREATE TRIGGER chat_types_updated_at
+    BEFORE UPDATE ON chat_types
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
+
+
 DROP TRIGGER IF EXISTS company_updated_at ON company;
 CREATE TRIGGER company_updated_at
     BEFORE UPDATE ON company

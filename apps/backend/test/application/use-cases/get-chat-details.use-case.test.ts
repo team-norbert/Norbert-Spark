@@ -52,6 +52,7 @@ describe('GetChatDetailsUseCase', () => {
     mockAiChatContent = {
       fetchChatContent: vi.fn(),
       resolveChatTypeByParam: vi.fn(),
+      putChatTypeDetails: vi.fn(),
     }
 
     mockAuditContext = {

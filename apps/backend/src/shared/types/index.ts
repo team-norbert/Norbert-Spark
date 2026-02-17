@@ -6,6 +6,7 @@ import {
 } from 'ai'
 import { z } from 'zod'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
+import type { DBChatType } from '../../infrastructure/database/schema.js'
 
 export const metadataSchema = z.object({})
 
@@ -43,3 +44,6 @@ export namespace DB {
     chats: DB.Chat[]
   }
 }
+
+export type PutChatDetailsType = Pick<DBChatType, 'id'> &
+  Partial<Pick<DBChatType, 'name' | 'description' | 'seoFriendlyId'>>

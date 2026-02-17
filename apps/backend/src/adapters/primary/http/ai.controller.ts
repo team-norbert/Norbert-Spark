@@ -16,15 +16,15 @@ import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-ca
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
 import { GetChatDetailsUseCase } from '../../../application/use-cases/get-chat-details.use-case.js'
 import { GetChatContentByChatIdUseCase } from '../../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
-import type { UserIdType } from '../../../domain/value-objects/userID.js'
-import { UserId } from '../../../domain/value-objects/userID.js'
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
+import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
 import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { GetChatAiOptionsUseCase } from '../../../application/use-cases/get-chat-ai-options.use-case.js'
 import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-chat-type.use-case.js'
+import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -71,6 +71,13 @@ export class AIController {
         preHandler: [authMiddleware],
       },
       this.getAIChatDetails.bind(this)
+    )
+    app.put(
+      '/ai/chats/config',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.updateAIChatDetails.bind(this)
     )
   }
 
@@ -199,7 +206,7 @@ export class AIController {
       try {
         chatTypeId = new ChatId(resolved).getValue()
       } catch {
-        return reply.code(500).send({
+        return reply.code(400).send({
           success: false,
           error: 'Invalid resolved chat type ID',
         })
@@ -520,6 +527,56 @@ export class AIController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'Failed to fetch chat details'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
+  }
+
+  async updateAIChatDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.debug('Received updateAIChatDetails request')
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
+    // Authorization check: Only admin/moderator roles can update company details
+    const authenticatedUserId = request.user?.sub
+    const userRoles = request.user?.roles || []
+
+    if (!authenticatedUserId) {
+      this.logger.warn('Authorization check failed: User not authenticated')
+      return reply.code(401).send({
+        success: false,
+        error: 'Authentication required',
+      })
+    }
+
+    // Check if user has admin/moderator role
+    const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
+
+    if (!hasElevatedRole) {
+      this.logger.warn(
+        `Authorization check failed: User ${authenticatedUserId} attempted to update company details without admin/moderator role`
+      )
+      return reply.code(403).send({
+        success: false,
+        error: 'Access denied. Admin or moderator role required to update company details',
+      })
+    }
+
+    try {
+      const body = request.body as any
+      const dto = PutChatTypeDto.validate(body)
+
+      // TODO: Implement the actual update logic using dto.id, dto.name, dto.seoFriendlyId, dto.description
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'An unexpected error occurred'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
