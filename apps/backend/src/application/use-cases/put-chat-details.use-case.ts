@@ -84,50 +84,25 @@ export class PutChatDetailsUseCase {
 
     const result = await this.aiChatContent.putChatTypeDetails(details)
 
-    if (result) {
-      const auditEntry: CreateAuditLogDTO = {
-        userId: auditContext.userId,
-        entityType: EntityType.CHAT_TYPE,
-        entityId: details.id,
-        action: AuditAction.UPDATE,
-        changes: {
-          after: {
-            id: details.id,
-            name: details.name,
-            seoFriendlyId: details.seoFriendlyId,
-            description: details.description,
-          },
-          reason: 'update_successful',
-        } satisfies UpdateChanges,
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      }
-      // AuditLogPort.log() never throws per contract
-      await this.auditLog.log(auditEntry)
+    const auditEntry: CreateAuditLogDTO = {
+      userId: auditContext.userId,
+      entityType: EntityType.CHAT_TYPE,
+      entityId: details.id,
+      action: AuditAction.UPDATE,
+      changes: {
+        after: {
+          id: details.id,
+          name: details.name,
+          seoFriendlyId: details.seoFriendlyId,
+          description: details.description,
+        },
+        reason: result ? 'update_successful' : 'update_unsuccessful',
+      } satisfies UpdateChanges,
+      ipAddress: auditContext.ipAddress,
+      userAgent: auditContext.userAgent ?? undefined,
     }
-
-    if (!result) {
-      const auditEntry: CreateAuditLogDTO = {
-        userId: auditContext.userId,
-        entityType: EntityType.CHAT_TYPE,
-        entityId: details.id,
-        action: AuditAction.UPDATE,
-        changes: {
-          after: {
-            id: details.id,
-            name: details.name,
-            seoFriendlyId: details.seoFriendlyId,
-            description: details.description,
-          },
-          reason: 'update_unsuccessful',
-        } satisfies UpdateChanges,
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      }
-      // AuditLogPort.log() never throws per contract
-      await this.auditLog.log(auditEntry)
-    }
-
+    // AuditLogPort.log() never throws per contract
+    await this.auditLog.log(auditEntry)
     return result
   }
 }
