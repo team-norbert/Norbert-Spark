@@ -87,12 +87,9 @@ export class AIChatContentRepository implements AIContentPort {
    *   for the chat type. When provided, it should already satisfy any
    *   domain-level validation rules.
    *
-   * @returns {Promise<QueryResult>} A promise that resolves with the result of
-   *   the underlying SQL UPDATE operation executed against the `chat_types`
-   *   table.
-   *
-   * @throws {Error} If the database update fails due to connectivity issues,
-   *   constraint violations, or other underlying database errors.
+   * @returns {Promise<QueryResult | null>} A promise that resolves with the
+   *   QueryResult if the update succeeds, or null if the chat type is not
+   *   found or if a database error occurs.
    *
    * @example
    * ```typescript
