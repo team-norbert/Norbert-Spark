@@ -144,6 +144,20 @@
           }
         }
       },
+      "409": {
+        "description": "Conflict - Duplicate SEO identifier",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Conflict: Another chat type with the same SEO identifier already exists. Please choose a unique SEO identifier."
+            }
+          }
+        }
+      },
       "500": {
         "description": "Internal server error",
         "content": {
