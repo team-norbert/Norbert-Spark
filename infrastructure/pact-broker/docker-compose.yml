@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:18.1-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || exit 1"]
+      interval: 10s
+      timeout: 5s
+    container_name: pact-broker-postgres
+    restart: unless-stopped
+    shm_size: 256mb
+    healthcheck:
+      test: psql postgres --command "select 1" -U postgres
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-pact_broker}
+
+  pact-broker:
+    image: "pactfoundation/pact-broker:2.113.0-pactbroker2.107.1"
+    container_name: pact-broker
+    restart: unless-stopped
+    ports:
+      - "${PACT_BROKER_PORT:-9292}:${PACT_BROKER_PORT:-9292}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PACT_BROKER_PORT: ${PACT_BROKER_PORT:-9292}
+      PACT_BROKER_DATABASE_URL: ${PACT_BROKER_DATABASE_URL:-postgres://postgres:postgres@postgres:5432/pact_broker}
+      PACT_BROKER_LOG_LEVEL: ${PACT_BROKER_LOG_LEVEL:-INFO}
+      PACT_BROKER_SQL_LOG_LEVEL: ${PACT_BROKER_SQL_LOG_LEVEL:-WARN}
+      # PACT_BROKER_DATABASE_CONNECT_MAX_RETRIES is only needed for docker-compose
+      # because the database takes longer to start up than the puma process
+      # Should not be needed in production.
+      PACT_BROKER_DATABASE_CONNECT_MAX_RETRIES: "5"
+      # The list of allowed base URLs (not setting this makes the app vulnerable to cache poisoning)
+      # This list allows the app to be addressed from the host and from within another docker container correctly
+      # Nginx config below makes the app accessible on ports 443 and 80, while the Ruby application itself runs on port 9292
+      PACT_BROKER_BASE_URL: 'https://localhost http://localhost http://localhost:9292 http://pact-broker:9292 https://host.docker.internal http://host.docker.internal http://host.docker.internal:9292'
+
+  # Nginx is not necessary, but demonstrates how
+  # one might use a reverse proxy in front of the broker,
+  # and includes the use of a self-signed TLS certificate.
+  #
+  # NOTE: The nginx service is disabled because the ./ssl directory
+  # does not exist in this repository, and Docker bind mounts to
+  # missing host paths will cause `docker compose up` to fail.
+  # To re-enable nginx, create an ./ssl directory alongside this
+  # file with nginx.conf and certificate/key files, then uncomment
+  # the service definition below.
+  #
+  # nginx:
+  #   image: nginx:alpine
+  #   depends_on:
+  #     - pact-broker
+  #   volumes:
+  #     - ./ssl/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  #     - ./ssl:/etc/nginx/ssl
+  #   ports:
+  #     - "443:443"
+  #     - "80:80"
+volumes:
+  postgres-volume:
