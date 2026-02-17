@@ -2,7 +2,9 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIChatContentRepository } from '../../../../src/adapters/secondary/repositories/ai-chat-content.repository.js'
+import { PutChatTypeDto } from '../../../../src/application/dtos/put-chat-type.dto.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
+import { Uuid } from '../../../../src/domain/value-objects/uuid.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
 import { Uuid7Util } from '../../../../src/shared/utils/uuid7.util.js'
 
@@ -10,6 +12,7 @@ import { Uuid7Util } from '../../../../src/shared/utils/uuid7.util.js'
 vi.mock('../../../../src/infrastructure/database/index.js', () => ({
   db: {
     select: vi.fn(),
+    update: vi.fn(),
   },
 }))
 
@@ -17,6 +20,7 @@ vi.mock('../../../../src/infrastructure/database/index.js', () => ({
 vi.mock('../../../../src/shared/utils/uuid7.util.js', () => ({
   Uuid7Util: {
     isValidUUID: vi.fn(),
+    uuidVersionValidation: vi.fn(),
   },
 }))
 
@@ -441,6 +445,371 @@ describe('AIChatContentRepository', () => {
 
         // Verify select was called (exact args checking would be too coupled to implementation)
         expect(db.select).toHaveBeenCalled()
+      })
+    })
+  })
+
+  describe('putChatTypeDetails', () => {
+    // Helper to create a valid UUID for testing
+    const createValidUUID = (): string => {
+      const uuid = uuidv7()
+      vi.mocked(Uuid7Util.isValidUUID).mockReturnValue(true)
+      vi.mocked(Uuid7Util.uuidVersionValidation).mockReturnValue('v7')
+      return uuid
+    }
+
+    describe('successful updates', () => {
+      it('should update chat type with all fields', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(
+          chatTypeId,
+          'Updated Name',
+          'updated-seo-id',
+          'Updated description'
+        )
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        const result = await repository.putChatTypeDetails(dto)
+
+        expect(result).toEqual(mockResult)
+        expect(db.update).toHaveBeenCalledTimes(1)
+        expect(mockSet).toHaveBeenCalledWith({
+          name: 'Updated Name',
+          description: 'Updated description',
+          seoFriendlyId: 'updated-seo-id',
+        })
+        expect(mockWhere).toHaveBeenCalledTimes(1)
+        expect(mockLogger.debug).toHaveBeenCalledWith('Updating chat type details', {
+          chatTypeId,
+        })
+        expect(mockLogger.info).toHaveBeenCalledWith('Successfully updated chat type details', {
+          chatTypeId,
+        })
+      })
+
+      it('should update chat type with only name field', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Only Name')
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        const result = await repository.putChatTypeDetails(dto)
+
+        expect(result).toEqual(mockResult)
+        expect(mockSet).toHaveBeenCalledWith({
+          name: 'Only Name',
+        })
+        expect(mockLogger.info).toHaveBeenCalledWith('Successfully updated chat type details', {
+          chatTypeId,
+        })
+      })
+
+      it('should update chat type with only description field', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, undefined, undefined, 'Only Description Updated')
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        const result = await repository.putChatTypeDetails(dto)
+
+        expect(result).toEqual(mockResult)
+        expect(mockSet).toHaveBeenCalledWith({
+          description: 'Only Description Updated',
+        })
+      })
+
+      it('should update chat type with only seoFriendlyId field', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, undefined, 'new-seo-friendly-id')
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        const result = await repository.putChatTypeDetails(dto)
+
+        expect(result).toEqual(mockResult)
+        expect(mockSet).toHaveBeenCalledWith({
+          seoFriendlyId: 'new-seo-friendly-id',
+        })
+      })
+
+      it('should update chat type with name and description', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(
+          chatTypeId,
+          'Name and Description',
+          undefined,
+          'Description only'
+        )
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        const result = await repository.putChatTypeDetails(dto)
+
+        expect(result).toEqual(mockResult)
+        expect(mockSet).toHaveBeenCalledWith({
+          name: 'Name and Description',
+          description: 'Description only',
+        })
+      })
+
+      it('should update chat type with name and seoFriendlyId', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Updated Name', 'updated-seo')
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        const result = await repository.putChatTypeDetails(dto)
+
+        expect(result).toEqual(mockResult)
+        expect(mockSet).toHaveBeenCalledWith({
+          name: 'Updated Name',
+          seoFriendlyId: 'updated-seo',
+        })
+      })
+
+      it('should return null when empty update object provided (no rows affected)', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId)
+        const mockResult = { rowCount: 0, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        const result = await repository.putChatTypeDetails(dto)
+
+        expect(result).toBeNull()
+        expect(mockSet).toHaveBeenCalledWith({})
+        expect(mockLogger.warn).toHaveBeenCalledWith('No chat type found to update', {
+          chatTypeId,
+        })
+      })
+
+      it('should return null when chat type not found (rowCount 0)', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Non-existent')
+        const mockResult = { rowCount: 0, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        const result = await repository.putChatTypeDetails(dto)
+
+        expect(result).toBeNull()
+        expect(mockLogger.warn).toHaveBeenCalledWith('No chat type found to update', {
+          chatTypeId,
+        })
+      })
+    })
+
+    describe('logging behavior', () => {
+      it('should log debug message with chatTypeId before update', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Test')
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        await repository.putChatTypeDetails(dto)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith('Updating chat type details', {
+          chatTypeId,
+        })
+      })
+
+      it('should log info message with chatTypeId after successful update', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Test')
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        await repository.putChatTypeDetails(dto)
+
+        expect(mockLogger.info).toHaveBeenCalledWith('Successfully updated chat type details', {
+          chatTypeId,
+        })
+      })
+    })
+
+    describe('error handling', () => {
+      it('should log error and return null when database update fails', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Test')
+        const dbError = new Error('Database connection lost')
+
+        const mockWhere = vi.fn().mockRejectedValue(dbError)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        const result = await repository.putChatTypeDetails(dto)
+
+        expect(result).toBeNull()
+        expect(mockLogger.debug).toHaveBeenCalledWith('Updating chat type details', {
+          chatTypeId,
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith('Error updating chat type details', dbError)
+        expect(mockLogger.info).not.toHaveBeenCalled()
+      })
+
+      it('should return null for database constraint violation errors', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Duplicate Name')
+        const constraintError = new Error('duplicate key value violates unique constraint')
+
+        const mockWhere = vi.fn().mockRejectedValue(constraintError)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        const result = await repository.putChatTypeDetails(dto)
+
+        expect(result).toBeNull()
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error updating chat type details',
+          constraintError
+        )
+      })
+
+      it('should return null for timeout errors', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Test')
+        const timeoutError = new Error('Query timeout')
+
+        const mockWhere = vi.fn().mockRejectedValue(timeoutError)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        const result = await repository.putChatTypeDetails(dto)
+
+        expect(result).toBeNull()
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error updating chat type details',
+          timeoutError
+        )
+      })
+    })
+
+    describe('database interaction', () => {
+      it('should call db.update exactly once', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Test')
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        await repository.putChatTypeDetails(dto)
+
+        expect(db.update).toHaveBeenCalledTimes(1)
+      })
+
+      it('should call set with correct update data structure', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Name', 'seo-id', 'Description')
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        await repository.putChatTypeDetails(dto)
+
+        expect(mockSet).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Name',
+            seoFriendlyId: 'seo-id',
+            description: 'Description',
+          })
+        )
+      })
+
+      it('should call where clause exactly once', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Test')
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        await repository.putChatTypeDetails(dto)
+
+        expect(mockWhere).toHaveBeenCalledTimes(1)
+      })
+
+      it('should not include updatedAt in update data', async () => {
+        const uuidString = createValidUUID()
+        const chatTypeId = new Uuid(uuidString).getValue()
+        const dto = new PutChatTypeDto(chatTypeId, 'Test')
+        const mockResult = { rowCount: 1, command: 'UPDATE', oid: 0, fields: [], rows: [] }
+
+        const mockWhere = vi.fn().mockResolvedValue(mockResult)
+        const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+        const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+        vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+        await repository.putChatTypeDetails(dto)
+
+        const setCallArg = mockSet.mock.calls[0]?.[0]
+        expect(setCallArg).toBeDefined()
+        expect(setCallArg).not.toHaveProperty('updatedAt')
       })
     })
   })

@@ -1,4 +1,4 @@
-# Norbert's Spark - an AI tools CRM
+# Norbert's Spark - an AI tools CRM - Beta
 
 Norbert's Spark ( named after Norbert Wiener, the father of cybernetics) is a cutting-edge AI tools CRM designed to help users manage and leverage AI technologies effectively. Built with modern web technologies, it offers a seamless experience for integrating AI capabilities into everyday workflows.
 
@@ -13,13 +13,22 @@ Norbert's Spark currently uses a number of different third-party services, inclu
 - [Sentry](https://sentry.io/)
 - [Upstash Redis](https://upstash.com/)
 
-These will potentially be replaced with AWS or self-hosted alternatives in the future.
+These are planned to be replaced with AWS or self-hosted alternatives in the future.
 
 The other difference between Norbert's Spark and other AI-SDK starter kits is that the backend is where the business logic resides, with the frontend being a thin client. This is in contrast to many AI-SDK starter kits where the frontend contains most of the business logic and directly calls the AI provider APIs. In Norbert's Spark, the frontend calls the backend API, which in turn calls the AI provider APIs. This architecture enhances security, maintainability, and scalability. This is a similar approach to what is called a headless CMS, where the frontend is decoupled from the backend.
 
 In this repo is a frontend that uses Next.js 16 with React 19 and Material UI. The purpose of this frontend is to provide a user interface for interacting with the AI tools CRM. In the frontend, users can manage their AI tools, view analytics, and configure settings.
 
 In the packages/shared is the OpenAPI spec: packages/shared/src/openapi.json. This is used in the frontend but it is intended that the user accesses the OpenAPI spec to build out their own frontend UI.
+
+## Roadmap for Norbert's Spark
+
+- Multi-tenant support with role-based access control (RBAC)
+- Integration with AWS services (S3, SES, Lambda, etc.) using Pulumi for IaC
+- Replacing Drizzle queries with SQL queries for better performance and control
+- Support for multiple AI providers (OpenAI, Google Gemini, Anthropic, etc.) with dynamic provider selection
+- Advanced analytics dashboard with real-time monitoring of AI interactions
+- Plugin system for extending functionality and integrating with third-party services
 
 ## Table of Contents
 

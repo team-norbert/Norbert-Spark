@@ -16,15 +16,16 @@ import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-ca
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
 import { GetChatDetailsUseCase } from '../../../application/use-cases/get-chat-details.use-case.js'
 import { GetChatContentByChatIdUseCase } from '../../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
-import type { UserIdType } from '../../../domain/value-objects/userID.js'
-import { UserId } from '../../../domain/value-objects/userID.js'
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
+import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
 import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { GetChatAiOptionsUseCase } from '../../../application/use-cases/get-chat-ai-options.use-case.js'
 import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-chat-type.use-case.js'
+import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
+import { PutChatDetailsUseCase } from '../../../application/use-cases/put-chat-details.use-case.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -38,7 +39,8 @@ export class AIController {
     private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase,
     private readonly getChatDetailsUseCase: GetChatDetailsUseCase,
     private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase,
-    private readonly resolveChatTypeUseCase: ResolveChatTypeUseCase
+    private readonly resolveChatTypeUseCase: ResolveChatTypeUseCase,
+    private readonly putChatDetailsUseCase: PutChatDetailsUseCase
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
@@ -71,6 +73,13 @@ export class AIController {
         preHandler: [authMiddleware],
       },
       this.getAIChatDetails.bind(this)
+    )
+    app.put(
+      '/ai/chats/config',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.updateAIChatDetails.bind(this)
     )
   }
 
@@ -199,7 +208,7 @@ export class AIController {
       try {
         chatTypeId = new ChatId(resolved).getValue()
       } catch {
-        return reply.code(500).send({
+        return reply.code(400).send({
           success: false,
           error: 'Invalid resolved chat type ID',
         })
@@ -520,6 +529,65 @@ export class AIController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'Failed to fetch chat details'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
+  }
+
+  /**
+   * Updates AI chat details (such as configuration or type) for the current tenant.
+   *
+   * Flow:
+   * - Logs the incoming request and builds an audit context from the authenticated user,
+   *   IP address, and User-Agent header.
+   * - Performs an authorization check to ensure the caller is authenticated and has
+   *   either the `admin` or `moderator` role.
+   * - Validates the request body using {@link PutChatTypeDto.validate}, mapping it to a
+   *   DTO that is passed to {@link PutChatDetailsUseCase}.
+   * - Executes the {@link PutChatDetailsUseCase} with the audit context and DTO to
+   *   persist the requested changes.
+   * - Returns:
+   *   - `401 Unauthorized` if the user is not authenticated.
+   *   - `403 Forbidden` if the user lacks the required role.
+   *   - `404 Not Found` if the AI chat type cannot be found or the update fails.
+   *   - `204 No Content` on successful update.
+   *   - `5xx` error codes with a JSON error payload on unexpected failures.
+   *
+   * The response body follows the convention used by other controller methods:
+   * `{ success: boolean, error?: string }`.
+   *
+   * @param request - Fastify request containing the authenticated user, headers,
+   *   and JSON body with the chat details to update.
+   * @param reply - Fastify reply used to send the HTTP status code and response payload.
+   * @returns A promise that resolves when the response has been sent.
+   */
+  async updateAIChatDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.debug('Received updateAIChatDetails request')
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
+    try {
+      const body = request.body as any
+      const dto = PutChatTypeDto.validate(body)
+      const result = await this.putChatDetailsUseCase.execute(auditContext, dto)
+      if (!result) {
+        reply.code(404).send({
+          success: false,
+          error: 'AI chat type not found or update failed',
+        })
+        return
+      }
+      reply.status(204).send()
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'An unexpected error occurred'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,

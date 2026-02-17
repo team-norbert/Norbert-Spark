@@ -22,6 +22,7 @@ import { ResolveChatTypeUseCase } from '../../application/use-cases/resolve-chat
 import { GetCompanyDetailsUseCase } from '../../application/use-cases/get-company-details.use-case.js'
 import { PutCompanyDetailsUseCase } from '../../application/use-cases/put-company-details.use-case.js'
 import { GetUserByIdUseCase } from '../../application/use-cases/get-user-by-id.use-case.js'
+import { PutChatDetailsUseCase } from '../../application/use-cases/put-chat-details.use-case.js'
 // Adapters
 import { UserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
@@ -114,6 +115,7 @@ export class Container {
   private readonly getCompanyDetailsUseCase: GetCompanyDetailsUseCase
   private readonly putCompanyDetailsUseCase: PutCompanyDetailsUseCase
   private readonly getUserByIdUseCase: GetUserByIdUseCase
+  private readonly putChatDetailsUseCase: PutChatDetailsUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -296,6 +298,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.logger,
       this.auditLog
     )
+    this.putChatDetailsUseCase = new PutChatDetailsUseCase(
+      this.logger,
+      this.auditLog,
+      this.aiChatContentRepository
+    )
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
       this.registerUserUseCase,
@@ -317,7 +324,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.getChatContentByChatIdUseCase,
       this.getChatDetailsUseCase,
       this.getChatAiOptionsUseCase,
-      this.resolveChatTypeUseCase
+      this.resolveChatTypeUseCase,
+      this.putChatDetailsUseCase
     )
     this.aiExtractDataController = new AIExtractDataController(
       this.logger,

@@ -88,6 +88,20 @@
       "204": {
         "description": "AI chat type successfully updated"
       },
+      "400": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Invalid request data"
+            }
+          }
+        }
+      },
       "401": {
         "description": "Unauthorized - Missing or invalid authentication token",
         "content": {
