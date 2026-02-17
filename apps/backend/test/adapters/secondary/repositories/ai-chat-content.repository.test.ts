@@ -598,7 +598,7 @@ describe('AIChatContentRepository', () => {
         })
       })
 
-      it('should handle empty update object when no optional fields provided', async () => {
+      it('should return null when empty update object provided (no rows affected)', async () => {
         const uuidString = createValidUUID()
         const chatTypeId = new Uuid(uuidString).getValue()
         const dto = new PutChatTypeDto(chatTypeId)
@@ -611,14 +611,14 @@ describe('AIChatContentRepository', () => {
 
         const result = await repository.putChatTypeDetails(dto)
 
-        expect(result).toEqual(mockResult)
+        expect(result).toBeNull()
         expect(mockSet).toHaveBeenCalledWith({})
-        expect(mockLogger.info).toHaveBeenCalledWith('Successfully updated chat type details', {
+        expect(mockLogger.warn).toHaveBeenCalledWith('No chat type found to update', {
           chatTypeId,
         })
       })
 
-      it('should return result with rowCount 0 when chat type not found', async () => {
+      it('should return null when chat type not found (rowCount 0)', async () => {
         const uuidString = createValidUUID()
         const chatTypeId = new Uuid(uuidString).getValue()
         const dto = new PutChatTypeDto(chatTypeId, 'Non-existent')
@@ -631,8 +631,10 @@ describe('AIChatContentRepository', () => {
 
         const result = await repository.putChatTypeDetails(dto)
 
-        expect(result).toEqual(mockResult)
-        expect(result.rowCount).toBe(0)
+        expect(result).toBeNull()
+        expect(mockLogger.warn).toHaveBeenCalledWith('No chat type found to update', {
+          chatTypeId,
+        })
       })
     })
 
@@ -675,7 +677,7 @@ describe('AIChatContentRepository', () => {
     })
 
     describe('error handling', () => {
-      it('should log error and rethrow when database update fails', async () => {
+      it('should log error and return null when database update fails', async () => {
         const uuidString = createValidUUID()
         const chatTypeId = new Uuid(uuidString).getValue()
         const dto = new PutChatTypeDto(chatTypeId, 'Test')
@@ -686,8 +688,9 @@ describe('AIChatContentRepository', () => {
         const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
         vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
 
-        await expect(repository.putChatTypeDetails(dto)).rejects.toThrow('Database connection lost')
+        const result = await repository.putChatTypeDetails(dto)
 
+        expect(result).toBeNull()
         expect(mockLogger.debug).toHaveBeenCalledWith('Updating chat type details', {
           chatTypeId,
         })
@@ -695,7 +698,7 @@ describe('AIChatContentRepository', () => {
         expect(mockLogger.info).not.toHaveBeenCalled()
       })
 
-      it('should handle database constraint violation errors', async () => {
+      it('should return null for database constraint violation errors', async () => {
         const uuidString = createValidUUID()
         const chatTypeId = new Uuid(uuidString).getValue()
         const dto = new PutChatTypeDto(chatTypeId, 'Duplicate Name')
@@ -706,17 +709,16 @@ describe('AIChatContentRepository', () => {
         const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
         vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
 
-        await expect(repository.putChatTypeDetails(dto)).rejects.toThrow(
-          'duplicate key value violates unique constraint'
-        )
+        const result = await repository.putChatTypeDetails(dto)
 
+        expect(result).toBeNull()
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error updating chat type details',
           constraintError
         )
       })
 
-      it('should handle timeout errors', async () => {
+      it('should return null for timeout errors', async () => {
         const uuidString = createValidUUID()
         const chatTypeId = new Uuid(uuidString).getValue()
         const dto = new PutChatTypeDto(chatTypeId, 'Test')
@@ -727,8 +729,9 @@ describe('AIChatContentRepository', () => {
         const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
         vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
 
-        await expect(repository.putChatTypeDetails(dto)).rejects.toThrow('Query timeout')
+        const result = await repository.putChatTypeDetails(dto)
 
+        expect(result).toBeNull()
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error updating chat type details',
           timeoutError

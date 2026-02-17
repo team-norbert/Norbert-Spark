@@ -106,7 +106,7 @@ export class AIChatContentRepository implements AIContentPort {
    * })
    * ```
    */
-  async putChatTypeDetails(details: PutChatTypeDto): Promise<QueryResult> {
+  async putChatTypeDetails(details: PutChatTypeDto): Promise<QueryResult | null> {
     this.logger.debug('Updating chat type details', { chatTypeId: details.id })
 
     // Build update object with only the provided optional fields
@@ -131,11 +131,18 @@ export class AIChatContentRepository implements AIContentPort {
 
     try {
       const result = await db.update(chatTypes).set(updateData).where(eq(chatTypes.id, details.id))
+      
+      // Return null if no rows were updated (chat type not found)
+      if (result.rowCount === 0) {
+        this.logger.warn('No chat type found to update', { chatTypeId: details.id })
+        return null
+      }
+      
       this.logger.info('Successfully updated chat type details', { chatTypeId: details.id })
       return result
     } catch (error) {
       this.logger.error('Error updating chat type details', error as Error)
-      throw error
+      return null
     }
   }
 
