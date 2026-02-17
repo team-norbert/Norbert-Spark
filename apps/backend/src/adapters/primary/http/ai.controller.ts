@@ -536,6 +536,33 @@ export class AIController {
     }
   }
 
+  /**
+   * Updates AI chat details (such as configuration or type) for the current tenant.
+   *
+   * Flow:
+   * - Logs the incoming request and builds an audit context from the authenticated user,
+   *   IP address, and User-Agent header.
+   * - Performs an authorization check to ensure the caller is authenticated and has
+   *   either the `admin` or `moderator` role.
+   * - Validates the request body using {@link PutChatTypeDto.validate}, mapping it to a
+   *   DTO that is passed to {@link PutChatDetailsUseCase}.
+   * - Executes the {@link PutChatDetailsUseCase} with the audit context and DTO to
+   *   persist the requested changes.
+   * - Returns:
+   *   - `401 Unauthorized` if the user is not authenticated.
+   *   - `403 Forbidden` if the user lacks the required role.
+   *   - `404 Not Found` if the AI chat type cannot be found or the update fails.
+   *   - `204 No Content` on successful update.
+   *   - `5xx` error codes with a JSON error payload on unexpected failures.
+   *
+   * The response body follows the convention used by other controller methods:
+   * `{ success: boolean, error?: string }`.
+   *
+   * @param request - Fastify request containing the authenticated user, headers,
+   *   and JSON body with the chat details to update.
+   * @param reply - Fastify reply used to send the HTTP status code and response payload.
+   * @returns A promise that resolves when the response has been sent.
+   */
   async updateAIChatDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received updateAIChatDetails request')
     // Extract audit context from request
