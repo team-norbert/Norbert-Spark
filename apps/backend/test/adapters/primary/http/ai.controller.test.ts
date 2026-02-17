@@ -443,7 +443,7 @@ describe('AIController', () => {
         })
       })
 
-      it('should return 500 if resolved chat type ID is invalid', async () => {
+      it('should return 400 if resolved chat type ID is invalid', async () => {
         const chatTypeParam = 'some-chat-type'
         const invalidResolvedId = 'not-a-valid-uuid'
 
@@ -459,7 +459,7 @@ describe('AIController', () => {
 
         await controller.chat(mockRequest, mockReply)
 
-        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.code).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: 'Invalid resolved chat type ID',
