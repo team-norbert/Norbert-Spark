@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "description": "Request body for creating a new AI chat type",
+  "required": ["name", "description"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "example": "Customer Support Chat",
+      "description": "Unique name for the AI chat type",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "example": "A chat type designed for handling customer support inquiries",
+      "description": "Detailed description of the AI chat type's purpose and use case",
+      "minLength": 1,
+      "maxLength": 500
+    }
+  }
+}
