@@ -114,8 +114,15 @@ export class PutChatTypeDto {
     }
 
     // Validate seoFriendlyId (optional)
-    if (isDefined(seoFriendlyId) && !isString(seoFriendlyId)) {
-      throw new ValidationException('Invalid seoFriendlyId: must be a string')
+    if (isDefined(seoFriendlyId)) {
+      if (!isString(seoFriendlyId)) {
+        throw new ValidationException('Invalid seoFriendlyId: must be a string')
+      }
+      if (seoFriendlyId.length < 1 || seoFriendlyId.length > 200) {
+        throw new ValidationException(
+          'Invalid seoFriendlyId: must be a string between 1 and 200 characters'
+        )
+      }
     }
 
     // Validate description (optional)
