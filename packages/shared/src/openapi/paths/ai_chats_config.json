@@ -89,7 +89,7 @@
         "description": "AI chat type successfully updated"
       },
       "400": {
-        "description": "Invalid request data",
+        "description": "Bad request - Invalid input data",
         "content": {
           "application/json": {
             "schema": {
@@ -97,7 +97,7 @@
             },
             "example": {
               "success": false,
-              "error": "Invalid request data"
+              "error": "Invalid input data. Please check the request body for required fields and correct data types."
             }
           }
         }
