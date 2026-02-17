@@ -214,7 +214,7 @@
             },
             "example": {
               "success": false,
-              "error": "Access denied. Admin role required to access chat configuration"
+              "error": "Access denied. Admin or moderator role required to access chat configuration"
             }
           }
         }
