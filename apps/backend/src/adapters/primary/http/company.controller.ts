@@ -115,10 +115,7 @@ export class CompanyController {
    *
    * **Authentication & Authorization:**
    * - Requires valid JWT authentication (handled by authMiddleware)
-   * - Requires one of the following:
-   *   1. User is updating their own data (authenticatedUserId === auditContext.userId)
-   *   2. User has admin role
-   *   3. User has moderator role
+   * - Requires admin or moderator role (enforced by requireRole middleware)
    *
    * **Request Body:**
    * The request body must match UpdateCompanyDTO schema and can contain:
@@ -147,7 +144,7 @@ export class CompanyController {
    * - 204: Success - company/key person updated, no content returned
    * - 400: Bad Request - validation error (invalid UUID, missing required fields, etc.)
    * - 401: Unauthorized - authentication failed (no JWT or invalid token)
-   * - 403: Forbidden - insufficient permissions (not own data and not admin/moderator)
+   * - 403: Forbidden - insufficient permissions (user does not have admin or moderator role)
    * - 500: Internal Server Error - unexpected server error
    *
    * **Validation:**
