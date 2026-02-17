@@ -6,7 +6,7 @@
     "name": {
       "type": "string",
       "example": "Customer Support Chat",
-      "description": "Unique name for the AI chat type",
+      "description": "Display name of the chat type",
       "minLength": 1,
       "maxLength": 200
     },
