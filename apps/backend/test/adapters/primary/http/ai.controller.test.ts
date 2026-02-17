@@ -201,6 +201,7 @@ describe('AIController', () => {
       const mockApp = {
         post: vi.fn(),
         get: vi.fn(),
+        put: vi.fn(),
       } as unknown as FastifyInstance
 
       controller.registerRoutes(mockApp)
@@ -217,6 +218,7 @@ describe('AIController', () => {
       const mockApp = {
         post: vi.fn(),
         get: vi.fn(),
+        put: vi.fn(),
       } as unknown as FastifyInstance
 
       controller.registerRoutes(mockApp)
@@ -241,7 +243,7 @@ describe('AIController', () => {
 
       expect(mockApp.post).toHaveBeenCalledTimes(1)
       expect(mockApp.get).toHaveBeenCalledTimes(3)
-      expect(mockApp.put).not.toHaveBeenCalled()
+      expect(mockApp.put).toHaveBeenCalledTimes(1)
       expect(mockApp.delete).not.toHaveBeenCalled()
     })
 
@@ -249,6 +251,7 @@ describe('AIController', () => {
       const mockApp = {
         post: vi.fn(),
         get: vi.fn(),
+        put: vi.fn(),
       } as unknown as FastifyInstance
 
       controller.registerRoutes(mockApp)
@@ -265,6 +268,7 @@ describe('AIController', () => {
       const mockApp = {
         post: vi.fn(),
         get: vi.fn(),
+        put: vi.fn(),
       } as unknown as FastifyInstance
 
       controller.registerRoutes(mockApp)
@@ -281,6 +285,7 @@ describe('AIController', () => {
       const mockApp = {
         post: vi.fn(),
         get: vi.fn(),
+        put: vi.fn(),
       } as unknown as FastifyInstance
 
       controller.registerRoutes(mockApp)
@@ -2378,6 +2383,613 @@ describe('AIController', () => {
           })
         )
         expect(mockReply.code).not.toHaveBeenCalledWith(403)
+      })
+    })
+  })
+
+  describe('updateAIChatDetails()', () => {
+    describe('successful scenarios', () => {
+      it('should update chat type details successfully with all fields', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Updated Chat Type',
+          seoFriendlyId: 'updated-chat-type',
+          description: 'Updated description for the chat type',
+        }
+        const mockResult = { rowCount: 1 }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockResolvedValue(mockResult as any)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.status).toHaveBeenCalledWith(204)
+        expect(mockReply.send).toHaveBeenCalled()
+        expect(mockPutChatDetailsUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId,
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          }),
+          expect.objectContaining({
+            id: expect.any(String),
+            name: 'Updated Chat Type',
+            seoFriendlyId: 'updated-chat-type',
+            description: 'Updated description for the chat type',
+          })
+        )
+        expect(mockLogger.debug).toHaveBeenCalledWith('Received updateAIChatDetails request')
+      })
+
+      it('should update chat type with only name field', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: chatTypeId,
+          name: 'New Name Only',
+        }
+        const mockResult = { rowCount: 1 }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'moderator@example.com',
+          roles: ['moderator'],
+        }
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockResolvedValue(mockResult as any)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.status).toHaveBeenCalledWith(204)
+        expect(mockPutChatDetailsUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId,
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          }),
+          expect.objectContaining({
+            id: expect.any(String),
+            name: 'New Name Only',
+          })
+        )
+      })
+
+      it('should update chat type with moderator role', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: chatTypeId,
+          description: 'Updated by moderator',
+        }
+        const mockResult = { rowCount: 1 }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'moderator@example.com',
+          roles: ['moderator', 'user'],
+        }
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockResolvedValue(mockResult as any)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.status).toHaveBeenCalledWith(204)
+        expect(mockPutChatDetailsUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId,
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          }),
+          expect.objectContaining({
+            id: expect.any(String),
+            description: 'Updated by moderator',
+          })
+        )
+      })
+
+      it('should handle request with null user-agent header', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Test Update',
+        }
+        const mockResult = { rowCount: 1 }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        mockRequest.headers['user-agent'] = undefined
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockResolvedValue(mockResult as any)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.status).toHaveBeenCalledWith(204)
+        expect(mockPutChatDetailsUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId,
+            ipAddress: '127.0.0.1',
+            userAgent: null,
+          }),
+          expect.any(Object)
+        )
+      })
+
+      it('should include complete audit context in use case call', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Audit Test',
+        }
+        const mockResult = { rowCount: 1 }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        const customRequest = {
+          ...mockRequest,
+          ip: '192.168.1.100',
+          headers: {
+            ...mockRequest.headers,
+            'user-agent': 'Mozilla/5.0',
+          },
+        } as any
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockResolvedValue(mockResult as any)
+
+        await controller.updateAIChatDetails(customRequest, mockReply)
+
+        expect(mockPutChatDetailsUseCase.execute).toHaveBeenCalledWith(
+          {
+            userId,
+            ipAddress: '192.168.1.100',
+            userAgent: 'Mozilla/5.0',
+          },
+          expect.any(Object)
+        )
+      })
+    })
+
+    describe('authorization failures', () => {
+      it('should return 401 when user is not authenticated', async () => {
+        const chatTypeId = uuidv7()
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Unauthorized Update',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = undefined
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(401)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Authentication required',
+        })
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          'Authorization check failed: User not authenticated'
+        )
+        expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 403 when user does not have admin or moderator role', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Forbidden Update',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'user@example.com',
+          roles: ['user'],
+        }
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(403)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Access denied. Admin or moderator role required to update company details',
+        })
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          `Authorization check failed: User ${userId} attempted to update company details without admin/moderator role`
+        )
+        expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 403 when user has empty roles array', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: chatTypeId,
+          name: 'No Roles Update',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'user@example.com',
+          roles: [],
+        }
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(403)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Access denied. Admin or moderator role required to update company details',
+        })
+        expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 403 when user has roles property undefined', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Undefined Roles Update',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'user@example.com',
+        } as any
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(403)
+        expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('validation failures', () => {
+      it('should return 400 when id is missing', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          name: 'No ID Update',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid request body: id is required',
+        })
+        expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 400 when id is not a valid UUID', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: 'invalid-uuid',
+          name: 'Invalid ID Update',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid id format: incorrect ChatId format',
+        })
+        expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 400 when name exceeds maximum length', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const longName = 'a'.repeat(201)
+        const requestBody = {
+          id: chatTypeId,
+          name: longName,
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid name: must be a string between 1 and 200 characters',
+        })
+        expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 400 when description exceeds maximum length', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const longDescription = 'a'.repeat(501)
+        const requestBody = {
+          id: chatTypeId,
+          description: longDescription,
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid description: must be a string between 1 and 500 characters',
+        })
+        expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 400 when name is not a string', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: chatTypeId,
+          name: 12345,
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid name: must be a string',
+        })
+        expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 500 when request body is not an object', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = 'not an object'
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid data: expected an object',
+        })
+        expect(mockPutChatDetailsUseCase.execute).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('not found scenarios', () => {
+      it('should return 404 when chat type is not found', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Non-existent Chat Type',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockResolvedValue(null)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(404)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'AI chat type not found or update failed',
+        })
+        expect(mockPutChatDetailsUseCase.execute).toHaveBeenCalled()
+      })
+
+      it('should return 404 when update operation fails', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Failed Update',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockResolvedValue(null)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(404)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'AI chat type not found or update failed',
+        })
+      })
+    })
+
+    describe('error handling', () => {
+      it('should handle InternalErrorException with 500 status code', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const internalError = new InternalErrorException('Database error occurred')
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Error Test',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockRejectedValue(internalError)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Database error occurred',
+        })
+      })
+
+      it('should handle generic errors with 500 status code', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const genericError = new Error('Unexpected error')
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Generic Error Test',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockRejectedValue(genericError)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Unexpected error',
+        })
+      })
+
+      it('should handle errors without message with default error message', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const errorWithoutMessage = new Error()
+        errorWithoutMessage.message = ''
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Empty Error Message Test',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockRejectedValue(errorWithoutMessage)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'An unexpected error occurred',
+        })
+      })
+
+      it('should handle NotFoundException with 404 status code', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const notFoundError = new NotFoundException('ChatType', chatTypeId)
+        const requestBody = {
+          id: chatTypeId,
+          name: 'Not Found Test',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockRejectedValue(notFoundError)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(404)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: `ChatType with identifier '${chatTypeId}' not found`,
+        })
+      })
+
+      it('should handle non-Error thrown values', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const stringError = 'String error message'
+        const requestBody = {
+          id: chatTypeId,
+          name: 'String Error Test',
+        }
+
+        mockRequest.body = requestBody
+        mockRequest.user = {
+          sub: userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockRejectedValue(stringError)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'An unexpected error occurred',
+        })
       })
     })
   })
