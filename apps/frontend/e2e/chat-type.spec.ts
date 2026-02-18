@@ -42,24 +42,16 @@ test.describe('Chat Types Page - Inline Edit', () => {
 
     const firstRowNameCell = page.locator('.MuiDataGrid-row').first().locator('[data-field="name"]')
 
-    const nameInner = firstRowNameCell.locator('[aria-label]')
-    await expect(nameInner).toBeVisible()
-    // eslint-disable-next-line security/detect-non-literal-regexp
-    await expect(nameInner).toHaveAttribute('aria-label', new RegExp(SEEDED_CHAT_TYPE.name, 'i'))
-
+    await expect(firstRowNameCell).toBeVisible()
+    await expect(firstRowNameCell).toContainText(SEEDED_CHAT_TYPE.name, { ignoreCase: true })
     const firstRowseoFriendlyIdCell = page
       .locator('.MuiDataGrid-row')
       .first()
       .locator('[data-field="seoFriendlyId"]')
-
     await expect(firstRowseoFriendlyIdCell).toBeVisible()
-
-    const seoFriendlyIdInner = firstRowseoFriendlyIdCell.locator('[aria-label]')
-
-    await expect(seoFriendlyIdInner).toHaveAttribute(
-      'aria-label',
-      new RegExp(SEEDED_CHAT_TYPE.seoFriendlyId, 'i')
-    )
+    await expect(firstRowseoFriendlyIdCell).toContainText(SEEDED_CHAT_TYPE.seoFriendlyId, {
+      ignoreCase: true,
+    })
 
     const firstRowDescriptionCell = page
       .locator('.MuiDataGrid-row')
