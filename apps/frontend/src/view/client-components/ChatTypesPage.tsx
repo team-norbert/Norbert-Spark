@@ -27,22 +27,12 @@ import { validateKebabCase } from '@norberts-spark/shared'
 import { useEffect, useState } from 'react'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
-import type { PendingEdit } from '../hooks/useChatTypesPage.js'
 
+import type { PendingEdit } from '../hooks/useChatTypesPage.js'
 import { PageHeader } from './PageHeader.js'
 
 /**
  * Returns `true` when a chat-type name fails validation.
- * A valid name must be between 1 and 200 characters (inclusive).
- *
- * @param value - The raw string value entered by the user.
- * @returns `true` if the value is invalid, `false` if it is acceptable.
- */
-export const isNameInvalid = (value: string): boolean =>
-  !value || value.length < 1 || value.length > 200
-
-/**
- * Returns `true` when a SEO-friendly ID fails validation.
  * A valid name must be between 1 and 200 characters (inclusive).
  *
  * @param value - The raw string value entered by the user.

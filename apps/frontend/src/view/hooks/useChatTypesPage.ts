@@ -6,7 +6,7 @@ import { updateChatType } from '@/infrastructure/serverActions/updateChatType.se
 
 import { useAIChatConfig } from './queries/useAIChatConfig.js'
 
-interface PendingEdit {
+export interface PendingEdit {
   newRow: GridRowModel
   oldRow: GridRowModel
   field: string
