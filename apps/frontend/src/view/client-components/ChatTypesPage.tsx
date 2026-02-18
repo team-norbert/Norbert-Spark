@@ -43,15 +43,7 @@ export const validateName = (params: GridPreProcessEditCellProps) => {
 // validate SEO friendly ID using the same rules as the backend
 export const validateSeoFriendlyId = (params: GridPreProcessEditCellProps) => {
   const value = params.props.value as string
-  const isValidKebabCase =
-    value &&
-    value.length >= 1 &&
-    value.length <= 200 &&
-    /^[a-z0-9]/.test(value) &&
-    /[a-z0-9]$/.test(value) &&
-    !value.includes('--') &&
-    /^[a-z0-9-]+$/.test(value)
-  const hasError = !isValidKebabCase
+  const hasError = !validateKebabCase(value)
   return {
     ...params.props,
     error: hasError,
