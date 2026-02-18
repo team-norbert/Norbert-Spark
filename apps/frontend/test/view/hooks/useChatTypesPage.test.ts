@@ -871,8 +871,13 @@ describe('useChatTypesPage', () => {
         expect(firstPromiseResolved).toEqual(firstEdit)
       })
 
-      // After save completes, savingEdit should be false
-      expect(result.current.savingEdit).toBe(false)
+      // After save completes, savingEdit should be false.
+      // Must use waitFor because setSavingEdit(false) is called in the finally
+      // block after pendingResolver.resolve() — those are separate microtasks,
+      // so the synchronous check would read stale state.
+      await waitFor(() => {
+        expect(result.current.savingEdit).toBe(false)
+      })
     })
   })
 
