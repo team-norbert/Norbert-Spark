@@ -108,7 +108,7 @@ export class PutChatTypeDto {
       if (!isString(name)) {
         throw new ValidationException('Invalid name: must be a string')
       }
-      if (name.length < 1 || name.length > 200) {
+      if (name.trim().length < 1 || name.trim().length > 200) {
         throw new ValidationException('Invalid name: must be a string between 1 and 200 characters')
       }
     }
@@ -118,7 +118,7 @@ export class PutChatTypeDto {
       if (!isString(seoFriendlyId)) {
         throw new ValidationException('Invalid seoFriendlyId: must be a string')
       }
-      if (seoFriendlyId.length < 1 || seoFriendlyId.length > 200) {
+      if (seoFriendlyId.trim().length < 1 || seoFriendlyId.trim().length > 200) {
         throw new ValidationException(
           'Invalid seoFriendlyId: must be a string between 1 and 200 characters'
         )
@@ -135,7 +135,7 @@ export class PutChatTypeDto {
       if (!isString(description)) {
         throw new ValidationException('Invalid description: must be a string')
       }
-      if (description.length < 1 || description.length > 500) {
+      if (description.trim().length < 1 || description.trim().length > 500) {
         throw new ValidationException(
           'Invalid description: must be a string between 1 and 500 characters'
         )
@@ -144,9 +144,9 @@ export class PutChatTypeDto {
 
     return new PutChatTypeDto(
       uuidTypeId,
-      name === null ? undefined : (name as string | undefined),
-      seoFriendlyId === null ? undefined : (seoFriendlyId as string | undefined),
-      description === null ? undefined : (description as string | undefined)
+      name === null ? undefined : (name?.trim() as string | undefined),
+      seoFriendlyId === null ? undefined : (seoFriendlyId?.trim() as string | undefined),
+      description === null ? undefined : (description?.trim() as string | undefined)
     )
   }
 }

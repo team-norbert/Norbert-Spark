@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { PostChatType } from '../../../src/application/dtos/post-chat-types.js'
+import { PostChatType } from '../../../src/application/dtos/post-chat-types.dto.js'
 import { TypeException } from '../../../src/shared/exceptions/type.exception.js'
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 
