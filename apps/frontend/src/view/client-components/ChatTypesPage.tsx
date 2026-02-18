@@ -101,6 +101,28 @@ export const getValidationMessage = (field: string, value: string): string | und
 }
 
 /**
+ * Maps a DataGrid column field name to its user-friendly display label.
+ *
+ * Used in the confirmation dialog to show readable labels instead of technical
+ * identifiers. For example, "seoFriendlyId" becomes "SEO Friendly ID".
+ *
+ * @param field - The DataGrid column field name.
+ * @returns The user-friendly display label for the field.
+ */
+export const getFieldDisplayLabel = (field: string): string => {
+  switch (field) {
+    case 'name':
+      return 'Name'
+    case 'seoFriendlyId':
+      return 'SEO Friendly ID'
+    case 'description':
+      return 'Description'
+    default:
+      return field
+  }
+}
+
+/**
  * Inline edit cell renderer used by the MUI X DataGrid for the `name`,
  * `seoFriendlyId`, and `description` columns.
  *
@@ -603,7 +625,7 @@ export function ChatTypesPage({
               data-testid="pending-edit-value"
             >
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                {pendingEdit.field}:
+                {getFieldDisplayLabel(pendingEdit.field)}:
               </Typography>
               <Typography variant="body1">
                 {String(pendingEdit.newRow[pendingEdit.field])}
