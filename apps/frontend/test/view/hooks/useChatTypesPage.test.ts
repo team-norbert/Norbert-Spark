@@ -1263,7 +1263,7 @@ describe('useChatTypesPage', () => {
       act(() => {
         void result.current.handleProcessRowUpdate(newRow, oldRow)
       })
-      
+
       // First attempt - should fail
       await act(async () => {
         await result.current.handleConfirmSave()
