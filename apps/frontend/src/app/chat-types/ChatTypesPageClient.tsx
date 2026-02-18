@@ -14,8 +14,10 @@ export function ChatTypesPageClient() {
   const {
     chatTypes,
     confirmDialogOpen,
+    dialogError,
     error,
     handleCancelSave,
+    handleCloseDialogError,
     handleCloseErrorMessage,
     handleCloseSuccessMessage,
     handleConfirmSave,
@@ -44,6 +46,7 @@ export function ChatTypesPageClient() {
     <ChatTypesPage
       chatTypes={chatTypes}
       confirmDialogOpen={confirmDialogOpen}
+      dialogError={dialogError}
       error={error}
       loading={loading}
       searchQuery={searchQuery}
@@ -51,6 +54,7 @@ export function ChatTypesPageClient() {
       rowCount={rowCount}
       onSearchChange={handleSearchChange}
       onPaginationChange={handlePaginationChange}
+      onCloseDialogError={handleCloseDialogError}
       onCloseErrorMessage={handleCloseErrorMessage}
       onCloseSuccessMessage={handleCloseSuccessMessage}
       onNavigateHome={handleNavigateHome}

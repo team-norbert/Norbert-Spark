@@ -30,9 +30,11 @@ const makeChatType = (overrides: Partial<ChatType> = {}): ChatType => ({
 const defaultProps = {
   chatTypes: [makeChatType()] as readonly ChatType[],
   confirmDialogOpen: false,
+  dialogError: null,
   error: null,
   loading: false,
   onCancelSave: vi.fn(),
+  onCloseDialogError: vi.fn(),
   onCloseErrorMessage: vi.fn(),
   onCloseSuccessMessage: vi.fn(),
   onConfirmSave: vi.fn(),

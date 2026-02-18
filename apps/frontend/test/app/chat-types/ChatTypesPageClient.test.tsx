@@ -75,6 +75,8 @@ describe('ChatTypesPageClient', () => {
     savingEdit: false,
     successMessage: null,
     handleCloseSuccessMessage: vi.fn(),
+    dialogError: null,
+    handleCloseDialogError: vi.fn(),
   }
 
   beforeEach(() => {
