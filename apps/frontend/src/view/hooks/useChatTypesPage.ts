@@ -32,6 +32,8 @@ interface UseChatTypesPageReturn {
   savingEdit: boolean
   successMessage: string | null
   handleCloseSuccessMessage: () => void
+  dialogError: string | null
+  handleCloseDialogError: () => void
 }
 
 /**
@@ -52,6 +54,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [pendingEdit, setPendingEdit] = useState<PendingEdit | null>(null)
   const [savingEdit, setSavingEdit] = useState(false)
+  const [dialogError, setDialogError] = useState<string | null>(null)
   // Store a resolver so processRowUpdate can await the dialog result
   const [pendingResolver, setPendingResolver] = useState<{
     resolve: (row: GridRowModel) => void
@@ -84,6 +87,10 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     setSuccessMessage(null)
   }
 
+  const handleCloseDialogError = () => {
+    setDialogError(null)
+  }
+
   /**
    * Called by the DataGrid when a row edit is committed.
    * Opens a confirmation dialog and returns a promise that resolves
@@ -114,6 +121,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
       // Clear any previous messages
       setSuccessMessage(null)
       setErrorMessage(null)
+      setDialogError(null)
 
       return new Promise<GridRowModel>((resolve) => {
         setPendingEdit({ newRow, oldRow, field: changedField })
@@ -127,7 +135,10 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
   const handleConfirmSave = useCallback(async () => {
     if (!pendingEdit || !pendingResolver) return
 
+    // Clear any previous dialog error before attempting save
+    setDialogError(null)
     setSavingEdit(true)
+    
     try {
       const { field, newRow } = pendingEdit
       const payload: { id: string; name?: string; seoFriendlyId?: string; description?: string } = {
@@ -141,15 +152,18 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
       setSuccessMessage('Update successful')
       pendingResolver.resolve(pendingEdit.newRow)
       await refetch()
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'An unexpected error occurred'
-      setErrorMessage(message)
-      pendingResolver.resolve(pendingEdit.oldRow)
-    } finally {
-      setSavingEdit(false)
+      
+      // Only close dialog and clear state on success
       setConfirmDialogOpen(false)
       setPendingEdit(null)
       setPendingResolver(null)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred'
+      // Set error in dialog instead of page-level error
+      setDialogError(message)
+      // Do NOT resolve the promise or close the dialog - keep it open for retry
+    } finally {
+      setSavingEdit(false)
     }
   }, [pendingEdit, pendingResolver, refetch])
 
@@ -160,6 +174,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     setConfirmDialogOpen(false)
     setPendingEdit(null)
     setPendingResolver(null)
+    setDialogError(null)
   }, [pendingEdit, pendingResolver])
 
   const handleProcessRowUpdateError = useCallback((error: Error) => {
@@ -208,5 +223,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     savingEdit,
     successMessage,
     handleCloseSuccessMessage,
+    dialogError,
+    handleCloseDialogError,
   }
 }

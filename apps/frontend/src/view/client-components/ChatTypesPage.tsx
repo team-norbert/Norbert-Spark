@@ -207,6 +207,10 @@ interface ChatTypesPageProps {
   successMessage: string | null
   /** Called when the user closes the success Alert. */
   onCloseSuccessMessage: () => void
+  /** Error message to display in the confirmation dialog, or `null`. */
+  dialogError: string | null
+  /** Called when the user closes the dialog error Alert. */
+  onCloseDialogError: () => void
 }
 
 /**
@@ -228,9 +232,11 @@ interface ChatTypesPageProps {
 export function ChatTypesPage({
   chatTypes,
   confirmDialogOpen,
+  dialogError,
   error,
   loading,
   onCancelSave,
+  onCloseDialogError,
   onCloseErrorMessage,
   onCloseSuccessMessage,
   onConfirmSave,
@@ -623,6 +629,16 @@ export function ChatTypesPage({
                 {String(pendingEdit.newRow[pendingEdit.field])}
               </Typography>
             </Box>
+          )}
+          {dialogError && (
+            <Alert
+              severity="error"
+              sx={{ mt: 2 }}
+              onClose={onCloseDialogError}
+              data-testid="dialog-error-alert"
+            >
+              {dialogError}
+            </Alert>
           )}
         </DialogContent>
         <DialogActions>
