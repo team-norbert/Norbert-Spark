@@ -1,0 +1,18 @@
+:root {
+    --mui-palette-secondary-main: #ffffff;
+}
+
+.MuiButton-outlinedSecondary {
+    --variant-outlinedColor: #ffffff!important;
+    --variant-outlinedBorder: rgba(var(--mui-palette-secondary-mainChannel) / 1)!important;
+    &:hover {
+        --variant-outlinedHoverColor: #ffffff!important;
+        --variant-outlinedBorder: #ffffff!important;
+    }
+}
+.mui-zmsgp4-MuiButtonBase-root-MuiIconButton-root {
+    transition: 0.5s!important;
+}
+.mui-zmsgp4-MuiButtonBase-root-MuiIconButton-root:hover {
+    color: #ffffff!important;
+}

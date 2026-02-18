@@ -1,7 +1,12 @@
 'use client'
 
 import { Alert, Box, Container, TextField, Tooltip, Typography } from '@mui/material'
-import { DataGrid, type GridColDef, type GridPaginationModel } from '@mui/x-data-grid'
+import {
+  DataGrid,
+  type GridColDef,
+  type GridPaginationModel,
+  type GridRowModel,
+} from '@mui/x-data-grid'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
 
@@ -19,6 +24,7 @@ interface ChatTypesPageProps {
   onCloseErrorMessage: () => void
   onNavigateHome: () => void
   onSignOut: () => void
+  onProcessRowUpdate: (newRow: GridRowModel, oldRow: GridRowModel) => Promise<GridRowModel>
 }
 
 /**
@@ -33,14 +39,15 @@ export function ChatTypesPage({
   onCloseErrorMessage,
   onNavigateHome,
   onPaginationChange,
+  onProcessRowUpdate,
   onSearchChange,
   onSignOut,
   paginationModel,
   rowCount,
   searchQuery,
 }: ChatTypesPageProps) {
-  // Define columns for the DataGrid - all read-only
-  const columns: GridColDef<ChatType>[] = [
+  // Define columns for the DataGrid
+  const columns: GridColDef[] = [
     {
       field: 'id',
       headerName: 'ID',
@@ -78,6 +85,7 @@ export function ChatTypesPage({
       headerName: 'Name',
       width: 200,
       flex: 1,
+      editable: true,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
@@ -110,6 +118,7 @@ export function ChatTypesPage({
       headerName: 'SEO Friendly ID',
       width: 200,
       flex: 1,
+      editable: true,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
@@ -174,6 +183,7 @@ export function ChatTypesPage({
       headerName: 'Description',
       width: 350,
       flex: 2,
+      editable: true,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
@@ -321,6 +331,7 @@ export function ChatTypesPage({
           onPaginationModelChange={onPaginationChange}
           pageSizeOptions={[5, 10, 25, 50]}
           disableRowSelectionOnClick
+          processRowUpdate={onProcessRowUpdate}
           sx={{
             '& .MuiDataGrid-cell': {
               cursor: 'default',
@@ -330,7 +341,8 @@ export function ChatTypesPage({
       </Box>
 
       <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-        Note: This page displays read-only chat types configuration data.
+        Note: Click on name, SEO friendly ID, or description cells to edit. Changes are saved
+        automatically.
       </Typography>
     </Container>
   )

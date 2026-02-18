@@ -65,6 +65,7 @@ describe('ChatTypesPageClient', () => {
     handleSearchChange: vi.fn(),
     handlePaginationChange: vi.fn(),
     handleCloseErrorMessage: vi.fn(),
+    handleProcessRowUpdate: vi.fn().mockResolvedValue({}),
     hasQueryError: false,
   }
 
