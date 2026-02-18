@@ -138,7 +138,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     // Clear any previous dialog error before attempting save
     setDialogError(null)
     setSavingEdit(true)
-    
+
     try {
       const { field, newRow } = pendingEdit
       const payload: { id: string; name?: string; seoFriendlyId?: string; description?: string } = {
@@ -152,7 +152,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
       setSuccessMessage('Update successful')
       pendingResolver.resolve(pendingEdit.newRow)
       await refetch()
-      
+
       // Only close dialog and clear state on success
       setConfirmDialogOpen(false)
       setPendingEdit(null)

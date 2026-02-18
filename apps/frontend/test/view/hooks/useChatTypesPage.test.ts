@@ -73,6 +73,8 @@ describe('useChatTypesPage', () => {
       expect(result.current).toHaveProperty('handlePaginationChange')
       expect(result.current).toHaveProperty('handleSearchChange')
       expect(result.current).toHaveProperty('handleCloseErrorMessage')
+      expect(result.current).toHaveProperty('dialogError')
+      expect(result.current).toHaveProperty('handleCloseDialogError')
     })
 
     it('should initialize with empty search query', () => {
@@ -1135,7 +1137,7 @@ describe('useChatTypesPage', () => {
   // ---------------------------------------------------------------------------
 
   describe('handleConfirmSave - Error Handling', () => {
-    it('should resolve the DataGrid promise with oldRow when updateChatType throws', async () => {
+    it('should NOT resolve the DataGrid promise when updateChatType throws', async () => {
       ;(updateChatType as Mock).mockRejectedValue(new Error('Chat type name already exists'))
       const { result } = renderHook(() => useChatTypesPage())
       const oldRow: GridRowModel = { ...mockChatTypes[0] }
@@ -1152,12 +1154,11 @@ describe('useChatTypesPage', () => {
         await result.current.handleConfirmSave()
       })
 
-      await waitFor(() => {
-        expect(resolvedRow).toEqual(oldRow)
-      })
+      // The promise should NOT be resolved on error to keep edit mode active
+      expect(resolvedRow).toBeUndefined()
     })
 
-    it('should set error message from the thrown Error object', async () => {
+    it('should set dialogError message from the thrown Error object', async () => {
       ;(updateChatType as Mock).mockRejectedValue(new Error('Chat type name already exists'))
       const { result } = renderHook(() => useChatTypesPage())
       const oldRow: GridRowModel = { ...mockChatTypes[0] }
@@ -1170,10 +1171,10 @@ describe('useChatTypesPage', () => {
         await result.current.handleConfirmSave()
       })
 
-      expect(result.current.error).toBe('Chat type name already exists')
+      expect(result.current.dialogError).toBe('Chat type name already exists')
     })
 
-    it('should use fallback message when a non-Error value is thrown', async () => {
+    it('should use fallback message in dialogError when a non-Error value is thrown', async () => {
       ;(updateChatType as Mock).mockRejectedValue('string error')
       const { result } = renderHook(() => useChatTypesPage())
       const oldRow: GridRowModel = { ...mockChatTypes[0] }
@@ -1186,7 +1187,7 @@ describe('useChatTypesPage', () => {
         await result.current.handleConfirmSave()
       })
 
-      expect(result.current.error).toBe('An unexpected error occurred')
+      expect(result.current.dialogError).toBe('An unexpected error occurred')
     })
 
     it('should not set successMessage on error', async () => {
@@ -1205,7 +1206,7 @@ describe('useChatTypesPage', () => {
       expect(result.current.successMessage).toBeNull()
     })
 
-    it('should close the dialog on error', async () => {
+    it('should keep the dialog open on error', async () => {
       ;(updateChatType as Mock).mockRejectedValue(new Error('Some error'))
       const { result } = renderHook(() => useChatTypesPage())
       const oldRow: GridRowModel = { ...mockChatTypes[0] }
@@ -1218,7 +1219,7 @@ describe('useChatTypesPage', () => {
         await result.current.handleConfirmSave()
       })
 
-      expect(result.current.confirmDialogOpen).toBe(false)
+      expect(result.current.confirmDialogOpen).toBe(true)
     })
 
     it('should not call refetch on error', async () => {
@@ -1237,7 +1238,7 @@ describe('useChatTypesPage', () => {
       expect(mockUseAIChatConfig.refetch).not.toHaveBeenCalled()
     })
 
-    it('should handle network timeout error', async () => {
+    it('should handle network timeout error in dialogError', async () => {
       ;(updateChatType as Mock).mockRejectedValue(new Error('Network timeout'))
       const { result } = renderHook(() => useChatTypesPage())
       const oldRow: GridRowModel = { ...mockChatTypes[0] }
@@ -1250,7 +1251,87 @@ describe('useChatTypesPage', () => {
         await result.current.handleConfirmSave()
       })
 
-      expect(result.current.error).toBe('Network timeout')
+      expect(result.current.dialogError).toBe('Network timeout')
+    })
+
+    it('should allow retry after error by keeping pendingEdit state', async () => {
+      ;(updateChatType as Mock).mockRejectedValueOnce(new Error('Network error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      
+      // First attempt - should fail
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.dialogError).toBe('Network error')
+      expect(result.current.confirmDialogOpen).toBe(true)
+      expect(result.current.pendingEdit).not.toBeNull()
+
+      // Mock successful update for retry
+      ;(updateChatType as Mock).mockResolvedValueOnce({ success: true })
+
+      // Second attempt - should succeed
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.successMessage).toBe('Update successful')
+      expect(result.current.confirmDialogOpen).toBe(false)
+      expect(result.current.pendingEdit).toBeNull()
+    })
+
+    it('should clear dialogError when handleCancelSave is called', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Some error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.dialogError).toBe('Some error')
+
+      act(() => {
+        result.current.handleCancelSave()
+      })
+
+      expect(result.current.dialogError).toBeNull()
+      expect(result.current.confirmDialogOpen).toBe(false)
+    })
+
+    it('should clear previous dialogError before attempting new save', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      // First, set a dialogError via a failed save
+      ;(updateChatType as Mock).mockRejectedValueOnce(new Error('First error'))
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+      expect(result.current.dialogError).toBe('First error')
+
+      // Now attempt a second save - should clear the previous dialogError first
+      ;(updateChatType as Mock).mockResolvedValueOnce({ success: true })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      // dialogError should be cleared on successful save
+      expect(result.current.dialogError).toBeNull()
     })
   })
 
@@ -1361,6 +1442,33 @@ describe('useChatTypesPage', () => {
       })
 
       expect(result.current.successMessage).toBeNull()
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // handleCloseDialogError
+  // ---------------------------------------------------------------------------
+
+  describe('handleCloseDialogError', () => {
+    it('should clear dialogError', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Test error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+      expect(result.current.dialogError).toBe('Test error')
+
+      act(() => {
+        result.current.handleCloseDialogError()
+      })
+
+      expect(result.current.dialogError).toBeNull()
     })
   })
 })
