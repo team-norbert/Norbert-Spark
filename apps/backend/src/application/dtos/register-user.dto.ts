@@ -11,6 +11,15 @@ function isValidProviderId(value: any): boolean {
   return isString(value) && value.trim() !== ''
 }
 
+/**
+ * Helper function to check if a provider value is valid (non-empty string)
+ * @param value - The value to check
+ * @returns true if value is a valid non-empty string, false otherwise
+ */
+function isValidProvider(value: any): boolean {
+  return isString(value) && value.trim() !== ''
+}
+
 export class RegisterUserDto {
   constructor(
     public readonly email: string,
@@ -28,30 +37,45 @@ export class RegisterUserDto {
     if (!isDefined(data.email) || !isString(data.email) || data.email === '') {
       throw new ValidationException('Email is required and must be a string')
     }
-    // Password validation: required if no provider is present
-    if (
-      !isDefined(data.provider) &&
-      (!isDefined(data.password) || !isString(data.password) || data.password === '')
-    ) {
-      throw new ValidationException('Password must be a string when provider is not provided')
+
+    // Password validation: required if provider is not present (treating only null, undefined, and empty string as "not present")
+    const hasProvider = !isNullOrUndefined(data.provider) && data.provider !== ''
+    if (!hasProvider) {
+      if (!isDefined(data.password) || !isString(data.password) || data.password === '') {
+        throw new ValidationException('Password must be a string when provider is not provided')
+      }
     }
-    // Password type validation: if a password is supplied, it must be a string
-    if (isDefined(data.password) && !isString(data.password)) {
+    // Password type validation: when a provider is present and a password is supplied, it must be a string
+    if (
+      hasProvider &&
+      data.password !== undefined &&
+      data.password !== null &&
+      !isString(data.password)
+    ) {
       throw new ValidationException('Password must be a string when provided')
     }
     if (!isDefined(data.name) || !isString(data.name) || data.name === '') {
       throw new ValidationException('Name is required and must be a string')
     }
-    if (isDefined(data.role) && !isString(data.role)) {
-      throw new ValidationException('Role must be a string')
+    if (data.role !== undefined) {
+      if (!isString(data.role)) {
+        throw new ValidationException('Role must be a string')
+      }
+      // Security: Only allow 'user' role during registration to prevent privilege escalation
+      if (data.role !== 'user') {
+        throw new ValidationException('Only "user" role is allowed during registration')
+      }
     }
-    // Security: Only allow 'user' role during registration to prevent privilege escalation
-    if (isDefined(data.role) && data.role !== 'user') {
-      throw new ValidationException('Only "user" role is allowed during registration')
-    }
-    // Provider validation: if provided, must be a string
-    if (isDefined(data.provider) && !isString(data.provider)) {
-      throw new ValidationException('Provider must be a string when provided')
+    // Provider validation: if provided without password, must be a non-empty string
+    if (!isNullOrUndefined(data.provider) && !isDefined(data.password)) {
+      if (!isString(data.provider)) {
+        throw new ValidationException('Provider must be a string when password is not provided')
+      }
+      if (!isValidProvider(data.provider)) {
+        throw new ValidationException(
+          'Provider must be a non-empty string when password is not provided'
+        )
+      }
     }
 
     // ProviderId validation: if provided, must be a non-empty string
@@ -64,15 +88,13 @@ export class RegisterUserDto {
       }
     }
 
-    // If provider is set and no password, providerId should also be set and valid
-    if (
-      isDefined(data.provider) &&
-      !isDefined(data.password) &&
-      !isValidProviderId(data.providerId)
-    ) {
-      throw new ValidationException(
-        'ProviderId is required when using OAuth provider without password'
-      )
+    // If provider is set (and valid) and no password, providerId should also be set and valid
+    if (isValidProvider(data.provider) && !isDefined(data.password)) {
+      if (!isValidProviderId(data.providerId)) {
+        throw new ValidationException(
+          'ProviderId is required when using OAuth provider without password'
+        )
+      }
     }
 
     return new RegisterUserDto(
