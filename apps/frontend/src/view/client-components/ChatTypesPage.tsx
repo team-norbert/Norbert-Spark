@@ -56,12 +56,15 @@ export const isNameInvalid = (value: string): boolean =>
  * single hyphens as word separators (1–200 characters, no leading/trailing
  * hyphens, no consecutive hyphens).
  *
- * Delegates to {@link validateKebabCase} from `@norberts-spark/shared`.
+ * Delegates to {@link validateKebabCase} from `@norberts-spark/shared` for
+ * the kebab-case pattern check, and additionally enforces the 1–200 character
+ * length constraint.
  *
  * @param value - The raw string value entered by the user.
  * @returns `true` if the value is invalid, `false` if it is acceptable.
  */
-export const isSeoFriendlyIdInvalid = (value: string): boolean => !validateKebabCase(value)
+export const isSeoFriendlyIdInvalid = (value: string): boolean =>
+  !value || value.length < 1 || value.length > 200 || !validateKebabCase(value)
 
 /**
  * Returns `true` when a chat-type description fails validation.
