@@ -99,7 +99,7 @@ export function ChatTypesPage({
       return 'Name must be between 1 and 200 characters'
     }
     if (field === 'seoFriendlyId' && isSeoFriendlyIdInvalid(value)) {
-      return 'SEO Friendly ID must be lowercase, words separated by hyphens, and contain only letters, numbers, and hyphens'
+      return 'SEO Friendly ID must be between 1 and 200 characters, lowercase, words separated by hyphens, and contain only letters, numbers, and hyphens'
     }
     if (field === 'description' && isDescriptionInvalid(value)) {
       return 'Description must be between 1 and 500 characters'
