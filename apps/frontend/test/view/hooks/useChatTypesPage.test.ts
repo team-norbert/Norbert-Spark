@@ -824,6 +824,56 @@ describe('useChatTypesPage', () => {
 
       expect(result.current.successMessage).toBeNull()
     })
+
+    it('should prevent new edits when a save is in progress', async () => {
+      ;(updateChatType as Mock).mockImplementation(() => {
+        // Simulate a slow server response
+        return new Promise((resolve) => setTimeout(() => resolve({ success: true }), 100))
+      })
+
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const firstEdit: GridRowModel = { ...mockChatTypes[0], name: 'First Edit' }
+      const secondEdit: GridRowModel = { ...mockChatTypes[0], name: 'Second Edit' }
+
+      // Start first edit
+      let firstPromiseResolved: GridRowModel | undefined
+      act(() => {
+        void result.current.handleProcessRowUpdate(firstEdit, oldRow).then((row) => {
+          firstPromiseResolved = row
+          return row
+        })
+      })
+
+      // Confirm the first edit (starts save in progress)
+      act(() => {
+        void result.current.handleConfirmSave()
+      })
+
+      // Try to start a second edit while save is in progress
+      let secondPromiseResolved: GridRowModel | undefined
+      act(() => {
+        void result.current
+          .handleProcessRowUpdate(secondEdit, oldRow)
+          .then((row) => {
+            secondPromiseResolved = row
+            return row
+          })
+      })
+
+      // Second edit should be rejected immediately with oldRow
+      await waitFor(() => {
+        expect(secondPromiseResolved).toEqual(oldRow)
+      })
+
+      // Wait for first edit to complete
+      await waitFor(() => {
+        expect(firstPromiseResolved).toEqual(firstEdit)
+      })
+
+      // After save completes, savingEdit should be false
+      expect(result.current.savingEdit).toBe(false)
+    })
   })
 
   // ---------------------------------------------------------------------------

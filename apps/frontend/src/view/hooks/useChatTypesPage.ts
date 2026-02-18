@@ -91,6 +91,11 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
    */
   const handleProcessRowUpdate = useCallback(
     (newRow: GridRowModel, oldRow: GridRowModel): Promise<GridRowModel> => {
+      // Prevent new edits if there's already one being saved
+      if (savingEdit) {
+        return Promise.resolve(oldRow)
+      }
+
       // Find which field changed by comparing known editable fields
       let changedField = ''
       if (newRow.name !== oldRow.name) {
@@ -116,7 +121,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
         setConfirmDialogOpen(true)
       })
     },
-    []
+    [savingEdit]
   )
 
   const handleConfirmSave = useCallback(async () => {
