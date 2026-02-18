@@ -469,7 +469,12 @@ export function ChatTypesPage({
 
       <Dialog
         open={confirmDialogOpen}
-        onClose={onCancelSave}
+        onClose={(_, reason) => {
+          if (savingEdit && (reason === 'backdropClick' || reason === 'escapeKeyDown')) {
+            return
+          }
+          onCancelSave()
+        }}
         aria-labelledby="confirm-save-dialog-title"
         data-testid="confirm-save-dialog"
       >
