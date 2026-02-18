@@ -1,6 +1,6 @@
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
-import { isString } from '@norberts-spark/shared'
+import { isString, isDefined, isObject, isNullOrUndefined } from '@norberts-spark/shared'
 
 /**
  * Helper function to check if a providerId value is valid (non-empty string)
@@ -8,6 +8,15 @@ import { isString } from '@norberts-spark/shared'
  * @returns true if value is a valid non-empty string, false otherwise
  */
 function isValidProviderId(value: any): boolean {
+  return isString(value) && value.trim() !== ''
+}
+
+/**
+ * Helper function to check if a provider value is valid (non-empty string)
+ * @param value - The value to check
+ * @returns true if value is a valid non-empty string, false otherwise
+ */
+function isValidProvider(value: any): boolean {
   return isString(value) && value.trim() !== ''
 }
 
@@ -22,42 +31,55 @@ export class RegisterUserDto {
   ) {}
 
   static validate(data: any): RegisterUserDto {
-    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    if (!isDefined(data) || !isObject(data)) {
       throw new TypeException('Data must be a valid object')
     }
-    if (!data.email || !isString(data.email)) {
+    if (!isDefined(data.email) || !isString(data.email) || data.email === '') {
       throw new ValidationException('Email is required and must be a string')
     }
-    // Password validation: required if no provider is present
-    if (!data.provider && (!data.password || !isString(data.password))) {
-      throw new ValidationException('Password must be a string when provider is not provided')
+
+    // Password validation: required if provider is not present (treating null, undefined, and empty string as "not present")
+    const hasProvider = !isNullOrUndefined(data.provider) && data.provider !== ''
+    const hasPassword = !isNullOrUndefined(data.password) && data.password !== ''
+
+    if (!hasProvider) {
+      if (!hasPassword || !isString(data.password)) {
+        throw new ValidationException('Password must be a string when provider is not provided')
+      }
     }
     // Password type validation: when a provider is present and a password is supplied, it must be a string
     if (
-      data.provider &&
+      hasProvider &&
       data.password !== undefined &&
       data.password !== null &&
       !isString(data.password)
     ) {
       throw new ValidationException('Password must be a string when provided')
     }
-    if (!data.name || !isString(data.name)) {
+    if (!isDefined(data.name) || !isString(data.name) || data.name === '') {
       throw new ValidationException('Name is required and must be a string')
     }
-    if (data.role !== undefined && !isString(data.role)) {
-      throw new ValidationException('Role must be a string')
+    if (data.role !== undefined) {
+      if (!isString(data.role)) {
+        throw new ValidationException('Role must be a string')
+      }
+      // Security: Only allow 'user' role during registration to prevent privilege escalation
+      if (data.role !== 'user') {
+        throw new ValidationException('Only "user" role is allowed during registration')
+      }
     }
-    // Security: Only allow 'user' role during registration to prevent privilege escalation
-    if (data.role !== undefined && data.role !== 'user') {
-      throw new ValidationException('Only "user" role is allowed during registration')
-    }
-    // Provider validation: if provided without password, must be a string
-    if (data.provider !== undefined && !data.password && !isString(data.provider)) {
-      throw new ValidationException('Provider must be a string when password is not provided')
+    // Provider validation: if provided, must be a non-empty string
+    if (!isNullOrUndefined(data.provider)) {
+      if (!isString(data.provider)) {
+        throw new ValidationException('Provider must be a string when provided')
+      }
+      if (!isValidProvider(data.provider)) {
+        throw new ValidationException('Provider must be a non-empty string when provided')
+      }
     }
 
     // ProviderId validation: if provided, must be a non-empty string
-    if (data.providerId !== undefined && data.providerId !== null) {
+    if (!isNullOrUndefined(data.providerId)) {
       if (!isString(data.providerId)) {
         throw new ValidationException('ProviderId must be a string when provided')
       }
@@ -66,20 +88,22 @@ export class RegisterUserDto {
       }
     }
 
-    // If provider is set and no password, providerId should also be set and valid
-    if (data.provider && !data.password && !isValidProviderId(data.providerId)) {
-      throw new ValidationException(
-        'ProviderId is required when using OAuth provider without password'
-      )
+    // If provider is set (and valid) and no password, providerId should also be set and valid
+    if (isValidProvider(data.provider) && !hasPassword) {
+      if (!isValidProviderId(data.providerId)) {
+        throw new ValidationException(
+          'ProviderId is required when using OAuth provider without password'
+        )
+      }
     }
 
     return new RegisterUserDto(
-      data.email,
-      data.name,
-      data.role,
-      data.password,
-      data.provider,
-      data.providerId
+      data.email as string,
+      data.name as string,
+      data.role as string,
+      data.password == null ? undefined : (data.password as string),
+      data.provider == null ? undefined : (data.provider as string),
+      data.providerId == null ? undefined : (data.providerId as string)
     )
   }
 }

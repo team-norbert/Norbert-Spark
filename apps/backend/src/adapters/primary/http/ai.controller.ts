@@ -26,6 +26,7 @@ import { GetChatAiOptionsUseCase } from '../../../application/use-cases/get-chat
 import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-chat-type.use-case.js'
 import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
 import { PutChatDetailsUseCase } from '../../../application/use-cases/put-chat-details.use-case.js'
+import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool

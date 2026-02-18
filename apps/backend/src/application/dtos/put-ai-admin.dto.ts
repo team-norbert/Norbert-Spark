@@ -173,7 +173,7 @@ export class PutAIAdminDTO {
     }
 
     return new PutAIAdminDTO(
-      prompt,
+      prompt.trim(),
       maxTokens === null ? undefined : (maxTokens as number | undefined),
       temperature === null ? undefined : (temperature as number | undefined),
       topP === null ? undefined : (topP as number | undefined),
