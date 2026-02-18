@@ -427,7 +427,7 @@ export function ChatTypesPage({
       renderCell: (params) => {
         if (!params.value) return ''
         const date = new Date(params.value)
-        const formattedDate = isNaN(date.getTime()) ? '' : date.toLocaleDateString()
+        const formattedDate = isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-US')
         return (
           <Tooltip
             title={formattedDate}
@@ -463,7 +463,7 @@ export function ChatTypesPage({
       renderCell: (params) => {
         if (!params.value) return ''
         const date = new Date(params.value)
-        const formattedDate = isNaN(date.getTime()) ? '' : date.toLocaleDateString()
+        const formattedDate = isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-US')
         return (
           <Tooltip
             title={formattedDate}

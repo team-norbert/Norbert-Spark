@@ -482,9 +482,12 @@ describe('ChatTypesPage', () => {
 
     it('should format date columns', () => {
       render(<ChatTypesPage {...defaultProps} />)
-      // With TZ=UTC in test setup, dates should be formatted
-      expect(screen.getByText('1/15/2024')).toBeInTheDocument()
-      expect(screen.getByText('1/20/2024')).toBeInTheDocument()
+      // Derive expected values the same way the component does so this test is
+      // locale-independent and never produces a false failure on non-en-US hosts.
+      const expectedCreatedAt = new Date('2024-01-15T10:30:00Z').toLocaleDateString('en-US')
+      const expectedUpdatedAt = new Date('2024-01-20T14:45:00Z').toLocaleDateString('en-US')
+      expect(screen.getByText(expectedCreatedAt)).toBeInTheDocument()
+      expect(screen.getByText(expectedUpdatedAt)).toBeInTheDocument()
     })
 
     it('should render empty string for missing date values', () => {
