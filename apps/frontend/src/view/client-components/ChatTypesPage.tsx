@@ -60,9 +60,15 @@ export function ChatTypesPage({
 
   const validateSeoFriendlyId = (params: GridPreProcessEditCellProps) => {
     const value = params.props.value as string
-    // eslint-disable-next-line security/detect-unsafe-regex
-    const kebabCaseRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-    const hasError = !value || value.length < 1 || value.length > 200 || !kebabCaseRegex.test(value)
+    const isValidKebabCase =
+      value &&
+      value.length >= 1 &&
+      value.length <= 200 &&
+      /^[a-z0-9]/.test(value) &&
+      /[a-z0-9]$/.test(value) &&
+      !value.includes('--') &&
+      /^[a-z0-9-]+$/.test(value)
+    const hasError = !isValidKebabCase
     return {
       ...params.props,
       error: hasError,
