@@ -5,6 +5,7 @@ import type { ChatType } from '@/domain/ai/chat-config.js'
 import {
   ChatTypesPage,
   EditCell,
+  getFieldDisplayLabel,
   getValidationMessage,
 } from '@/view/client-components/ChatTypesPage.js'
 
@@ -120,6 +121,27 @@ describe('getValidationMessage', () => {
     it('should return undefined for id field', () => {
       expect(getValidationMessage('id', '')).toBeUndefined()
     })
+  })
+})
+
+// ─── getFieldDisplayLabel ───────────────────────────────────────────────────────
+
+describe('getFieldDisplayLabel', () => {
+  it('should return "Name" for name field', () => {
+    expect(getFieldDisplayLabel('name')).toBe('Name')
+  })
+
+  it('should return "SEO Friendly ID" for seoFriendlyId field', () => {
+    expect(getFieldDisplayLabel('seoFriendlyId')).toBe('SEO Friendly ID')
+  })
+
+  it('should return "Description" for description field', () => {
+    expect(getFieldDisplayLabel('description')).toBe('Description')
+  })
+
+  it('should return the field name as-is for unknown fields', () => {
+    expect(getFieldDisplayLabel('unknownField')).toBe('unknownField')
+    expect(getFieldDisplayLabel('id')).toBe('id')
   })
 })
 
@@ -433,8 +455,34 @@ describe('ChatTypesPage', () => {
       render(<ChatTypesPage {...defaultProps} confirmDialogOpen pendingEdit={pendingEdit} />)
 
       expect(screen.getByTestId('pending-edit-value')).toBeInTheDocument()
-      expect(screen.getByText('name:')).toBeInTheDocument()
+      expect(screen.getByText('Name:')).toBeInTheDocument()
       expect(screen.getByText('Updated Name')).toBeInTheDocument()
+    })
+
+    it('should display user-friendly label for seoFriendlyId field', () => {
+      const pendingEdit = {
+        newRow: { id: '1', seoFriendlyId: 'updated-seo-id' },
+        oldRow: { id: '1', seoFriendlyId: 'old-seo-id' },
+        field: 'seoFriendlyId',
+      }
+      render(<ChatTypesPage {...defaultProps} confirmDialogOpen pendingEdit={pendingEdit} />)
+
+      expect(screen.getByTestId('pending-edit-value')).toBeInTheDocument()
+      expect(screen.getByText('SEO Friendly ID:')).toBeInTheDocument()
+      expect(screen.getByText('updated-seo-id')).toBeInTheDocument()
+    })
+
+    it('should display user-friendly label for description field', () => {
+      const pendingEdit = {
+        newRow: { id: '1', description: 'Updated description text' },
+        oldRow: { id: '1', description: 'Old description text' },
+        field: 'description',
+      }
+      render(<ChatTypesPage {...defaultProps} confirmDialogOpen pendingEdit={pendingEdit} />)
+
+      expect(screen.getByTestId('pending-edit-value')).toBeInTheDocument()
+      expect(screen.getByText('Description:')).toBeInTheDocument()
+      expect(screen.getByText('Updated description text')).toBeInTheDocument()
     })
 
     it('should not display pending edit box when pendingEdit is null', () => {
