@@ -24,7 +24,7 @@ import {
   type GridRowModel,
 } from '@mui/x-data-grid'
 import { validateKebabCase } from '@norberts-spark/shared'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
 
@@ -44,6 +44,50 @@ export const isSeoFriendlyIdInvalid = (value: string): boolean => !validateKebab
 
 export const isDescriptionInvalid = (value: string): boolean =>
   !value || value.length < 1 || value.length > 500
+
+const getValidationMessage = (field: string, value: string): string | undefined => {
+  if (field === 'name' && isNameInvalid(value)) {
+    return 'Name must be between 1 and 200 characters'
+  }
+  if (field === 'seoFriendlyId' && isSeoFriendlyIdInvalid(value)) {
+    return 'SEO Friendly ID must be between 1 and 200 characters, lowercase, words separated by hyphens, and contain only letters, numbers, and hyphens'
+  }
+  if (field === 'description' && isDescriptionInvalid(value)) {
+    return 'Description must be between 1 and 500 characters'
+  }
+  return undefined
+}
+
+function EditCell({
+  onValidationChange,
+  params,
+}: {
+  onValidationChange: (message: string | null) => void
+  params: GridRenderEditCellParams
+}) {
+  const value = (params.value as string) ?? ''
+  const message = getValidationMessage(params.field, value)
+
+  useEffect(() => {
+    onValidationChange(message ?? null)
+  }, [message, onValidationChange])
+
+  return (
+    <TextField
+      value={value}
+      onChange={(e) =>
+        params.api.setEditCellValue({
+          id: params.id,
+          field: params.field,
+          value: e.target.value,
+        })
+      }
+      error={!!message}
+      size="small"
+      fullWidth
+    />
+  )
+}
 
 interface ChatTypesPageProps {
   chatTypes: readonly ChatType[]
@@ -97,39 +141,9 @@ export function ChatTypesPage({
 }: ChatTypesPageProps) {
   const [validationMessage, setValidationMessage] = useState<string | null>(null)
 
-  const getValidationMessage = (field: string, value: string): string | undefined => {
-    if (field === 'name' && isNameInvalid(value)) {
-      return 'Name must be between 1 and 200 characters'
-    }
-    if (field === 'seoFriendlyId' && isSeoFriendlyIdInvalid(value)) {
-      return 'SEO Friendly ID must be between 1 and 200 characters, lowercase, words separated by hyphens, and contain only letters, numbers, and hyphens'
-    }
-    if (field === 'description' && isDescriptionInvalid(value)) {
-      return 'Description must be between 1 and 500 characters'
-    }
-    return undefined
-  }
-
-  const editCell = (params: GridRenderEditCellParams) => {
-    const value = (params.value as string) ?? ''
-    const message = getValidationMessage(params.field, value)
-    setValidationMessage(message ?? null)
-    return (
-      <TextField
-        value={value}
-        onChange={(e) =>
-          params.api.setEditCellValue({
-            id: params.id,
-            field: params.field,
-            value: e.target.value,
-          })
-        }
-        error={!!message}
-        size="small"
-        fullWidth
-      />
-    )
-  }
+  const renderEditCell = (params: GridRenderEditCellParams) => (
+    <EditCell params={params} onValidationChange={setValidationMessage} />
+  )
 
   // Define columns for the DataGrid
   const columns: GridColDef[] = [
@@ -175,7 +189,7 @@ export function ChatTypesPage({
         const hasError = isNameInvalid(params.props.value as string)
         return { ...params.props, error: hasError }
       },
-      renderEditCell: editCell,
+      renderEditCell: renderEditCell,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
@@ -213,7 +227,7 @@ export function ChatTypesPage({
         const hasError = isSeoFriendlyIdInvalid(params.props.value as string)
         return { ...params.props, error: hasError }
       },
-      renderEditCell: editCell,
+      renderEditCell: renderEditCell,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
@@ -283,7 +297,7 @@ export function ChatTypesPage({
         const hasError = isDescriptionInvalid(params.props.value as string)
         return { ...params.props, error: hasError }
       },
-      renderEditCell: editCell,
+      renderEditCell: renderEditCell,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
