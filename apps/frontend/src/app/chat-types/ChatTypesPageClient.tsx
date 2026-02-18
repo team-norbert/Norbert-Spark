@@ -16,6 +16,7 @@ export function ChatTypesPageClient() {
     error,
     handleCloseErrorMessage,
     handlePaginationChange,
+    handleProcessRowUpdate,
     handleSearchChange,
     loading,
     paginationModel,
@@ -44,6 +45,7 @@ export function ChatTypesPageClient() {
       onCloseErrorMessage={handleCloseErrorMessage}
       onNavigateHome={handleNavigateHome}
       onSignOut={handleSignOut}
+      onProcessRowUpdate={handleProcessRowUpdate}
     />
   )
 }

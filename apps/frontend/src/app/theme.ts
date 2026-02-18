@@ -1,6 +1,7 @@
 import { createTheme } from '@mui/material/styles'
 
 const theme = createTheme({
+  cssVariables: true,
   palette: {
     mode: 'dark',
     primary: {
@@ -9,6 +10,7 @@ const theme = createTheme({
     secondary: {
       main: '#535bf2',
     },
+
     background: {
       default: '#242424',
       paper: '#1a1a1a',

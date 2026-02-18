@@ -1,4 +1,4 @@
-import type { GridPaginationModel } from '@mui/x-data-grid'
+import type { GridPaginationModel, GridRowModel } from '@mui/x-data-grid'
 import { useState } from 'react'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
@@ -15,6 +15,7 @@ interface UseChatTypesPageReturn {
   handlePaginationChange: (model: GridPaginationModel) => void
   handleSearchChange: (query: string) => void
   handleCloseErrorMessage: () => void
+  handleProcessRowUpdate: (newRow: GridRowModel, oldRow: GridRowModel) => Promise<GridRowModel>
   hasQueryError: boolean
 }
 
@@ -56,6 +57,21 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     setDismissedErrorMessage(currentErrorMessage)
   }
 
+  const handleProcessRowUpdate = async (
+    newRow: GridRowModel,
+    oldRow: GridRowModel
+  ): Promise<GridRowModel> => {
+    try {
+      // Editing is currently not persisted to the server.
+      // Inform the user and revert the change so data is not misleadingly shown as saved.
+      setErrorMessage('Editing chat types is not yet supported. Your changes were not saved.')
+      return oldRow
+    } catch {
+      // In case any unexpected error occurs, also revert to the previous row.
+      return oldRow
+    }
+  }
+
   // Filter chat types based on search query (client-side filtering)
   const filteredChatTypes = searchQuery
     ? chatTypes.filter((chatType) => {
@@ -88,6 +104,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     handlePaginationChange,
     handleSearchChange,
     handleCloseErrorMessage,
+    handleProcessRowUpdate,
     hasQueryError,
   }
 }
