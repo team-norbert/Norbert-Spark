@@ -1,14 +1,20 @@
-import type { GridPaginationModel } from '@mui/x-data-grid'
+import type { GridPaginationModel, GridRowModel } from '@mui/x-data-grid'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
+import { updateChatType } from '@/infrastructure/serverActions/updateChatType.server.js'
 import { useAIChatConfig } from '@/view/hooks/queries/useAIChatConfig.js'
 import { useChatTypesPage } from '@/view/hooks/useChatTypesPage.js'
 
 // Mock the useAIChatConfig hook
 vi.mock('@/view/hooks/queries/useAIChatConfig.js', () => ({
   useAIChatConfig: vi.fn(),
+}))
+
+// Mock the updateChatType server action
+vi.mock('@/infrastructure/serverActions/updateChatType.server.js', () => ({
+  updateChatType: vi.fn(),
 }))
 
 describe('useChatTypesPage', () => {
@@ -67,6 +73,8 @@ describe('useChatTypesPage', () => {
       expect(result.current).toHaveProperty('handlePaginationChange')
       expect(result.current).toHaveProperty('handleSearchChange')
       expect(result.current).toHaveProperty('handleCloseErrorMessage')
+      expect(result.current).toHaveProperty('dialogError')
+      expect(result.current).toHaveProperty('handleCloseDialogError')
     })
 
     it('should initialize with empty search query', () => {
@@ -686,6 +694,786 @@ describe('useChatTypesPage', () => {
 
       // TypeScript should enforce readonly, but we can verify the data is there
       expect(Array.isArray(result.current.chatTypes)).toBe(true)
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // Edit confirmation dialog – initial state
+  // ---------------------------------------------------------------------------
+
+  describe('Edit Confirmation Dialog - Initial State', () => {
+    it('should initialise confirmDialogOpen as false', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      expect(result.current.confirmDialogOpen).toBe(false)
+    })
+
+    it('should initialise pendingEdit as null', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      expect(result.current.pendingEdit).toBeNull()
+    })
+
+    it('should initialise savingEdit as false', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      expect(result.current.savingEdit).toBe(false)
+    })
+
+    it('should initialise successMessage as null', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      expect(result.current.successMessage).toBeNull()
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // handleProcessRowUpdate
+  // ---------------------------------------------------------------------------
+
+  describe('handleProcessRowUpdate', () => {
+    it('should open the confirmation dialog when name changes', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+
+      expect(result.current.confirmDialogOpen).toBe(true)
+    })
+
+    it('should set pendingEdit with field "name" when name changes', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+
+      expect(result.current.pendingEdit).toEqual({ newRow, oldRow, field: 'name' })
+    })
+
+    it('should set pendingEdit with field "seoFriendlyId" when seoFriendlyId changes', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], seoFriendlyId: 'new-seo-id' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+
+      expect(result.current.pendingEdit).toEqual({ newRow, oldRow, field: 'seoFriendlyId' })
+    })
+
+    it('should set pendingEdit with field "description" when description changes', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], description: 'New description text' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+
+      expect(result.current.pendingEdit).toEqual({ newRow, oldRow, field: 'description' })
+    })
+
+    it('should resolve immediately with newRow when no field changed', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const row: GridRowModel = { ...mockChatTypes[0] }
+
+      let resolvedRow: GridRowModel | undefined
+      await act(async () => {
+        resolvedRow = await result.current.handleProcessRowUpdate(row, row)
+      })
+
+      expect(resolvedRow).toEqual(row)
+      expect(result.current.confirmDialogOpen).toBe(false)
+      expect(result.current.pendingEdit).toBeNull()
+    })
+
+    it('should return a Promise', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      let promise: Promise<GridRowModel> | undefined
+      act(() => {
+        promise = result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+
+      expect(promise).toBeInstanceOf(Promise)
+    })
+
+    it('should clear successMessage when a new edit begins', async () => {
+      ;(updateChatType as Mock).mockResolvedValue(undefined)
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow1: GridRowModel = { ...mockChatTypes[0], name: 'First Update' }
+
+      // Complete a first save so successMessage is populated
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow1, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+      expect(result.current.successMessage).toBe('Update successful')
+
+      // Starting a second edit should clear successMessage
+      const newRow2: GridRowModel = { ...mockChatTypes[0], name: 'Second Update' }
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow2, oldRow)
+      })
+
+      expect(result.current.successMessage).toBeNull()
+    })
+
+    it('should prevent new edits when a save is in progress', async () => {
+      ;(updateChatType as Mock).mockImplementation(() => {
+        // Simulate a slow server response
+        return new Promise((resolve) => setTimeout(() => resolve({ success: true }), 100))
+      })
+
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const firstEdit: GridRowModel = { ...mockChatTypes[0], name: 'First Edit' }
+      const secondEdit: GridRowModel = { ...mockChatTypes[0], name: 'Second Edit' }
+
+      // Start first edit
+      let firstPromiseResolved: GridRowModel | undefined
+      act(() => {
+        void result.current.handleProcessRowUpdate(firstEdit, oldRow).then((row) => {
+          firstPromiseResolved = row
+          return row
+        })
+      })
+
+      // Confirm the first edit (starts save in progress)
+      act(() => {
+        void result.current.handleConfirmSave()
+      })
+
+      // Try to start a second edit while save is in progress
+      let secondPromiseResolved: GridRowModel | undefined
+      act(() => {
+        void result.current.handleProcessRowUpdate(secondEdit, oldRow).then((row) => {
+          secondPromiseResolved = row
+          return row
+        })
+      })
+
+      // Second edit should be rejected immediately with oldRow
+      await waitFor(() => {
+        expect(secondPromiseResolved).toEqual(oldRow)
+      })
+
+      // Wait for first edit to complete
+      await waitFor(() => {
+        expect(firstPromiseResolved).toEqual(firstEdit)
+      })
+
+      // After save completes, savingEdit should be false.
+      // Must use waitFor because setSavingEdit(false) is called in the finally
+      // block after pendingResolver.resolve() — those are separate microtasks,
+      // so the synchronous check would read stale state.
+      await waitFor(() => {
+        expect(result.current.savingEdit).toBe(false)
+      })
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // handleCancelSave
+  // ---------------------------------------------------------------------------
+
+  describe('handleCancelSave', () => {
+    it('should close the confirmation dialog', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      expect(result.current.confirmDialogOpen).toBe(true)
+
+      act(() => {
+        result.current.handleCancelSave()
+      })
+
+      expect(result.current.confirmDialogOpen).toBe(false)
+    })
+
+    it('should clear pendingEdit', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      expect(result.current.pendingEdit).not.toBeNull()
+
+      act(() => {
+        result.current.handleCancelSave()
+      })
+
+      expect(result.current.pendingEdit).toBeNull()
+    })
+
+    it('should resolve the DataGrid promise with oldRow', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      let resolvedRow: GridRowModel | undefined
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow).then((row) => {
+          resolvedRow = row
+          return row
+        })
+      })
+
+      act(() => {
+        result.current.handleCancelSave()
+      })
+
+      await waitFor(() => {
+        expect(resolvedRow).toEqual(oldRow)
+      })
+    })
+
+    it('should not call updateChatType', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      act(() => {
+        result.current.handleCancelSave()
+      })
+
+      expect(updateChatType).not.toHaveBeenCalled()
+    })
+
+    it('should not set successMessage', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      act(() => {
+        result.current.handleCancelSave()
+      })
+
+      expect(result.current.successMessage).toBeNull()
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // handleConfirmSave – successful save
+  // ---------------------------------------------------------------------------
+
+  describe('handleConfirmSave - Successful Save', () => {
+    beforeEach(() => {
+      ;(updateChatType as Mock).mockResolvedValue(undefined)
+    })
+
+    it('should call updateChatType with the correct name payload', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(updateChatType).toHaveBeenCalledWith({
+        id: mockChatTypes[0]!.id,
+        name: 'Updated Name',
+      })
+    })
+
+    it('should call updateChatType with the correct seoFriendlyId payload', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], seoFriendlyId: 'new-seo-id' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(updateChatType).toHaveBeenCalledWith({
+        id: mockChatTypes[0]!.id,
+        seoFriendlyId: 'new-seo-id',
+      })
+    })
+
+    it('should call updateChatType with the correct description payload', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], description: 'New description' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(updateChatType).toHaveBeenCalledWith({
+        id: mockChatTypes[0]!.id,
+        description: 'New description',
+      })
+    })
+
+    it('should resolve the DataGrid promise with newRow', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      let resolvedRow: GridRowModel | undefined
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow).then((row) => {
+          resolvedRow = row
+          return row
+        })
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      await waitFor(() => {
+        expect(resolvedRow).toEqual(newRow)
+      })
+    })
+
+    it('should set successMessage to "Update successful"', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.successMessage).toBe('Update successful')
+    })
+
+    it('should call refetch after a successful save', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(mockUseAIChatConfig.refetch).toHaveBeenCalledOnce()
+    })
+
+    it('should close the dialog after save', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      expect(result.current.confirmDialogOpen).toBe(true)
+
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.confirmDialogOpen).toBe(false)
+    })
+
+    it('should clear pendingEdit after save', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      expect(result.current.pendingEdit).not.toBeNull()
+
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.pendingEdit).toBeNull()
+    })
+
+    it('should set savingEdit to false after a successful save', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.savingEdit).toBe(false)
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // handleConfirmSave – error handling (thrown exception)
+  // ---------------------------------------------------------------------------
+
+  describe('handleConfirmSave - Error Handling', () => {
+    it('should NOT resolve the DataGrid promise when updateChatType throws', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Chat type name already exists'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Duplicate Name' }
+
+      let resolvedRow: GridRowModel | undefined
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow).then((row) => {
+          resolvedRow = row
+          return row
+        })
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      // The promise should NOT be resolved on error to keep edit mode active
+      expect(resolvedRow).toBeUndefined()
+    })
+
+    it('should set dialogError message from the thrown Error object', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Chat type name already exists'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Duplicate Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.dialogError).toBe('Chat type name already exists')
+    })
+
+    it('should use fallback message in dialogError when a non-Error value is thrown', async () => {
+      ;(updateChatType as Mock).mockRejectedValue('string error')
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.dialogError).toBe('An unexpected error occurred')
+    })
+
+    it('should not set successMessage on error', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Some error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.successMessage).toBeNull()
+    })
+
+    it('should keep the dialog open on error', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Some error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.confirmDialogOpen).toBe(true)
+    })
+
+    it('should not call refetch on error', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Some error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(mockUseAIChatConfig.refetch).not.toHaveBeenCalled()
+    })
+
+    it('should handle network timeout error in dialogError', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Network timeout'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.dialogError).toBe('Network timeout')
+    })
+
+    it('should allow retry after error by keeping pendingEdit state', async () => {
+      ;(updateChatType as Mock).mockRejectedValueOnce(new Error('Network error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+
+      // First attempt - should fail
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.dialogError).toBe('Network error')
+      expect(result.current.confirmDialogOpen).toBe(true)
+      expect(result.current.pendingEdit).not.toBeNull()
+
+      // Mock successful update for retry
+      ;(updateChatType as Mock).mockResolvedValueOnce({ success: true })
+
+      // Second attempt - should succeed
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.successMessage).toBe('Update successful')
+      expect(result.current.confirmDialogOpen).toBe(false)
+      expect(result.current.pendingEdit).toBeNull()
+    })
+
+    it('should clear dialogError when handleCancelSave is called', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Some error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.dialogError).toBe('Some error')
+
+      act(() => {
+        result.current.handleCancelSave()
+      })
+
+      expect(result.current.dialogError).toBeNull()
+      expect(result.current.confirmDialogOpen).toBe(false)
+    })
+
+    it('should clear previous dialogError before attempting new save', async () => {
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      // First, set a dialogError via a failed save
+      ;(updateChatType as Mock).mockRejectedValueOnce(new Error('First error'))
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+      expect(result.current.dialogError).toBe('First error')
+
+      // Now attempt a second save - should clear the previous dialogError first
+      ;(updateChatType as Mock).mockResolvedValueOnce({ success: true })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      // dialogError should be cleared on successful save
+      expect(result.current.dialogError).toBeNull()
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // savingEdit in-flight state
+  // ---------------------------------------------------------------------------
+
+  describe('savingEdit State During Save', () => {
+    it('should be true while the save is in progress and false once resolved', async () => {
+      let resolveUpdate!: (value: { success: boolean }) => void
+      ;(updateChatType as Mock).mockReturnValue(
+        new Promise((resolve) => {
+          resolveUpdate = resolve
+        })
+      )
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      // Open the dialog
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+
+      // Start the save without awaiting so we can inspect mid-flight state
+      act(() => {
+        void result.current.handleConfirmSave()
+      })
+
+      await waitFor(() => {
+        expect(result.current.savingEdit).toBe(true)
+      })
+
+      // Resolve the API call
+      act(() => {
+        resolveUpdate({ success: true })
+      })
+
+      await waitFor(() => {
+        expect(result.current.savingEdit).toBe(false)
+      })
+    })
+
+    it('should be false after a save that throws (finally block runs)', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Server error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.savingEdit).toBe(false)
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // handleProcessRowUpdateError
+  // ---------------------------------------------------------------------------
+
+  describe('handleProcessRowUpdateError', () => {
+    it('should set error message from the Error object', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+
+      act(() => {
+        result.current.handleProcessRowUpdateError(new Error('Row update failed'))
+      })
+
+      expect(result.current.error).toBe('Row update failed')
+    })
+
+    it('should set fallback message when Error has an empty message', () => {
+      const { result } = renderHook(() => useChatTypesPage())
+
+      act(() => {
+        result.current.handleProcessRowUpdateError(new Error(''))
+      })
+
+      expect(result.current.error).toBe('An error occurred while updating the row')
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // handleCloseSuccessMessage
+  // ---------------------------------------------------------------------------
+
+  describe('handleCloseSuccessMessage', () => {
+    it('should clear successMessage', async () => {
+      ;(updateChatType as Mock).mockResolvedValue(undefined)
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+      expect(result.current.successMessage).toBe('Update successful')
+
+      act(() => {
+        result.current.handleCloseSuccessMessage()
+      })
+
+      expect(result.current.successMessage).toBeNull()
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // handleCloseDialogError
+  // ---------------------------------------------------------------------------
+
+  describe('handleCloseDialogError', () => {
+    it('should clear dialogError', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Test error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+      expect(result.current.dialogError).toBe('Test error')
+
+      act(() => {
+        result.current.handleCloseDialogError()
+      })
+
+      expect(result.current.dialogError).toBeNull()
     })
   })
 })

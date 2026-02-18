@@ -1,9 +1,16 @@
 import type { GridPaginationModel, GridRowModel } from '@mui/x-data-grid'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
+import { updateChatType } from '@/infrastructure/serverActions/updateChatType.server.js'
 
 import { useAIChatConfig } from './queries/useAIChatConfig.js'
+
+export interface PendingEdit {
+  newRow: GridRowModel
+  oldRow: GridRowModel
+  field: string
+}
 
 interface UseChatTypesPageReturn {
   chatTypes: readonly ChatType[]
@@ -16,7 +23,17 @@ interface UseChatTypesPageReturn {
   handleSearchChange: (query: string) => void
   handleCloseErrorMessage: () => void
   handleProcessRowUpdate: (newRow: GridRowModel, oldRow: GridRowModel) => Promise<GridRowModel>
+  handleProcessRowUpdateError: (error: Error) => void
   hasQueryError: boolean
+  confirmDialogOpen: boolean
+  pendingEdit: PendingEdit | null
+  handleConfirmSave: () => void
+  handleCancelSave: () => void
+  savingEdit: boolean
+  successMessage: string | null
+  handleCloseSuccessMessage: () => void
+  dialogError: string | null
+  handleCloseDialogError: () => void
 }
 
 /**
@@ -33,9 +50,18 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
   })
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [dismissedErrorMessage, setDismissedErrorMessage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [pendingEdit, setPendingEdit] = useState<PendingEdit | null>(null)
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [dialogError, setDialogError] = useState<string | null>(null)
+  // Store a resolver so processRowUpdate can await the dialog result
+  const [pendingResolver, setPendingResolver] = useState<{
+    resolve: (row: GridRowModel) => void
+  } | null>(null)
 
   // Use TanStack Query hook for data fetching with automatic caching
-  const { chatTypes, error, isLoading } = useAIChatConfig()
+  const { chatTypes, error, isLoading, refetch } = useAIChatConfig()
 
   // Track if the current error has been dismissed
   const currentErrorMessage = error?.message || null
@@ -57,20 +83,103 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     setDismissedErrorMessage(currentErrorMessage)
   }
 
-  const handleProcessRowUpdate = async (
-    newRow: GridRowModel,
-    oldRow: GridRowModel
-  ): Promise<GridRowModel> => {
-    try {
-      // Editing is currently not persisted to the server.
-      // Inform the user and revert the change so data is not misleadingly shown as saved.
-      setErrorMessage('Editing chat types is not yet supported. Your changes were not saved.')
-      return oldRow
-    } catch {
-      // In case any unexpected error occurs, also revert to the previous row.
-      return oldRow
-    }
+  const handleCloseSuccessMessage = () => {
+    setSuccessMessage(null)
   }
+
+  const handleCloseDialogError = () => {
+    setDialogError(null)
+  }
+
+  /**
+   * Called by the DataGrid when a row edit is committed.
+   * Opens a confirmation dialog and returns a promise that resolves
+   * with either the new row (on save) or the old row (on cancel).
+   */
+  const handleProcessRowUpdate = useCallback(
+    (newRow: GridRowModel, oldRow: GridRowModel): Promise<GridRowModel> => {
+      // Prevent new edits if there's already one being saved
+      if (savingEdit) {
+        return Promise.resolve(oldRow)
+      }
+
+      // Find which field changed by comparing known editable fields
+      let changedField = ''
+      if (newRow.name !== oldRow.name) {
+        changedField = 'name'
+      } else if (newRow.seoFriendlyId !== oldRow.seoFriendlyId) {
+        changedField = 'seoFriendlyId'
+      } else if (newRow.description !== oldRow.description) {
+        changedField = 'description'
+      }
+
+      // If nothing actually changed, just return the row as-is
+      if (!changedField) {
+        return Promise.resolve(newRow)
+      }
+
+      // Clear any previous messages
+      setSuccessMessage(null)
+      setErrorMessage(null)
+      setDialogError(null)
+
+      return new Promise<GridRowModel>((resolve) => {
+        setPendingEdit({ newRow, oldRow, field: changedField })
+        setPendingResolver({ resolve })
+        setConfirmDialogOpen(true)
+      })
+    },
+    [savingEdit]
+  )
+
+  const handleConfirmSave = useCallback(async () => {
+    if (!pendingEdit || !pendingResolver) return
+
+    // Clear any previous dialog error before attempting save
+    setDialogError(null)
+    setSavingEdit(true)
+
+    try {
+      const { field, newRow } = pendingEdit
+      const payload: { id: string; name?: string; seoFriendlyId?: string; description?: string } = {
+        id: newRow.id as string,
+      }
+      if (field === 'name') payload.name = newRow.name as string
+      if (field === 'seoFriendlyId') payload.seoFriendlyId = newRow.seoFriendlyId as string
+      if (field === 'description') payload.description = newRow.description as string
+
+      await updateChatType(payload)
+      setSuccessMessage('Update successful')
+      pendingResolver.resolve(pendingEdit.newRow)
+      await refetch()
+
+      // Only close dialog and clear state on success
+      setConfirmDialogOpen(false)
+      setPendingEdit(null)
+      setPendingResolver(null)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred'
+      // Set error in dialog instead of page-level error
+      setDialogError(message)
+      // Do NOT resolve the promise or close the dialog - keep it open for retry
+    } finally {
+      setSavingEdit(false)
+    }
+  }, [pendingEdit, pendingResolver, refetch])
+
+  const handleCancelSave = useCallback(() => {
+    if (pendingResolver && pendingEdit) {
+      pendingResolver.resolve(pendingEdit.oldRow)
+    }
+    setConfirmDialogOpen(false)
+    setPendingEdit(null)
+    setPendingResolver(null)
+    setDialogError(null)
+  }, [pendingEdit, pendingResolver])
+
+  const handleProcessRowUpdateError = useCallback((error: Error) => {
+    setErrorMessage(error.message || 'An error occurred while updating the row')
+  }, [])
 
   // Filter chat types based on search query (client-side filtering)
   const filteredChatTypes = searchQuery
@@ -105,6 +214,16 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     handleSearchChange,
     handleCloseErrorMessage,
     handleProcessRowUpdate,
+    handleProcessRowUpdateError,
     hasQueryError,
+    confirmDialogOpen,
+    pendingEdit,
+    handleConfirmSave,
+    handleCancelSave,
+    savingEdit,
+    successMessage,
+    handleCloseSuccessMessage,
+    dialogError,
+    handleCloseDialogError,
   }
 }

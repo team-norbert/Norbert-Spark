@@ -1,6 +1,5 @@
 'use server'
 
-import type { ChatType } from '@/domain/ai/chat-config.js'
 import { backendRequest } from '@/infrastructure/serverActions/baseServerAction.js'
 import { getAuthToken } from '@/lib/auth/auth.js'
 
@@ -18,12 +17,16 @@ interface UpdateChatTypePayload {
  * Only accessible to users with 'admin' or 'moderator' roles.
  *
  * @param {UpdateChatTypePayload} payload - The chat type data to update
- * @returns Promise with the updated chat type data
+ * @returns Promise that resolves when update is successful
  * @throws {Error} If the request fails or user is not authenticated/authorized
  *
  * @example
  * ```typescript
- * const updated = await updateChatType({ id: 'uuid', name: 'New Name' })
+ * try {
+ *   await updateChatType({ id: 'uuid', name: 'New Name' })
+ * } catch (error) {
+ *   console.error('Failed to update chat type:', error)
+ * }
  * ```
  */
 export async function updateChatType(payload: UpdateChatTypePayload): Promise<void> {
@@ -37,8 +40,7 @@ export async function updateChatType(payload: UpdateChatTypePayload): Promise<vo
     endpoint: '/ai/chats/config',
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: payload,
   })
 }
