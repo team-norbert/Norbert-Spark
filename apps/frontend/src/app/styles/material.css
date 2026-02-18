@@ -10,9 +10,9 @@
         --variant-outlinedBorder: #ffffff!important;
     }
 }
-.mui-zmsgp4-MuiButtonBase-root-MuiIconButton-root {
+.MuiIconButton-root {
     transition: 0.5s!important;
 }
-.mui-zmsgp4-MuiButtonBase-root-MuiIconButton-root:hover {
+.MuiIconButton-root:hover {
     color: #ffffff!important;
 }
