@@ -577,6 +577,7 @@ export function ChatTypesPage({
           disableRowSelectionOnClick
           processRowUpdate={onProcessRowUpdate}
           onProcessRowUpdateError={onProcessRowUpdateError}
+          isCellEditable={() => !savingEdit}
           sx={{
             '& .MuiDataGrid-cell': {
               cursor: 'default',
