@@ -62,8 +62,7 @@ export function ChatTypesPage({
     const value = params.props.value as string
     // eslint-disable-next-line security/detect-unsafe-regex
     const kebabCaseRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-    const hasError =
-      !value || value.length < 1 || value.length > 200 || !kebabCaseRegex.test(value)
+    const hasError = !value || value.length < 1 || value.length > 200 || !kebabCaseRegex.test(value)
     return {
       ...params.props,
       error: hasError,
