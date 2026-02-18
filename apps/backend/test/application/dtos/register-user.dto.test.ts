@@ -628,7 +628,7 @@ describe('RegisterUserDto', () => {
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
-          'Provider must be a string when password is not provided'
+          'Provider must be a string when provided'
         )
       })
 
@@ -641,7 +641,7 @@ describe('RegisterUserDto', () => {
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
-          'Provider must be a string when password is not provided'
+          'Provider must be a string when provided'
         )
       })
 
@@ -654,7 +654,7 @@ describe('RegisterUserDto', () => {
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
-          'Provider must be a string when password is not provided'
+          'Provider must be a string when provided'
         )
       })
 
@@ -756,6 +756,63 @@ describe('RegisterUserDto', () => {
         expect(dto.password).toBe('password123')
         expect(dto.provider).toBe('google')
         expect(dto.providerId).toBeUndefined()
+      })
+
+      it('should throw ValidationException when password is empty string with provider', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          password: '',
+          provider: 'google',
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'ProviderId is required when using OAuth provider without password'
+        )
+      })
+
+      it('should throw ValidationException when provider is empty string', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          password: 'password123',
+          provider: '',
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        // Empty string is not null/undefined, so it gets validated and rejected for being non-empty
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'Provider must be a non-empty string when provided'
+        )
+      })
+
+      it('should throw ValidationException when provider is whitespace only', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          password: 'password123',
+          provider: '   ',
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'Provider must be a non-empty string when provided'
+        )
+      })
+
+      it('should throw ValidationException when both password and provider are empty strings', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          password: '',
+          provider: '',
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'Password must be a string when provider is not provided'
+        )
       })
     })
 
