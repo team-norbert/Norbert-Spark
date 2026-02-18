@@ -8,6 +8,7 @@ import {
   type GridPreProcessEditCellProps,
   type GridRowModel,
 } from '@mui/x-data-grid'
+import { validateKebabCase } from '@norberts-spark/shared'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
 
@@ -26,6 +27,49 @@ interface ChatTypesPageProps {
   onNavigateHome: () => void
   onSignOut: () => void
   onProcessRowUpdate: (newRow: GridRowModel, oldRow: GridRowModel) => Promise<GridRowModel>
+}
+
+// Validation functions for editable fields
+export const validateName = (params: GridPreProcessEditCellProps) => {
+  const value = params.props.value as string
+  const hasError = !value || value.length < 1 || value.length > 200
+  return {
+    ...params.props,
+    error: hasError,
+    helperText: hasError ? 'Name must be between 1 and 200 characters' : undefined,
+  }
+}
+
+// validate SEO friendly ID using the same rules as the backend
+export const validateSeoFriendlyId = (params: GridPreProcessEditCellProps) => {
+  const value = params.props.value as string
+  const isValidKebabCase =
+    value &&
+    value.length >= 1 &&
+    value.length <= 200 &&
+    /^[a-z0-9]/.test(value) &&
+    /[a-z0-9]$/.test(value) &&
+    !value.includes('--') &&
+    /^[a-z0-9-]+$/.test(value)
+  const hasError = !isValidKebabCase
+  return {
+    ...params.props,
+    error: hasError,
+    helperText: hasError
+      ? 'SEO ID must be 1-200 chars in kebab-case format (e.g., my-chat-type)'
+      : undefined,
+  }
+}
+
+// validate description to be between 1 and 500 characters
+export const validateDescription = (params: GridPreProcessEditCellProps) => {
+  const value = params.props.value as string
+  const hasError = !value || value.length < 1 || value.length > 500
+  return {
+    ...params.props,
+    error: hasError,
+    helperText: hasError ? 'Description must be between 1 and 500 characters' : undefined,
+  }
 }
 
 /**
@@ -47,47 +91,6 @@ export function ChatTypesPage({
   rowCount,
   searchQuery,
 }: ChatTypesPageProps) {
-  // Validation functions for editable fields
-  const validateName = (params: GridPreProcessEditCellProps) => {
-    const value = params.props.value as string
-    const hasError = !value || value.length < 1 || value.length > 200
-    return {
-      ...params.props,
-      error: hasError,
-      helperText: hasError ? 'Name must be between 1 and 200 characters' : undefined,
-    }
-  }
-
-  const validateSeoFriendlyId = (params: GridPreProcessEditCellProps) => {
-    const value = params.props.value as string
-    const isValidKebabCase =
-      value &&
-      value.length >= 1 &&
-      value.length <= 200 &&
-      /^[a-z0-9]/.test(value) &&
-      /[a-z0-9]$/.test(value) &&
-      !value.includes('--') &&
-      /^[a-z0-9-]+$/.test(value)
-    const hasError = !isValidKebabCase
-    return {
-      ...params.props,
-      error: hasError,
-      helperText: hasError
-        ? 'SEO ID must be 1-200 chars in kebab-case format (e.g., my-chat-type)'
-        : undefined,
-    }
-  }
-
-  const validateDescription = (params: GridPreProcessEditCellProps) => {
-    const value = params.props.value as string
-    const hasError = !value || value.length < 1 || value.length > 500
-    return {
-      ...params.props,
-      error: hasError,
-      helperText: hasError ? 'Description must be between 1 and 500 characters' : undefined,
-    }
-  }
-
   // Define columns for the DataGrid
   const columns: GridColDef[] = [
     {
