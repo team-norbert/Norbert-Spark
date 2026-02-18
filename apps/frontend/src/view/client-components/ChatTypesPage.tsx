@@ -5,6 +5,7 @@ import {
   DataGrid,
   type GridColDef,
   type GridPaginationModel,
+  type GridPreProcessEditCellProps,
   type GridRowModel,
 } from '@mui/x-data-grid'
 
@@ -46,6 +47,41 @@ export function ChatTypesPage({
   rowCount,
   searchQuery,
 }: ChatTypesPageProps) {
+  // Validation functions for editable fields
+  const validateName = (params: GridPreProcessEditCellProps) => {
+    const value = params.props.value as string
+    const hasError = !value || value.length < 1 || value.length > 200
+    return {
+      ...params.props,
+      error: hasError,
+      helperText: hasError ? 'Name must be between 1 and 200 characters' : undefined,
+    }
+  }
+
+  const validateSeoFriendlyId = (params: GridPreProcessEditCellProps) => {
+    const value = params.props.value as string
+    // eslint-disable-next-line security/detect-unsafe-regex
+    const kebabCaseRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+    const hasError = !value || value.length < 1 || value.length > 200 || !kebabCaseRegex.test(value)
+    return {
+      ...params.props,
+      error: hasError,
+      helperText: hasError
+        ? 'SEO ID must be 1-200 chars in kebab-case format (e.g., my-chat-type)'
+        : undefined,
+    }
+  }
+
+  const validateDescription = (params: GridPreProcessEditCellProps) => {
+    const value = params.props.value as string
+    const hasError = !value || value.length < 1 || value.length > 500
+    return {
+      ...params.props,
+      error: hasError,
+      helperText: hasError ? 'Description must be between 1 and 500 characters' : undefined,
+    }
+  }
+
   // Define columns for the DataGrid
   const columns: GridColDef[] = [
     {
@@ -86,6 +122,7 @@ export function ChatTypesPage({
       width: 200,
       flex: 1,
       editable: true,
+      preProcessEditCellProps: validateName,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
@@ -119,6 +156,7 @@ export function ChatTypesPage({
       width: 200,
       flex: 1,
       editable: true,
+      preProcessEditCellProps: validateSeoFriendlyId,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
@@ -184,6 +222,7 @@ export function ChatTypesPage({
       width: 350,
       flex: 2,
       editable: true,
+      preProcessEditCellProps: validateDescription,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
