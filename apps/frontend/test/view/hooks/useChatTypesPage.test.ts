@@ -853,12 +853,10 @@ describe('useChatTypesPage', () => {
       // Try to start a second edit while save is in progress
       let secondPromiseResolved: GridRowModel | undefined
       act(() => {
-        void result.current
-          .handleProcessRowUpdate(secondEdit, oldRow)
-          .then((row) => {
-            secondPromiseResolved = row
-            return row
-          })
+        void result.current.handleProcessRowUpdate(secondEdit, oldRow).then((row) => {
+          secondPromiseResolved = row
+          return row
+        })
       })
 
       // Second edit should be rejected immediately with oldRow
