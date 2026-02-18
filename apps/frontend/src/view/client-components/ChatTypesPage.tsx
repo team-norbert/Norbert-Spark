@@ -30,21 +30,60 @@ import type { ChatType } from '@/domain/ai/chat-config.js'
 
 import { PageHeader } from './PageHeader.js'
 
+/**
+ * Holds the before/after row state for a cell edit that is awaiting user
+ * confirmation before being persisted to the API.
+ */
 interface PendingEdit {
   newRow: GridRowModel
   oldRow: GridRowModel
   field: string
 }
 
-// Exported pure validation predicates for testing
+/**
+ * Returns `true` when a chat-type name fails validation.
+ * A valid name must be between 1 and 200 characters (inclusive).
+ *
+ * @param value - The raw string value entered by the user.
+ * @returns `true` if the value is invalid, `false` if it is acceptable.
+ */
 export const isNameInvalid = (value: string): boolean =>
   !value || value.length < 1 || value.length > 200
 
+/**
+ * Returns `true` when a SEO-friendly ID fails validation.
+ * A valid ID must conform to kebab-case: lowercase letters, digits, and
+ * single hyphens as word separators (1–200 characters, no leading/trailing
+ * hyphens, no consecutive hyphens).
+ *
+ * Delegates to {@link validateKebabCase} from `@norberts-spark/shared`.
+ *
+ * @param value - The raw string value entered by the user.
+ * @returns `true` if the value is invalid, `false` if it is acceptable.
+ */
 export const isSeoFriendlyIdInvalid = (value: string): boolean => !validateKebabCase(value)
 
+/**
+ * Returns `true` when a chat-type description fails validation.
+ * A valid description must be between 1 and 500 characters (inclusive).
+ *
+ * @param value - The raw string value entered by the user.
+ * @returns `true` if the value is invalid, `false` if it is acceptable.
+ */
 export const isDescriptionInvalid = (value: string): boolean =>
   !value || value.length < 1 || value.length > 500
 
+/**
+ * Returns a human-readable validation error message for an editable DataGrid
+ * field, or `undefined` when the value is valid.
+ *
+ * Supports the three editable fields: `name`, `seoFriendlyId`, and
+ * `description`. Unknown field names always return `undefined`.
+ *
+ * @param field - The DataGrid column field name being validated.
+ * @param value - The current cell value as a string.
+ * @returns An error message string when invalid, or `undefined` when valid.
+ */
 export const getValidationMessage = (field: string, value: string): string | undefined => {
   if (field === 'name' && isNameInvalid(value)) {
     return 'Name must be between 1 and 200 characters'
@@ -58,6 +97,19 @@ export const getValidationMessage = (field: string, value: string): string | und
   return undefined
 }
 
+/**
+ * Inline edit cell renderer used by the MUI X DataGrid for the `name`,
+ * `seoFriendlyId`, and `description` columns.
+ *
+ * Runs field validation on every render and notifies the parent
+ * `ChatTypesPage` via `onValidationChange` so the validation message can be
+ * surfaced in the page-level warning Alert. The notification is deferred to
+ * a `useEffect` to avoid calling `setState` during the DataGrid render phase.
+ *
+ * The two props are `params` (standard MUI X `GridRenderEditCellParams`) and
+ * `onValidationChange` (called with the current error message, or `null` when
+ * the value is valid).
+ */
 export function EditCell({
   onValidationChange,
   params,
@@ -89,33 +141,73 @@ export function EditCell({
   )
 }
 
+/**
+ * Props for the {@link ChatTypesPage} presentational component.
+ *
+ * All data and callbacks are supplied by `useChatTypesPage` via
+ * `ChatTypesPageClient`, keeping this component free of business logic.
+ */
 interface ChatTypesPageProps {
+  /** The list of chat types to display in the DataGrid. */
   chatTypes: readonly ChatType[]
+  /** API or fetch error message to display in the error Alert, or `null`. */
   error: string | null
+  /** When `true` the DataGrid shows its loading overlay. */
   loading: boolean
+  /** Current value of the search input field. */
   searchQuery: string
+  /** Current MUI DataGrid pagination model (page index + page size). */
   paginationModel: GridPaginationModel
+  /** Total number of rows across all pages (used for server-side pagination). */
   rowCount: number
+  /** Called whenever the user changes the search input value. */
   onSearchChange: (query: string) => void
+  /** Called whenever the user changes the page or page size. */
   onPaginationChange: (model: GridPaginationModel) => void
+  /** Called when the user closes the error Alert. */
   onCloseErrorMessage: () => void
+  /** Called when the user clicks the home navigation button. */
   onNavigateHome: () => void
+  /** Called when the user clicks the sign-out button. */
   onSignOut: () => void
+  /**
+   * Called by the DataGrid `processRowUpdate` prop when a cell edit is
+   * committed. Returns a Promise resolving to the accepted row.
+   */
   onProcessRowUpdate: (newRow: GridRowModel, oldRow: GridRowModel) => Promise<GridRowModel>
+  /** Called by the DataGrid when `processRowUpdate` throws an error. */
   onProcessRowUpdateError: (error: Error) => void
+  /** Controls whether the save-confirmation Dialog is open. */
   confirmDialogOpen: boolean
+  /** The pending cell edit awaiting confirmation, or `null` when none. */
   pendingEdit: PendingEdit | null
+  /** Called when the user confirms the save in the Dialog (clicks Yes). */
   onConfirmSave: () => void
+  /** Called when the user cancels the save in the Dialog (clicks No). */
   onCancelSave: () => void
+  /** When `true` the Dialog buttons are disabled and a spinner is shown. */
   savingEdit: boolean
+  /** Success message to display after a successful save, or `null`. */
   successMessage: string | null
+  /** Called when the user closes the success Alert. */
   onCloseSuccessMessage: () => void
 }
 
 /**
- * Chat Types page component following DDD architecture.
- * This is a presentational component - all logic is handled by the hook.
- * Displays chat types configuration in a read-only DataGrid.
+ * Presentational component for the Chat Types configuration page.
+ *
+ * Follows the DDD view-layer contract: all business logic and server
+ * interactions live in `useChatTypesPage`; this component is responsible
+ * only for rendering.
+ *
+ * Features:
+ * - Server-paginated MUI X DataGrid showing all {@link ChatType} records.
+ * - Inline editing of `name`, `seoFriendlyId`, and `description` cells,
+ *   with live field validation surfaced via a page-level warning Alert.
+ * - Confirmation Dialog before persisting any cell edit to the API.
+ * - Success and error Alerts for API response feedback.
+ * - Client-side search input (filtering is handled server-side via
+ *   `onSearchChange`).
  */
 export function ChatTypesPage({
   chatTypes,
