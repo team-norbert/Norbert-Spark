@@ -10,11 +10,6 @@ interface UpdateChatTypePayload {
   description?: string
 }
 
-interface UpdateChatTypeResult {
-  success: boolean
-  error?: string
-}
-
 /**
  * Server Action to update a chat type
  *
@@ -22,34 +17,30 @@ interface UpdateChatTypeResult {
  * Only accessible to users with 'admin' or 'moderator' roles.
  *
  * @param {UpdateChatTypePayload} payload - The chat type data to update
- * @returns Promise with a result object indicating success or failure
+ * @returns Promise that resolves when update is successful
+ * @throws {Error} If the request fails or user is not authenticated/authorized
  *
  * @example
  * ```typescript
- * const result = await updateChatType({ id: 'uuid', name: 'New Name' })
- * if (result.success) { ... }
+ * try {
+ *   await updateChatType({ id: 'uuid', name: 'New Name' })
+ * } catch (error) {
+ *   console.error('Failed to update chat type:', error)
+ * }
  * ```
  */
-export async function updateChatType(
-  payload: UpdateChatTypePayload
-): Promise<UpdateChatTypeResult> {
+export async function updateChatType(payload: UpdateChatTypePayload): Promise<void> {
   const token = await getAuthToken()
   if (!token) {
-    return { success: false, error: 'No authentication token available' }
+    throw new Error('No authentication token available')
   }
 
-  try {
-    await backendRequest<void>({
-      method: 'PUT',
-      endpoint: '/ai/chats/config',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: payload,
-    })
-    return { success: true }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'An unexpected error occurred'
-    return { success: false, error: message }
-  }
+  await backendRequest<void>({
+    method: 'PUT',
+    endpoint: '/ai/chats/config',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: payload,
+  })
 }

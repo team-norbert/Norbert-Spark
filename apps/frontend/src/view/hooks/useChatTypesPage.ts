@@ -132,15 +132,10 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
       if (field === 'seoFriendlyId') payload.seoFriendlyId = newRow.seoFriendlyId as string
       if (field === 'description') payload.description = newRow.description as string
 
-      const result = await updateChatType(payload)
-      if (result.success) {
-        setSuccessMessage('Update successful')
-        pendingResolver.resolve(pendingEdit.newRow)
-        await refetch()
-      } else {
-        setErrorMessage(result.error ?? 'An unexpected error occurred')
-        pendingResolver.resolve(pendingEdit.oldRow)
-      }
+      await updateChatType(payload)
+      setSuccessMessage('Update successful')
+      pendingResolver.resolve(pendingEdit.newRow)
+      await refetch()
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
       setErrorMessage(message)

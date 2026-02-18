@@ -802,7 +802,7 @@ describe('useChatTypesPage', () => {
     })
 
     it('should clear successMessage when a new edit begins', async () => {
-      ;(updateChatType as Mock).mockResolvedValue({ success: true })
+      ;(updateChatType as Mock).mockResolvedValue(undefined)
       const { result } = renderHook(() => useChatTypesPage())
       const oldRow: GridRowModel = { ...mockChatTypes[0] }
       const newRow1: GridRowModel = { ...mockChatTypes[0], name: 'First Update' }
@@ -924,7 +924,7 @@ describe('useChatTypesPage', () => {
 
   describe('handleConfirmSave - Successful Save', () => {
     beforeEach(() => {
-      ;(updateChatType as Mock).mockResolvedValue({ success: true })
+      ;(updateChatType as Mock).mockResolvedValue(undefined)
     })
 
     it('should call updateChatType with the correct name payload', async () => {
@@ -1083,129 +1083,15 @@ describe('useChatTypesPage', () => {
   })
 
   // ---------------------------------------------------------------------------
-  // handleConfirmSave – API error (success: false)
+  // handleConfirmSave – error handling (thrown exception)
   // ---------------------------------------------------------------------------
 
-  describe('handleConfirmSave - API Error', () => {
-    it('should resolve the DataGrid promise with oldRow when API returns success: false', async () => {
-      ;(updateChatType as Mock).mockResolvedValue({
-        success: false,
-        error: 'Chat type name already exists',
-      })
-      const { result } = renderHook(() => useChatTypesPage())
-      const oldRow: GridRowModel = { ...mockChatTypes[0] }
-      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Duplicate Name' }
-
-      let resolvedRow: GridRowModel | undefined
-      act(() => {
-        void result.current.handleProcessRowUpdate(newRow, oldRow).then((row) => {
-          resolvedRow = row
-          return row
-        })
-      })
-      await act(async () => {
-        await result.current.handleConfirmSave()
-      })
-
-      await waitFor(() => {
-        expect(resolvedRow).toEqual(oldRow)
-      })
-    })
-
-    it('should set error message from the API response', async () => {
-      ;(updateChatType as Mock).mockResolvedValue({
-        success: false,
-        error: 'Chat type name already exists',
-      })
-      const { result } = renderHook(() => useChatTypesPage())
-      const oldRow: GridRowModel = { ...mockChatTypes[0] }
-      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Duplicate Name' }
-
-      act(() => {
-        void result.current.handleProcessRowUpdate(newRow, oldRow)
-      })
-      await act(async () => {
-        await result.current.handleConfirmSave()
-      })
-
-      expect(result.current.error).toBe('Chat type name already exists')
-    })
-
-    it('should use fallback error message when the API error property is undefined', async () => {
-      ;(updateChatType as Mock).mockResolvedValue({ success: false })
-      const { result } = renderHook(() => useChatTypesPage())
-      const oldRow: GridRowModel = { ...mockChatTypes[0] }
-      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
-
-      act(() => {
-        void result.current.handleProcessRowUpdate(newRow, oldRow)
-      })
-      await act(async () => {
-        await result.current.handleConfirmSave()
-      })
-
-      expect(result.current.error).toBe('An unexpected error occurred')
-    })
-
-    it('should not set successMessage on API error', async () => {
-      ;(updateChatType as Mock).mockResolvedValue({ success: false, error: 'Some error' })
-      const { result } = renderHook(() => useChatTypesPage())
-      const oldRow: GridRowModel = { ...mockChatTypes[0] }
-      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
-
-      act(() => {
-        void result.current.handleProcessRowUpdate(newRow, oldRow)
-      })
-      await act(async () => {
-        await result.current.handleConfirmSave()
-      })
-
-      expect(result.current.successMessage).toBeNull()
-    })
-
-    it('should close the dialog on API error', async () => {
-      ;(updateChatType as Mock).mockResolvedValue({ success: false, error: 'Some error' })
-      const { result } = renderHook(() => useChatTypesPage())
-      const oldRow: GridRowModel = { ...mockChatTypes[0] }
-      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
-
-      act(() => {
-        void result.current.handleProcessRowUpdate(newRow, oldRow)
-      })
-      await act(async () => {
-        await result.current.handleConfirmSave()
-      })
-
-      expect(result.current.confirmDialogOpen).toBe(false)
-    })
-
-    it('should not call refetch on API error', async () => {
-      ;(updateChatType as Mock).mockResolvedValue({ success: false, error: 'Some error' })
-      const { result } = renderHook(() => useChatTypesPage())
-      const oldRow: GridRowModel = { ...mockChatTypes[0] }
-      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
-
-      act(() => {
-        void result.current.handleProcessRowUpdate(newRow, oldRow)
-      })
-      await act(async () => {
-        await result.current.handleConfirmSave()
-      })
-
-      expect(mockUseAIChatConfig.refetch).not.toHaveBeenCalled()
-    })
-  })
-
-  // ---------------------------------------------------------------------------
-  // handleConfirmSave – thrown exception
-  // ---------------------------------------------------------------------------
-
-  describe('handleConfirmSave - Thrown Exception', () => {
+  describe('handleConfirmSave - Error Handling', () => {
     it('should resolve the DataGrid promise with oldRow when updateChatType throws', async () => {
-      ;(updateChatType as Mock).mockRejectedValue(new Error('Network timeout'))
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Chat type name already exists'))
       const { result } = renderHook(() => useChatTypesPage())
       const oldRow: GridRowModel = { ...mockChatTypes[0] }
-      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Duplicate Name' }
 
       let resolvedRow: GridRowModel | undefined
       act(() => {
@@ -1224,10 +1110,10 @@ describe('useChatTypesPage', () => {
     })
 
     it('should set error message from the thrown Error object', async () => {
-      ;(updateChatType as Mock).mockRejectedValue(new Error('Network timeout'))
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Chat type name already exists'))
       const { result } = renderHook(() => useChatTypesPage())
       const oldRow: GridRowModel = { ...mockChatTypes[0] }
-      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Duplicate Name' }
 
       act(() => {
         void result.current.handleProcessRowUpdate(newRow, oldRow)
@@ -1236,7 +1122,7 @@ describe('useChatTypesPage', () => {
         await result.current.handleConfirmSave()
       })
 
-      expect(result.current.error).toBe('Network timeout')
+      expect(result.current.error).toBe('Chat type name already exists')
     })
 
     it('should use fallback message when a non-Error value is thrown', async () => {
@@ -1255,7 +1141,55 @@ describe('useChatTypesPage', () => {
       expect(result.current.error).toBe('An unexpected error occurred')
     })
 
-    it('should close the dialog when updateChatType throws', async () => {
+    it('should not set successMessage on error', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Some error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.successMessage).toBeNull()
+    })
+
+    it('should close the dialog on error', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Some error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(result.current.confirmDialogOpen).toBe(false)
+    })
+
+    it('should not call refetch on error', async () => {
+      ;(updateChatType as Mock).mockRejectedValue(new Error('Some error'))
+      const { result } = renderHook(() => useChatTypesPage())
+      const oldRow: GridRowModel = { ...mockChatTypes[0] }
+      const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Bad Name' }
+
+      act(() => {
+        void result.current.handleProcessRowUpdate(newRow, oldRow)
+      })
+      await act(async () => {
+        await result.current.handleConfirmSave()
+      })
+
+      expect(mockUseAIChatConfig.refetch).not.toHaveBeenCalled()
+    })
+
+    it('should handle network timeout error', async () => {
       ;(updateChatType as Mock).mockRejectedValue(new Error('Network timeout'))
       const { result } = renderHook(() => useChatTypesPage())
       const oldRow: GridRowModel = { ...mockChatTypes[0] }
@@ -1268,7 +1202,7 @@ describe('useChatTypesPage', () => {
         await result.current.handleConfirmSave()
       })
 
-      expect(result.current.confirmDialogOpen).toBe(false)
+      expect(result.current.error).toBe('Network timeout')
     })
   })
 
@@ -1361,7 +1295,7 @@ describe('useChatTypesPage', () => {
 
   describe('handleCloseSuccessMessage', () => {
     it('should clear successMessage', async () => {
-      ;(updateChatType as Mock).mockResolvedValue({ success: true })
+      ;(updateChatType as Mock).mockResolvedValue(undefined)
       const { result } = renderHook(() => useChatTypesPage())
       const oldRow: GridRowModel = { ...mockChatTypes[0] }
       const newRow: GridRowModel = { ...mockChatTypes[0], name: 'Updated Name' }
