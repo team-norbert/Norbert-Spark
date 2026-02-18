@@ -24,6 +24,7 @@ import {
   type GridRowModel,
 } from '@mui/x-data-grid'
 import { validateKebabCase } from '@norberts-spark/shared'
+import { useState } from 'react'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
 
@@ -94,7 +95,9 @@ export function ChatTypesPage({
   searchQuery,
   successMessage,
 }: ChatTypesPageProps) {
-  const getHelperText = (field: string, value: string): string | undefined => {
+  const [validationMessage, setValidationMessage] = useState<string | null>(null)
+
+  const getValidationMessage = (field: string, value: string): string | undefined => {
     if (field === 'name' && isNameInvalid(value)) {
       return 'Name must be between 1 and 200 characters'
     }
@@ -109,7 +112,8 @@ export function ChatTypesPage({
 
   const editCell = (params: GridRenderEditCellParams) => {
     const value = (params.value as string) ?? ''
-    const helperText = getHelperText(params.field, value)
+    const message = getValidationMessage(params.field, value)
+    setValidationMessage(message ?? null)
     return (
       <TextField
         value={value}
@@ -120,8 +124,7 @@ export function ChatTypesPage({
             value: e.target.value,
           })
         }
-        error={!!helperText}
-        helperText={helperText ?? ''}
+        error={!!message}
         size="small"
         fullWidth
       />
@@ -170,11 +173,7 @@ export function ChatTypesPage({
       editable: true,
       preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
         const hasError = isNameInvalid(params.props.value as string)
-        return {
-          ...params.props,
-          error: hasError,
-          helperText: hasError ? 'Name must be between 1 and 200 characters' : undefined,
-        }
+        return { ...params.props, error: hasError }
       },
       renderEditCell: editCell,
       renderCell: (params) => (
@@ -212,13 +211,7 @@ export function ChatTypesPage({
       editable: true,
       preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
         const hasError = isSeoFriendlyIdInvalid(params.props.value as string)
-        return {
-          ...params.props,
-          error: hasError,
-          helperText: hasError
-            ? 'SEO Friendly ID must be lowercase, words separated by hyphens, and contain only letters, numbers, and hyphens'
-            : undefined,
-        }
+        return { ...params.props, error: hasError }
       },
       renderEditCell: editCell,
       renderCell: (params) => (
@@ -288,11 +281,7 @@ export function ChatTypesPage({
       editable: true,
       preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
         const hasError = isDescriptionInvalid(params.props.value as string)
-        return {
-          ...params.props,
-          error: hasError,
-          helperText: hasError ? 'Description must be between 1 and 500 characters' : undefined,
-        }
+        return { ...params.props, error: hasError }
       },
       renderEditCell: editCell,
       renderCell: (params) => (
@@ -426,6 +415,17 @@ export function ChatTypesPage({
           data-testid="success-alert"
         >
           {successMessage}
+        </Alert>
+      )}
+
+      {validationMessage && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 3 }}
+          onClose={() => setValidationMessage(null)}
+          data-testid="validation-alert"
+        >
+          {validationMessage}
         </Alert>
       )}
 
