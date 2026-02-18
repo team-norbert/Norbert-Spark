@@ -66,7 +66,15 @@ describe('ChatTypesPageClient', () => {
     handlePaginationChange: vi.fn(),
     handleCloseErrorMessage: vi.fn(),
     handleProcessRowUpdate: vi.fn().mockResolvedValue({}),
+    handleProcessRowUpdateError: vi.fn(),
     hasQueryError: false,
+    confirmDialogOpen: false,
+    pendingEdit: null,
+    handleConfirmSave: vi.fn(),
+    handleCancelSave: vi.fn(),
+    savingEdit: false,
+    successMessage: null,
+    handleCloseSuccessMessage: vi.fn(),
   }
 
   beforeEach(() => {

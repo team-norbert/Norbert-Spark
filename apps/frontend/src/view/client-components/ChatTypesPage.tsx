@@ -1,11 +1,26 @@
 'use client'
 
-import { Alert, Box, Container, TextField, Tooltip, Typography } from '@mui/material'
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 import {
   DataGrid,
   type GridColDef,
   type GridPaginationModel,
   type GridPreProcessEditCellProps,
+  type GridRenderEditCellParams,
   type GridRowModel,
 } from '@mui/x-data-grid'
 import { validateKebabCase } from '@norberts-spark/shared'
@@ -13,6 +28,21 @@ import { validateKebabCase } from '@norberts-spark/shared'
 import type { ChatType } from '@/domain/ai/chat-config.js'
 
 import { PageHeader } from './PageHeader.js'
+
+interface PendingEdit {
+  newRow: GridRowModel
+  oldRow: GridRowModel
+  field: string
+}
+
+// Exported pure validation predicates for testing
+export const isNameInvalid = (value: string): boolean =>
+  !value || value.length < 1 || value.length > 200
+
+export const isSeoFriendlyIdInvalid = (value: string): boolean => !validateKebabCase(value)
+
+export const isDescriptionInvalid = (value: string): boolean =>
+  !value || value.length < 1 || value.length > 500
 
 interface ChatTypesPageProps {
   chatTypes: readonly ChatType[]
@@ -27,41 +57,14 @@ interface ChatTypesPageProps {
   onNavigateHome: () => void
   onSignOut: () => void
   onProcessRowUpdate: (newRow: GridRowModel, oldRow: GridRowModel) => Promise<GridRowModel>
-}
-
-// Validation functions for editable fields
-export const validateName = (params: GridPreProcessEditCellProps) => {
-  const value = params.props.value as string
-  const hasError = !value || value.length < 1 || value.length > 200
-  return {
-    ...params.props,
-    error: hasError,
-    helperText: hasError ? 'Name must be between 1 and 200 characters' : undefined,
-  }
-}
-
-// validate SEO friendly ID using the same rules as the backend
-export const validateSeoFriendlyId = (params: GridPreProcessEditCellProps) => {
-  const value = params.props.value as string
-  const hasError = !validateKebabCase(value)
-  return {
-    ...params.props,
-    error: hasError,
-    helperText: hasError
-      ? 'SEO ID must be 1-200 chars in kebab-case format (e.g., my-chat-type)'
-      : undefined,
-  }
-}
-
-// validate description to be between 1 and 500 characters
-export const validateDescription = (params: GridPreProcessEditCellProps) => {
-  const value = params.props.value as string
-  const hasError = !value || value.length < 1 || value.length > 500
-  return {
-    ...params.props,
-    error: hasError,
-    helperText: hasError ? 'Description must be between 1 and 500 characters' : undefined,
-  }
+  onProcessRowUpdateError: (error: Error) => void
+  confirmDialogOpen: boolean
+  pendingEdit: PendingEdit | null
+  onConfirmSave: () => void
+  onCancelSave: () => void
+  savingEdit: boolean
+  successMessage: string | null
+  onCloseSuccessMessage: () => void
 }
 
 /**
@@ -71,18 +74,60 @@ export const validateDescription = (params: GridPreProcessEditCellProps) => {
  */
 export function ChatTypesPage({
   chatTypes,
+  confirmDialogOpen,
   error,
   loading,
+  onCancelSave,
   onCloseErrorMessage,
+  onCloseSuccessMessage,
+  onConfirmSave,
   onNavigateHome,
   onPaginationChange,
   onProcessRowUpdate,
+  onProcessRowUpdateError,
   onSearchChange,
   onSignOut,
   paginationModel,
+  pendingEdit,
   rowCount,
+  savingEdit,
   searchQuery,
+  successMessage,
 }: ChatTypesPageProps) {
+  const getHelperText = (field: string, value: string): string | undefined => {
+    if (field === 'name' && isNameInvalid(value)) {
+      return 'Name must be between 1 and 200 characters'
+    }
+    if (field === 'seoFriendlyId' && isSeoFriendlyIdInvalid(value)) {
+      return 'SEO Friendly ID must be lowercase, words separated by hyphens, and contain only letters, numbers, and hyphens'
+    }
+    if (field === 'description' && isDescriptionInvalid(value)) {
+      return 'Description must be between 1 and 500 characters'
+    }
+    return undefined
+  }
+
+  const editCell = (params: GridRenderEditCellParams) => {
+    const value = (params.value as string) ?? ''
+    const helperText = getHelperText(params.field, value)
+    return (
+      <TextField
+        value={value}
+        onChange={(e) =>
+          params.api.setEditCellValue({
+            id: params.id,
+            field: params.field,
+            value: e.target.value,
+          })
+        }
+        error={!!helperText}
+        helperText={helperText ?? ''}
+        size="small"
+        fullWidth
+      />
+    )
+  }
+
   // Define columns for the DataGrid
   const columns: GridColDef[] = [
     {
@@ -123,7 +168,15 @@ export function ChatTypesPage({
       width: 200,
       flex: 1,
       editable: true,
-      preProcessEditCellProps: validateName,
+      preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
+        const hasError = isNameInvalid(params.props.value as string)
+        return {
+          ...params.props,
+          error: hasError,
+          helperText: hasError ? 'Name must be between 1 and 200 characters' : undefined,
+        }
+      },
+      renderEditCell: editCell,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
@@ -157,7 +210,17 @@ export function ChatTypesPage({
       width: 200,
       flex: 1,
       editable: true,
-      preProcessEditCellProps: validateSeoFriendlyId,
+      preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
+        const hasError = isSeoFriendlyIdInvalid(params.props.value as string)
+        return {
+          ...params.props,
+          error: hasError,
+          helperText: hasError
+            ? 'SEO Friendly ID must be lowercase, words separated by hyphens, and contain only letters, numbers, and hyphens'
+            : undefined,
+        }
+      },
+      renderEditCell: editCell,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
@@ -223,7 +286,15 @@ export function ChatTypesPage({
       width: 350,
       flex: 2,
       editable: true,
-      preProcessEditCellProps: validateDescription,
+      preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
+        const hasError = isDescriptionInvalid(params.props.value as string)
+        return {
+          ...params.props,
+          error: hasError,
+          helperText: hasError ? 'Description must be between 1 and 500 characters' : undefined,
+        }
+      },
+      renderEditCell: editCell,
       renderCell: (params) => (
         <Tooltip
           title={params.value || ''}
@@ -347,6 +418,17 @@ export function ChatTypesPage({
         </Alert>
       )}
 
+      {successMessage && (
+        <Alert
+          severity="success"
+          sx={{ mb: 3 }}
+          onClose={onCloseSuccessMessage}
+          data-testid="success-alert"
+        >
+          {successMessage}
+        </Alert>
+      )}
+
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
         <TextField
           label="Search chat types"
@@ -372,6 +454,7 @@ export function ChatTypesPage({
           pageSizeOptions={[5, 10, 25, 50]}
           disableRowSelectionOnClick
           processRowUpdate={onProcessRowUpdate}
+          onProcessRowUpdateError={onProcessRowUpdateError}
           sx={{
             '& .MuiDataGrid-cell': {
               cursor: 'default',
@@ -381,9 +464,53 @@ export function ChatTypesPage({
       </Box>
 
       <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-        Note: Click on name, SEO friendly ID, or description cells to edit. Changes are saved
-        automatically.
+        Note: Click on name, SEO friendly ID, or description cells to edit.
       </Typography>
+
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={onCancelSave}
+        aria-labelledby="confirm-save-dialog-title"
+        data-testid="confirm-save-dialog"
+      >
+        <DialogTitle id="confirm-save-dialog-title">Confirm Edit</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Do you want to save this text?</DialogContentText>
+          {pendingEdit && (
+            <Box
+              sx={{
+                mt: 2,
+                p: 2,
+                bgcolor: 'action.hover',
+                borderRadius: 1,
+                fontFamily: 'monospace',
+                wordBreak: 'break-word',
+              }}
+              data-testid="pending-edit-value"
+            >
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                {pendingEdit.field}:
+              </Typography>
+              <Typography variant="body1">
+                {String(pendingEdit.newRow[pendingEdit.field])}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onCancelSave} disabled={savingEdit} data-testid="cancel-save-button">
+            No
+          </Button>
+          <Button
+            onClick={onConfirmSave}
+            variant="contained"
+            disabled={savingEdit}
+            data-testid="confirm-save-button"
+          >
+            {savingEdit ? <CircularProgress size={20} /> : 'Yes'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   )
 }

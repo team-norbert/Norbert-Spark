@@ -13,15 +13,23 @@ export function ChatTypesPageClient() {
   const router = useRouter()
   const {
     chatTypes,
+    confirmDialogOpen,
     error,
+    handleCancelSave,
     handleCloseErrorMessage,
+    handleCloseSuccessMessage,
+    handleConfirmSave,
     handlePaginationChange,
     handleProcessRowUpdate,
+    handleProcessRowUpdateError,
     handleSearchChange,
     loading,
     paginationModel,
+    pendingEdit,
     rowCount,
+    savingEdit,
     searchQuery,
+    successMessage,
   } = useChatTypesPage()
 
   const handleNavigateHome = () => {
@@ -35,6 +43,7 @@ export function ChatTypesPageClient() {
   return (
     <ChatTypesPage
       chatTypes={chatTypes}
+      confirmDialogOpen={confirmDialogOpen}
       error={error}
       loading={loading}
       searchQuery={searchQuery}
@@ -43,9 +52,16 @@ export function ChatTypesPageClient() {
       onSearchChange={handleSearchChange}
       onPaginationChange={handlePaginationChange}
       onCloseErrorMessage={handleCloseErrorMessage}
+      onCloseSuccessMessage={handleCloseSuccessMessage}
       onNavigateHome={handleNavigateHome}
       onSignOut={handleSignOut}
       onProcessRowUpdate={handleProcessRowUpdate}
+      onProcessRowUpdateError={handleProcessRowUpdateError}
+      onConfirmSave={handleConfirmSave}
+      onCancelSave={handleCancelSave}
+      pendingEdit={pendingEdit}
+      savingEdit={savingEdit}
+      successMessage={successMessage}
     />
   )
 }
