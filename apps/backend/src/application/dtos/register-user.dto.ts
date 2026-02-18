@@ -51,7 +51,7 @@ export class RegisterUserDto {
     }
     // Provider validation: if provided, must be a string
     if (isDefined(data.provider) && !isString(data.provider)) {
-      throw new ValidationException('Provider must be a string when password is not provided')
+      throw new ValidationException('Provider must be a string when provided')
     }
 
     // ProviderId validation: if provided, must be a non-empty string
