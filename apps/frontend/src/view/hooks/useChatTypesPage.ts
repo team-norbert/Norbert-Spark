@@ -64,9 +64,7 @@ export function useChatTypesPage(): UseChatTypesPageReturn {
     try {
       // Editing is currently not persisted to the server.
       // Inform the user and revert the change so data is not misleadingly shown as saved.
-      setErrorMessage(
-        'Editing chat types is not yet supported. Your changes were not saved.'
-      )
+      setErrorMessage('Editing chat types is not yet supported. Your changes were not saved.')
       return oldRow
     } catch {
       // In case any unexpected error occurs, also revert to the previous row.
