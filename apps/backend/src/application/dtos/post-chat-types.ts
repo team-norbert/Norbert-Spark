@@ -1,4 +1,4 @@
-import { isString, isDefined } from '@norberts-spark/shared'
+import { isString, isDefined, isObject } from '@norberts-spark/shared'
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 
@@ -9,7 +9,7 @@ export class PostChatType {
   ) {}
 
   static validate(data: any): PostChatType {
-    if (!isDefined(data) || typeof data !== 'object') {
+    if (!isDefined(data) || !isObject(data)) {
       throw new TypeException('Invalid data: expected an object')
     }
     if (!isString(data.name) || !data.name.trim()) {
