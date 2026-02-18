@@ -45,7 +45,7 @@ export const isSeoFriendlyIdInvalid = (value: string): boolean => !validateKebab
 export const isDescriptionInvalid = (value: string): boolean =>
   !value || value.length < 1 || value.length > 500
 
-const getValidationMessage = (field: string, value: string): string | undefined => {
+export const getValidationMessage = (field: string, value: string): string | undefined => {
   if (field === 'name' && isNameInvalid(value)) {
     return 'Name must be between 1 and 200 characters'
   }
@@ -58,7 +58,7 @@ const getValidationMessage = (field: string, value: string): string | undefined 
   return undefined
 }
 
-function EditCell({
+export function EditCell({
   onValidationChange,
   params,
 }: {
