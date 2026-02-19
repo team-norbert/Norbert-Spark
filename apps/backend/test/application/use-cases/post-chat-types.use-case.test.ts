@@ -1,4 +1,3 @@
-import type { QueryResult } from 'pg'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -12,6 +11,7 @@ import {
 import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
+import type { DBChatType } from '../../../src/infrastructure/database/schema.js'
 import { SEO } from '../../../src/shared/utils/SEO.util.js'
 import { Uuid7Util } from '../../../src/shared/utils/uuid7.util.js'
 
@@ -22,12 +22,14 @@ describe('PostChatTypesUseCase', () => {
   let mockAiChatContent: AIContentPort
   let mockAuditContext: AuditContext
 
-  const mockQueryResult: QueryResult = {
-    command: 'INSERT',
-    rowCount: 1,
-    oid: 0,
-    fields: [],
-    rows: [],
+  const mockCreatedChatType: DBChatType = {
+    id: uuidv7(),
+    name: 'Test Chat Type',
+    description: 'A test chat type',
+    seoFriendlyId: 'test-chat-type',
+    seoFriendlyBase64Id: 'AAAAAAAAAAAAAAAAAAAAAA',
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
 
   beforeEach(() => {
@@ -51,7 +53,7 @@ describe('PostChatTypesUseCase', () => {
       fetchChatContent: vi.fn(),
       resolveChatTypeByParam: vi.fn(),
       putChatTypeDetails: vi.fn(),
-      createChatType: vi.fn().mockResolvedValue(mockQueryResult),
+      createChatType: vi.fn().mockResolvedValue(mockCreatedChatType),
     }
 
     mockAuditContext = {
@@ -112,12 +114,12 @@ describe('PostChatTypesUseCase', () => {
       expect(calls[0]![0].id).not.toBe(calls[1]![0].id)
     })
 
-    it('should return the QueryResult from createChatType', async () => {
+    it('should return the created chat type from createChatType', async () => {
       const data: PostChatTypesData = { name: 'Coding Helper', description: 'Helps with code' }
 
       const result = await useCase.execute(mockAuditContext, data)
 
-      expect(result).toEqual(mockQueryResult)
+      expect(result).toEqual(mockCreatedChatType)
     })
 
     it('should log the initial info message', async () => {
@@ -163,19 +165,6 @@ describe('PostChatTypesUseCase', () => {
       expect(auditEntry.changes).toEqual({ reason: 'creation_successful' })
     })
 
-    it('should set audit changes reason to "creation_unsuccessful" when createChatType returns a falsy result', async () => {
-      vi.mocked(mockAiChatContent.createChatType).mockResolvedValue(null as any)
-      const data: PostChatTypesData = {
-        name: 'Fail Audit',
-        description: 'Should mark unsuccessful',
-      }
-
-      await useCase.execute(mockAuditContext, data)
-
-      const auditEntry = vi.mocked(mockAuditLog.log).mock.calls[0]![0]
-      expect(auditEntry.changes).toEqual({ reason: 'creation_unsuccessful' })
-    })
-
     it('should handle auditContext with null userId', async () => {
       const contextWithNullUser: AuditContext = {
         userId: null,
@@ -190,7 +179,7 @@ describe('PostChatTypesUseCase', () => {
       expect(auditEntry.userId).toBeNull()
     })
 
-    it('should handle auditContext with undefined userAgent', async () => {
+    it('should handle auditContext with null userAgent', async () => {
       const contextWithoutAgent: AuditContext = {
         userId: new UserId(uuidv7()).getValue(),
         ipAddress: '10.0.0.1',
@@ -202,18 +191,6 @@ describe('PostChatTypesUseCase', () => {
 
       const auditEntry = vi.mocked(mockAuditLog.log).mock.calls[0]![0]
       expect(auditEntry.userAgent).toBeUndefined()
-    })
-
-    it('should still log the audit entry even when createChatType returns null', async () => {
-      vi.mocked(mockAiChatContent.createChatType).mockResolvedValue(null as any)
-      const data: PostChatTypesData = {
-        name: 'Null Result',
-        description: 'createChatType returns null',
-      }
-
-      await useCase.execute(mockAuditContext, data)
-
-      expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
     })
   })
 

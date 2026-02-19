@@ -8,7 +8,9 @@ import type { AIContentPort } from '../../../application/ports/ai-content.port.j
 import type { DBChatType } from '../../../infrastructure/database/schema.js'
 import { Uuid7Util } from '../../../shared/utils/uuid7.util.js'
 import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
-import type { PostChatTypesInsert } from '../../../application/use-cases/post-chat-types.use-case.js'
+import type { ChatTypeInsertDto } from '../../../application/dtos/chat-type-insert.dto.js'
+import { DatabaseUtil } from '../../../shared/utils/database.util.js'
+import { ConflictException } from '../../../shared/exceptions/conflict.exception.js'
 
 /**
  * Maximum allowed length for chat type parameter to prevent DoS attacks
@@ -148,16 +150,18 @@ export class AIChatContentRepository implements AIContentPort {
    * Inserts a new chat type record into the `chat_types` table.
    *
    * Logs a debug message before the insert and an info message on success.
-   * If the database operation fails, the error is logged and re-thrown so
-   * the caller can handle it (e.g. respond with an appropriate HTTP status).
+   * If the database operation fails with a unique constraint violation (duplicate
+   * name, seoFriendlyId, or seoFriendlyBase64Id), a ConflictException is thrown
+   * with a stable 409 status code. Other database errors are logged and re-thrown.
    *
    * @param data - The chat type fields to insert. Must satisfy
-   *   `PostChatTypesInsert` — all columns except the auto-managed
+   *   `ChatTypeInsertDto` — all columns except the auto-managed
    *   `createdAt` and `updatedAt` timestamps.
-   * @returns A promise that resolves to the raw `QueryResult` returned by
-   *   the `pg` driver after a successful insert.
-   * @throws Re-throws any error raised by the database driver (e.g. unique
-   *   constraint violations, connection failures) without modification.
+   * @returns A promise that resolves to the created chat type record with all fields
+   *   including the database-generated timestamps.
+   * @throws {ConflictException} If a unique constraint is violated
+   * @throws Re-throws any other error raised by the database driver
+   *   (e.g. connection failures) without modification.
    *
    * @example
    * const result = await repository.createChatType({
@@ -167,15 +171,34 @@ export class AIChatContentRepository implements AIContentPort {
    *   seoFriendlyBase64Id: 'AAAAAAAAAAAAAAAAAAAAAA',
    *   description: 'A general-purpose AI assistant chat type',
    * })
-   * // result.rowCount === 1 on success
+   * // result contains { id, name, description, seoFriendlyId, seoFriendlyBase64Id, createdAt, updatedAt }
    */
-  async createChatType(data: PostChatTypesInsert): Promise<QueryResult> {
+  async createChatType(data: ChatTypeInsertDto): Promise<DBChatType> {
     this.logger.debug('Creating new chat type', { name: data.name })
     try {
-      const result = await db.insert(chatTypes).values(data)
-      this.logger.info('Successfully created new chat type', { name: data.name, result })
-      return result
+      const [createdChatType] = await db.insert(chatTypes).values(data).returning()
+
+      if (!createdChatType) {
+        throw new Error('Failed to create chat type - no row returned')
+      }
+
+      this.logger.info('Successfully created new chat type', {
+        name: createdChatType.name,
+        id: createdChatType.id,
+      })
+      return createdChatType
     } catch (error) {
+      if (DatabaseUtil.isDuplicateKeyError(error)) {
+        this.logger.warn('Duplicate key error when creating chat type', {
+          name: data.name,
+          error,
+        })
+        throw new ConflictException('A chat type with this name or identifier already exists', {
+          name: data.name,
+          seoFriendlyId: data.seoFriendlyId,
+          seoFriendlyBase64Id: data.seoFriendlyBase64Id,
+        })
+      }
       this.logger.error('Error creating new chat type', error as Error)
       throw error
     }
