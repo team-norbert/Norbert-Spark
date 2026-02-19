@@ -175,5 +175,104 @@
         }
       }
     }
+  },
+  "post": {
+    "summary": "Create new chat AI settings with specific ID",
+    "description": "Creates new AI configuration settings for a specific chat type using a unique identifier. Returns 409 if a chat configuration with the same ID already exists.",
+    "operationId": "postAIChatSettingsById",
+    "tags": ["ai", "chat"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "The unique identifier for the chat option",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/PostResponseAIChatSettings.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "AI chat settings successfully created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - Insufficient permissions",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Conflict - Chat configuration with the same ID already exists",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Internal server error"
+            }
+          }
+        }
+      }
+    }
   }
 }
