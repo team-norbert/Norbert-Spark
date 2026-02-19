@@ -622,7 +622,7 @@ export function ChatTypesPage({
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-        <Link href="/chat-type/create" underline="hover">
+        <Link href="/chat-types/create" underline="hover">
           Create a new chat type
         </Link>
       </Typography>
