@@ -193,6 +193,7 @@ describe('ChatTypesPageClient', () => {
       expect(props?.onCloseErrorMessage).toBe(mockHookReturn.handleCloseErrorMessage)
       expect(typeof props?.onNavigateHome).toBe('function')
       expect(typeof props?.onSignOut).toBe('function')
+      expect(typeof props?.onChangeOptions).toBe('function')
     })
   })
 
@@ -344,6 +345,18 @@ describe('ChatTypesPageClient', () => {
       props?.onSignOut()
 
       expect(mockPush).toHaveBeenCalledWith('/api/auth/signout')
+      expect(mockPush).toHaveBeenCalledTimes(1)
+    })
+
+    it('should navigate to /ai-admin/:id when onChangeOptions is called', () => {
+      render(<ChatTypesPageClient />)
+
+      const call = vi.mocked(ChatTypesPage).mock.calls[0]
+      const props = call?.[0]
+
+      props?.onChangeOptions('some-chat-type-id')
+
+      expect(mockPush).toHaveBeenCalledWith('/ai-admin/some-chat-type-id')
       expect(mockPush).toHaveBeenCalledTimes(1)
     })
 

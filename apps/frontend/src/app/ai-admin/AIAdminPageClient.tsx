@@ -1,5 +1,7 @@
 'use client'
 
+import { useRouter } from 'next/navigation.js'
+
 import { AIAdminPage } from '@/view/client-components/AIAdminPage.js'
 import { useAIAdminPage } from '@/view/hooks/useAIAdminPage.js'
 
@@ -8,6 +10,7 @@ import { useAIAdminPage } from '@/view/hooks/useAIAdminPage.js'
  * Connects the presentational component with the business logic hook
  */
 export function AIAdminPageClient() {
+  const router = useRouter()
   const {
     chatTypes,
     error,
@@ -20,6 +23,18 @@ export function AIAdminPageClient() {
     searchQuery,
   } = useAIAdminPage()
 
+  const handleNavigateHome = () => {
+    router.push('/dashboard')
+  }
+
+  const handleSignOut = () => {
+    router.push('/api/auth/signout')
+  }
+
+  const handleChangeOptions = (id: string) => {
+    router.push(`/ai-admin/${id}`)
+  }
+
   return (
     <AIAdminPage
       chatTypes={chatTypes}
@@ -31,6 +46,9 @@ export function AIAdminPageClient() {
       onSearchChange={handleSearchChange}
       onPaginationChange={handlePaginationChange}
       onCloseErrorMessage={handleCloseErrorMessage}
+      onNavigateHome={handleNavigateHome}
+      onSignOut={handleSignOut}
+      onChangeOptions={handleChangeOptions}
     />
   )
 }
