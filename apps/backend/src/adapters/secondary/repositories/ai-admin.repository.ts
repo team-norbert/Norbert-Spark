@@ -55,42 +55,27 @@ export class AIAdminRepository implements AIAdminPort {
     this.logger.info('Creating chat AI options', { chatTypeId: id })
 
     try {
-      const insertData: Partial<DBChatAiOptions> = {
+      const insertData: typeof chatAiOptions.$inferInsert = {
         chatTypeId: id,
         prompt: data.prompt,
-      }
-
-      if (isDefined(data.maxTokens)) {
-        insertData.maxTokens = data.maxTokens
-      }
-      if (isDefined(data.temperature)) {
-        insertData.temperature = data.temperature.toString()
-      }
-      if (isDefined(data.topP)) {
-        insertData.topP = data.topP.toString()
-      }
-      if (isDefined(data.frequencyPenalty)) {
-        insertData.frequencyPenalty = data.frequencyPenalty.toString()
-      }
-      if (isDefined(data.presencePenalty)) {
-        insertData.presencePenalty = data.presencePenalty.toString()
-      }
-      if (isDefined(data.topK)) {
-        insertData.topK = data.topK
-      }
-      if (isDefined(data.stopSequences)) {
-        insertData.stopSequences = data.stopSequences
-      }
-      if (isDefined(data.seed)) {
-        insertData.seed = data.seed
-      }
-      if (isDefined(data.maxRetries)) {
-        insertData.maxRetries = data.maxRetries
+        ...(isDefined(data.maxTokens) && { maxTokens: data.maxTokens }),
+        ...(isDefined(data.temperature) && { temperature: data.temperature.toString() }),
+        ...(isDefined(data.topP) && { topP: data.topP.toString() }),
+        ...(isDefined(data.frequencyPenalty) && {
+          frequencyPenalty: data.frequencyPenalty.toString(),
+        }),
+        ...(isDefined(data.presencePenalty) && {
+          presencePenalty: data.presencePenalty.toString(),
+        }),
+        ...(isDefined(data.topK) && { topK: data.topK }),
+        ...(isDefined(data.stopSequences) && { stopSequences: data.stopSequences }),
+        ...(isDefined(data.seed) && { seed: data.seed }),
+        ...(isDefined(data.maxRetries) && { maxRetries: data.maxRetries }),
       }
 
       const result = await db
         .insert(chatAiOptions)
-        .values(insertData as DBChatAiOptions)
+        .values(insertData)
         .returning()
 
       this.logger.info('Chat AI options created successfully', { chatTypeId: id })
