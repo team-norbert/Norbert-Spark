@@ -2,7 +2,7 @@ import { Verifier } from '@pact-foundation/pact'
 import type { FastifyInstance } from 'fastify'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-const PACT_BROKER_URL = 'http://localhost:9293'
+const PACT_BROKER_URL = process.env.PACT_BROKER_URL ?? 'http://localhost:9292'
 
 /**
  * PROVIDER VERIFICATION TEST (Backend)
@@ -12,7 +12,7 @@ const PACT_BROKER_URL = 'http://localhost:9293'
  *
  * How it works:
  *   1. Starts a real Fastify server with the /health endpoint
- *   2. Fetches the latest pact for BackendAPI from the broker at localhost:9293
+ *   2. Fetches the latest pact for BackendAPI from the broker at localhost:9292
  *   3. Replays every interaction from the contract against the real server
  *   4. Publishes the verification result back to the broker
  *
