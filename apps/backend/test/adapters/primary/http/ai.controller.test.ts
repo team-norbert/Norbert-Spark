@@ -2904,4 +2904,341 @@ describe('AIController', () => {
       })
     })
   })
+
+  describe('createAIChatType()', () => {
+    describe('successful scenarios', () => {
+      it('should create a chat type successfully and respond with 201', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+        const mockResult = { rowCount: 1, rows: [], command: 'INSERT', oid: 0, fields: [] }
+
+        mockRequest.body = {
+          name: 'General Assistant',
+          description: 'A general-purpose AI assistant',
+        }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue(mockResult as any)
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(201)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockResult,
+        })
+      })
+
+      it('should log the debug message on entry', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: 'Test Type', description: 'A test chat type' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue({ rowCount: 1 } as any)
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith('Received createAIChatType request')
+      })
+
+      it('should call execute with correct audit context', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+        const customRequest = {
+          ...mockRequest,
+          body: { name: 'Audit Test', description: 'Testing audit context' },
+          user: { sub: userId, email: 'admin@example.com', roles: ['admin'] },
+          ip: '10.0.0.1',
+          headers: { 'user-agent': 'Mozilla/5.0 (Test)' },
+        } as any
+        vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue({ rowCount: 1 } as any)
+
+        await controller.createAIChatType(customRequest, mockReply)
+
+        expect(mockPostChatTypesUseCase.execute).toHaveBeenCalledWith(
+          { userId, ipAddress: '10.0.0.1', userAgent: 'Mozilla/5.0 (Test)' },
+          expect.objectContaining({ name: 'Audit Test', description: 'Testing audit context' })
+        )
+      })
+
+      it('should call execute with null userAgent when user-agent header is absent', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: 'No Agent', description: 'No user-agent header' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        mockRequest.headers = {}
+        vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue({ rowCount: 1 } as any)
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockPostChatTypesUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({ userAgent: null }),
+          expect.any(Object)
+        )
+      })
+
+      it('should call execute with null userId when request.user is absent', async () => {
+        mockRequest.body = { name: 'Unauthenticated', description: 'No user on request' }
+        mockRequest.user = undefined as any
+        vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue({ rowCount: 1 } as any)
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockPostChatTypesUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({ userId: null }),
+          expect.any(Object)
+        )
+      })
+
+      it('should pass trimmed name and description to the use case', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: '  Creative Writing  ', description: '  Helps with writing  ' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue({ rowCount: 1 } as any)
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        // PostChatType.validate() trims values before passing to use case
+        expect(mockPostChatTypesUseCase.execute).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({ name: 'Creative Writing', description: 'Helps with writing' })
+        )
+      })
+    })
+
+    describe('validation failures', () => {
+      it('should return 400 when name is missing', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { description: 'No name provided' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid name: must be a non-empty string',
+        })
+        expect(mockPostChatTypesUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 400 when name is an empty string', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: '', description: 'Has description' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid name: must be a non-empty string',
+        })
+        expect(mockPostChatTypesUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 400 when name is whitespace only', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: '   ', description: 'Has description' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid name: must be a non-empty string',
+        })
+        expect(mockPostChatTypesUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 400 when description is missing', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: 'Valid Name' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid description: must be a non-empty string',
+        })
+        expect(mockPostChatTypesUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 400 when description is an empty string', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: 'Valid Name', description: '' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid description: must be a non-empty string',
+        })
+        expect(mockPostChatTypesUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 400 when name exceeds 200 characters', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: 'a'.repeat(201), description: 'Valid description' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid name: must be less than 200 characters',
+        })
+        expect(mockPostChatTypesUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 400 when description exceeds 500 characters', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: 'Valid Name', description: 'a'.repeat(501) }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid description: must be less than 500 characters',
+        })
+        expect(mockPostChatTypesUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 500 when body is not an object', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = 'not an object'
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid data: expected an object',
+        })
+        expect(mockPostChatTypesUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 500 when body is null', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = null
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid data: expected an object',
+        })
+        expect(mockPostChatTypesUseCase.execute).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('error handling', () => {
+      it('should return 500 on generic error from use case', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: 'Error Case', description: 'Will throw' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(
+          new Error('DB connection lost')
+        )
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'DB connection lost',
+        })
+      })
+
+      it('should return 500 on InternalErrorException from use case', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: 'Internal Error', description: 'Will throw internal error' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(
+          new InternalErrorException('Unexpected failure')
+        )
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Unexpected failure',
+        })
+      })
+
+      it('should return 404 on NotFoundException from use case', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+        const id = uuidv7()
+
+        mockRequest.body = { name: 'Not Found', description: 'Will throw not found' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(
+          new NotFoundException('ChatType', id)
+        )
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(404)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: `ChatType with identifier '${id}' not found`,
+        })
+      })
+
+      it('should return "An unexpected error occurred" when error has no message', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+        const emptyError = new Error()
+        emptyError.message = ''
+
+        mockRequest.body = { name: 'Empty Error', description: 'Empty error message' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(emptyError)
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'An unexpected error occurred',
+        })
+      })
+
+      it('should return 500 when a non-Error value is thrown', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: 'String Throw', description: 'Throws a string' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue('something went wrong')
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'An unexpected error occurred',
+        })
+      })
+    })
+  })
 })
