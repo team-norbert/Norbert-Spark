@@ -13,7 +13,7 @@ function createMockAuthResult(email: string, token: string, roles: string[], use
   return {
     userId: new UserId(userId || uuidv7()).getValue(),
     email,
-    access_token: token,
+    accessToken: token,
     roles,
   }
 }
@@ -241,7 +241,7 @@ describe('AuthController', () => {
         })
         expect(sentData.data).toHaveProperty('userId')
         expect(sentData.data).toHaveProperty('email')
-        expect(sentData.data).toHaveProperty('access_token')
+        expect(sentData.data).toHaveProperty('accessToken')
         expect(sentData.data).toHaveProperty('roles')
       })
 

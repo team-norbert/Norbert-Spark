@@ -7,10 +7,27 @@
       "type": "boolean",
       "example": true
     },
-    "message": {
-      "type": "string",
-      "example": "OAuth user sync completed",
-      "description": "Success message confirming the sync operation"
+    "data": {
+      "userId": {
+        "type": "string",
+        "example": "12345",
+        "description": "Unique identifier of the synchronized user"
+      },
+      "accessToken": {
+        "type": "string",
+        "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        "description": "Access token for the synchronized user"
+      },
+      "tokenType": {
+        "type": "string",
+        "example": "Bearer",
+        "description": "Type of the access token"
+      },
+      "expiresIn": {
+        "type": "integer",
+        "example": 3600,
+        "description": "Time in seconds until the access token expires"
+      }
     }
   }
 }

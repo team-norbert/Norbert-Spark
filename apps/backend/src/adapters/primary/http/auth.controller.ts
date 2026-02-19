@@ -188,7 +188,12 @@ export class AuthController {
       // Convert result to HTTP response
       reply.code(200).send({
         success: true,
-        data: result,
+        data: {
+          userId: result.userId,
+          email: result.email,
+          accessToken: result.accessToken,
+          roles: result.roles,
+        },
       })
     } catch (error) {
       const err = error as Error
@@ -260,7 +265,12 @@ export class AuthController {
 
       reply.code(200).send({
         success: true,
-        data: result,
+        data: {
+          userId: result.userId,
+          accessToken: result.access_token,
+          tokenType: result.token_type,
+          expiresIn: result.expires_in,
+        },
       })
     } catch (error) {
       const err = error as Error

@@ -140,7 +140,7 @@ export class LoginUserUseCase {
   ): Promise<{
     userId: UserIdType
     email: string
-    access_token: string
+    accessToken: string
     roles: string[]
   }> {
     this.logger.info('User login attempt', { email: dto.email })
@@ -225,7 +225,7 @@ export class LoginUserUseCase {
     return {
       userId: user.id,
       email: user.getEmail(),
-      access_token: accessToken,
+      accessToken: accessToken,
       roles: [user.getRole()],
     }
   }

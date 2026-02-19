@@ -97,7 +97,7 @@ describe('LoginUserUseCase', () => {
         expect(result).toBeDefined()
         expect(result.userId).toBe(mockUser.id)
         expect(result.email).toBe('john@example.com')
-        expect(result.access_token).toBe('mock-jwt-token')
+        expect(result.accessToken).toBe('mock-jwt-token')
         expect(result.roles).toEqual(['user'])
       })
 
@@ -196,7 +196,7 @@ describe('LoginUserUseCase', () => {
 
         const result = await useCase.execute(dto, auditContext)
 
-        expect(result.access_token).toBe('custom-jwt-token-12345')
+        expect(result.accessToken).toBe('custom-jwt-token-12345')
       })
 
       it('should log audit entry for successful login', async () => {
@@ -401,8 +401,8 @@ describe('LoginUserUseCase', () => {
         const result1 = await useCase.execute(dto1, auditContext)
         const result2 = await useCase.execute(dto2, auditContext)
 
-        expect(result1.access_token).toBe('token-for-user1')
-        expect(result2.access_token).toBe('token-for-user2')
+        expect(result1.accessToken).toBe('token-for-user1')
+        expect(result2.accessToken).toBe('token-for-user2')
         expect(result1.userId).not.toBe(result2.userId)
       })
     })
@@ -451,7 +451,7 @@ describe('LoginUserUseCase', () => {
         expect(result).not.toHaveProperty('passwordHash')
 
         // Should only expose necessary fields
-        expect(Object.keys(result).sort()).toEqual(['access_token', 'email', 'roles', 'userId'])
+        expect(Object.keys(result).sort()).toEqual(['accessToken', 'email', 'roles', 'userId'])
       })
 
       it('should log sensitive operations for security audit', async () => {

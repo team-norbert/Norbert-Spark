@@ -13,7 +13,7 @@ interface BackendLoginResponse {
   data?: {
     userId: string
     email: string
-    access_token: string
+    accessToken: string
     roles: string[]
   }
   error?: string
@@ -98,11 +98,11 @@ export const authOptions: NextAuthOptions = {
           const data = result.data
 
           // Backend should return: { userId, email, access_token, roles }
-          if (data?.access_token) {
+          if (data?.accessToken) {
             return {
               id: data.userId,
               email: data.email,
-              accessToken: data.access_token,
+              accessToken: data.accessToken,
               roles: data.roles || [],
             } as User
           }
