@@ -5,7 +5,7 @@ import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { UUIDType } from '../../domain/value-objects/uuid.js'
 import type { DBChatAiOptions } from '../../infrastructure/database/schema.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
-import { PostAIAdminDTO } from '../dtos/post-ai-admin.dto.js'
+import type { PostAIAdminDTO } from '../dtos/post-ai-admin.dto.js'
 
 export class PostAIAdminUseCase {
   constructor(
@@ -22,7 +22,7 @@ export class PostAIAdminUseCase {
     this.logger.info(`Executing PutAIAdminUseCase for ID: ${id}`)
 
     try {
-      const result = await this.aiAdminPort.putChatAIOptions(id, dto)
+      const result = await this.aiAdminPort.createChatAIOptions(id, dto)
 
       // Log successful audit
       await this.logAudit(id, auditContext, 'chat_ai_options_create')

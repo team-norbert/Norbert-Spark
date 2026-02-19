@@ -5,4 +5,5 @@ import type { PutAIAdminDTO } from '../dtos/put-ai-admin.dto.js'
 export interface AIAdminPort {
   getAllChatAIOptions(id: UUIDType): Promise<DBChatAiOptions | null>
   putChatAIOptions(id: UUIDType, dto: PutAIAdminDTO): Promise<DBChatAiOptions | null>
+  createChatAIOptions(id: UUIDType, dto: PutAIAdminDTO): Promise<DBChatAiOptions | null>
 }

@@ -7,9 +7,60 @@ import type { DBChatAiOptions } from '../../../infrastructure/database/schema.js
 import type { UUIDType } from '../../../domain/value-objects/uuid.js'
 import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
 import { isDefined } from '@norberts-spark/shared'
+import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
 
 export class AIAdminRepository implements AIAdminPort {
   constructor(private readonly logger: LoggerPort) {}
+
+  async createChatAIOptions(id: UUIDType, data: PostAIAdminDTO): Promise<DBChatAiOptions | null> {
+    this.logger.info('Creating chat AI options', { chatTypeId: id })
+
+    try {
+      const insertData: Partial<DBChatAiOptions> = {
+        chatTypeId: id,
+        prompt: data.prompt,
+      }
+
+      if (isDefined(data.maxTokens)) {
+        insertData.maxTokens = data.maxTokens
+      }
+      if (isDefined(data.temperature)) {
+        insertData.temperature = data.temperature.toString()
+      }
+      if (isDefined(data.topP)) {
+        insertData.topP = data.topP.toString()
+      }
+      if (isDefined(data.frequencyPenalty)) {
+        insertData.frequencyPenalty = data.frequencyPenalty.toString()
+      }
+      if (isDefined(data.presencePenalty)) {
+        insertData.presencePenalty = data.presencePenalty.toString()
+      }
+      if (isDefined(data.topK)) {
+        insertData.topK = data.topK
+      }
+      if (isDefined(data.stopSequences)) {
+        insertData.stopSequences = data.stopSequences
+      }
+      if (isDefined(data.seed)) {
+        insertData.seed = data.seed
+      }
+      if (isDefined(data.maxRetries)) {
+        insertData.maxRetries = data.maxRetries
+      }
+
+      const result = await db
+        .insert(chatAiOptions)
+        .values(insertData as DBChatAiOptions)
+        .returning()
+
+      this.logger.info('Chat AI options created successfully', { chatTypeId: id })
+      return result[0] ?? null
+    } catch (error) {
+      this.logger.error('Error creating chat AI options', error as Error, { chatTypeId: id })
+      throw error
+    }
+  }
 
   async getAllChatAIOptions(id: UUIDType): Promise<DBChatAiOptions | null> {
     this.logger.info('Fetching chat AI options', { id })

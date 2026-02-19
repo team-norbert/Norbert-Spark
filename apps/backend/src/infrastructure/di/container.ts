@@ -351,7 +351,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.aiAdminController = new AIAdminController(
       this.logger,
       this.getAIAdminUseCase,
-      this.putAIAdminUseCase
+      this.putAIAdminUseCase,
+      this.postAIAdminUseCase
     )
     this.companyController = new CompanyController(
       this.logger,
