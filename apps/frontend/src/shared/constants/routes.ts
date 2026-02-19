@@ -7,8 +7,12 @@ export const PROTECTED_ROUTES = [
   '/dashboard',
   '/profile',
   '/ai',
+  '/ai/*',
   '/ai-admin',
   '/extract-data',
+  '/company-details',
+  '/company-details/update',
+  '/chat-types',
 ]
 
 /**
