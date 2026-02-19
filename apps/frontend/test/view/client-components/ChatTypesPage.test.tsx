@@ -34,6 +34,7 @@ const defaultProps = {
   error: null,
   loading: false,
   onCancelSave: vi.fn(),
+  onChangeOptions: vi.fn(),
   onCloseDialogError: vi.fn(),
   onCloseErrorMessage: vi.fn(),
   onCloseSuccessMessage: vi.fn(),
@@ -547,6 +548,67 @@ describe('ChatTypesPage', () => {
       const { container } = render(<ChatTypesPage {...defaultProps} chatTypes={chatTypes} />)
       // The date cells should exist but be empty — no formatted date text
       expect(container).toBeInTheDocument()
+    })
+  })
+
+  // ── Actions column ────────────────────────────────────────────────────────
+
+  describe('actions column', () => {
+    it('should render the "Click to change options" column header', () => {
+      render(<ChatTypesPage {...defaultProps} />)
+      expect(screen.getByText('Click to change options')).toBeInTheDocument()
+    })
+
+    it('should render a "Change Options" button for each row', () => {
+      render(<ChatTypesPage {...defaultProps} />)
+      expect(screen.getByRole('button', { name: 'Change Options' })).toBeInTheDocument()
+    })
+
+    it('should apply the correct data-testid derived from the row id', () => {
+      const chatType = makeChatType()
+      render(<ChatTypesPage {...defaultProps} chatTypes={[chatType]} />)
+      expect(screen.getByTestId(`change-options-${chatType.id}`)).toBeInTheDocument()
+    })
+
+    it('should render one button per row, each with a unique data-testid', () => {
+      const first = makeChatType()
+      const second = makeChatType({
+        id: '01942f8e-0000-0000-0000-000000000001',
+        name: 'Second Type',
+      })
+      render(<ChatTypesPage {...defaultProps} chatTypes={[first, second]} rowCount={2} />)
+      expect(screen.getByTestId(`change-options-${first.id}`)).toBeInTheDocument()
+      expect(screen.getByTestId(`change-options-${second.id}`)).toBeInTheDocument()
+    })
+
+    it('should navigate to /ai-admin/:id when the button is clicked', () => {
+      const onChangeOptions = vi.fn()
+      const chatType = makeChatType()
+      render(
+        <ChatTypesPage {...defaultProps} chatTypes={[chatType]} onChangeOptions={onChangeOptions} />
+      )
+
+      fireEvent.click(screen.getByTestId(`change-options-${chatType.id}`))
+
+      expect(onChangeOptions).toHaveBeenCalledTimes(1)
+      expect(onChangeOptions).toHaveBeenCalledWith(chatType.id)
+    })
+
+    it('should build the correct route for a different chat type id', () => {
+      const onChangeOptions = vi.fn()
+      const chatType = makeChatType({ id: 'abcdef12-0000-0000-0000-000000000099' })
+      render(
+        <ChatTypesPage {...defaultProps} chatTypes={[chatType]} onChangeOptions={onChangeOptions} />
+      )
+
+      fireEvent.click(screen.getByTestId(`change-options-${chatType.id}`))
+
+      expect(onChangeOptions).toHaveBeenCalledWith('abcdef12-0000-0000-0000-000000000099')
+    })
+
+    it('should not render any "Change Options" buttons when chatTypes is empty', () => {
+      render(<ChatTypesPage {...defaultProps} chatTypes={[]} rowCount={0} />)
+      expect(screen.queryAllByRole('button', { name: 'Change Options' })).toHaveLength(0)
     })
   })
 

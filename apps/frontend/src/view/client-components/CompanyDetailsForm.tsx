@@ -17,6 +17,8 @@ import {
 } from '@mui/material'
 import React from 'react'
 
+import { PageHeader } from './PageHeader.js'
+
 interface CompanyDetailsFormData {
   // Company fields
   companyId: string
@@ -65,6 +67,8 @@ interface CompanyDetailsFormProps {
   ) => (event: { target: { value: unknown } }) => void
   readonly onSubmit: (event: React.FormEvent) => void
   readonly onCancel: () => void
+  readonly onNavigateHome: () => void
+  readonly onSignOut: () => void
   readonly isSubmitting?: boolean
 }
 
@@ -79,6 +83,8 @@ export function CompanyDetailsForm({
   isSubmitting,
   onCancel,
   onFieldChange,
+  onNavigateHome,
+  onSignOut,
   onSubmit,
   successMessage,
 }: CompanyDetailsFormProps) {
@@ -92,9 +98,13 @@ export function CompanyDetailsForm({
           py: 4,
         }}
       >
-        <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3, fontWeight: 600 }}>
-          Update Company Details
-        </Typography>
+        <header>
+          <PageHeader
+            title="Update Company Details"
+            onNavigateHome={onNavigateHome}
+            onSignOut={onSignOut}
+          />
+        </header>
 
         {generalError && (
           <Alert severity="error" sx={{ mb: 3 }}>

@@ -21,6 +21,8 @@ import {
 
 import type { User } from '@/domain/user/user.js'
 
+import { PageHeader } from './PageHeader.js'
+
 interface AdminPageProps {
   users: readonly User[]
   error: string | null
@@ -41,6 +43,8 @@ interface AdminPageProps {
   onCancelDelete: () => void
   onCloseSuccessMessage: () => void
   onCloseErrorMessage: () => void
+  onNavigateHome: () => void
+  onSignOut: () => void
 }
 
 /**
@@ -57,9 +61,11 @@ export function AdminPage({
   onCloseSuccessMessage,
   onConfirmDelete,
   onDeleteClick,
+  onNavigateHome,
   onPaginationChange,
   onSearchChange,
   onSelectionChange,
+  onSignOut,
   paginationModel,
   rowCount,
   searchQuery,
@@ -98,9 +104,13 @@ export function AdminPage({
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
-          User Management
-        </Typography>
+        <header>
+          <PageHeader
+            title="User Management"
+            onNavigateHome={onNavigateHome}
+            onSignOut={onSignOut}
+          />
+        </header>
         <Typography variant="body1" color="text.secondary">
           {currentUserRole === 'admin'
             ? 'Manage user accounts and roles'

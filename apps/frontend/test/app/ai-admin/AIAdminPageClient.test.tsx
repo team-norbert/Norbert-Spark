@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { useRouter } from 'next/navigation.js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIAdminPageClient } from '@/app/ai-admin/AIAdminPageClient.js'
@@ -24,6 +25,11 @@ vi.mock('@/view/client-components/AIAdminPage.js', () => ({
 // Mock the useAIAdminPage hook
 vi.mock('@/view/hooks/useAIAdminPage.js', () => ({
   useAIAdminPage: vi.fn(),
+}))
+
+// Mock next/navigation
+vi.mock('next/navigation.js', () => ({
+  useRouter: vi.fn(() => ({ push: vi.fn() })),
 }))
 
 describe('AIAdminPageClient', () => {
@@ -209,6 +215,48 @@ describe('AIAdminPageClient', () => {
       const props = vi.mocked(AIAdminPage).mock.calls[0]?.[0]
       expect(props?.onCloseErrorMessage).toBe(mockHandleCloseErrorMessage)
     })
+
+    it('should pass onNavigateHome callback that navigates to /dashboard', () => {
+      const mockPush = vi.fn()
+      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<
+        typeof useRouter
+      >)
+
+      render(<AIAdminPageClient />)
+
+      const props = vi.mocked(AIAdminPage).mock.calls[0]?.[0]
+      props?.onNavigateHome()
+
+      expect(mockPush).toHaveBeenCalledWith('/dashboard')
+    })
+
+    it('should pass onSignOut callback that navigates to /api/auth/signout', () => {
+      const mockPush = vi.fn()
+      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<
+        typeof useRouter
+      >)
+
+      render(<AIAdminPageClient />)
+
+      const props = vi.mocked(AIAdminPage).mock.calls[0]?.[0]
+      props?.onSignOut()
+
+      expect(mockPush).toHaveBeenCalledWith('/api/auth/signout')
+    })
+
+    it('should pass onChangeOptions callback that navigates to /ai-admin/:id', () => {
+      const mockPush = vi.fn()
+      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<
+        typeof useRouter
+      >)
+
+      render(<AIAdminPageClient />)
+
+      const props = vi.mocked(AIAdminPage).mock.calls[0]?.[0]
+      props?.onChangeOptions('some-chat-type-id')
+
+      expect(mockPush).toHaveBeenCalledWith('/ai-admin/some-chat-type-id')
+    })
   })
 
   describe('Complete Props Validation', () => {
@@ -217,7 +265,7 @@ describe('AIAdminPageClient', () => {
 
       expect(AIAdminPage).toHaveBeenCalled()
       const props = vi.mocked(AIAdminPage).mock.calls[0]?.[0]
-      expect(props).toEqual({
+      expect(props).toMatchObject({
         chatTypes: mockChatTypes,
         error: null,
         loading: false,
@@ -228,6 +276,9 @@ describe('AIAdminPageClient', () => {
         onPaginationChange: mockHandlePaginationChange,
         onCloseErrorMessage: mockHandleCloseErrorMessage,
       })
+      expect(typeof props?.onNavigateHome).toBe('function')
+      expect(typeof props?.onSignOut).toBe('function')
+      expect(typeof props?.onChangeOptions).toBe('function')
     })
   })
 

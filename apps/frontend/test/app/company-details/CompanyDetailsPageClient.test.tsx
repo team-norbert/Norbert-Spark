@@ -10,6 +10,11 @@ vi.mock('@/view/hooks/useCompanyDetails.js', () => ({
   useCompanyDetails: vi.fn(),
 }))
 
+// Mock next/navigation to avoid "app router not mounted" error
+vi.mock('next/navigation.js', () => ({
+  useRouter: vi.fn(() => ({ push: vi.fn() })),
+}))
+
 // Mock the CompanyDetails component
 vi.mock('@/view/client-components/CompanyDetails.js', () => ({
   CompanyDetails: vi.fn((props) => (
@@ -83,6 +88,8 @@ describe('CompanyDetailsPageClient', () => {
         keyPerson: mockHookReturn.keyPerson,
         isLoading: mockHookReturn.isLoading,
         error: mockHookReturn.error,
+        onNavigateHome: expect.any(Function),
+        onSignOut: expect.any(Function),
       })
     })
 

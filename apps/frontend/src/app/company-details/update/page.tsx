@@ -1,6 +1,7 @@
 'use client'
 
 import { Box, CircularProgress, Container, Typography } from '@mui/material'
+import { useRouter } from 'next/navigation.js'
 
 import { CompanyDetailsForm } from '@/view/client-components/CompanyDetailsForm.js'
 import { useCompanyDetailsForm } from '@/view/hooks/useCompanyDetailsForm.js'
@@ -11,6 +12,7 @@ import { useCompanyDetailsForm } from '@/view/hooks/useCompanyDetailsForm.js'
  * Business logic is in the hook, presentation is in the component.
  */
 export default function UpdateCompanyDetailsPage() {
+  const router = useRouter()
   const {
     errors,
     formData,
@@ -22,6 +24,14 @@ export default function UpdateCompanyDetailsPage() {
     isSubmitting,
     successMessage,
   } = useCompanyDetailsForm()
+
+  const handleNavigateHome = () => {
+    router.push('/dashboard')
+  }
+
+  const handleSignOut = () => {
+    router.push('/api/auth/signout')
+  }
 
   if (isLoading) {
     return (
@@ -53,6 +63,8 @@ export default function UpdateCompanyDetailsPage() {
       onFieldChange={handleChange}
       onSubmit={handleSubmit}
       onCancel={handleCancel}
+      onNavigateHome={handleNavigateHome}
+      onSignOut={handleSignOut}
       isSubmitting={isSubmitting}
     />
   )

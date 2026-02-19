@@ -42,6 +42,10 @@ export function ChatTypesPageClient() {
     router.push('/api/auth/signout')
   }
 
+  const handleChangeOptions = (id: string) => {
+    router.push(`/ai-admin/${id}`)
+  }
+
   return (
     <ChatTypesPage
       chatTypes={chatTypes}
@@ -59,6 +63,7 @@ export function ChatTypesPageClient() {
       onCloseSuccessMessage={handleCloseSuccessMessage}
       onNavigateHome={handleNavigateHome}
       onSignOut={handleSignOut}
+      onChangeOptions={handleChangeOptions}
       onProcessRowUpdate={handleProcessRowUpdate}
       onProcessRowUpdateError={handleProcessRowUpdateError}
       onConfirmSave={handleConfirmSave}

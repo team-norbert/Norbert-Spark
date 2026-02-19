@@ -2,9 +2,10 @@
 
 import { Alert, Box, Button, Container, TextField, Typography } from '@mui/material'
 import { DataGrid, type GridColDef, type GridPaginationModel } from '@mui/x-data-grid'
-import { useRouter } from 'next/navigation.js'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
+
+import { PageHeader } from './PageHeader.js'
 
 interface AIAdminPageProps {
   chatTypes: readonly ChatType[]
@@ -16,6 +17,9 @@ interface AIAdminPageProps {
   onSearchChange: (query: string) => void
   onPaginationChange: (model: GridPaginationModel) => void
   onCloseErrorMessage: () => void
+  onNavigateHome: () => void
+  onSignOut: () => void
+  onChangeOptions: (id: string) => void
 }
 
 /**
@@ -27,14 +31,16 @@ export function AIAdminPage({
   chatTypes,
   error,
   loading,
+  onChangeOptions,
   onCloseErrorMessage,
+  onNavigateHome,
   onPaginationChange,
   onSearchChange,
+  onSignOut,
   paginationModel,
   rowCount,
   searchQuery,
 }: AIAdminPageProps) {
-  const router = useRouter()
   // Define columns for the DataGrid
   const columns: GridColDef<ChatType>[] = [
     {
@@ -87,29 +93,32 @@ export function AIAdminPage({
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        <>
-          <Button
-            data-testid={`change-options-${params.row.id}`}
-            variant="outlined"
-            size="small"
-            color="primary"
-            onClick={() => {
-              router.push(`/ai-admin/${params.row.id}`)
-            }}
-          >
-            Change Options
-          </Button>
-        </>
+        <Button
+          data-testid={`change-options-${params.row.id}`}
+          variant="outlined"
+          size="small"
+          color="primary"
+          onClick={() => {
+            onChangeOptions(params.row.id)
+          }}
+        >
+          Change Options
+        </Button>
       ),
     },
   ]
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
-          AI Chat Configuration
-        </Typography>
+      <header>
+        <PageHeader
+          title="AI Chat Configuration"
+          onNavigateHome={onNavigateHome}
+          onSignOut={onSignOut}
+        />
+      </header>
+
+      <Box sx={{ mb: 2 }}>
         <Typography variant="body1" color="text.secondary">
           View and manage AI chat types and their configurations
         </Typography>

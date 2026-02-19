@@ -211,6 +211,8 @@ interface ChatTypesPageProps {
   dialogError: string | null
   /** Called when the user closes the dialog error Alert. */
   onCloseDialogError: () => void
+  /** Called when the user clicks "Change Options" for a chat type row. */
+  onChangeOptions: (id: string) => void
 }
 
 /**
@@ -236,6 +238,7 @@ export function ChatTypesPage({
   error,
   loading,
   onCancelSave,
+  onChangeOptions,
   onCloseDialogError,
   onCloseErrorMessage,
   onCloseSuccessMessage,
@@ -510,6 +513,26 @@ export function ChatTypesPage({
           </Tooltip>
         )
       },
+    },
+    {
+      field: 'actions',
+      headerName: 'Click to change options',
+      width: 200,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Button
+          data-testid={`change-options-${params.row.id}`}
+          variant="outlined"
+          size="small"
+          color="primary"
+          onClick={() => {
+            onChangeOptions(params.row.id)
+          }}
+        >
+          Change Options
+        </Button>
+      ),
     },
   ]
 

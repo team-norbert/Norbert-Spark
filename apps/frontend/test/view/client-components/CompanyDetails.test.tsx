@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CompanyDetails } from '@/view/client-components/CompanyDetails.js'
 
@@ -30,20 +30,41 @@ describe('CompanyDetails Component', () => {
     updatedAt: '2024-01-20T14:45:00Z',
   }
 
+  const mockOnNavigateHome = vi.fn()
+  const mockOnSignOut = vi.fn()
+
   beforeEach(() => {
-    // Reset any mocked Date if needed
+    vi.clearAllMocks()
   })
 
   describe('Loading State', () => {
     it('should render loading message when isLoading is true', () => {
-      render(<CompanyDetails company={null} keyPerson={null} isLoading={true} error={null} />)
+      render(
+        <CompanyDetails
+          company={null}
+          keyPerson={null}
+          isLoading={true}
+          error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
+        />
+      )
 
       expect(screen.getByRole('heading', { name: /company details/i })).toBeInTheDocument()
       expect(screen.getByText('Loading company details...')).toBeInTheDocument()
     })
 
     it('should not render company or key person sections when loading', () => {
-      render(<CompanyDetails company={null} keyPerson={null} isLoading={true} error={null} />)
+      render(
+        <CompanyDetails
+          company={null}
+          keyPerson={null}
+          isLoading={true}
+          error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
+        />
+      )
 
       expect(screen.queryByText('Company Information')).not.toBeInTheDocument()
       expect(screen.queryByText('Key Person Contact')).not.toBeInTheDocument()
@@ -54,7 +75,14 @@ describe('CompanyDetails Component', () => {
     it('should render error message when error is provided', () => {
       const errorMessage = 'Failed to load company details'
       render(
-        <CompanyDetails company={null} keyPerson={null} isLoading={false} error={errorMessage} />
+        <CompanyDetails
+          company={null}
+          keyPerson={null}
+          isLoading={false}
+          error={errorMessage}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
+        />
       )
 
       expect(screen.getByRole('heading', { name: /company details/i })).toBeInTheDocument()
@@ -63,7 +91,14 @@ describe('CompanyDetails Component', () => {
 
     it('should not render company or key person sections when error exists', () => {
       render(
-        <CompanyDetails company={null} keyPerson={null} isLoading={false} error="Some error" />
+        <CompanyDetails
+          company={null}
+          keyPerson={null}
+          isLoading={false}
+          error="Some error"
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
+        />
       )
 
       expect(screen.queryByText('Company Information')).not.toBeInTheDocument()
@@ -79,6 +114,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -87,14 +124,30 @@ describe('CompanyDetails Component', () => {
 
     it('should render empty state message when no key person data', () => {
       render(
-        <CompanyDetails company={mockCompanyData} keyPerson={null} isLoading={false} error={null} />
+        <CompanyDetails
+          company={mockCompanyData}
+          keyPerson={null}
+          isLoading={false}
+          error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
+        />
       )
 
       expect(screen.getByText('No company or key person data available.')).toBeInTheDocument()
     })
 
     it('should render empty state message when both are null', () => {
-      render(<CompanyDetails company={null} keyPerson={null} isLoading={false} error={null} />)
+      render(
+        <CompanyDetails
+          company={null}
+          keyPerson={null}
+          isLoading={false}
+          error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
+        />
+      )
 
       expect(screen.getByText('No company or key person data available.')).toBeInTheDocument()
     })
@@ -108,6 +161,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -121,6 +176,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -135,6 +192,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -149,6 +208,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -165,6 +226,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -181,6 +244,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -195,6 +260,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -209,6 +276,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -223,6 +292,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -240,6 +311,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -254,6 +327,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -268,6 +343,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -282,6 +359,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -296,6 +375,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -310,6 +391,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -328,6 +411,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -341,6 +426,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -355,6 +442,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -370,6 +459,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -389,6 +480,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -410,6 +503,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -423,6 +518,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -437,6 +534,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={{ ...mockKeyPersonData, firstName: 'Jane', lastName: 'Smith' }}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -452,6 +551,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -468,6 +569,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={{ ...mockKeyPersonData, email: null }}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -482,6 +585,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -498,6 +603,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={{ ...mockKeyPersonData, phone: null }}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -511,6 +618,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -525,6 +634,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={{ ...mockKeyPersonData, jobTitle: null }}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -540,6 +651,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={{ ...mockKeyPersonData, isActive: true }}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -555,6 +668,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={{ ...mockKeyPersonData, isActive: false }}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -571,6 +686,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -585,6 +702,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -601,6 +720,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -616,6 +737,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -630,6 +753,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -644,6 +769,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -660,6 +787,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={mockKeyPersonData}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 
@@ -703,6 +832,8 @@ describe('CompanyDetails Component', () => {
           keyPerson={minimalKeyPerson}
           isLoading={false}
           error={null}
+          onNavigateHome={mockOnNavigateHome}
+          onSignOut={mockOnSignOut}
         />
       )
 

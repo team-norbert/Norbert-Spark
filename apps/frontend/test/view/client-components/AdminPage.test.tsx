@@ -44,6 +44,8 @@ describe('AdminPage', () => {
 
   const mockOnCloseSuccessMessage = vi.fn()
   const mockOnCloseErrorMessage = vi.fn()
+  const mockOnNavigateHome = vi.fn()
+  const mockOnSignOut = vi.fn()
 
   const defaultProps = {
     users: mockUsers,
@@ -65,6 +67,8 @@ describe('AdminPage', () => {
     onCancelDelete: mockOnCancelDelete,
     onCloseSuccessMessage: mockOnCloseSuccessMessage,
     onCloseErrorMessage: mockOnCloseErrorMessage,
+    onNavigateHome: mockOnNavigateHome,
+    onSignOut: mockOnSignOut,
   }
 
   beforeEach(() => {
