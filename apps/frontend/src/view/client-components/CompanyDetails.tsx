@@ -92,8 +92,7 @@ export function CompanyDetails({
 
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
-      {/* Page Heading */}
-      <header>
+      <header data-testid="company-details-heading">
         <PageHeader title="Company Details" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
       </header>
 

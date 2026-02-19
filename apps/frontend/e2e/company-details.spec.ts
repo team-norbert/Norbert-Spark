@@ -31,7 +31,9 @@ test.describe('Company Details Page', () => {
 
       // Verify the page heading is visible with increased timeout
       await expect(page.getByTestId('company-details-heading')).toBeVisible({ timeout: 15000 })
-      await expect(page.getByTestId('company-details-heading')).toHaveText('Company Details')
+      const companiesHeading = page.locator('[data-testid="company-details-heading"] h1')
+      await expect(companiesHeading).toBeVisible()
+      await expect(companiesHeading).toHaveText(/^Company Details$/i)
     })
   })
 
