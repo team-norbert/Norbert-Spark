@@ -144,6 +144,31 @@ export class AIChatContentRepository implements AIContentPort {
     }
   }
 
+  /**
+   * Inserts a new chat type record into the `chat_types` table.
+   *
+   * Logs a debug message before the insert and an info message on success.
+   * If the database operation fails, the error is logged and re-thrown so
+   * the caller can handle it (e.g. respond with an appropriate HTTP status).
+   *
+   * @param data - The chat type fields to insert. Must satisfy
+   *   `PostChatTypesInsert` — all columns except the auto-managed
+   *   `createdAt` and `updatedAt` timestamps.
+   * @returns A promise that resolves to the raw `QueryResult` returned by
+   *   the `pg` driver after a successful insert.
+   * @throws Re-throws any error raised by the database driver (e.g. unique
+   *   constraint violations, connection failures) without modification.
+   *
+   * @example
+   * const result = await repository.createChatType({
+   *   id: 'some-uuid-v7',
+   *   name: 'General Assistant',
+   *   seoFriendlyId: 'general-assistant',
+   *   seoFriendlyBase64Id: 'AAAAAAAAAAAAAAAAAAAAAA',
+   *   description: 'A general-purpose AI assistant chat type',
+   * })
+   * // result.rowCount === 1 on success
+   */
   async createChatType(data: PostChatTypesInsert): Promise<QueryResult> {
     this.logger.debug('Creating new chat type', { name: data.name })
     try {
