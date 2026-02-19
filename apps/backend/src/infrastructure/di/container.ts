@@ -24,6 +24,7 @@ import { PutCompanyDetailsUseCase } from '../../application/use-cases/put-compan
 import { GetUserByIdUseCase } from '../../application/use-cases/get-user-by-id.use-case.js'
 import { PutChatDetailsUseCase } from '../../application/use-cases/put-chat-details.use-case.js'
 import { PostChatTypesUseCase } from '../../application/use-cases/post-chat-types.use-case.js'
+import { PostAIAdminUseCase } from '../../application/use-cases/post-ai-admin.use-case.js'
 // Adapters
 import { UserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
@@ -118,6 +119,7 @@ export class Container {
   private readonly getUserByIdUseCase: GetUserByIdUseCase
   private readonly putChatDetailsUseCase: PutChatDetailsUseCase
   private readonly postChatTypesUseCase: PostChatTypesUseCase
+  private readonly postAIAdminUseCase: PostAIAdminUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -310,6 +312,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.auditLog,
       this.aiChatContentRepository
     )
+    this.postAIAdminUseCase = new PostAIAdminUseCase(
+      this.logger,
+      this.auditLog,
+      this.aiAdminRepository
+    )
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
       this.registerUserUseCase,
@@ -344,7 +351,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.aiAdminController = new AIAdminController(
       this.logger,
       this.getAIAdminUseCase,
-      this.putAIAdminUseCase
+      this.putAIAdminUseCase,
+      this.postAIAdminUseCase
     )
     this.companyController = new CompanyController(
       this.logger,

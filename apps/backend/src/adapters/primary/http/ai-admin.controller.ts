@@ -5,15 +5,18 @@ import { requireRole } from '../../../infrastructure/http/middleware/role.middle
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { Uuid } from '../../../domain/value-objects/uuid.js'
 import type { UUIDType } from '../../../domain/value-objects/uuid.js'
-import { GetAIAdminUseCase } from '../../../application/use-cases/get-ai-admin.use-case.js'
-import { PutAIAdminUseCase } from '../../../application/use-cases/put-ai-admin.use-case.js'
+import type { GetAIAdminUseCase } from '../../../application/use-cases/get-ai-admin.use-case.js'
+import type { PutAIAdminUseCase } from '../../../application/use-cases/put-ai-admin.use-case.js'
 import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
+import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
+import type { PostAIAdminUseCase } from '../../../application/use-cases/post-ai-admin.use-case.js'
 
 export class AIAdminController {
   constructor(
     private readonly logger: LoggerPort,
     private readonly getAIAdminUseCase: GetAIAdminUseCase,
-    private readonly putAIAdminUseCase: PutAIAdminUseCase
+    private readonly putAIAdminUseCase: PutAIAdminUseCase,
+    private readonly postAIAdminUseCase: PostAIAdminUseCase
   ) {}
 
   registerRoutes(app: FastifyInstance): void {
@@ -31,9 +34,65 @@ export class AIAdminController {
       },
       this.putAIChatSettingsById.bind(this)
     )
+    app.post(
+      '/ai/chats/config/:id/settings',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.postAIChatSettingsById.bind(this)
+    )
   }
 
-  async putAIChatSettingsById(request: FastifyRequest, reply: FastifyReply): Promise<any> {
+  async postAIChatSettingsById(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.info('Received ai-admin POST request')
+    try {
+      // Extract audit context from request
+      const auditContext = {
+        userId: request.user?.sub ?? null,
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] ?? null,
+      }
+      const params = request.params as Record<string, unknown>
+      this.logger.debug(`Request params: ${JSON.stringify(params)}`)
+      const id = params.id as string
+      this.logger.debug(`Request id: ${id}`)
+      let uuidID: UUIDType
+      try {
+        uuidID = new Uuid(id).getValue()
+      } catch {
+        return reply.code(400).send({
+          success: false,
+          error: 'Invalid id format',
+          details: 'incorrect UUID format',
+        })
+      }
+      const dto = PostAIAdminDTO.validate(request.body)
+      const result = await this.postAIAdminUseCase.execute(uuidID, dto, auditContext)
+
+      if (!result) {
+        reply.code(500).send({
+          success: false,
+          error: 'Failed to create AI chat settings: no record was returned',
+        })
+        return
+      }
+
+      return reply.code(201).send({
+        success: true,
+        data: result,
+      })
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'An unexpected error occurred'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
+  }
+
+  async putAIChatSettingsById(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.info('Received ai-admin PUT request')
     try {
       // Extract audit context from request
@@ -80,7 +139,7 @@ export class AIAdminController {
     }
   }
 
-  async getAIChatSettingsById(request: FastifyRequest, reply: FastifyReply): Promise<any> {
+  async getAIChatSettingsById(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.info('Received ai-admin request')
     try {
       // Extract audit context from request
