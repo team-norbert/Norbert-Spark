@@ -520,19 +520,17 @@ export function ChatTypesPage({
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        <>
-          <Button
-            data-testid={`change-options-${params.row.id}`}
-            variant="outlined"
-            size="small"
-            color="primary"
-            onClick={() => {
-              router.push(`/ai-admin/${params.row.id}`)
-            }}
-          >
-            Change Options
-          </Button>
-        </>
+        <Button
+          data-testid={`change-options-${params.row.id}`}
+          variant="outlined"
+          size="small"
+          color="primary"
+          onClick={() => {
+            router.push(`/ai-admin/${params.row.id}`)
+          }}
+        >
+          Change Options
+        </Button>
       ),
     },
   ]
