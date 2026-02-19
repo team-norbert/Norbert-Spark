@@ -27,6 +27,7 @@ import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-c
 import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
 import { PutChatDetailsUseCase } from '../../../application/use-cases/put-chat-details.use-case.js'
 import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
+import { PostChatTypesUseCase } from '../../../application/use-cases/post-chat-types.use-case.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -41,7 +42,8 @@ export class AIController {
     private readonly getChatDetailsUseCase: GetChatDetailsUseCase,
     private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase,
     private readonly resolveChatTypeUseCase: ResolveChatTypeUseCase,
-    private readonly putChatDetailsUseCase: PutChatDetailsUseCase
+    private readonly putChatDetailsUseCase: PutChatDetailsUseCase,
+    private readonly postChatTypesUseCase: PostChatTypesUseCase
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
@@ -81,6 +83,13 @@ export class AIController {
         preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
       },
       this.updateAIChatDetails.bind(this)
+    )
+    app.post(
+      '/ai/chats/config',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.createAIChatType.bind(this)
     )
   }
 
@@ -585,6 +594,91 @@ export class AIController {
         return
       }
       reply.status(204).send()
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'An unexpected error occurred'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
+  }
+
+  /**
+   * Creates a new chat type.
+   *
+   * Validates the request body using {@link PostChatType.validate}, then delegates
+   * to {@link PostChatTypesUseCase} to persist the record and write an audit log entry.
+   *
+   * **Route:** `POST /ai/chats/config`
+   * **Auth:** Requires a valid JWT and one of the roles: `admin`, `moderator`.
+   *
+   * @param request - The Fastify request object. Expected body shape:
+   *   ```json
+   *   { "name": "General Assistant", "description": "A general-purpose AI assistant" }
+   *   ```
+   * @param reply - The Fastify reply object used to send the HTTP response.
+   * @returns A promise that resolves once the response has been sent.
+   *
+   * @throws {400} When `name` or `description` fail DTO validation
+   *   (missing, empty, whitespace-only, or exceeds length limits).
+   * @throws {409} When a chat type with the same name or SEO identifier already exists.
+   * @throws {500} When the request body is not a plain object, or an unexpected
+   *   error occurs during persistence.
+   *
+   * @example
+   * // Success — 201 Created
+   * // POST /ai/chats/config
+   * // Body: { "name": "Creative Writing", "description": "Helps with creative tasks" }
+   * // Response: {
+   * //   "success": true,
+   * //   "data": {
+   * //     "id": "01234567-89ab-cdef-0123-456789abcdef",
+   * //     "name": "Creative Writing",
+   * //     "description": "Helps with creative tasks",
+   * //     "seoFriendlyId": "creative-writing",
+   * //     "seoFriendlyBase64Id": "AbCdEfGhIjKlMnOpQrStUv",
+   * //     "createdAt": "2024-01-01T00:00:00.000Z",
+   * //     "updatedAt": "2024-01-01T00:00:00.000Z"
+   * //   }
+   * // }
+   *
+   * @example
+   * // Validation failure — 400 Bad Request
+   * // Body: { "name": "" }
+   * // Response: { "success": false, "error": "Invalid name: must be a non-empty string" }
+   *
+   * @example
+   * // Conflict — 409 Conflict
+   * // Body: { "name": "Creative Writing", "description": "Duplicate" }
+   * // Response: { "success": false, "error": "A chat type with this name or identifier already exists" }
+   */
+  async createAIChatType(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.debug('Received createAIChatType request')
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
+    try {
+      const body = request.body as any
+      const dto = PostChatType.validate(body)
+      const createdChatType = await this.postChatTypesUseCase.execute(auditContext, dto)
+      reply.code(201).send({
+        success: true,
+        data: {
+          id: createdChatType.id,
+          name: createdChatType.name,
+          description: createdChatType.description,
+          seoFriendlyId: createdChatType.seoFriendlyId,
+          seoFriendlyBase64Id: createdChatType.seoFriendlyBase64Id,
+          createdAt: createdChatType.createdAt,
+          updatedAt: createdChatType.updatedAt,
+        },
+      })
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500

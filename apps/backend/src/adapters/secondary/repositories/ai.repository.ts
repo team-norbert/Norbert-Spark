@@ -157,11 +157,6 @@ export class AIRepository implements AIServicePort {
     }))
   }
 
-  async getChatDetails(): Promise<void> {
-    throw new Error('Method not implemented.')
-    // Placeholder implementation - replace with actual logic to fetch chat options
-  }
-
   async getChatResponse(chatId: ChatIdType): Promise<ChatResponseResult | null> {
     // Query chats table by id, then join with messages and parts
     const result = await db

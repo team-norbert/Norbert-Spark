@@ -40,6 +40,7 @@ describe('PutChatDetailsUseCase', () => {
       fetchChatContent: vi.fn(),
       resolveChatTypeByParam: vi.fn(),
       putChatTypeDetails: vi.fn(),
+      createChatType: vi.fn(),
     }
 
     const testUserId = uuidv7()
