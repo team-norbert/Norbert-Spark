@@ -10,7 +10,7 @@
     "data": {
       "type": "object",
       "description": "Authentication result data",
-      "required": ["userId", "email", "access_token", "roles"],
+      "required": ["userId", "email", "accessToken", "roles"],
       "properties": {
         "userId": {
           "type": "string",
@@ -24,7 +24,7 @@
           "example": "john.doe@example.com",
           "description": "The authenticated user's email address"
         },
-        "access_token": {
+        "accessToken": {
           "type": "string",
           "description": "JWT access token for authenticated requests",
           "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."

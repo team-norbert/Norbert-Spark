@@ -111,7 +111,7 @@ describe('authOptions Configuration', () => {
         data: {
           userId: 'user-123',
           email: 'test@example.com',
-          access_token: 'mock-jwt-token',
+          accessToken: 'mock-jwt-token',
           roles: ['user'],
         },
       }
@@ -171,7 +171,7 @@ describe('authOptions Configuration', () => {
         data: {
           userId: 'user-123',
           email: 'test@example.com',
-          access_token: 'token',
+          accessToken: 'token',
           roles: ['user'],
         },
       }
@@ -244,14 +244,14 @@ describe('authOptions Configuration', () => {
       ).rejects.toThrow('Authentication failed')
     })
 
-    it('should return null when response lacks access_token', async () => {
+    it('should return null when response lacks accessToken', async () => {
       const mockResponse = {
         success: true,
         data: {
           userId: 'user-123',
           email: 'test@example.com',
           roles: ['user'],
-          // missing access_token
+          // missing accessToken
         },
       }
 
@@ -328,7 +328,7 @@ describe('authOptions Configuration', () => {
         data: {
           userId: 'user-123',
           email: 'admin@example.com',
-          access_token: 'admin-token',
+          accessToken: 'admin-token',
           roles: ['user', 'admin', 'moderator'],
         },
       }
@@ -362,7 +362,7 @@ describe('authOptions Configuration', () => {
         data: {
           userId: 'user-123',
           email: 'test@example.com',
-          access_token: 'token',
+          accessToken: 'token',
           // roles missing
         },
       }
@@ -1024,7 +1024,7 @@ describe('authOptions Configuration', () => {
         data: {
           userId: 'user-123',
           email: 'test@example.com',
-          access_token: 'backend-jwt-token',
+          accessToken: 'backend-jwt-token',
           roles: ['user'],
         },
       }

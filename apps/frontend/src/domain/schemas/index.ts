@@ -49,7 +49,7 @@ export interface LoginResponse {
   data?: {
     userId: string
     email: string
-    access_token: string
+    accessToken: string
     roles: string[]
   }
   error?: string

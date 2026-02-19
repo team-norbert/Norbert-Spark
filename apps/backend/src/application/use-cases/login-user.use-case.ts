@@ -43,7 +43,7 @@ import type { LoginChanges, LoginFailedChanges } from '../../domain/audit/audit-
  * // Execute login
  * const dto = new LoginUserDto('user@example.com', 'password123')
  * const result = await loginUseCase.execute(dto)
- * console.log(`Access token: ${result.access_token}`)
+ * console.log(`Access token: ${result.accessToken}`)
  * ```
  *
  * @see {@link LoginUserDto} for the input data structure
@@ -90,7 +90,7 @@ export class LoginUserUseCase {
    * @param {Object} auditContext - Audit context information from the request
    * @param {string} auditContext.ipAddress - IP address of the client making the request
    * @param {string | null} auditContext.userAgent - User agent string from the request, or null if not available
-   * @returns {Promise<{userId: string, email: string, access_token: string, roles: string[]}>}
+   * @returns {Promise<{userId: string, email: string, accessToken: string, roles: string[]}>}
    *          Object containing user information and JWT access token
    *
    * @throws {UnauthorizedException} If user doesn't exist or password is invalid.
@@ -113,7 +113,7 @@ export class LoginUserUseCase {
    * // {
    * //   userId: '550e8400-e29b-41d4-a716-446655440000',
    * //   email: 'user@example.com',
-   * //   access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+   * //   accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
    * //   roles: ['user']
    * // }
    * ```
@@ -140,7 +140,7 @@ export class LoginUserUseCase {
   ): Promise<{
     userId: UserIdType
     email: string
-    access_token: string
+    accessToken: string
     roles: string[]
   }> {
     this.logger.info('User login attempt', { email: dto.email })
@@ -225,7 +225,7 @@ export class LoginUserUseCase {
     return {
       userId: user.id,
       email: user.getEmail(),
-      access_token: accessToken,
+      accessToken: accessToken,
       roles: [user.getRole()],
     }
   }

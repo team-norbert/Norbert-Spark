@@ -115,7 +115,7 @@ export class AuthController {
    *   "data": {
    *     "userId": "uuid",
    *     "email": "user@example.com",
-   *     "access_token": "jwt_token",
+   *     "accessToken": "jwt_token",
    *     "roles": ["user"]
    *   }
    * }
@@ -147,7 +147,7 @@ export class AuthController {
    * //   "data": {
    * //     "userId": "550e8400-e29b-41d4-a716-446655440000",
    * //     "email": "user@example.com",
-   * //     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+   * //     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
    * //     "roles": ["user"]
    * //   }
    * // }
@@ -188,7 +188,12 @@ export class AuthController {
       // Convert result to HTTP response
       reply.code(200).send({
         success: true,
-        data: result,
+        data: {
+          userId: result.userId,
+          email: result.email,
+          accessToken: result.accessToken,
+          roles: result.roles,
+        },
       })
     } catch (error) {
       const err = error as Error
@@ -260,7 +265,12 @@ export class AuthController {
 
       reply.code(200).send({
         success: true,
-        data: result,
+        data: {
+          userId: result.userId,
+          accessToken: result.access_token,
+          tokenType: result.token_type,
+          expiresIn: result.expires_in,
+        },
       })
     } catch (error) {
       const err = error as Error

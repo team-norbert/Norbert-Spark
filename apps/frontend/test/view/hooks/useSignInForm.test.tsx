@@ -719,7 +719,7 @@ describe('useSignInForm', () => {
         data: {
           userId: '123',
           email: 'test@example.com',
-          access_token: 'mock-token',
+          accessToken: 'mock-token',
           roles: ['user'],
         },
       })
@@ -826,7 +826,7 @@ describe('useSignInForm', () => {
         data: {
           userId: '123',
           email: 'test@example.com',
-          access_token: 'mock-token',
+          accessToken: 'mock-token',
           roles: ['user'],
         },
       })
