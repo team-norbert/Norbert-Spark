@@ -107,6 +107,7 @@ export function CreateChatTypeForm({
               color="primary"
               disabled={isSubmitting}
               startIcon={isSubmitting ? <CircularProgress size={20} /> : undefined}
+              data-testid="create-button"
             >
               {isSubmitting ? 'Creating…' : 'Create'}
             </Button>

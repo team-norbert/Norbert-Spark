@@ -44,9 +44,14 @@ test.describe('Create Chat Type Page', () => {
     await descriptionInput.fill(NEW_CHAT_TYPE.description)
 
     // ── 5. Click the submit (Create) button ───────────────────────────────────
-    const cancelButton = page.getByTestId('cancel-button')
-    await expect(cancelButton).toBeVisible()
-    await cancelButton.click()
+    const createButton = page.getByTestId('create-button')
+    await expect(createButton).toBeVisible()
+    await createButton.click()
+
+    // ── 5a. Assert the success message appears ────────────────────────────────
+    await expect(page.getByRole('alert').filter({ hasText: /success|created/i })).toBeVisible({
+      timeout: 10_000,
+    })
 
     // ── 6. Wait for automatic navigation to /chat-types ──────────────────────
     await page.waitForURL('/chat-types', { timeout: 15_000 })
