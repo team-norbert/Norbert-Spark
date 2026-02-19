@@ -584,7 +584,9 @@ describe('ChatTypesPage', () => {
     it('should navigate to /ai-admin/:id when the button is clicked', () => {
       const onChangeOptions = vi.fn()
       const chatType = makeChatType()
-      render(<ChatTypesPage {...defaultProps} chatTypes={[chatType]} onChangeOptions={onChangeOptions} />)
+      render(
+        <ChatTypesPage {...defaultProps} chatTypes={[chatType]} onChangeOptions={onChangeOptions} />
+      )
 
       fireEvent.click(screen.getByTestId(`change-options-${chatType.id}`))
 
@@ -595,7 +597,9 @@ describe('ChatTypesPage', () => {
     it('should build the correct route for a different chat type id', () => {
       const onChangeOptions = vi.fn()
       const chatType = makeChatType({ id: 'abcdef12-0000-0000-0000-000000000099' })
-      render(<ChatTypesPage {...defaultProps} chatTypes={[chatType]} onChangeOptions={onChangeOptions} />)
+      render(
+        <ChatTypesPage {...defaultProps} chatTypes={[chatType]} onChangeOptions={onChangeOptions} />
+      )
 
       fireEvent.click(screen.getByTestId(`change-options-${chatType.id}`))
 

@@ -218,7 +218,9 @@ describe('AIAdminPageClient', () => {
 
     it('should pass onNavigateHome callback that navigates to /dashboard', () => {
       const mockPush = vi.fn()
-      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>)
+      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<
+        typeof useRouter
+      >)
 
       render(<AIAdminPageClient />)
 
@@ -230,7 +232,9 @@ describe('AIAdminPageClient', () => {
 
     it('should pass onSignOut callback that navigates to /api/auth/signout', () => {
       const mockPush = vi.fn()
-      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>)
+      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<
+        typeof useRouter
+      >)
 
       render(<AIAdminPageClient />)
 
@@ -242,7 +246,9 @@ describe('AIAdminPageClient', () => {
 
     it('should pass onChangeOptions callback that navigates to /ai-admin/:id', () => {
       const mockPush = vi.fn()
-      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>)
+      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<
+        typeof useRouter
+      >)
 
       render(<AIAdminPageClient />)
 

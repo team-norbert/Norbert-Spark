@@ -93,18 +93,18 @@ export function AIAdminPage({
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-          <Button
-            data-testid={`change-options-${params.row.id}`}
-            variant="outlined"
-            size="small"
-            color="primary"
-            onClick={() => {
-              onChangeOptions(params.row.id)
-            }}
-          >
-            Change Options
-          </Button>
-        ),
+        <Button
+          data-testid={`change-options-${params.row.id}`}
+          variant="outlined"
+          size="small"
+          color="primary"
+          onClick={() => {
+            onChangeOptions(params.row.id)
+          }}
+        >
+          Change Options
+        </Button>
+      ),
     },
   ]
 
