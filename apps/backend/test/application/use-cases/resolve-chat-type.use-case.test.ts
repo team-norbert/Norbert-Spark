@@ -37,6 +37,7 @@ describe('ResolveChatTypeUseCase', () => {
       fetchChatContent: vi.fn(),
       resolveChatTypeByParam: vi.fn(),
       putChatTypeDetails: vi.fn(),
+      createChatType: vi.fn(),
     } as AIContentPort
 
     mockAuditContext = {

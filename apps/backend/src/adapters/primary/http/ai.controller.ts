@@ -27,6 +27,7 @@ import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-c
 import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
 import { PutChatDetailsUseCase } from '../../../application/use-cases/put-chat-details.use-case.js'
 import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
+import { PostChatTypesUseCase } from '../../../application/use-cases/post-chat-types.use-case.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -41,7 +42,8 @@ export class AIController {
     private readonly getChatDetailsUseCase: GetChatDetailsUseCase,
     private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase,
     private readonly resolveChatTypeUseCase: ResolveChatTypeUseCase,
-    private readonly putChatDetailsUseCase: PutChatDetailsUseCase
+    private readonly putChatDetailsUseCase: PutChatDetailsUseCase,
+    private readonly postChatTypesUseCase: PostChatTypesUseCase
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
@@ -81,6 +83,13 @@ export class AIController {
         preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
       },
       this.updateAIChatDetails.bind(this)
+    )
+    app.post(
+      '/ai/chats/config',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.createAIChatType.bind(this)
     )
   }
 
@@ -585,6 +594,34 @@ export class AIController {
         return
       }
       reply.status(204).send()
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'An unexpected error occurred'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
+  }
+
+  async createAIChatType(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.debug('Received createAIChatType request')
+    // Extract audit context from request
+    const auditContext = {
+      userId: request.user?.sub ?? null,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] ?? null,
+    }
+
+    try {
+      const body = request.body as any
+      const dto = PostChatType.validate(body)
+      const result = await this.postChatTypesUseCase.execute(auditContext, dto)
+      reply.code(201).send({
+        success: true,
+        data: result,
+      })
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500

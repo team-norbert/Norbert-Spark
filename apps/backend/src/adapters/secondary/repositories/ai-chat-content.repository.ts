@@ -8,6 +8,7 @@ import type { AIContentPort } from '../../../application/ports/ai-content.port.j
 import type { DBChatType } from '../../../infrastructure/database/schema.js'
 import { Uuid7Util } from '../../../shared/utils/uuid7.util.js'
 import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
+import type { PostChatTypesInsert } from '../../../application/use-cases/post-chat-types.use-case.js'
 
 /**
  * Maximum allowed length for chat type parameter to prevent DoS attacks
@@ -140,6 +141,18 @@ export class AIChatContentRepository implements AIContentPort {
     } catch (error) {
       this.logger.error('Error updating chat type details', error as Error)
       return null
+    }
+  }
+
+  async createChatType(data: PostChatTypesInsert): Promise<QueryResult> {
+    this.logger.debug('Creating new chat type', { name: data.name })
+    try {
+      const result = await db.insert(chatTypes).values(data)
+      this.logger.info('Successfully created new chat type', { name: data.name, result })
+      return result
+    } catch (error) {
+      this.logger.error('Error creating new chat type', error as Error)
+      throw error
     }
   }
 
