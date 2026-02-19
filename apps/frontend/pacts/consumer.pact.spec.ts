@@ -1,12 +1,11 @@
-import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
-import { MatchersV3, PactV4, SpecificationVersion } from '@pact-foundation/pact'
+import { MatchersV3, PactV4, Publisher, SpecificationVersion } from '@pact-foundation/pact'
 import { afterAll, describe, expect, it } from 'vitest'
 
 const { like } = MatchersV3
 
-const PACT_BROKER_URL = 'http://localhost:9293'
+const PACT_BROKER_URL = process.env.PACT_BROKER_URL ?? 'http://localhost:9292'
 const PACT_DIR = path.resolve(process.cwd(), 'pacts')
 const CONSUMER = 'FrontendWebsite'
 const PROVIDER = 'BackendAPI'
@@ -22,7 +21,7 @@ const CONSUMER_VERSION = '1.0.0'
  *   2. Pact spins up a mock server that returns the expected response
  *   3. The test makes a real HTTP call to the mock (simulating the frontend)
  *   4. On success, a contract file is written to ./pacts/FrontendWebsite-BackendAPI.json
- *   5. The contract is published to the Pact Broker at localhost:9293
+ *   5. The contract is published to the Pact Broker at localhost:9292
  *
  * The provider test then verifies directly from the broker.
  *
@@ -39,21 +38,12 @@ const pact = new PactV4({
 describe('Consumer Contract: Health API', () => {
   // After all tests pass, publish the generated pact to the broker
   afterAll(async () => {
-    const pactFile = path.resolve(PACT_DIR, `${CONSUMER}-${PROVIDER}.json`)
-    const pactContent = readFileSync(pactFile, 'utf-8')
-
-    // Publish pact to broker via its REST API (PUT /pacts/provider/.../consumer/.../version/...)
-    const url = `${PACT_BROKER_URL}/pacts/provider/${PROVIDER}/consumer/${CONSUMER}/version/${CONSUMER_VERSION}`
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: pactContent,
+    const publisher = new Publisher({
+      pactBroker: PACT_BROKER_URL,
+      pactFilesOrDirs: [PACT_DIR],
+      consumerVersion: CONSUMER_VERSION,
     })
-
-    if (!response.ok) {
-      const text = await response.text()
-      throw new Error(`Failed to publish pact to broker (${response.status}): ${text}`)
-    }
+    await publisher.publishPacts()
   })
 
   it('returns a healthy status from the backend', async () => {
