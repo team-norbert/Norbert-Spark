@@ -54,7 +54,7 @@ export function useCreateChatType() {
           // exists but needs manual configuration for its AI settings.
           throw new Error(
             'The chat type was created, but initial AI settings could not be created. ' +
-              'Please open the new chat type and configure its AI settings manually.',
+              'Please open the new chat type and configure its AI settings manually.'
           )
         }
       }

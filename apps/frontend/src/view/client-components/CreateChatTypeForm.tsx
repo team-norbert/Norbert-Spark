@@ -50,7 +50,36 @@ export function CreateChatTypeForm({
 
         <AccordionComponent
           header="Read me: What is a chat type?"
-          body='<p>This form will create a new chat type. From the two entries below the following will be generated</p><ol><li>A global id used for that is used to connect chat options and individual chats - this is immutable.</li><li>A base64 encoding from this id - this is immutable</li><li>From the name, a SEO-friendly title will be auto generated - this can changed in the chat types table</li><li>The description. This is not the prompt. This is short-description of the purpose of the chat</li></ol><p>In the same action will be generated a new entry into the chat_ai_options table.</p><ol><li>The prompt text will be "Enter prompt here"</li><li>No other settings will be created</li></ol>'
+          body={
+            <>
+              <p>
+                This form will create a new chat type. From the two entries below the following will
+                be generated
+              </p>
+              <ol>
+                <li>
+                  A global id used for that is used to connect chat options and individual chats -
+                  this is immutable.
+                </li>
+                <li>A base64 encoding from this id - this is immutable</li>
+                <li>
+                  From the name, a SEO-friendly title will be auto generated - this can changed in
+                  the chat types table
+                </li>
+                <li>
+                  The description. This is not the prompt. This is short-description of the purpose
+                  of the chat
+                </li>
+              </ol>
+              <p>
+                In the same action will be generated a new entry into the chat_ai_options table.
+              </p>
+              <ol>
+                <li>{'The prompt text will will "Enter prompt here"'}</li>
+                <li>No other settings will be created</li>
+              </ol>
+            </>
+          }
         />
 
         {generalError && (

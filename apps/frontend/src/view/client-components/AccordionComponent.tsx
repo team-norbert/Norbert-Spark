@@ -2,11 +2,11 @@
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Accordion, AccordionDetails, AccordionSummary, Typography } from '@mui/material'
-import { useId } from 'react'
+import { type ReactNode, useId } from 'react'
 
 interface AccordionComponentProps {
   header: string
-  body: string
+  body: ReactNode
   id?: string
 }
 
@@ -22,7 +22,7 @@ export const AccordionComponent = ({ body, header, id }: AccordionComponentProps
         <Typography className="accordion-header">{header}</Typography>
       </AccordionSummary>
       <AccordionDetails id={contentId}>
-        <Typography dangerouslySetInnerHTML={{ __html: body }}></Typography>
+        <Typography>{body}</Typography>
       </AccordionDetails>
     </Accordion>
   )
