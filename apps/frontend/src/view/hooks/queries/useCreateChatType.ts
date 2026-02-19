@@ -38,11 +38,25 @@ export function useCreateChatType() {
       if (result?.success) {
         const newId = result.data.id
 
-        // Step 2: Seed initial AI settings for the new chat type
-        await createAIChatSettingsById(newId, {
-          chatTypeId: newId,
-          prompt: 'Enter prompt here',
-        })
+        try {
+          // Step 2: Seed initial AI settings for the new chat type
+          await createAIChatSettingsById(newId, {
+            chatTypeId: newId,
+            prompt: 'Enter prompt here',
+          })
+        } catch (error) {
+          logger.error('Failed to seed initial AI settings for new chat type', {
+            error,
+            chatTypeId: newId,
+          })
+
+          // Surface a clear, actionable error so the caller knows the chat type
+          // exists but needs manual configuration for its AI settings.
+          throw new Error(
+            'The chat type was created, but initial AI settings could not be created. ' +
+              'Please open the new chat type and configure its AI settings manually.',
+          )
+        }
       }
 
       return result
