@@ -2,7 +2,7 @@ import { Verifier } from '@pact-foundation/pact'
 import type { FastifyInstance } from 'fastify'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-const PACT_BROKER_URL = process.env.PACT_BROKER_URL ?? 'http://localhost:9292'
+const PACT_BROKER_URL = process.env.PACT_BROKER_URL ?? 'http://localhost:9293'
 
 /**
  * PROVIDER VERIFICATION TEST (Backend)

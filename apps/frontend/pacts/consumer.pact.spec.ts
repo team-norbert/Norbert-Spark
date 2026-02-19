@@ -1,7 +1,7 @@
 import path from 'node:path'
 
-import { MatchersV3, PactV4, Publisher, SpecificationVersion } from '@pact-foundation/pact'
-import { afterAll, describe, expect, it } from 'vitest'
+import { MatchersV3, PactV4, SpecificationVersion } from '@pact-foundation/pact'
+import { describe, expect, it } from 'vitest'
 
 const { like } = MatchersV3
 
@@ -21,7 +21,7 @@ const CONSUMER_VERSION = '1.0.0'
  *   2. Pact spins up a mock server that returns the expected response
  *   3. The test makes a real HTTP call to the mock (simulating the frontend)
  *   4. On success, a contract file is written to ./pacts/FrontendWebsite-BackendAPI.json
- *   5. The contract is published to the Pact Broker at localhost:9292
+ *   5. Publish the contract separately via: pnpm run test:publish
  *
  * The provider test then verifies directly from the broker.
  *
@@ -36,16 +36,6 @@ const pact = new PactV4({
 })
 
 describe('Consumer Contract: Health API', () => {
-  // After all tests pass, publish the generated pact to the broker
-  afterAll(async () => {
-    const publisher = new Publisher({
-      pactBroker: PACT_BROKER_URL,
-      pactFilesOrDirs: [PACT_DIR],
-      consumerVersion: CONSUMER_VERSION,
-    })
-    await publisher.publishPacts()
-  })
-
   it('returns a healthy status from the backend', async () => {
     // Define the interaction and execute the test in one chain.
     // "given" sets the provider state (useful for setting up test data)

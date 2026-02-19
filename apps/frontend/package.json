@@ -21,7 +21,8 @@
     "test:unit:coverage": "vitest run --coverage --hideSkippedTests",
     "test:e2e": "cross-env E2E_CLEANUP_PROCESSES=true playwright test",
     "test:e2e:headed": "cross-env E2E_CLEANUP_PROCESSES=true playwright test --headed",
-    "test:pact": "vitest run pacts/consumer.pact.spec.ts",
+    "test:pact": "vitest run --config vitest.config.pact.ts pacts/consumer.pact.spec.ts",
+    "test:publish": "pact-broker publish pacts --consumer-app-version=1.0.0 --broker-base-url=http://localhost:9293 --verbose",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -57,6 +58,7 @@
     "@eslint/eslintrc": "^3.3.3",
     "@next/eslint-plugin-next": "^16.1.6",
     "@pact-foundation/pact": "^16.2.0",
+    "@pact-foundation/pact-cli": "^16.1.5",
     "@playwright/test": "^1.58.2",
     "@tanstack/eslint-plugin-query": "^5.91.4",
     "@tanstack/react-query-devtools": "^5.91.3",

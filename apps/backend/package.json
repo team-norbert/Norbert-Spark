@@ -28,7 +28,7 @@
     "mermaid:di": "tsx scripts/serve-mermaid.ts di:container.md",
     "eval": "evalite run",
     "eval:view": "evalite view",
-    "test:pact": "vitest run pact/provider.pact.spec.ts"
+    "test:pact": "vitest run --config vitest.config.pact.ts pact/provider.pact.spec.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.29",
