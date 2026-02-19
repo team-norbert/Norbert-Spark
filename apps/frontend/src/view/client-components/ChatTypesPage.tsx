@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Link,
   TextField,
   Tooltip,
   Typography,
@@ -593,8 +594,9 @@ export function ChatTypesPage({
         />
       </Box>
 
-      <Box sx={{ height: 600, width: '100%' }}>
+      <Box sx={{ height: 'auto', width: '100%' }}>
         <DataGrid
+          autoHeight
           rows={chatTypes}
           columns={columns}
           loading={loading}
@@ -615,8 +617,14 @@ export function ChatTypesPage({
         />
       </Box>
 
-      <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+      <Typography variant="body1" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
         Note: Click on name, SEO friendly ID, or description cells to edit.
+      </Typography>
+
+      <Typography variant="body1" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+        <Link href="/chat-types/create" underline="hover">
+          Create a new chat type
+        </Link>
       </Typography>
 
       <Dialog

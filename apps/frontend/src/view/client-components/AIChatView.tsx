@@ -25,7 +25,7 @@ import {
 } from '@mui/material'
 import type { UIDataTypes, UIMessagePart, UITools } from 'ai'
 import { useRouter } from 'next/navigation.js'
-import React from 'react'
+import React, { type ReactNode } from 'react'
 
 import { AccordionComponent } from '@/view/client-components/AccordionComponent.js'
 import { ChatInput } from '@/view/client-components/ChatInputComponent.js'
@@ -61,7 +61,7 @@ interface AIChatViewProps {
   readonly isChatsError: boolean
   readonly isLoadingChats: boolean
   readonly accordionHeader: string
-  readonly accordionBody: string
+  readonly accordionBody: ReactNode
   readonly onDrawerToggle: () => void
   readonly onErrorClose: () => void
   readonly onFileSelect: (file: File | null) => void
