@@ -54,7 +54,7 @@ export function useCreateChatType() {
         })
 
         // Redirect to the chat types list
-        router.push('https://localhost:4321/chat-types')
+        router.push('/chat-types')
       }
     },
   })
