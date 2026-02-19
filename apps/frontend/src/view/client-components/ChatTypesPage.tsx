@@ -596,6 +596,7 @@ export function ChatTypesPage({
 
       <Box sx={{ height: 'auto', width: '100%' }}>
         <DataGrid
+          autoHeight
           rows={chatTypes}
           columns={columns}
           loading={loading}
