@@ -78,15 +78,18 @@ export function useCreateChatTypeForm() {
         }, 1500)
       }
     } catch (e) {
+      const status = (e as { status?: number } | null | undefined)?.status
+
+      // Handle 409 conflict (duplicate name) using structured status code
+      if (status === 409) {
+        setErrors((prev) => ({
+          ...prev,
+          name: 'A chat type with this name already exists. Please choose a different name.',
+        }))
+        return
+      }
+
       if (e instanceof Error) {
-        // Handle 409 conflict (duplicate name)
-        if (e.message.includes('409') || e.message.toLowerCase().includes('conflict')) {
-          setErrors((prev) => ({
-            ...prev,
-            name: 'A chat type with this name already exists. Please choose a different name.',
-          }))
-          return
-        }
         setGeneralError(e.message)
       } else {
         setGeneralError('An unexpected error occurred. Please try again.')
