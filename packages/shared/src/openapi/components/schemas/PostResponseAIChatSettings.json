@@ -1,0 +1,121 @@
+{
+  "type": "object",
+  "description": "Structured response for AI chat settings create/update",
+  "required": ["success", "data"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Indicates if the request was successful",
+      "example": true
+    },
+    "data": {
+      "type": "object",
+      "description": "The created or updated AI chat settings record",
+      "required": ["id", "chatTypeId", "prompt", "createdAt", "updatedAt"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for the AI chat settings record (UUIDv7)",
+          "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
+        },
+        "chatTypeId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "One-to-one relationship with chat_types table",
+          "example": "019b659a-3ad2-7fd8-9f32-35624caef901"
+        },
+        "prompt": {
+          "type": "string",
+          "description": "System prompt/context for this chat type",
+          "example": "You are a helpful assistant."
+        },
+        "maxTokens": {
+          "type": "integer",
+          "nullable": true,
+          "minimum": 1,
+          "maximum": 100000,
+          "description": "Maximum number of tokens to generate",
+          "example": 2048
+        },
+        "temperature": {
+          "type": "number",
+          "nullable": true,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Sampling temperature controlling randomness",
+          "example": 0.7
+        },
+        "topP": {
+          "type": "number",
+          "nullable": true,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Nucleus sampling probability mass",
+          "example": 0.9
+        },
+        "frequencyPenalty": {
+          "type": "number",
+          "nullable": true,
+          "minimum": -2,
+          "maximum": 2,
+          "description": "Penalty for token frequency to reduce repetition",
+          "example": 0.0
+        },
+        "presencePenalty": {
+          "type": "number",
+          "nullable": true,
+          "minimum": -2,
+          "maximum": 2,
+          "description": "Penalty for token presence to encourage new topics",
+          "example": 0.0
+        },
+        "topK": {
+          "type": "integer",
+          "nullable": true,
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Limits token selection to the top K most likely tokens",
+          "example": 40
+        },
+        "stopSequences": {
+          "type": "array",
+          "nullable": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Sequences that will cause the model to stop generating",
+          "example": ["###", "END"]
+        },
+        "seed": {
+          "type": "integer",
+          "nullable": true,
+          "minimum": 0,
+          "maximum": 2147483647,
+          "description": "Random seed for deterministic generation",
+          "example": 42
+        },
+        "maxRetries": {
+          "type": "integer",
+          "nullable": true,
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Maximum number of retry attempts on failure",
+          "example": 3
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the record was created",
+          "example": "2024-01-15T10:30:00Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the record was last updated",
+          "example": "2024-01-20T14:45:00Z"
+        }
+      }
+    }
+  }
+}
