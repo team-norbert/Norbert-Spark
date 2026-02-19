@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   postgres:
     image: postgres:18.1-alpine
@@ -10,8 +8,6 @@ services:
     container_name: pact-broker-postgres
     restart: unless-stopped
     shm_size: 256mb
-    healthcheck:
-      test: psql postgres --command "select 1" -U postgres
     volumes:
       - postgres-volume:/var/lib/postgresql/data
     environment:
@@ -21,6 +17,7 @@ services:
 
   pact-broker:
     image: "pactfoundation/pact-broker:2.113.0-pactbroker2.107.1"
+    platform: linux/amd64
     container_name: pact-broker
     restart: unless-stopped
     ports:
@@ -40,7 +37,7 @@ services:
       # The list of allowed base URLs (not setting this makes the app vulnerable to cache poisoning)
       # This list allows the app to be addressed from the host and from within another docker container correctly
       # Nginx config below makes the app accessible on ports 443 and 80, while the Ruby application itself runs on port 9292
-      PACT_BROKER_BASE_URL: 'https://localhost http://localhost http://localhost:9292 http://pact-broker:9292 https://host.docker.internal http://host.docker.internal http://host.docker.internal:9292'
+      PACT_BROKER_BASE_URL: 'https://localhost http://localhost http://localhost:9293 http://pact-broker:9293 https://host.docker.internal http://host.docker.internal http://host.docker.internal:9293'
 
   # Nginx is not necessary, but demonstrates how
   # one might use a reverse proxy in front of the broker,

@@ -27,7 +27,8 @@
     "mermaid": "tsx scripts/serve-mermaid.ts",
     "mermaid:di": "tsx scripts/serve-mermaid.ts di:container.md",
     "eval": "evalite run",
-    "eval:view": "evalite view"
+    "eval:view": "evalite view",
+    "test:pact": "vitest run --config vitest.config.pact.ts pact/provider.pact.spec.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.29",
@@ -65,6 +66,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@pact-foundation/pact": "^16.2.0",
     "@stoplight/spectral-cli": "^6.15.0",
     "@stoplight/spectral-core": "^1.21.0",
     "@stoplight/spectral-rulesets": "^1.22.0",
