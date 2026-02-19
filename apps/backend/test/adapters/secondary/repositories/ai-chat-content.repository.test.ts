@@ -6,6 +6,7 @@ import { PutChatTypeDto } from '../../../../src/application/dtos/put-chat-type.d
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import { Uuid } from '../../../../src/domain/value-objects/uuid.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
+import { chatTypes } from '../../../../src/infrastructure/database/schema.js'
 import { Uuid7Util } from '../../../../src/shared/utils/uuid7.util.js'
 
 // Mock the database module
@@ -13,6 +14,7 @@ vi.mock('../../../../src/infrastructure/database/index.js', () => ({
   db: {
     select: vi.fn(),
     update: vi.fn(),
+    insert: vi.fn(),
   },
 }))
 
@@ -810,6 +812,195 @@ describe('AIChatContentRepository', () => {
         const setCallArg = mockSet.mock.calls[0]?.[0]
         expect(setCallArg).toBeDefined()
         expect(setCallArg).not.toHaveProperty('updatedAt')
+      })
+    })
+  })
+
+  describe('createChatType', () => {
+    const mockData = {
+      id: uuidv7(),
+      name: 'Test Chat Type',
+      seoFriendlyId: 'test-chat-type',
+      seoFriendlyBase64Id: 'AAAAAAAAAAAAAAAAAAAAAA',
+      description: 'A test chat type description',
+    }
+
+    describe('success', () => {
+      it('should return the QueryResult from the database', async () => {
+        const mockResult = { rowCount: 1, command: 'INSERT', oid: 0, fields: [], rows: [] }
+        const mockValues = vi.fn().mockResolvedValue(mockResult)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        const result = await repository.createChatType(mockData)
+
+        expect(result).toBe(mockResult)
+      })
+
+      it('should call db.insert with the chatTypes schema object', async () => {
+        const mockResult = { rowCount: 1, command: 'INSERT', oid: 0, fields: [], rows: [] }
+        const mockValues = vi.fn().mockResolvedValue(mockResult)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await repository.createChatType(mockData)
+
+        expect(db.insert).toHaveBeenCalledTimes(1)
+        expect(db.insert).toHaveBeenCalledWith(chatTypes)
+      })
+
+      it('should call .values() with the full data object', async () => {
+        const mockResult = { rowCount: 1, command: 'INSERT', oid: 0, fields: [], rows: [] }
+        const mockValues = vi.fn().mockResolvedValue(mockResult)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await repository.createChatType(mockData)
+
+        expect(mockValues).toHaveBeenCalledTimes(1)
+        expect(mockValues).toHaveBeenCalledWith(mockData)
+      })
+
+      it('should log debug before the insert with the chat type name', async () => {
+        const mockResult = { rowCount: 1, command: 'INSERT', oid: 0, fields: [], rows: [] }
+        const mockValues = vi.fn().mockResolvedValue(mockResult)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await repository.createChatType(mockData)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith('Creating new chat type', {
+          name: mockData.name,
+        })
+      })
+
+      it('should log info after a successful insert with name and result', async () => {
+        const mockResult = { rowCount: 1, command: 'INSERT', oid: 0, fields: [], rows: [] }
+        const mockValues = vi.fn().mockResolvedValue(mockResult)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await repository.createChatType(mockData)
+
+        expect(mockLogger.info).toHaveBeenCalledWith('Successfully created new chat type', {
+          name: mockData.name,
+          result: mockResult,
+        })
+      })
+
+      it('should log debug before info (correct ordering)', async () => {
+        const callOrder: string[] = []
+        ;(mockLogger.debug as ReturnType<typeof vi.fn>).mockImplementation(() =>
+          callOrder.push('debug')
+        )
+        ;(mockLogger.info as ReturnType<typeof vi.fn>).mockImplementation(() =>
+          callOrder.push('info')
+        )
+
+        const mockResult = { rowCount: 1, command: 'INSERT', oid: 0, fields: [], rows: [] }
+        const mockValues = vi.fn().mockResolvedValue(mockResult)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await repository.createChatType(mockData)
+
+        expect(callOrder).toEqual(['debug', 'info'])
+      })
+
+      it('should pass all PostChatTypesInsert fields through to .values()', async () => {
+        const fullData = {
+          id: uuidv7(),
+          name: 'Full Data Type',
+          seoFriendlyId: 'full-data-type',
+          seoFriendlyBase64Id: 'BBBBBBBBBBBBBBBBBBBBBB',
+          description: 'A comprehensive description for testing field passthrough',
+        }
+        const mockResult = { rowCount: 1, command: 'INSERT', oid: 0, fields: [], rows: [] }
+        const mockValues = vi.fn().mockResolvedValue(mockResult)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await repository.createChatType(fullData)
+
+        const valuesArg = mockValues.mock.calls[0]?.[0]
+        expect(valuesArg).toMatchObject({
+          id: fullData.id,
+          name: fullData.name,
+          seoFriendlyId: fullData.seoFriendlyId,
+          seoFriendlyBase64Id: fullData.seoFriendlyBase64Id,
+          description: fullData.description,
+        })
+      })
+
+      it('should not call logger.error on success', async () => {
+        const mockResult = { rowCount: 1, command: 'INSERT', oid: 0, fields: [], rows: [] }
+        const mockValues = vi.fn().mockResolvedValue(mockResult)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await repository.createChatType(mockData)
+
+        expect(mockLogger.error).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('error handling', () => {
+      it('should re-throw database errors', async () => {
+        const dbError = new Error('DB insert failed')
+        const mockValues = vi.fn().mockRejectedValue(dbError)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await expect(repository.createChatType(mockData)).rejects.toThrow('DB insert failed')
+      })
+
+      it('should re-throw the exact error instance', async () => {
+        const dbError = new Error('unique constraint violation')
+        const mockValues = vi.fn().mockRejectedValue(dbError)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await expect(repository.createChatType(mockData)).rejects.toBe(dbError)
+      })
+
+      it('should log the error before re-throwing', async () => {
+        const dbError = new Error('Connection timeout')
+        const mockValues = vi.fn().mockRejectedValue(dbError)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await expect(repository.createChatType(mockData)).rejects.toThrow()
+
+        expect(mockLogger.error).toHaveBeenCalledWith('Error creating new chat type', dbError)
+      })
+
+      it('should log error exactly once', async () => {
+        const dbError = new Error('Connection timeout')
+        const mockValues = vi.fn().mockRejectedValue(dbError)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await expect(repository.createChatType(mockData)).rejects.toThrow()
+
+        expect(mockLogger.error).toHaveBeenCalledTimes(1)
+      })
+
+      it('should not call logger.info when the insert fails', async () => {
+        const dbError = new Error('DB insert failed')
+        const mockValues = vi.fn().mockRejectedValue(dbError)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await expect(repository.createChatType(mockData)).rejects.toThrow()
+
+        expect(mockLogger.info).not.toHaveBeenCalled()
+      })
+
+      it('should still log debug before re-throwing the error', async () => {
+        const dbError = new Error('DB insert failed')
+        const mockValues = vi.fn().mockRejectedValue(dbError)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await expect(repository.createChatType(mockData)).rejects.toThrow()
+
+        expect(mockLogger.debug).toHaveBeenCalledWith('Creating new chat type', {
+          name: mockData.name,
+        })
+      })
+
+      it('should re-throw non-Error objects', async () => {
+        const nonError = { code: 'UNIQUE_VIOLATION', detail: 'Key already exists' }
+        const mockValues = vi.fn().mockRejectedValue(nonError)
+        vi.mocked(db.insert).mockReturnValue({ values: mockValues } as any)
+
+        await expect(repository.createChatType(mockData)).rejects.toEqual(nonError)
       })
     })
   })
