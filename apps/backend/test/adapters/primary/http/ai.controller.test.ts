@@ -215,7 +215,7 @@ describe('AIController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.post).toHaveBeenCalledTimes(1)
+      expect(mockApp.post).toHaveBeenCalledTimes(2)
       expect(mockApp.post).toHaveBeenCalledWith(
         '/ai/chat',
         expect.objectContaining({ preHandler: expect.any(Array) }),
@@ -250,7 +250,7 @@ describe('AIController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.post).toHaveBeenCalledTimes(1)
+      expect(mockApp.post).toHaveBeenCalledTimes(2)
       expect(mockApp.get).toHaveBeenCalledTimes(3)
       expect(mockApp.put).toHaveBeenCalledTimes(1)
       expect(mockApp.delete).not.toHaveBeenCalled()
