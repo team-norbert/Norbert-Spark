@@ -8,6 +8,8 @@ import type { UUIDType } from '../../../domain/value-objects/uuid.js'
 import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
 import { isDefined } from '@norberts-spark/shared'
 import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
+import { DatabaseUtil } from '../../../shared/utils/database.util.js'
+import { ConflictException } from '../../../shared/exceptions/conflict.exception.js'
 
 /**
  * Secondary adapter that implements {@link AIAdminPort} using Drizzle ORM.
@@ -94,6 +96,15 @@ export class AIAdminRepository implements AIAdminPort {
       this.logger.info('Chat AI options created successfully', { chatTypeId: id })
       return result[0] ?? null
     } catch (error) {
+      if (DatabaseUtil.isDuplicateKeyError(error)) {
+        this.logger.warn('Duplicate key error when creating chat type', {
+          chatTypeId: id,
+          error,
+        })
+        throw new ConflictException('A chat type with this name or identifier already exists', {
+          chatTypeId: id,
+        })
+      }
       this.logger.error('Error creating chat AI options', error as Error, { chatTypeId: id })
       throw error
     }
