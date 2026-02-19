@@ -814,6 +814,21 @@ describe('AIAdminController', () => {
       )
     })
 
+    it('should return 500 when use case returns null', async () => {
+      const chatTypeId = uuidv7()
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = { prompt: 'Test prompt' }
+      vi.mocked(mockPostAIAdminUseCase.execute).mockResolvedValue(null)
+
+      await controller.postAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(500)
+      expect(mockReply.send).toHaveBeenCalledWith({
+        success: false,
+        error: 'Failed to create AI chat settings: no record was returned',
+      })
+    })
+
     it('should log info message on request', async () => {
       const chatTypeId = uuidv7()
       mockRequest.params = { id: chatTypeId }
