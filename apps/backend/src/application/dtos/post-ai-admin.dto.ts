@@ -18,7 +18,7 @@ export class PostAIAdminDTO extends PutAIAdminDTO {
    * @throws {TypeException} If data is not an object
    * @throws {ValidationException} If any field fails validation rules
    */
-  static validate(data: any): PostAIAdminDTO {
+  static override validate(data: any): PostAIAdminDTO {
     const validated = PutAIAdminDTO.validate(data)
     return new PostAIAdminDTO(
       validated.prompt,
