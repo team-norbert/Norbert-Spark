@@ -171,7 +171,7 @@ describe('authOptions Configuration', () => {
         data: {
           userId: 'user-123',
           email: 'test@example.com',
-          access_token: 'token',
+          accessToken: 'token',
           roles: ['user'],
         },
       }
@@ -244,14 +244,14 @@ describe('authOptions Configuration', () => {
       ).rejects.toThrow('Authentication failed')
     })
 
-    it('should return null when response lacks access_token', async () => {
+    it('should return null when response lacks accessToken', async () => {
       const mockResponse = {
         success: true,
         data: {
           userId: 'user-123',
           email: 'test@example.com',
           roles: ['user'],
-          // missing access_token
+          // missing accessToken
         },
       }
 

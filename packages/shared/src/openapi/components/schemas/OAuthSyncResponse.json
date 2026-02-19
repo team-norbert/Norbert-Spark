@@ -1,32 +1,35 @@
 {
   "type": "object",
   "description": "Response returned after successful OAuth user synchronization",
-  "required": ["success", "message"],
+  "required": ["success", "data"],
   "properties": {
     "success": {
       "type": "boolean",
       "example": true
     },
     "data": {
-      "userId": {
-        "type": "string",
-        "example": "12345",
-        "description": "Unique identifier of the synchronized user"
-      },
-      "accessToken": {
-        "type": "string",
-        "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-        "description": "Access token for the synchronized user"
-      },
-      "tokenType": {
-        "type": "string",
-        "example": "Bearer",
-        "description": "Type of the access token"
-      },
-      "expiresIn": {
-        "type": "integer",
-        "example": 3600,
-        "description": "Time in seconds until the access token expires"
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "example": "12345",
+          "description": "Unique identifier of the synchronized user"
+        },
+        "accessToken": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "description": "Access token for the synchronized user"
+        },
+        "tokenType": {
+          "type": "string",
+          "example": "Bearer",
+          "description": "Type of the access token"
+        },
+        "expiresIn": {
+          "type": "integer",
+          "example": 3600,
+          "description": "Time in seconds until the access token expires"
+        }
       }
     }
   }

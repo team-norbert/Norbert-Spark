@@ -115,7 +115,7 @@ export class AuthController {
    *   "data": {
    *     "userId": "uuid",
    *     "email": "user@example.com",
-   *     "access_token": "jwt_token",
+   *     "accessToken": "jwt_token",
    *     "roles": ["user"]
    *   }
    * }
@@ -147,7 +147,7 @@ export class AuthController {
    * //   "data": {
    * //     "userId": "550e8400-e29b-41d4-a716-446655440000",
    * //     "email": "user@example.com",
-   * //     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+   * //     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
    * //     "roles": ["user"]
    * //   }
    * // }

@@ -10,7 +10,7 @@
     "data": {
       "type": "object",
       "description": "Authentication result data",
-      "required": ["userId", "email", "access_token", "roles"],
+      "required": ["userId", "email", "accessToken", "roles"],
       "properties": {
         "userId": {
           "type": "string",
