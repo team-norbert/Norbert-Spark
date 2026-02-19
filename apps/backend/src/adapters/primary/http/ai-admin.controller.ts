@@ -68,6 +68,15 @@ export class AIAdminController {
       }
       const dto = PostAIAdminDTO.validate(request.body)
       const result = await this.postAIAdminUseCase.execute(uuidID, dto, auditContext)
+
+      if (!result) {
+        reply.code(500).send({
+          success: false,
+          error: 'Failed to create AI chat settings: no record was returned',
+        })
+        return
+      }
+
       return reply.code(201).send({
         success: true,
         data: result,
