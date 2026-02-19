@@ -97,7 +97,7 @@ export const authOptions: NextAuthOptions = {
 
           const data = result.data
 
-          // Backend should return: { userId, email, access_token, roles }
+          // Backend should return: { userId, email, accessToken, roles }
           if (data?.accessToken) {
             return {
               id: data.userId,
