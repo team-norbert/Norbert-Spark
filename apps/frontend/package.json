@@ -21,6 +21,7 @@
     "test:unit:coverage": "vitest run --coverage --hideSkippedTests",
     "test:e2e": "cross-env E2E_CLEANUP_PROCESSES=true playwright test",
     "test:e2e:headed": "cross-env E2E_CLEANUP_PROCESSES=true playwright test --headed",
+    "test:pact": "vitest run pacts/consumer.pact.spec.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -40,6 +41,7 @@
     "@upstash/redis": "^1.36.2",
     "ai": "^6.0.91",
     "appwrite": "^22.3.1",
+    "axios": "^1.13.5",
     "modern-normalize": "^3.0.1",
     "next": "^16.1.6",
     "next-auth": "^4.24.13",
@@ -55,6 +57,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
     "@next/eslint-plugin-next": "^16.1.6",
+    "@pact-foundation/pact": "^16.2.0",
     "@playwright/test": "^1.58.2",
     "@tanstack/eslint-plugin-query": "^5.91.4",
     "@tanstack/react-query-devtools": "^5.91.3",
