@@ -82,12 +82,13 @@ export class AIAdminRepository implements AIAdminPort {
       return result[0] ?? null
     } catch (error) {
       if (DatabaseUtil.isDuplicateKeyError(error)) {
-        this.logger.warn('Duplicate key error when creating chat type', {
+        this.logger.warn('Duplicate key error when creating chat AI options', {
           chatTypeId: id,
           error,
         })
-        throw new ConflictException('A chat type with this name or identifier already exists', {
+        throw new ConflictException('AI options already exist for this chat type', {
           chatTypeId: id,
+          reason: 'AI options already exist for this chat type (unique constraint on chat_type_id)',
         })
       }
       this.logger.error('Error creating chat AI options', error as Error, { chatTypeId: id })
