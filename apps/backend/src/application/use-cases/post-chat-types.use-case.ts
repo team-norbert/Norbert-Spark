@@ -3,23 +3,17 @@ import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js
 import type { AIContentPort } from '../ports/ai-content.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import type { DBChatType } from '../../infrastructure/database/schema.js'
+import type { ChatTypeInsertDto } from '../dtos/chat-type-insert.dto.js'
 import { SEO } from '../../shared/utils/SEO.util.js'
 import { Uuid7Util } from '../../shared/utils/uuid7.util.js'
 import { isString } from '@norberts-spark/shared'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
-import type { QueryResult } from 'pg'
 
 /**
  * Shape of the input data required to create a new chat type.
  * Derived from the database schema, containing only the user-supplied fields.
  */
 export type PostChatTypesData = Pick<DBChatType, 'name' | 'description'>
-
-/**
- * Full row shape passed to the database layer when inserting a chat type.
- * Excludes `createdAt` and `updatedAt`, which are managed by the database.
- */
-export type PostChatTypesInsert = Omit<DBChatType, 'createdAt' | 'updatedAt'>
 
 /**
  * Use case responsible for creating a new chat type.
@@ -58,11 +52,12 @@ export class PostChatTypesUseCase {
    *
    * @param auditContext - Caller identity and request metadata used for audit logging.
    * @param data - The name and description for the new chat type.
-   * @returns The raw {@link QueryResult} from the database insert.
+   * @returns The created chat type record with all fields including database-generated timestamps.
    * @throws {Error} If a valid 22-character base64url ID cannot be derived from the
    *   generated UUIDv7 (should never occur in practice with a well-formed UUID).
+   * @throws {ConflictException} If a unique constraint is violated (duplicate name or identifiers).
    */
-  async execute(auditContext: AuditContext, data: PostChatTypesData): Promise<QueryResult> {
+  async execute(auditContext: AuditContext, data: PostChatTypesData): Promise<DBChatType> {
     this.logger.info('Executing PostChatTypesUseCase with data', { data })
 
     const { description, name } = data
@@ -76,7 +71,7 @@ export class PostChatTypesUseCase {
     }
     const seoFriendlyBase64Id: string = seoFriendlyBase64IdResult
 
-    const dataInput: PostChatTypesInsert = {
+    const dataInput: ChatTypeInsertDto = {
       id: newId,
       name,
       description,
@@ -84,7 +79,7 @@ export class PostChatTypesUseCase {
       seoFriendlyBase64Id,
     }
 
-    const result = await this.aiChatContent.createChatType(dataInput)
+    const createdChatType = await this.aiChatContent.createChatType(dataInput)
 
     const auditEntry: CreateAuditLogDTO = {
       userId: auditContext.userId,
@@ -92,7 +87,7 @@ export class PostChatTypesUseCase {
       entityId: newId,
       action: AuditAction.CREATE,
       changes: {
-        reason: result ? 'creation_successful' : 'creation_unsuccessful',
+        reason: 'creation_successful',
       },
       ipAddress: auditContext.ipAddress,
       userAgent: auditContext.userAgent ?? undefined,
@@ -100,6 +95,6 @@ export class PostChatTypesUseCase {
     // AuditLogPort.log() never throws per contract
     await this.auditLog.log(auditEntry)
 
-    return result
+    return createdChatType
   }
 }

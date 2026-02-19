@@ -2909,21 +2909,37 @@ describe('AIController', () => {
     describe('successful scenarios', () => {
       it('should create a chat type successfully and respond with 201', async () => {
         const userId = new UserId(uuidv7()).getValue()
-        const mockResult = { rowCount: 1, rows: [], command: 'INSERT', oid: 0, fields: [] }
+        const mockCreatedChatType = {
+          id: uuidv7(),
+          name: 'General Assistant',
+          description: 'A general-purpose AI assistant',
+          seoFriendlyId: 'general-assistant',
+          seoFriendlyBase64Id: 'AAAAAAAAAAAAAAAAAAAAAA',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
 
         mockRequest.body = {
           name: 'General Assistant',
           description: 'A general-purpose AI assistant',
         }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
-        vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue(mockResult as any)
+        vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue(mockCreatedChatType as any)
 
         await controller.createAIChatType(mockRequest, mockReply)
 
         expect(mockReply.code).toHaveBeenCalledWith(201)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: true,
-          data: mockResult,
+          data: {
+            id: mockCreatedChatType.id,
+            name: mockCreatedChatType.name,
+            description: mockCreatedChatType.description,
+            seoFriendlyId: mockCreatedChatType.seoFriendlyId,
+            seoFriendlyBase64Id: mockCreatedChatType.seoFriendlyBase64Id,
+            createdAt: mockCreatedChatType.createdAt,
+            updatedAt: mockCreatedChatType.updatedAt,
+          },
         })
       })
 

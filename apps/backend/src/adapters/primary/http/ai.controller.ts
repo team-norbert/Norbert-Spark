@@ -623,6 +623,7 @@ export class AIController {
    *
    * @throws {400} When `name` or `description` fail DTO validation
    *   (missing, empty, whitespace-only, or exceeds length limits).
+   * @throws {409} When a chat type with the same name or SEO identifier already exists.
    * @throws {500} When the request body is not a plain object, or an unexpected
    *   error occurs during persistence.
    *
@@ -630,12 +631,28 @@ export class AIController {
    * // Success — 201 Created
    * // POST /ai/chats/config
    * // Body: { "name": "Creative Writing", "description": "Helps with creative tasks" }
-   * // Response: { "success": true, "data": <QueryResult> }
+   * // Response: {
+   * //   "success": true,
+   * //   "data": {
+   * //     "id": "01234567-89ab-cdef-0123-456789abcdef",
+   * //     "name": "Creative Writing",
+   * //     "description": "Helps with creative tasks",
+   * //     "seoFriendlyId": "creative-writing",
+   * //     "seoFriendlyBase64Id": "AbCdEfGhIjKlMnOpQrStUv",
+   * //     "createdAt": "2024-01-01T00:00:00.000Z",
+   * //     "updatedAt": "2024-01-01T00:00:00.000Z"
+   * //   }
+   * // }
    *
    * @example
    * // Validation failure — 400 Bad Request
    * // Body: { "name": "" }
    * // Response: { "success": false, "error": "Invalid name: must be a non-empty string" }
+   *
+   * @example
+   * // Conflict — 409 Conflict
+   * // Body: { "name": "Creative Writing", "description": "Duplicate" }
+   * // Response: { "success": false, "error": "A chat type with this name or identifier already exists" }
    */
   async createAIChatType(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received createAIChatType request')
@@ -649,10 +666,18 @@ export class AIController {
     try {
       const body = request.body as any
       const dto = PostChatType.validate(body)
-      const result = await this.postChatTypesUseCase.execute(auditContext, dto)
+      const createdChatType = await this.postChatTypesUseCase.execute(auditContext, dto)
       reply.code(201).send({
         success: true,
-        data: result,
+        data: {
+          id: createdChatType.id,
+          name: createdChatType.name,
+          description: createdChatType.description,
+          seoFriendlyId: createdChatType.seoFriendlyId,
+          seoFriendlyBase64Id: createdChatType.seoFriendlyBase64Id,
+          createdAt: createdChatType.createdAt,
+          updatedAt: createdChatType.updatedAt,
+        },
       })
     } catch (error) {
       const err = error as Error
