@@ -73,10 +73,7 @@ export class AIAdminRepository implements AIAdminPort {
         ...(isDefined(data.maxRetries) && { maxRetries: data.maxRetries }),
       }
 
-      const result = await db
-        .insert(chatAiOptions)
-        .values(insertData)
-        .returning()
+      const result = await db.insert(chatAiOptions).values(insertData).returning()
 
       this.logger.info('Chat AI options created successfully', { chatTypeId: id })
       return result[0] ?? null

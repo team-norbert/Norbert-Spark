@@ -933,7 +933,7 @@ describe('AIAdminRepository', () => {
 
       await expect(
         repository.createChatAIOptions(new Uuid(chatTypeId).getValue(), mockDto as any)
-      ).rejects.toThrow('A chat type with this name or identifier already exists')
+      ).rejects.toThrow('AI options already exist for this chat type')
     })
 
     it('should throw ConflictException when the duplicate key error is wrapped in cause (Drizzle ORM pattern)', async () => {
@@ -970,7 +970,7 @@ describe('AIAdminRepository', () => {
       ).rejects.toThrow(ConflictException)
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'Duplicate key error when creating chat type',
+        'Duplicate key error when creating chat AI options',
         expect.objectContaining({ chatTypeId })
       )
       expect(mockLogger.error).not.toHaveBeenCalled()
