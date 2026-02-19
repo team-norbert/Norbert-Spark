@@ -9,16 +9,59 @@ import { isString } from '@norberts-spark/shared'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { QueryResult } from 'pg'
 
+/**
+ * Shape of the input data required to create a new chat type.
+ * Derived from the database schema, containing only the user-supplied fields.
+ */
 export type PostChatTypesData = Pick<DBChatType, 'name' | 'description'>
+
+/**
+ * Full row shape passed to the database layer when inserting a chat type.
+ * Excludes `createdAt` and `updatedAt`, which are managed by the database.
+ */
 export type PostChatTypesInsert = Omit<DBChatType, 'createdAt' | 'updatedAt'>
 
+/**
+ * Use case responsible for creating a new chat type.
+ *
+ * Orchestrates the full creation flow:
+ * 1. Generates a UUIDv7 primary key for the new record.
+ * 2. Derives a SEO-friendly slug and a 22-character base64url ID from the UUID.
+ * 3. Persists the chat type via {@link AIContentPort.createChatType}.
+ * 4. Writes an audit log entry recording who triggered the creation and whether it succeeded.
+ *
+ * @example
+ * ```typescript
+ * const useCase = new PostChatTypesUseCase(logger, auditLog, aiChatContent)
+ *
+ * const result = await useCase.execute(auditContext, {
+ *   name: 'Creative Writing',
+ *   description: 'Helps users with creative writing tasks',
+ * })
+ * ```
+ */
 export class PostChatTypesUseCase {
+  /**
+   * @param logger - Logger port for structured application logging.
+   * @param auditLog - Audit log port for recording create actions. Per contract,
+   *   implementations must never throw — audit failures are swallowed internally.
+   * @param aiChatContent - Content port that provides database access for chat types.
+   */
   constructor(
     private readonly logger: LoggerPort,
     private readonly auditLog: AuditLogPort,
     private readonly aiChatContent: AIContentPort
   ) {}
 
+  /**
+   * Creates a new chat type and records an audit log entry.
+   *
+   * @param auditContext - Caller identity and request metadata used for audit logging.
+   * @param data - The name and description for the new chat type.
+   * @returns The raw {@link QueryResult} from the database insert.
+   * @throws {Error} If a valid 22-character base64url ID cannot be derived from the
+   *   generated UUIDv7 (should never occur in practice with a well-formed UUID).
+   */
   async execute(auditContext: AuditContext, data: PostChatTypesData): Promise<QueryResult> {
     this.logger.info('Executing PostChatTypesUseCase with data', { data })
 
