@@ -1,5 +1,6 @@
 import 'modern-normalize/modern-normalize.css'
 import 'streamdown/styles.css'
+import './styles/globals.css'
 import './styles/material.css'
 
 import type { Metadata } from 'next'

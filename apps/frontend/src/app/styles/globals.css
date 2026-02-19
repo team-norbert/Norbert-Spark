@@ -1,0 +1,13 @@
+/*
+ * Global styles for the Norbert's Spark frontend application.
+ *
+ * Imported in layout.tsx so these rules apply to every page.
+ * Keep component-specific styles in their respective files or
+ * MUI's sx / styled API — this file is for true app-wide defaults.
+ */
+
+.accordion-header {
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-color: #2aaaff;
+}

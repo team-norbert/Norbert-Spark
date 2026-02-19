@@ -19,10 +19,10 @@ export const AccordionComponent = ({ body, header, id }: AccordionComponentProps
   return (
     <Accordion>
       <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls={contentId} id={headerId}>
-        <Typography>{header}</Typography>
+        <Typography className="accordion-header">{header}</Typography>
       </AccordionSummary>
       <AccordionDetails id={contentId}>
-        <Typography>{body}</Typography>
+        <Typography dangerouslySetInnerHTML={{ __html: body }}></Typography>
       </AccordionDetails>
     </Accordion>
   )

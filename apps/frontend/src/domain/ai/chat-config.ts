@@ -78,3 +78,28 @@ export const PutAIChatSettingsSchema = z.object({
 })
 
 export type PutAIChatSettings = z.infer<typeof PutAIChatSettingsSchema>
+
+/**
+ * Schema for creating a new AI chat type (POST /ai/chats/config)
+ * Matches CreateAIChatTypeRequest in the OpenAPI spec
+ */
+export const CreateChatTypeSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(200, 'Name must be 200 characters or fewer'),
+  description: z
+    .string()
+    .min(1, 'Description is required')
+    .max(500, 'Description must be 500 characters or fewer'),
+})
+
+export type CreateChatTypeData = z.infer<typeof CreateChatTypeSchema>
+
+/**
+ * Response type for the create chat type API
+ * Matches CreateChatTypeResponse in the OpenAPI spec
+ */
+export const CreateChatTypeResponseSchema = z.object({
+  success: z.boolean(),
+  data: ChatTypeSchema,
+})
+
+export type CreateChatTypeResponse = z.infer<typeof CreateChatTypeResponseSchema>
