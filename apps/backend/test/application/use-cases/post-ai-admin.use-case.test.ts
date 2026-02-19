@@ -88,7 +88,7 @@ describe('PostAIAdminUseCase', () => {
       const result = await useCase.execute(chatTypeId, dto, mockAuditContext)
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        `Executing PutAIAdminUseCase for ID: ${chatTypeId}`
+        `Executing PostAIAdminUseCase for ID: ${chatTypeId}`
       )
       expect(mockAiAdminPort.createChatAIOptions).toHaveBeenCalledTimes(1)
       expect(mockAiAdminPort.createChatAIOptions).toHaveBeenCalledWith(chatTypeId, dto)
@@ -382,7 +382,7 @@ describe('PostAIAdminUseCase', () => {
 
       expect(mockLogger.info).toHaveBeenCalledTimes(1)
       expect(mockLogger.info).toHaveBeenCalledWith(
-        `Executing PutAIAdminUseCase for ID: ${chatTypeId}`
+        `Executing PostAIAdminUseCase for ID: ${chatTypeId}`
       )
     })
 

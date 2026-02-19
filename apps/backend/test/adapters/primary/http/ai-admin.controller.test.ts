@@ -500,6 +500,7 @@ describe('AIAdminController', () => {
       const mockApp = {
         get: vi.fn(),
         put: vi.fn(),
+        post: vi.fn(),
       } as any
 
       controller.registerRoutes(mockApp)
@@ -513,6 +514,14 @@ describe('AIAdminController', () => {
       )
 
       expect(mockApp.put).toHaveBeenCalledWith(
+        '/ai/chats/config/:id/settings',
+        expect.objectContaining({
+          preHandler: expect.any(Array),
+        }),
+        expect.any(Function)
+      )
+
+      expect(mockApp.post).toHaveBeenCalledWith(
         '/ai/chats/config/:id/settings',
         expect.objectContaining({
           preHandler: expect.any(Array),
