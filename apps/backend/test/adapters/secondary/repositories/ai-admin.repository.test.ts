@@ -5,6 +5,8 @@ import { AIAdminRepository } from '../../../../src/adapters/secondary/repositori
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import { Uuid } from '../../../../src/domain/value-objects/uuid.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
+import { POSTGRES_ERROR_CODE } from '../../../../src/shared/constants/error-codes.js'
+import { ConflictException } from '../../../../src/shared/exceptions/conflict.exception.js'
 
 // Mock the database module
 vi.mock('../../../../src/infrastructure/database/index.js', () => ({
@@ -911,6 +913,85 @@ describe('AIAdminRepository', () => {
       expect(mockLogger.info).not.toHaveBeenCalledWith('Chat AI options created successfully', {
         chatTypeId,
       })
+    })
+
+    it('should throw ConflictException when the database returns a duplicate key error', async () => {
+      const chatTypeId = uuidv7()
+      const mockDto = { prompt: 'Test' }
+
+      const duplicateError = new Error('duplicate key value violates unique constraint') as any
+      duplicateError.code = POSTGRES_ERROR_CODE.UNIQUE_VIOLATION
+
+      const mockReturning = vi.fn().mockRejectedValue(duplicateError)
+      const mockValues = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
+      vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
+
+      await expect(
+        repository.createChatAIOptions(new Uuid(chatTypeId).getValue(), mockDto as any)
+      ).rejects.toThrow(ConflictException)
+
+      await expect(
+        repository.createChatAIOptions(new Uuid(chatTypeId).getValue(), mockDto as any)
+      ).rejects.toThrow('A chat type with this name or identifier already exists')
+    })
+
+    it('should throw ConflictException when the duplicate key error is wrapped in cause (Drizzle ORM pattern)', async () => {
+      const chatTypeId = uuidv7()
+      const mockDto = { prompt: 'Test' }
+
+      const wrappedError = new Error('drizzle wrapped error') as any
+      wrappedError.cause = { code: POSTGRES_ERROR_CODE.UNIQUE_VIOLATION }
+
+      const mockReturning = vi.fn().mockRejectedValue(wrappedError)
+      const mockValues = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
+      vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
+
+      await expect(
+        repository.createChatAIOptions(new Uuid(chatTypeId).getValue(), mockDto as any)
+      ).rejects.toThrow(ConflictException)
+    })
+
+    it('should log warn (not error) when a duplicate key error occurs', async () => {
+      const chatTypeId = uuidv7()
+      const mockDto = { prompt: 'Test' }
+
+      const duplicateError = new Error('duplicate key value violates unique constraint') as any
+      duplicateError.code = POSTGRES_ERROR_CODE.UNIQUE_VIOLATION
+
+      const mockReturning = vi.fn().mockRejectedValue(duplicateError)
+      const mockValues = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
+      vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
+
+      await expect(
+        repository.createChatAIOptions(new Uuid(chatTypeId).getValue(), mockDto as any)
+      ).rejects.toThrow(ConflictException)
+
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Duplicate key error when creating chat type',
+        expect.objectContaining({ chatTypeId })
+      )
+      expect(mockLogger.error).not.toHaveBeenCalled()
+    })
+
+    it('should not log warn when a non-duplicate database error occurs', async () => {
+      const chatTypeId = uuidv7()
+      const mockDto = { prompt: 'Test' }
+      const genericError = new Error('connection reset')
+
+      const mockReturning = vi.fn().mockRejectedValue(genericError)
+      const mockValues = vi.fn().mockReturnValue({ returning: mockReturning })
+      const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
+      vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
+
+      await expect(
+        repository.createChatAIOptions(new Uuid(chatTypeId).getValue(), mockDto as any)
+      ).rejects.toThrow('connection reset')
+
+      expect(mockLogger.warn).not.toHaveBeenCalled()
+      expect(mockLogger.error).toHaveBeenCalled()
     })
   })
 })
