@@ -1,5 +1,4 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { useRouter } from 'next/navigation.js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
@@ -13,11 +12,6 @@ import {
 // Mock PageHeader to avoid pulling in MUI icons
 vi.mock('@/view/client-components/PageHeader.js', () => ({
   PageHeader: vi.fn(({ title }: { title: string }) => <div data-testid="page-header">{title}</div>),
-}))
-
-// Mock next/navigation to avoid "app router not mounted" error
-vi.mock('next/navigation.js', () => ({
-  useRouter: vi.fn(() => ({ push: vi.fn() })),
 }))
 
 // ─── Test data ──────────────────────────────────────────────────────────────────
@@ -40,6 +34,7 @@ const defaultProps = {
   error: null,
   loading: false,
   onCancelSave: vi.fn(),
+  onChangeOptions: vi.fn(),
   onCloseDialogError: vi.fn(),
   onCloseErrorMessage: vi.fn(),
   onCloseSuccessMessage: vi.fn(),
@@ -587,30 +582,24 @@ describe('ChatTypesPage', () => {
     })
 
     it('should navigate to /ai-admin/:id when the button is clicked', () => {
-      const mockPush = vi.fn()
-      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<
-        typeof useRouter
-      >)
+      const onChangeOptions = vi.fn()
       const chatType = makeChatType()
-      render(<ChatTypesPage {...defaultProps} chatTypes={[chatType]} />)
+      render(<ChatTypesPage {...defaultProps} chatTypes={[chatType]} onChangeOptions={onChangeOptions} />)
 
       fireEvent.click(screen.getByTestId(`change-options-${chatType.id}`))
 
-      expect(mockPush).toHaveBeenCalledTimes(1)
-      expect(mockPush).toHaveBeenCalledWith(`/ai-admin/${chatType.id}`)
+      expect(onChangeOptions).toHaveBeenCalledTimes(1)
+      expect(onChangeOptions).toHaveBeenCalledWith(chatType.id)
     })
 
     it('should build the correct route for a different chat type id', () => {
-      const mockPush = vi.fn()
-      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<
-        typeof useRouter
-      >)
+      const onChangeOptions = vi.fn()
       const chatType = makeChatType({ id: 'abcdef12-0000-0000-0000-000000000099' })
-      render(<ChatTypesPage {...defaultProps} chatTypes={[chatType]} />)
+      render(<ChatTypesPage {...defaultProps} chatTypes={[chatType]} onChangeOptions={onChangeOptions} />)
 
       fireEvent.click(screen.getByTestId(`change-options-${chatType.id}`))
 
-      expect(mockPush).toHaveBeenCalledWith('/ai-admin/abcdef12-0000-0000-0000-000000000099')
+      expect(onChangeOptions).toHaveBeenCalledWith('abcdef12-0000-0000-0000-000000000099')
     })
 
     it('should not render any "Change Options" buttons when chatTypes is empty', () => {

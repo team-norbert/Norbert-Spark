@@ -24,7 +24,6 @@ import {
   type GridRowModel,
 } from '@mui/x-data-grid'
 import { validateKebabCase } from '@norberts-spark/shared'
-import { useRouter } from 'next/navigation.js'
 import { useEffect, useState } from 'react'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
@@ -212,6 +211,8 @@ interface ChatTypesPageProps {
   dialogError: string | null
   /** Called when the user closes the dialog error Alert. */
   onCloseDialogError: () => void
+  /** Called when the user clicks "Change Options" for a chat type row. */
+  onChangeOptions: (id: string) => void
 }
 
 /**
@@ -237,6 +238,7 @@ export function ChatTypesPage({
   error,
   loading,
   onCancelSave,
+  onChangeOptions,
   onCloseDialogError,
   onCloseErrorMessage,
   onCloseSuccessMessage,
@@ -254,7 +256,6 @@ export function ChatTypesPage({
   searchQuery,
   successMessage,
 }: ChatTypesPageProps) {
-  const router = useRouter()
   const [validationMessage, setValidationMessage] = useState<string | null>(null)
 
   const renderEditCell = (params: GridRenderEditCellParams) => (
@@ -526,7 +527,7 @@ export function ChatTypesPage({
           size="small"
           color="primary"
           onClick={() => {
-            router.push(`/ai-admin/${params.row.id}`)
+            onChangeOptions(params.row.id)
           }}
         >
           Change Options
