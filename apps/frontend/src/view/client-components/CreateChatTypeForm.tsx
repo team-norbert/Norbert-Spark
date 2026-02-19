@@ -78,6 +78,7 @@ export function CreateChatTypeForm({
             disabled={isSubmitting}
             slotProps={{ htmlInput: { maxLength: 200 } }}
             sx={{ mb: 3 }}
+            data-testid="name-input"
           />
 
           <TextField
@@ -96,6 +97,7 @@ export function CreateChatTypeForm({
             rows={4}
             slotProps={{ htmlInput: { maxLength: 500 } }}
             sx={{ mb: 3 }}
+            data-testid="description-input"
           />
 
           <Box sx={{ display: 'flex', gap: 2 }}>
@@ -109,7 +111,12 @@ export function CreateChatTypeForm({
               {isSubmitting ? 'Creating…' : 'Create'}
             </Button>
 
-            <Button variant="outlined" onClick={onCancel} disabled={isSubmitting}>
+            <Button
+              variant="outlined"
+              onClick={onCancel}
+              disabled={isSubmitting}
+              data-testid="cancel-button"
+            >
               Cancel
             </Button>
           </Box>
