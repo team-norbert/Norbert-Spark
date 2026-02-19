@@ -17,6 +17,7 @@ import type { ResolveChatTypeUseCase } from '../../../../src/application/use-cas
 import type { SaveChatUseCase } from '../../../../src/application/use-cases/save-chat.use-case.js'
 import { ChatId } from '../../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
+import { ConflictException } from '../../../../src/shared/exceptions/conflict.exception.js'
 import { InternalErrorException } from '../../../../src/shared/exceptions/internal-error.exception.js'
 import { NotFoundException } from '../../../../src/shared/exceptions/not-found.exception.js'
 
@@ -3219,6 +3220,24 @@ describe('AIController', () => {
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: `ChatType with identifier '${id}' not found`,
+        })
+      })
+
+      it('should return 409 on ConflictException from use case', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.body = { name: 'Duplicate Type', description: 'Will throw conflict' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(
+          new ConflictException('A chat type with this name or identifier already exists')
+        )
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(409)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'A chat type with this name or identifier already exists',
         })
       })
 
