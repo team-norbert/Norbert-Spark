@@ -65,7 +65,12 @@ describe('AIAdminController', () => {
     } as any
 
     // Create controller instance
-    controller = new AIAdminController(mockLogger, mockGetAIAdminUseCase, mockPutAIAdminUseCase, mockPostAIAdminUseCase)
+    controller = new AIAdminController(
+      mockLogger,
+      mockGetAIAdminUseCase,
+      mockPutAIAdminUseCase,
+      mockPostAIAdminUseCase
+    )
   })
 
   describe('getAIChatSettingsById', () => {
