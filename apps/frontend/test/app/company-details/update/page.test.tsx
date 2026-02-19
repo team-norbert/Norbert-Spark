@@ -10,6 +10,11 @@ vi.mock('@/view/hooks/useCompanyDetailsForm.js', () => ({
   useCompanyDetailsForm: vi.fn(),
 }))
 
+// Mock next/navigation to avoid "app router not mounted" error
+vi.mock('next/navigation.js', () => ({
+  useRouter: vi.fn(() => ({ push: vi.fn() })),
+}))
+
 // Mock the CompanyDetailsForm component
 vi.mock('@/view/client-components/CompanyDetailsForm.js', () => ({
   CompanyDetailsForm: vi.fn((props) => (
@@ -149,6 +154,8 @@ describe('UpdateCompanyDetailsPage', () => {
         onSubmit: mockHookReturn.handleSubmit,
         onCancel: mockHookReturn.handleCancel,
         isSubmitting: mockHookReturn.isSubmitting,
+        onNavigateHome: expect.any(Function),
+        onSignOut: expect.any(Function),
       })
     })
 
@@ -245,7 +252,7 @@ describe('UpdateCompanyDetailsPage', () => {
       const passedProps = formCall?.[0]
 
       expect(passedProps).toBeDefined()
-      expect(Object.keys(passedProps || {})).toHaveLength(8) // All 8 props should be passed
+      expect(Object.keys(passedProps || {})).toHaveLength(10) // All 10 props should be passed
     })
 
     it('should not contain any business logic', () => {

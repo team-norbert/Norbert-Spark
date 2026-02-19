@@ -14,6 +14,11 @@ vi.mock('@/view/client-components/PageHeader.js', () => ({
   PageHeader: vi.fn(({ title }: { title: string }) => <div data-testid="page-header">{title}</div>),
 }))
 
+// Mock next/navigation to avoid "app router not mounted" error
+vi.mock('next/navigation.js', () => ({
+  useRouter: vi.fn(() => ({ push: vi.fn() })),
+}))
+
 // ─── Test data ──────────────────────────────────────────────────────────────────
 
 const makeChatType = (overrides: Partial<ChatType> = {}): ChatType => ({

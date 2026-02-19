@@ -6,11 +6,15 @@ import type {
   KeyPersonDetails,
 } from '@/infrastructure/serverActions/getCompanyDetails.server.js'
 
+import { PageHeader } from './PageHeader.js'
+
 interface CompanyDetailsProps {
   company: CompanyDetailsType | null
   keyPerson: KeyPersonDetails | null
   isLoading: boolean
   error: string | null
+  onNavigateHome: () => void
+  onSignOut: () => void
 }
 
 /**
@@ -18,7 +22,14 @@ interface CompanyDetailsProps {
  * Pure presentation component that receives all data and callbacks as props.
  * No business logic - follows DDD architecture View layer principles.
  */
-export function CompanyDetails({ company, error, isLoading, keyPerson }: CompanyDetailsProps) {
+export function CompanyDetails({
+  company,
+  error,
+  isLoading,
+  keyPerson,
+  onNavigateHome,
+  onSignOut,
+}: CompanyDetailsProps) {
   if (isLoading) {
     return (
       <Container maxWidth="lg" sx={{ py: 8 }}>
@@ -81,16 +92,10 @@ export function CompanyDetails({ company, error, isLoading, keyPerson }: Company
 
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
-      <Typography
-        variant="h3"
-        component="h1"
-        gutterBottom
-        fontWeight="bold"
-        sx={{ mb: 4 }}
-        data-testid="company-details-heading"
-      >
-        Company Details
-      </Typography>
+      {/* Page Heading */}
+      <header>
+        <PageHeader title="Company Details" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
+      </header>
 
       {/* Company Information Section */}
       <Box component="section" sx={{ mb: 4 }}>

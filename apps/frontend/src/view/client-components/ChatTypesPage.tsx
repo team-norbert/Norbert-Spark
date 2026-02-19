@@ -24,6 +24,7 @@ import {
   type GridRowModel,
 } from '@mui/x-data-grid'
 import { validateKebabCase } from '@norberts-spark/shared'
+import { useRouter } from 'next/navigation.js'
 import { useEffect, useState } from 'react'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
@@ -253,6 +254,7 @@ export function ChatTypesPage({
   searchQuery,
   successMessage,
 }: ChatTypesPageProps) {
+  const router = useRouter()
   const [validationMessage, setValidationMessage] = useState<string | null>(null)
 
   const renderEditCell = (params: GridRenderEditCellParams) => (
@@ -510,6 +512,28 @@ export function ChatTypesPage({
           </Tooltip>
         )
       },
+    },
+    {
+      field: 'actions',
+      headerName: 'Click to change options',
+      width: 200,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <>
+          <Button
+            data-testid={`change-options-${params.row.id}`}
+            variant="outlined"
+            size="small"
+            color="primary"
+            onClick={() => {
+              router.push(`/ai-admin/${params.row.id}`)
+            }}
+          >
+            Change Options
+          </Button>
+        </>
+      ),
     },
   ]
 

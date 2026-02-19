@@ -14,6 +14,8 @@ import { useEffect, useState } from 'react'
 import { getAIChatSettingsById } from '@/infrastructure/serverActions/getAIChatSettingsById.server.js'
 import { updateAIChatSettingsById } from '@/infrastructure/serverActions/updateAIChatSettingsById.server.js'
 
+import { PageHeader } from './PageHeader.js'
+
 interface AIOptions {
   id: string
   chatTypeId: string
@@ -31,9 +33,15 @@ interface AIOptions {
 
 interface AIOptionsFormProps {
   chatTypeId: string
+  onNavigateHome: () => void
+  onSignOut: () => void
 }
 
-export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
+export default function AIOptionsForm({
+  chatTypeId,
+  onNavigateHome,
+  onSignOut,
+}: AIOptionsFormProps) {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -140,9 +148,13 @@ export default function AIOptionsForm({ chatTypeId }: AIOptionsFormProps) {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        AI Chat Options Configuration
-      </Typography>
+      <header>
+        <PageHeader
+          title="AI Chat Options Configuration"
+          onNavigateHome={onNavigateHome}
+          onSignOut={onSignOut}
+        />
+      </header>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>

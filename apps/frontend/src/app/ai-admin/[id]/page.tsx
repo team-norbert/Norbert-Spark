@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation.js'
 
 import { hasAnyRole } from '@/lib/auth/auth.js'
-import AIOptionsForm from '@/view/client-components/AIOptionsForm.js'
+
+import { AIOptionsFormClient } from './AIOptionsFormClient.js'
 
 export default async function AIAdminDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -14,5 +15,5 @@ export default async function AIAdminDetailPage({ params }: { params: Promise<{ 
     })
     redirect(`/signin?${searchParams.toString()}`)
   }
-  return <AIOptionsForm chatTypeId={id} />
+  return <AIOptionsFormClient chatTypeId={id} />
 }
