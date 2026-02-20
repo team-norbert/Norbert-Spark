@@ -71,6 +71,7 @@ describe('PostChatTypesUseCase', () => {
       const data: PostChatTypesData = {
         name: 'General Assistant',
         description: 'A general-purpose AI assistant',
+        rag: false,
       }
 
       await useCase.execute(mockAuditContext, data)
@@ -79,12 +80,17 @@ describe('PostChatTypesUseCase', () => {
       const callArg = vi.mocked(mockAiChatContent.createChatType).mock.calls[0]![0]
       expect(callArg.name).toBe('General Assistant')
       expect(callArg.description).toBe('A general-purpose AI assistant')
+      expect(callArg.rag).toBe(false)
       expect(typeof callArg.id).toBe('string')
       expect(callArg.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
     })
 
     it('should generate a SEO-friendly id from the name', async () => {
-      const data: PostChatTypesData = { name: 'General Assistant', description: 'A helpful bot' }
+      const data: PostChatTypesData = {
+        name: 'General Assistant',
+        description: 'A helpful bot',
+        rag: false,
+      }
       const expectedSeoFriendlyId = SEO.generateSeoFriendlyTitle('General Assistant')
 
       await useCase.execute(mockAuditContext, data)
@@ -97,6 +103,7 @@ describe('PostChatTypesUseCase', () => {
       const data: PostChatTypesData = {
         name: 'Creative Writing',
         description: 'Helps with creative writing',
+        rag: false,
       }
 
       await useCase.execute(mockAuditContext, data)
@@ -106,7 +113,7 @@ describe('PostChatTypesUseCase', () => {
     })
 
     it('should generate a unique id for each invocation', async () => {
-      const data: PostChatTypesData = { name: 'Test Chat Type', description: 'Testing' }
+      const data: PostChatTypesData = { name: 'Test Chat Type', description: 'Testing', rag: false }
 
       await useCase.execute(mockAuditContext, data)
       await useCase.execute(mockAuditContext, data)
@@ -116,7 +123,11 @@ describe('PostChatTypesUseCase', () => {
     })
 
     it('should return the created chat type from createChatType', async () => {
-      const data: PostChatTypesData = { name: 'Coding Helper', description: 'Helps with code' }
+      const data: PostChatTypesData = {
+        name: 'Coding Helper',
+        description: 'Helps with code',
+        rag: false,
+      }
 
       const result = await useCase.execute(mockAuditContext, data)
 
@@ -124,7 +135,7 @@ describe('PostChatTypesUseCase', () => {
     })
 
     it('should log the initial info message', async () => {
-      const data: PostChatTypesData = { name: 'Test Type', description: 'A test' }
+      const data: PostChatTypesData = { name: 'Test Type', description: 'A test', rag: false }
 
       await useCase.execute(mockAuditContext, data)
 
@@ -134,7 +145,11 @@ describe('PostChatTypesUseCase', () => {
     })
 
     it('should call auditLog.log once with the correct audit entry', async () => {
-      const data: PostChatTypesData = { name: 'Audit Test', description: 'Testing audit' }
+      const data: PostChatTypesData = {
+        name: 'Audit Test',
+        description: 'Testing audit',
+        rag: false,
+      }
 
       await useCase.execute(mockAuditContext, data)
 
@@ -148,7 +163,11 @@ describe('PostChatTypesUseCase', () => {
     })
 
     it('should set audit entityId to the same UUID passed to createChatType', async () => {
-      const data: PostChatTypesData = { name: 'Audit Id Test', description: 'Testing audit id' }
+      const data: PostChatTypesData = {
+        name: 'Audit Id Test',
+        description: 'Testing audit id',
+        rag: false,
+      }
 
       await useCase.execute(mockAuditContext, data)
 
@@ -158,7 +177,11 @@ describe('PostChatTypesUseCase', () => {
     })
 
     it('should set audit changes reason to "creation_successful" when createChatType returns a truthy result', async () => {
-      const data: PostChatTypesData = { name: 'Success Audit', description: 'Should succeed' }
+      const data: PostChatTypesData = {
+        name: 'Success Audit',
+        description: 'Should succeed',
+        rag: false,
+      }
 
       await useCase.execute(mockAuditContext, data)
 
@@ -172,7 +195,11 @@ describe('PostChatTypesUseCase', () => {
         ipAddress: '10.0.0.1',
         userAgent: 'test-agent',
       }
-      const data: PostChatTypesData = { name: 'Null User', description: 'No userId context' }
+      const data: PostChatTypesData = {
+        name: 'Null User',
+        description: 'No userId context',
+        rag: false,
+      }
 
       await expect(useCase.execute(contextWithNullUser, data)).resolves.toBeDefined()
 
@@ -186,7 +213,7 @@ describe('PostChatTypesUseCase', () => {
         ipAddress: '10.0.0.1',
         userAgent: null,
       }
-      const data: PostChatTypesData = { name: 'No Agent', description: 'No user agent' }
+      const data: PostChatTypesData = { name: 'No Agent', description: 'No user agent', rag: false }
 
       await useCase.execute(contextWithoutAgent, data)
 
@@ -197,7 +224,11 @@ describe('PostChatTypesUseCase', () => {
 
   describe('execute() - SEO id generation', () => {
     it('should filter stop-words from the name when building seoFriendlyId', async () => {
-      const data: PostChatTypesData = { name: 'The General Assistant', description: 'desc' }
+      const data: PostChatTypesData = {
+        name: 'The General Assistant',
+        description: 'desc',
+        rag: false,
+      }
 
       await useCase.execute(mockAuditContext, data)
 
@@ -207,7 +238,11 @@ describe('PostChatTypesUseCase', () => {
     })
 
     it('should produce a kebab-case seoFriendlyId for multi-word names', async () => {
-      const data: PostChatTypesData = { name: 'Creative Writing Assistant', description: 'desc' }
+      const data: PostChatTypesData = {
+        name: 'Creative Writing Assistant',
+        description: 'desc',
+        rag: false,
+      }
 
       await useCase.execute(mockAuditContext, data)
 
@@ -219,7 +254,7 @@ describe('PostChatTypesUseCase', () => {
 
   describe('execute() - base64 id generation', () => {
     it('should produce a base64url-safe seoFriendlyBase64Id', async () => {
-      const data: PostChatTypesData = { name: 'Base64 Test', description: 'desc' }
+      const data: PostChatTypesData = { name: 'Base64 Test', description: 'desc', rag: false }
 
       await useCase.execute(mockAuditContext, data)
 
@@ -229,7 +264,7 @@ describe('PostChatTypesUseCase', () => {
     })
 
     it('seoFriendlyBase64Id should be recoverable from the inserted UUID', async () => {
-      const data: PostChatTypesData = { name: 'Round-trip Test', description: 'desc' }
+      const data: PostChatTypesData = { name: 'Round-trip Test', description: 'desc', rag: false }
 
       await useCase.execute(mockAuditContext, data)
 
@@ -239,17 +274,41 @@ describe('PostChatTypesUseCase', () => {
     })
   })
 
+  describe('execute() - rag flag pass-through', () => {
+    it('should pass rag: true to createChatType when data.rag is true', async () => {
+      const data: PostChatTypesData = { name: 'RAG Chat', description: 'Uses RAG', rag: true }
+
+      await useCase.execute(mockAuditContext, data)
+
+      const callArg = vi.mocked(mockAiChatContent.createChatType).mock.calls[0]![0]
+      expect(callArg.rag).toBe(true)
+    })
+
+    it('should pass rag: false to createChatType when data.rag is false', async () => {
+      const data: PostChatTypesData = { name: 'Standard Chat', description: 'No RAG', rag: false }
+
+      await useCase.execute(mockAuditContext, data)
+
+      const callArg = vi.mocked(mockAiChatContent.createChatType).mock.calls[0]![0]
+      expect(callArg.rag).toBe(false)
+    })
+  })
+
   describe('execute() - error scenarios', () => {
     it('should propagate errors thrown by createChatType', async () => {
       vi.mocked(mockAiChatContent.createChatType).mockRejectedValue(new Error('DB connection lost'))
-      const data: PostChatTypesData = { name: 'Error Case', description: 'Should throw' }
+      const data: PostChatTypesData = {
+        name: 'Error Case',
+        description: 'Should throw',
+        rag: false,
+      }
 
       await expect(useCase.execute(mockAuditContext, data)).rejects.toThrow('DB connection lost')
     })
 
     it('should not call auditLog when createChatType throws', async () => {
       vi.mocked(mockAiChatContent.createChatType).mockRejectedValue(new Error('DB error'))
-      const data: PostChatTypesData = { name: 'No Audit On Error', description: 'desc' }
+      const data: PostChatTypesData = { name: 'No Audit On Error', description: 'desc', rag: false }
 
       await expect(useCase.execute(mockAuditContext, data)).rejects.toThrow()
 
@@ -258,7 +317,7 @@ describe('PostChatTypesUseCase', () => {
 
     it('should throw when Uuid7Util.toBase64 returns undefined (non-v7 UUID mocked)', async () => {
       vi.spyOn(Uuid7Util, 'createUuidv7').mockReturnValue('not-a-valid-uuid')
-      const data: PostChatTypesData = { name: 'Bad UUID', description: 'desc' }
+      const data: PostChatTypesData = { name: 'Bad UUID', description: 'desc', rag: false }
 
       await expect(useCase.execute(mockAuditContext, data)).rejects.toThrow(
         'Failed to generate a valid base64 ID for the new chat type'
@@ -267,7 +326,7 @@ describe('PostChatTypesUseCase', () => {
 
     it('should not call createChatType when base64 generation fails', async () => {
       vi.spyOn(Uuid7Util, 'createUuidv7').mockReturnValue('not-a-valid-uuid')
-      const data: PostChatTypesData = { name: 'Bad UUID', description: 'desc' }
+      const data: PostChatTypesData = { name: 'Bad UUID', description: 'desc', rag: false }
 
       await expect(useCase.execute(mockAuditContext, data)).rejects.toThrow()
 

@@ -77,8 +77,8 @@ test.describe('Create Chat Type Page', () => {
       .filter({ hasText: NEW_CHAT_TYPE.name })
       .first()
     await expect(newChatTypeRow).toBeVisible({ timeout: 10_000 })
-    /* const ragCell = newChatTypeRow.locator('[data-field="rag"]')
+    const ragCell = newChatTypeRow.locator('[data-field="rag"]')
     await expect(ragCell).toBeVisible({ timeout: 10_000 })
-    await expect(ragCell).toHaveText(/true/i)*/
+    await expect(ragCell).toHaveText(/true/i)
   })
 })

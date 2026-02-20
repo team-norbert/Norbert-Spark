@@ -3011,6 +3011,7 @@ describe('AIController', () => {
         mockRequest.body = {
           name: 'General Assistant',
           description: 'A general-purpose AI assistant',
+          rag: false,
         }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
         vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue(mockCreatedChatType as any)
@@ -3036,7 +3037,7 @@ describe('AIController', () => {
       it('should log the debug message on entry', async () => {
         const userId = new UserId(uuidv7()).getValue()
 
-        mockRequest.body = { name: 'Test Type', description: 'A test chat type' }
+        mockRequest.body = { name: 'Test Type', description: 'A test chat type', rag: false }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
         vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue({ rowCount: 1 } as any)
 
@@ -3049,7 +3050,7 @@ describe('AIController', () => {
         const userId = new UserId(uuidv7()).getValue()
         const customRequest = {
           ...mockRequest,
-          body: { name: 'Audit Test', description: 'Testing audit context' },
+          body: { name: 'Audit Test', description: 'Testing audit context', rag: false },
           user: { sub: userId, email: 'admin@example.com', roles: ['admin'] },
           ip: '10.0.0.1',
           headers: { 'user-agent': 'Mozilla/5.0 (Test)' },
@@ -3067,7 +3068,7 @@ describe('AIController', () => {
       it('should call execute with null userAgent when user-agent header is absent', async () => {
         const userId = new UserId(uuidv7()).getValue()
 
-        mockRequest.body = { name: 'No Agent', description: 'No user-agent header' }
+        mockRequest.body = { name: 'No Agent', description: 'No user-agent header', rag: false }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
         mockRequest.headers = {}
         vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue({ rowCount: 1 } as any)
@@ -3081,7 +3082,11 @@ describe('AIController', () => {
       })
 
       it('should call execute with null userId when request.user is absent', async () => {
-        mockRequest.body = { name: 'Unauthenticated', description: 'No user on request' }
+        mockRequest.body = {
+          name: 'Unauthenticated',
+          description: 'No user on request',
+          rag: false,
+        }
         mockRequest.user = undefined as any
         vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue({ rowCount: 1 } as any)
 
@@ -3096,7 +3101,11 @@ describe('AIController', () => {
       it('should pass trimmed name and description to the use case', async () => {
         const userId = new UserId(uuidv7()).getValue()
 
-        mockRequest.body = { name: '  Creative Writing  ', description: '  Helps with writing  ' }
+        mockRequest.body = {
+          name: '  Creative Writing  ',
+          description: '  Helps with writing  ',
+          rag: false,
+        }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
         vi.mocked(mockPostChatTypesUseCase.execute).mockResolvedValue({ rowCount: 1 } as any)
 
@@ -3194,7 +3203,7 @@ describe('AIController', () => {
       it('should return 400 when name exceeds 200 characters', async () => {
         const userId = new UserId(uuidv7()).getValue()
 
-        mockRequest.body = { name: 'a'.repeat(201), description: 'Valid description' }
+        mockRequest.body = { name: 'a'.repeat(201), description: 'Valid description', rag: false }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
 
         await controller.createAIChatType(mockRequest, mockReply)
@@ -3210,7 +3219,7 @@ describe('AIController', () => {
       it('should return 400 when description exceeds 500 characters', async () => {
         const userId = new UserId(uuidv7()).getValue()
 
-        mockRequest.body = { name: 'Valid Name', description: 'a'.repeat(501) }
+        mockRequest.body = { name: 'Valid Name', description: 'a'.repeat(501), rag: false }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
 
         await controller.createAIChatType(mockRequest, mockReply)
@@ -3260,7 +3269,7 @@ describe('AIController', () => {
       it('should return 500 on generic error from use case', async () => {
         const userId = new UserId(uuidv7()).getValue()
 
-        mockRequest.body = { name: 'Error Case', description: 'Will throw' }
+        mockRequest.body = { name: 'Error Case', description: 'Will throw', rag: false }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
         vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(
           new Error('DB connection lost')
@@ -3282,7 +3291,11 @@ describe('AIController', () => {
       it('should return 500 on InternalErrorException from use case', async () => {
         const userId = new UserId(uuidv7()).getValue()
 
-        mockRequest.body = { name: 'Internal Error', description: 'Will throw internal error' }
+        mockRequest.body = {
+          name: 'Internal Error',
+          description: 'Will throw internal error',
+          rag: false,
+        }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
         vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(
           new InternalErrorException('Unexpected failure')
@@ -3305,7 +3318,7 @@ describe('AIController', () => {
         const userId = new UserId(uuidv7()).getValue()
         const id = uuidv7()
 
-        mockRequest.body = { name: 'Not Found', description: 'Will throw not found' }
+        mockRequest.body = { name: 'Not Found', description: 'Will throw not found', rag: false }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
         vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(
           new NotFoundException('ChatType', id)
@@ -3323,7 +3336,11 @@ describe('AIController', () => {
       it('should return 409 on ConflictException from use case', async () => {
         const userId = new UserId(uuidv7()).getValue()
 
-        mockRequest.body = { name: 'Duplicate Type', description: 'Will throw conflict' }
+        mockRequest.body = {
+          name: 'Duplicate Type',
+          description: 'Will throw conflict',
+          rag: false,
+        }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
         vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(
           new ConflictException('A chat type with this name or identifier already exists')
@@ -3343,7 +3360,7 @@ describe('AIController', () => {
         const emptyError = new Error()
         emptyError.message = ''
 
-        mockRequest.body = { name: 'Empty Error', description: 'Empty error message' }
+        mockRequest.body = { name: 'Empty Error', description: 'Empty error message', rag: false }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
         vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(emptyError)
 
@@ -3363,7 +3380,7 @@ describe('AIController', () => {
       it('should return 500 when a non-Error value is thrown', async () => {
         const userId = new UserId(uuidv7()).getValue()
 
-        mockRequest.body = { name: 'String Throw', description: 'Throws a string' }
+        mockRequest.body = { name: 'String Throw', description: 'Throws a string', rag: false }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
         vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue('something went wrong')
 
@@ -3384,7 +3401,7 @@ describe('AIController', () => {
         const userId = new UserId(uuidv7()).getValue()
         const drizzleError = new DrizzleQueryError('INSERT INTO chat_types (name) VALUES ($1)', [])
 
-        mockRequest.body = { name: 'Drizzle Type', description: 'Drizzle error test' }
+        mockRequest.body = { name: 'Drizzle Type', description: 'Drizzle error test', rag: false }
         mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
         vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(drizzleError)
 
