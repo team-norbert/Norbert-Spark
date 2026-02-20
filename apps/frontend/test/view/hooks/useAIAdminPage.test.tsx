@@ -27,6 +27,7 @@ const mockChatTypes: ChatType[] = [
     updatedAt: '2024-01-15T10:30:00Z',
     seoFriendlyId: 'general-assistant',
     seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4',
+    rag: false,
   },
   {
     id: '01942f8e-67a4-7c3d-8e5f-6a7b8c9d0e1f',
@@ -36,6 +37,7 @@ const mockChatTypes: ChatType[] = [
     updatedAt: '2024-01-16T10:30:00Z',
     seoFriendlyId: 'fitness-tracker',
     seoFriendlyBase64Id: 'AZQv42ejfD2OX2p7jJ',
+    rag: false,
   },
   {
     id: '01942f8e-67a5-8d4e-9f6a-7b8c9d0e1f2a',
@@ -45,6 +47,7 @@ const mockChatTypes: ChatType[] = [
     updatedAt: '2024-01-17T10:30:00Z',
     seoFriendlyId: 'level-2-gym-instructor',
     seoFriendlyBase64Id: 'AZQv42ejjU6fane8nQ',
+    rag: false,
   },
   {
     id: '01942f8e-67a6-9e5f-af7a-8b9c0d1e2f3b',
@@ -54,6 +57,7 @@ const mockChatTypes: ChatType[] = [
     updatedAt: '2024-01-18T10:30:00Z',
     seoFriendlyId: 'nutrition-advisor',
     seoFriendlyBase64Id: 'AZQv42ejnlWvepuc',
+    rag: false,
   },
   {
     id: '01942f8e-67a7-af6a-ba8b-9c0d1e2f3g4c',
@@ -63,6 +67,7 @@ const mockChatTypes: ChatType[] = [
     updatedAt: '2024-01-19T10:30:00Z',
     seoFriendlyId: 'wellness-coach',
     seoFriendlyBase64Id: 'AZQv42ejr2a6i5wN',
+    rag: false,
   },
 ]
 
@@ -222,6 +227,7 @@ describe('useAIAdminPage', () => {
         updatedAt: '2024-01-15T10:30:00Z',
         seoFriendlyId: `chat-type-${i}`,
         seoFriendlyBase64Id: `base64-${i}`,
+        rag: false,
       }))
 
       const mockResponse: AIChatOptionsResponse = {
@@ -599,6 +605,7 @@ describe('useAIAdminPage', () => {
         updatedAt: '2024-01-15T10:30:00Z',
         seoFriendlyId: `fitness-coach-${i}`,
         seoFriendlyBase64Id: `base64-${i}`,
+        rag: false,
       }))
 
       const mockResponse: AIChatOptionsResponse = {
@@ -957,6 +964,7 @@ describe('useAIAdminPage', () => {
           updatedAt: '2024-01-15T10:30:00Z',
           seoFriendlyId: 'cpp-developer',
           seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4',
+          rag: false,
         },
       ]
 

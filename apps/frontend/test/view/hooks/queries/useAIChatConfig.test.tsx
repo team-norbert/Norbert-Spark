@@ -27,6 +27,7 @@ const mockChatTypes: ChatType[] = [
     updatedAt: '2024-01-15T10:30:00Z',
     seoFriendlyId: 'general-assistant',
     seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4',
+    rag: false,
   },
   {
     id: '01942f8e-67a4-7c3d-8e5f-6a7b8c9d0e1f',
@@ -36,6 +37,7 @@ const mockChatTypes: ChatType[] = [
     updatedAt: '2024-01-16T10:30:00Z',
     seoFriendlyId: 'fitness-tracker',
     seoFriendlyBase64Id: 'AZQv42ejfD2OX2p7jJ',
+    rag: false,
   },
   {
     id: '01942f8e-67a5-8d4e-9f6a-7b8c9d0e1f2a',
@@ -45,6 +47,7 @@ const mockChatTypes: ChatType[] = [
     updatedAt: '2024-01-17T10:30:00Z',
     seoFriendlyId: 'level-2-gym-instructor',
     seoFriendlyBase64Id: 'AZQv42ejjU6fane8nQ',
+    rag: false,
   },
 ]
 

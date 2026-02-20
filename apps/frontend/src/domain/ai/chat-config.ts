@@ -15,6 +15,7 @@ export const ChatTypeSchema = z.object({
   seoFriendlyBase64Id: z
     .string()
     .regex(/^[A-Za-z0-9_-]{22}$/, 'URL-safe Base64 (22 chars, no padding)'),
+  rag: z.boolean(),
 })
 
 export type ChatType = z.infer<typeof ChatTypeSchema>

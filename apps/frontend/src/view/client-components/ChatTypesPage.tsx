@@ -444,6 +444,12 @@ export function ChatTypesPage({
       ),
     },
     {
+      field: 'rag',
+      headerName: 'RAG',
+      width: 80,
+      renderCell: (params) => String(params.value),
+    },
+    {
       field: 'createdAt',
       headerName: 'Created At',
       width: 180,

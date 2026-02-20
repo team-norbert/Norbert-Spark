@@ -27,6 +27,7 @@ describe('useChatTypesPage', () => {
       updatedAt: '2024-01-01T00:00:00.000Z',
       seoFriendlyId: 'general-chat',
       seoFriendlyBase64Id: 'EREREREREREREREREREREA',
+      rag: false,
     },
     {
       id: '22222222-2222-2222-2222-222222222222',
@@ -36,6 +37,7 @@ describe('useChatTypesPage', () => {
       updatedAt: '2024-01-02T00:00:00.000Z',
       seoFriendlyId: 'technical-support',
       seoFriendlyBase64Id: 'IiIiIiIiIiIiIiIiIiIiIg',
+      rag: false,
     },
     {
       id: '33333333-3333-3333-3333-333333333333',
@@ -45,6 +47,7 @@ describe('useChatTypesPage', () => {
       updatedAt: '2024-01-03T00:00:00.000Z',
       seoFriendlyId: 'sales-assistant',
       seoFriendlyBase64Id: 'MzMzMzMzMzMzMzMzMzMzMw',
+      rag: false,
     },
   ]
 
@@ -426,6 +429,7 @@ describe('useChatTypesPage', () => {
           updatedAt: '2024-01-04T00:00:00.000Z',
           seoFriendlyId: 'support-chat',
           seoFriendlyBase64Id: 'NDQ0NDQ0NDQ0NDQ0NDQ0NA',
+          rag: false,
         },
         {
           id: '55555555-5555-5555-5555-555555555555',
@@ -435,6 +439,7 @@ describe('useChatTypesPage', () => {
           updatedAt: '2024-01-05T00:00:00.000Z',
           seoFriendlyId: 'technical-chat',
           seoFriendlyBase64Id: 'NTU1NTU1NTU1NTU1NTU1NQ',
+          rag: false,
         },
       ]
 
@@ -575,6 +580,7 @@ describe('useChatTypesPage', () => {
           updatedAt: '2024-01-10T00:00:00.000Z',
           seoFriendlyId: 'new-chat-type',
           seoFriendlyBase64Id: 'OTk5OTk5OTk5OTk5OTk5OQ',
+          rag: false,
         },
       ]
 

@@ -24,6 +24,7 @@ const makeChatType = (overrides: Partial<ChatType> = {}): ChatType => ({
   description: 'A helpful general-purpose AI assistant',
   createdAt: '2024-01-15T10:30:00Z',
   updatedAt: '2024-01-20T14:45:00Z',
+  rag: false,
   ...overrides,
 })
 
@@ -504,6 +505,7 @@ describe('ChatTypesPage', () => {
       expect(screen.getByText('SEO Friendly ID')).toBeInTheDocument()
       expect(screen.getByText('Base64 ID')).toBeInTheDocument()
       expect(screen.getByText('Description')).toBeInTheDocument()
+      expect(screen.getByText('RAG')).toBeInTheDocument()
       expect(screen.getByText('Created At')).toBeInTheDocument()
       expect(screen.getByText('Updated At')).toBeInTheDocument()
     })
@@ -548,6 +550,16 @@ describe('ChatTypesPage', () => {
       const { container } = render(<ChatTypesPage {...defaultProps} chatTypes={chatTypes} />)
       // The date cells should exist but be empty — no formatted date text
       expect(container).toBeInTheDocument()
+    })
+
+    it('should display "false" in the RAG column when rag is false', () => {
+      render(<ChatTypesPage {...defaultProps} chatTypes={[makeChatType({ rag: false })]} />)
+      expect(screen.getByText('false')).toBeInTheDocument()
+    })
+
+    it('should display "true" in the RAG column when rag is true', () => {
+      render(<ChatTypesPage {...defaultProps} chatTypes={[makeChatType({ rag: true })]} />)
+      expect(screen.getByText('true')).toBeInTheDocument()
     })
   })
 

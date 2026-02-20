@@ -3024,6 +3024,7 @@ describe('AIController', () => {
             id: mockCreatedChatType.id,
             name: mockCreatedChatType.name,
             description: mockCreatedChatType.description,
+            rag: mockCreatedChatType.rag,
             seoFriendlyId: mockCreatedChatType.seoFriendlyId,
             seoFriendlyBase64Id: mockCreatedChatType.seoFriendlyBase64Id,
             createdAt: mockCreatedChatType.createdAt,
