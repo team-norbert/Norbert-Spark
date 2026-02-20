@@ -279,8 +279,8 @@ export class AIExtractDataController {
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
         error instanceof DrizzleQueryError
-          ? 'Failed to fetch chat details due to a database error'
-          : err?.message || 'Failed to fetch chat details due to a database error'
+          ? 'Failed to extract data due to a database error'
+          : err?.message || 'Failed to extract data due to a server error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
