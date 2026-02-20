@@ -383,7 +383,7 @@ describe('UserController', () => {
           success: false,
           error: 'Database connection failed',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting user', expect.any(Error))
+        expect(mockLogger.error).toHaveBeenCalledWith('Error getting all users', expect.any(Error))
       })
 
       it('should handle BaseException with custom status code', async () => {
@@ -406,7 +406,7 @@ describe('UserController', () => {
         await controller.getAllUsers(mockRequest, mockReply)
 
         expect(mockReply.code).toHaveBeenCalledWith(500)
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting user', expect.any(Error))
+        expect(mockLogger.error).toHaveBeenCalledWith('Error getting all users', expect.any(Error))
       })
 
       it('should handle null error gracefully', async () => {
@@ -419,7 +419,7 @@ describe('UserController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting user', expect.any(Error))
+        expect(mockLogger.error).toHaveBeenCalledWith('Error getting all users', expect.any(Error))
       })
 
       it('should not expose internal error details in production', async () => {
@@ -827,7 +827,7 @@ describe('UserController', () => {
           success: false,
           error: 'User with this email already exists',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting user', expect.any(Error))
+        expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
 
       it('should handle password validation error from use case', async () => {
@@ -868,7 +868,7 @@ describe('UserController', () => {
           success: false,
           error: 'Database connection failed',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting user', expect.any(Error))
+        expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
 
       it('should handle generic errors from use case', async () => {
@@ -887,7 +887,7 @@ describe('UserController', () => {
           success: false,
           error: 'Unexpected error',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting user', expect.any(Error))
+        expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
     })
 
@@ -1317,7 +1317,7 @@ describe('UserController', () => {
           success: false,
           error: 'Database connection failed',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting user user', expect.any(Error))
+        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', expect.any(Error))
       })
 
       it('should handle BaseException errors with status code', async () => {
@@ -1345,7 +1345,7 @@ describe('UserController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting user user', expect.any(Error))
+        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', expect.any(Error))
       })
 
       it('should return 500 for generic errors', async () => {
@@ -1844,7 +1844,7 @@ describe('UserController', () => {
           success: false,
           error: 'Unexpected error',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting user', expect.any(Error))
+        expect(mockLogger.error).toHaveBeenCalledWith('Error getting user by id', expect.any(Error))
       })
 
       it('should handle invalid UUID format', async () => {
@@ -1881,7 +1881,7 @@ describe('UserController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting user', expect.any(Error))
+        expect(mockLogger.error).toHaveBeenCalledWith('Error getting user by id', expect.any(Error))
       })
     })
 
