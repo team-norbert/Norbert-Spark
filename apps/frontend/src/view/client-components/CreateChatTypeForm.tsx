@@ -1,12 +1,21 @@
 'use client'
 
-import { Alert, Box, Button, CircularProgress, Container, TextField } from '@mui/material'
+import {
+  Alert,
+  Box,
+  Button,
+  Checkbox,
+  CircularProgress,
+  Container,
+  FormControlLabel,
+  TextField,
+} from '@mui/material'
 
 import { AccordionComponent } from '@/view/client-components/AccordionComponent.js'
 import { PageHeader } from '@/view/client-components/PageHeader.js'
 
 interface CreateChatTypeFormProps {
-  readonly formData: { readonly name: string; readonly description: string }
+  readonly formData: { readonly name: string; readonly description: string; readonly rag: boolean }
   readonly errors: { readonly name: string; readonly description: string }
   readonly generalError?: string
   readonly successMessage?: string
@@ -14,6 +23,7 @@ interface CreateChatTypeFormProps {
   readonly onFieldChange: (
     field: 'name' | 'description'
   ) => (event: React.ChangeEvent<HTMLInputElement>) => void
+  readonly onRagChange: (event: React.ChangeEvent<HTMLInputElement>) => void
   readonly onSubmit: (event: React.FormEvent) => void
   readonly onCancel: () => void
   readonly onNavigateHome: () => void
@@ -35,6 +45,7 @@ export function CreateChatTypeForm({
   onCancel,
   onFieldChange,
   onNavigateHome,
+  onRagChange,
   onSignOut,
   onSubmit,
   successMessage,
@@ -127,6 +138,20 @@ export function CreateChatTypeForm({
             slotProps={{ htmlInput: { maxLength: 500 } }}
             sx={{ mb: 3 }}
             data-testid="description-input"
+          />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                id="rag"
+                checked={formData.rag}
+                onChange={onRagChange}
+                disabled={isSubmitting}
+                data-testid="rag-checkbox"
+              />
+            }
+            label="RAG (Retrieval-Augmented Generation)"
+            sx={{ mb: 3, display: 'block' }}
           />
 
           <Box sx={{ display: 'flex', gap: 2 }}>

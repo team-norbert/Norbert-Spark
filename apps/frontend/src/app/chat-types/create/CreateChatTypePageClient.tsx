@@ -17,6 +17,7 @@ export function CreateChatTypePageClient() {
     generalError,
     handleCancel,
     handleChange,
+    handleRagChange,
     handleSubmit,
     isSubmitting,
     successMessage,
@@ -38,6 +39,7 @@ export function CreateChatTypePageClient() {
       successMessage={successMessage}
       isSubmitting={isSubmitting}
       onFieldChange={handleChange}
+      onRagChange={handleRagChange}
       onSubmit={handleSubmit}
       onCancel={handleCancel}
       onNavigateHome={handleNavigateHome}

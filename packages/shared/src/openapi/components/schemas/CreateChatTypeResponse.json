@@ -15,6 +15,7 @@
         "name",
         "seoFriendlyId",
         "seoFriendlyBase64Id",
+        "rag",
         "description",
         "createdAt",
         "updatedAt"
@@ -47,6 +48,11 @@
           "maxLength": 22,
           "description": "Base64-encoded URL-safe identifier (22 characters)",
           "example": "AbCdEfGhIjKlMnOpQrStUv"
+        },
+        "rag": {
+          "type": "boolean",
+          "description": "Indicates whether Retrieval-Augmented Generation (RAG) is enabled for this chat type",
+          "example": false
         },
         "description": {
           "type": "string",

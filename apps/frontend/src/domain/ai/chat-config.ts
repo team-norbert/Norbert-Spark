@@ -15,6 +15,7 @@ export const ChatTypeSchema = z.object({
   seoFriendlyBase64Id: z
     .string()
     .regex(/^[A-Za-z0-9_-]{22}$/, 'URL-safe Base64 (22 chars, no padding)'),
+  rag: z.boolean(),
 })
 
 export type ChatType = z.infer<typeof ChatTypeSchema>
@@ -89,6 +90,7 @@ export const CreateChatTypeSchema = z.object({
     .string()
     .min(1, 'Description is required')
     .max(500, 'Description must be 500 characters or fewer'),
+  rag: z.boolean().default(false),
 })
 
 export type CreateChatTypeData = z.infer<typeof CreateChatTypeSchema>

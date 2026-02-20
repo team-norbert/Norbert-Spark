@@ -688,6 +688,7 @@ export class AIController {
           id: createdChatType.id,
           name: createdChatType.name,
           description: createdChatType.description,
+          rag: createdChatType.rag,
           seoFriendlyId: createdChatType.seoFriendlyId,
           seoFriendlyBase64Id: createdChatType.seoFriendlyBase64Id,
           createdAt: createdChatType.createdAt,

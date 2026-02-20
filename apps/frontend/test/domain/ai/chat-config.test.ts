@@ -18,6 +18,7 @@ describe('ChatTypeSchema', () => {
         updatedAt: '2024-01-15T10:30:00Z',
         seoFriendlyId: 'general-assistant',
         seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+        rag: false,
       }
 
       const result = ChatTypeSchema.safeParse(validChatType)
@@ -34,6 +35,7 @@ describe('ChatTypeSchema', () => {
         updatedAt: '2024-01-15T10:30:00Z',
         seoFriendlyId: 'a',
         seoFriendlyBase64Id: '1234567890123456789012',
+        rag: false,
       }
 
       const result = ChatTypeSchema.safeParse(validChatType)
@@ -49,6 +51,7 @@ describe('ChatTypeSchema', () => {
         updatedAt: '2024-01-15T10:30:00Z',
         seoFriendlyId: 'a'.repeat(200),
         seoFriendlyBase64Id: '1234567890123456789012',
+        rag: false,
       }
 
       const result = ChatTypeSchema.safeParse(validChatType)
@@ -64,10 +67,45 @@ describe('ChatTypeSchema', () => {
         updatedAt: '2024-01-15T10:30:00Z',
         seoFriendlyId: 'js-developer',
         seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+        rag: false,
       }
 
       const result = ChatTypeSchema.safeParse(validChatType)
       expect(result.success).toBe(true)
+    })
+
+    it('should validate ChatType with rag set to true', () => {
+      const validChatType = {
+        id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e',
+        name: 'RAG Assistant',
+        description: 'A RAG-enabled AI assistant',
+        createdAt: '2024-01-15T10:30:00Z',
+        updatedAt: '2024-01-15T10:30:00Z',
+        seoFriendlyId: 'rag-assistant',
+        seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+        rag: true,
+      }
+
+      const result = ChatTypeSchema.safeParse(validChatType)
+      expect(result.success).toBe(true)
+      expect(result.data?.rag).toBe(true)
+    })
+
+    it('should validate ChatType with rag set to false', () => {
+      const validChatType = {
+        id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e',
+        name: 'Standard Assistant',
+        description: 'A standard AI assistant without RAG',
+        createdAt: '2024-01-15T10:30:00Z',
+        updatedAt: '2024-01-15T10:30:00Z',
+        seoFriendlyId: 'standard-assistant',
+        seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+        rag: false,
+      }
+
+      const result = ChatTypeSchema.safeParse(validChatType)
+      expect(result.success).toBe(true)
+      expect(result.data?.rag).toBe(false)
     })
   })
 
@@ -176,6 +214,22 @@ describe('ChatTypeSchema', () => {
       expect(result.success).toBe(false)
       expect(result.error?.issues?.[0]?.path).toContain('seoFriendlyBase64Id')
     })
+
+    it('should fail validation when rag is missing', () => {
+      const invalidChatType = {
+        id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e',
+        name: 'General Assistant',
+        description: 'A general-purpose AI assistant',
+        createdAt: '2024-01-15T10:30:00Z',
+        updatedAt: '2024-01-15T10:30:00Z',
+        seoFriendlyId: 'general-assistant',
+        seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+      }
+
+      const result = ChatTypeSchema.safeParse(invalidChatType)
+      expect(result.success).toBe(false)
+      expect(result.error?.issues?.[0]?.path).toContain('rag')
+    })
   })
 
   describe('Invalid Data - Invalid Field Types', () => {
@@ -236,11 +290,46 @@ describe('ChatTypeSchema', () => {
         updatedAt: '2024-15-99',
         seoFriendlyId: 'general-assistant',
         seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+        rag: false,
       }
 
       const result = ChatTypeSchema.safeParse(invalidChatType)
       expect(result.success).toBe(false)
       expect(result.error?.issues?.[0]?.path).toContain('updatedAt')
+    })
+
+    it('should fail validation when rag is a string', () => {
+      const invalidChatType = {
+        id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e',
+        name: 'General Assistant',
+        description: 'A general-purpose AI assistant',
+        createdAt: '2024-01-15T10:30:00Z',
+        updatedAt: '2024-01-15T10:30:00Z',
+        seoFriendlyId: 'general-assistant',
+        seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+        rag: 'true',
+      }
+
+      const result = ChatTypeSchema.safeParse(invalidChatType)
+      expect(result.success).toBe(false)
+      expect(result.error?.issues?.[0]?.path).toContain('rag')
+    })
+
+    it('should fail validation when rag is a number', () => {
+      const invalidChatType = {
+        id: '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e',
+        name: 'General Assistant',
+        description: 'A general-purpose AI assistant',
+        createdAt: '2024-01-15T10:30:00Z',
+        updatedAt: '2024-01-15T10:30:00Z',
+        seoFriendlyId: 'general-assistant',
+        seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+        rag: 1,
+      }
+
+      const result = ChatTypeSchema.safeParse(invalidChatType)
+      expect(result.success).toBe(false)
+      expect(result.error?.issues?.[0]?.path).toContain('rag')
     })
   })
 
@@ -384,6 +473,7 @@ describe('ChatTypeSchema', () => {
         updatedAt: '2024-01-15T10:30:00Z',
         seoFriendlyId: 'general-assistant',
         seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+        rag: false,
       }
 
       // Type should be correctly inferred - this is a compile-time test
@@ -394,6 +484,7 @@ describe('ChatTypeSchema', () => {
       expect(chatType.updatedAt).toBeDefined()
       expect(chatType.seoFriendlyId).toBeDefined()
       expect(chatType.seoFriendlyBase64Id).toBeDefined()
+      expect(chatType.rag).toBeDefined()
     })
   })
 })
@@ -412,6 +503,7 @@ describe('AIChatOptionsResponseSchema', () => {
             updatedAt: '2024-01-15T10:30:00Z',
             seoFriendlyId: 'general-assistant',
             seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+            rag: false,
           },
           {
             id: '01942f8e-67a4-7c3d-8e5f-6a7b8c9d0e1f',
@@ -421,6 +513,7 @@ describe('AIChatOptionsResponseSchema', () => {
             updatedAt: '2024-01-16T10:30:00Z',
             seoFriendlyId: 'fitness-tracker',
             seoFriendlyBase64Id: 'AZQv42ejfD2OX2p7jJEFGH',
+            rag: false,
           },
         ],
       }
@@ -464,6 +557,7 @@ describe('AIChatOptionsResponseSchema', () => {
             updatedAt: '2024-01-15T10:30:00Z',
             seoFriendlyId: 'general-assistant',
             seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+            rag: false,
           },
         ],
       }
@@ -585,6 +679,7 @@ describe('AIChatOptionsResponseSchema', () => {
             updatedAt: '2024-01-15T10:30:00Z',
             seoFriendlyId: 'general-assistant',
             seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4ABCD',
+            rag: false,
           },
         ],
       }

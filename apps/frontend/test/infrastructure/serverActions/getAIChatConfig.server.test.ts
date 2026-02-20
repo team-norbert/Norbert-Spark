@@ -42,6 +42,7 @@ describe('getAIChatConfig', () => {
             updatedAt: '2024-01-15T10:30:00Z',
             seoFriendlyId: 'general-assistant',
             seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4',
+            rag: false,
           },
           {
             id: '01942f8e-67a4-7c3d-8e5f-6a7b8c9d0e1f',
@@ -51,6 +52,7 @@ describe('getAIChatConfig', () => {
             updatedAt: '2024-01-16T10:30:00Z',
             seoFriendlyId: 'fitness-tracker',
             seoFriendlyBase64Id: 'AZQv42ejfD2OX2p7jJ',
+            rag: false,
           },
         ],
       }
@@ -104,6 +106,7 @@ describe('getAIChatConfig', () => {
             updatedAt: '2024-01-15T10:30:00Z',
             seoFriendlyId: 'general-assistant',
             seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4',
+            rag: false,
           },
         ],
       }
@@ -132,6 +135,7 @@ describe('getAIChatConfig', () => {
             updatedAt: '2024-01-16T15:45:00Z',
             seoFriendlyId: 'level-2-gym-instructor',
             seoFriendlyBase64Id: 'AZQv42ejeyy51P5qe4',
+            rag: false,
           },
         ],
       }

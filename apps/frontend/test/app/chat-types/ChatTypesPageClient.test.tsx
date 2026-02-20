@@ -43,6 +43,7 @@ describe('ChatTypesPageClient', () => {
       description: 'A helpful general-purpose AI assistant',
       createdAt: '2024-01-15T10:30:00Z',
       updatedAt: '2024-01-20T14:45:00Z',
+      rag: false,
     },
     {
       id: '01942f8e-67a4-7c3d-8e5f-6a7b8c9d0e1f',
@@ -52,6 +53,7 @@ describe('ChatTypesPageClient', () => {
       description: 'Specialized in programming assistance',
       createdAt: '2024-01-16T11:30:00Z',
       updatedAt: '2024-01-21T15:45:00Z',
+      rag: false,
     },
   ]
 

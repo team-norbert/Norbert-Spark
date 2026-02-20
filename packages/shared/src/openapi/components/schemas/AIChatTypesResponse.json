@@ -15,6 +15,7 @@
           "id",
           "name",
           "description",
+          "rag",
           "createdAt",
           "updatedAt",
           "seoFriendlyId",
@@ -55,6 +56,11 @@
             "maxLength": 500,
             "description": "Detailed description of the chat type",
             "example": "Explore Joseph Conrad's classic novella through interactive AI-powered discussions"
+          },
+          "rag": {
+            "type": "boolean",
+            "description": "Indicates if Retrieval-Augmented Generation (RAG) is enabled for this chat type",
+            "example": true
           },
           "createdAt": {
             "type": "string",
