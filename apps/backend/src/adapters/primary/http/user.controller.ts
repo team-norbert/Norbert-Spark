@@ -192,6 +192,10 @@ export class UserController {
         return
       }
     } catch (error) {
+      this.logger.error(
+        'Error deleting users',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'
@@ -257,6 +261,10 @@ export class UserController {
         },
       })
     } catch (error) {
+      this.logger.error(
+        'Error getting all users',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'
@@ -317,6 +325,10 @@ export class UserController {
         data: result,
       })
     } catch (error) {
+      this.logger.error(
+        'Error registering user',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'
@@ -474,6 +486,10 @@ export class UserController {
         },
       })
     } catch (error) {
+      this.logger.error(
+        'Error getting user by id',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'

@@ -270,6 +270,10 @@ export class AIExtractDataController {
         return
       }
     } catch (error) {
+      this.logger.error(
+        'Error in extractData endpoint',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'
@@ -356,6 +360,10 @@ export class AIExtractDataController {
         message: 'Presigned URLs generated successfully',
       })
     } catch (error) {
+      this.logger.error(
+        'Error generating presigned URLs',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'

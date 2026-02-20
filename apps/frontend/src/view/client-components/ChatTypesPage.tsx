@@ -554,7 +554,12 @@ export function ChatTypesPage({
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={onCloseErrorMessage}>
+        <Alert
+          severity="error"
+          sx={{ mb: 3 }}
+          onClose={onCloseErrorMessage}
+          data-testid="error-alert"
+        >
           {error}
         </Alert>
       )}

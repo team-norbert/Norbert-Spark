@@ -326,6 +326,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.logger
     )
     this.authController = new AuthController(
+      this.logger,
       this.loginUserUseCase,
       this.registerUserWithProviderUseCase
     )

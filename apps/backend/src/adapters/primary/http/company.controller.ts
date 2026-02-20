@@ -240,6 +240,10 @@ export class CompanyController {
 
       return reply.status(204).send()
     } catch (error) {
+      this.logger.error(
+        'Error updating company details',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'
@@ -360,6 +364,10 @@ export class CompanyController {
         data: result,
       })
     } catch (error) {
+      this.logger.error(
+        'Error in getCompanyDetails handler',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'

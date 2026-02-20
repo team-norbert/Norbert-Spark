@@ -82,6 +82,10 @@ export class AIAdminController {
         data: result,
       })
     } catch (error) {
+      this.logger.error(
+        'Error processing ai-admin POST request',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'
@@ -129,6 +133,10 @@ export class AIAdminController {
 
       reply.status(204).send()
     } catch (error) {
+      this.logger.error(
+        'Error processing ai-admin PUT request',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'
@@ -180,6 +188,10 @@ export class AIAdminController {
         data: result,
       })
     } catch (error) {
+      this.logger.error(
+        'Error handling ai-admin request',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'

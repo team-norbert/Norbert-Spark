@@ -267,6 +267,10 @@ describe('CompanyController', () => {
           success: false,
           error: 'Database connection failed',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in getCompanyDetails handler',
+          expect.any(Error)
+        )
       })
 
       it('should handle errors without message', async () => {
@@ -281,6 +285,10 @@ describe('CompanyController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in getCompanyDetails handler',
+          expect.any(Error)
+        )
       })
 
       it('should handle null error', async () => {
@@ -293,6 +301,10 @@ describe('CompanyController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in getCompanyDetails handler',
+          expect.any(Error)
+        )
       })
 
       it('should handle validation errors', async () => {
@@ -561,6 +573,10 @@ describe('CompanyController', () => {
           success: false,
           error: 'Database connection failed',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error updating company details',
+          expect.any(Error)
+        )
       })
 
       it('should handle errors without message', async () => {
@@ -584,6 +600,10 @@ describe('CompanyController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error updating company details',
+          expect.any(Error)
+        )
       })
 
       it('should handle validation exception', async () => {

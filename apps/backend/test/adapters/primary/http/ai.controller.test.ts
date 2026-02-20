@@ -1487,6 +1487,10 @@ describe('AIController', () => {
           success: false,
           error: 'Internal server error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in getAIChatDetails',
+          expect.any(Error)
+        )
       })
 
       it('should handle generic errors with 500 status code', async () => {
@@ -1506,6 +1510,10 @@ describe('AIController', () => {
           success: false,
           error: 'Database connection failed',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in getAIChatDetails',
+          expect.any(Error)
+        )
       })
 
       it('should handle errors without message with default error message', async () => {
@@ -1526,6 +1534,10 @@ describe('AIController', () => {
           success: false,
           error: 'Failed to fetch chat details',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in getAIChatDetails',
+          expect.any(Error)
+        )
       })
 
       it('should handle non-Error thrown values', async () => {
@@ -1545,6 +1557,10 @@ describe('AIController', () => {
           success: false,
           error: 'Failed to fetch chat details',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in getAIChatDetails',
+          expect.any(Error)
+        )
       })
 
       it('should handle NotFoundException with 404 status code', async () => {
@@ -2802,6 +2818,10 @@ describe('AIController', () => {
           success: false,
           error: 'Database error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in updateAIChatDetails',
+          expect.any(Error)
+        )
       })
 
       it('should handle generic errors with 500 status code', async () => {
@@ -2828,6 +2848,10 @@ describe('AIController', () => {
           success: false,
           error: 'Unexpected error',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in updateAIChatDetails',
+          expect.any(Error)
+        )
       })
 
       it('should handle errors without message with default error message', async () => {
@@ -2855,6 +2879,10 @@ describe('AIController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in updateAIChatDetails',
+          expect.any(Error)
+        )
       })
 
       it('should handle NotFoundException with 404 status code', async () => {
@@ -2907,6 +2935,10 @@ describe('AIController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in updateAIChatDetails',
+          expect.any(Error)
+        )
       })
     })
   })
@@ -3190,6 +3222,10 @@ describe('AIController', () => {
           success: false,
           error: 'DB connection lost',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in createAIChatType',
+          expect.any(Error)
+        )
       })
 
       it('should return 500 on InternalErrorException from use case', async () => {
@@ -3208,6 +3244,10 @@ describe('AIController', () => {
           success: false,
           error: 'Unexpected failure',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in createAIChatType',
+          expect.any(Error)
+        )
       })
 
       it('should return 404 on NotFoundException from use case', async () => {
@@ -3263,6 +3303,10 @@ describe('AIController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in createAIChatType',
+          expect.any(Error)
+        )
       })
 
       it('should return 500 when a non-Error value is thrown', async () => {
@@ -3279,6 +3323,10 @@ describe('AIController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in createAIChatType',
+          expect.any(Error)
+        )
       })
     })
   })
