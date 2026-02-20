@@ -9,21 +9,21 @@ describe('PostChatType', () => {
 
   describe('constructor', () => {
     it('should create an instance with the given name and description', () => {
-      const dto = new PostChatType('General Chat', 'A helpful assistant')
+      const dto = new PostChatType('General Chat', 'A helpful assistant', false)
 
       expect(dto.name).toBe('General Chat')
       expect(dto.description).toBe('A helpful assistant')
     })
 
     it('should expose name and description as readonly properties', () => {
-      const dto = new PostChatType('General Chat', 'A helpful assistant')
+      const dto = new PostChatType('General Chat', 'A helpful assistant', false)
 
       expect(dto).toHaveProperty('name')
       expect(dto).toHaveProperty('description')
     })
 
-    it('should default rag to false when not provided', () => {
-      const dto = new PostChatType('General Chat', 'A helpful assistant')
+    it('should store false when rag is false', () => {
+      const dto = new PostChatType('General Chat', 'A helpful assistant', false)
 
       expect(dto.rag).toBe(false)
     })
@@ -41,7 +41,7 @@ describe('PostChatType', () => {
     })
 
     it('should expose rag as a readonly property', () => {
-      const dto = new PostChatType('General Chat', 'A helpful assistant')
+      const dto = new PostChatType('General Chat', 'A helpful assistant', false)
 
       expect(dto).toHaveProperty('rag')
     })

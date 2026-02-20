@@ -20,7 +20,7 @@ export class PostChatType {
   constructor(
     public readonly name: string,
     public readonly description: string,
-    public readonly rag: boolean = false
+    public readonly rag: boolean
   ) {}
 
   /**
