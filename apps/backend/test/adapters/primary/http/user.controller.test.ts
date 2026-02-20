@@ -1,3 +1,4 @@
+import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -417,7 +418,21 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'An unexpected error occurred',
+          error: 'Failed to retrieve users due to a database error',
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith('Error getting all users', expect.any(Error))
+      })
+
+      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+        const drizzleError = new DrizzleQueryError('SELECT * FROM users LIMIT $1 OFFSET $2', [])
+        vi.mocked(mockGetAllUsersUseCase.execute).mockRejectedValue(drizzleError)
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to retrieve users due to a database error',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting all users', expect.any(Error))
       })
@@ -889,6 +904,29 @@ describe('UserController', () => {
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
+
+      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+        mockRequest.body = {
+          email: 'test@example.com',
+          password: 'SecurePass123!',
+          name: 'Test User',
+        }
+
+        const drizzleError = new DrizzleQueryError(
+          'INSERT INTO users (email, password) VALUES ($1, $2)',
+          []
+        )
+        vi.mocked(mockRegisterUserUseCase.execute).mockRejectedValue(drizzleError)
+
+        await controller.register(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to register user due to a database error',
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
+      })
     })
 
     describe('edge cases', () => {
@@ -1343,7 +1381,23 @@ describe('UserController', () => {
 
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'An unexpected error occurred',
+          error: 'Failed to delete users due to a database error',
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', expect.any(Error))
+      })
+
+      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+        mockRequest.body = { userIds: [uuidv7()] }
+
+        const drizzleError = new DrizzleQueryError('DELETE FROM users WHERE id = ANY($1)', [])
+        vi.mocked(mockDeleteUsersUseCase.execute).mockRejectedValue(drizzleError)
+
+        await controller.deleteUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to delete users due to a database error',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', expect.any(Error))
       })
@@ -1879,7 +1933,25 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'An unexpected error occurred',
+          error: 'Failed to retrieve user by id due to a database error',
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith('Error getting user by id', expect.any(Error))
+      })
+
+      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = { sub: userId, roles: ['admin'] } as any
+
+        const drizzleError = new DrizzleQueryError('SELECT * FROM users WHERE id = $1', [])
+        vi.mocked(mockGetUserByIdUseCase.execute).mockRejectedValue(drizzleError)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to retrieve user by id due to a database error',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting user by id', expect.any(Error))
       })

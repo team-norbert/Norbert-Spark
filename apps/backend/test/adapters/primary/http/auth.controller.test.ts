@@ -1,3 +1,4 @@
+import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -621,7 +622,26 @@ describe('AuthController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'An unexpected error occurred',
+          error: 'Failed to authenticate user due to a database error',
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith('Error in login handler', expect.any(Error))
+      })
+
+      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+        mockRequest.body = {
+          email: 'user@example.com',
+          password: 'SecurePass123!',
+        }
+
+        const drizzleError = new DrizzleQueryError('SELECT * FROM users WHERE email = $1', [])
+        vi.mocked(mockLoginUserUseCase.execute).mockRejectedValue(drizzleError)
+
+        await controller.login(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to authenticate user due to a database error',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error in login handler', expect.any(Error))
       })

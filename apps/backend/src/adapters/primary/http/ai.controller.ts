@@ -22,6 +22,7 @@ import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chat
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
+import { DrizzleQueryError } from 'drizzle-orm'
 import { GetChatAiOptionsUseCase } from '../../../application/use-cases/get-chat-ai-options.use-case.js'
 import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-chat-type.use-case.js'
 import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
@@ -542,7 +543,10 @@ export class AIController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'Failed to fetch chat details'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to fetch chat details'
+          : err?.message || 'Failed to fetch chat details'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -605,7 +609,10 @@ export class AIController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to update chat details'
+          : err?.message || 'Failed to update chat details'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -694,7 +701,10 @@ export class AIController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to create chat type'
+          : err?.message || 'Failed to create chat type'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
