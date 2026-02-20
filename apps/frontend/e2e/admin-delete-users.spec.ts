@@ -165,7 +165,7 @@ test.describe('Admin Page - Delete Users', () => {
     await firstRowCheckbox.click()
 
     // Click delete button
-    const deleteButton = page.getByTestId('delete-users-button')
+    const deleteButton = page.getByTestId('delete-users-button').first()
     await deleteButton.click()
 
     // Verify dialog appears
