@@ -487,7 +487,7 @@ export class UserController {
       })
     } catch (error) {
       this.logger.error(
-        'Error deleting user',
+        'Error getting user by id',
         error instanceof Error ? error : new Error(String(error))
       )
       const err = error as Error
