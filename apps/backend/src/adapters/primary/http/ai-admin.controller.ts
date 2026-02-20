@@ -10,6 +10,7 @@ import type { PutAIAdminUseCase } from '../../../application/use-cases/put-ai-ad
 import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
 import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
 import type { PostAIAdminUseCase } from '../../../application/use-cases/post-ai-admin.use-case.js'
+import { DrizzleQueryError } from 'drizzle-orm'
 
 export class AIAdminController {
   constructor(
@@ -88,7 +89,10 @@ export class AIAdminController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to create AI chat settings due to a database error'
+          : err?.message || 'Failed to create AI chat settings due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -139,7 +143,10 @@ export class AIAdminController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to update AI chat settings due to a database error'
+          : err?.message || 'Failed to update AI chat settings due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -194,7 +201,10 @@ export class AIAdminController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to retrieve AI chat settings due to a database error'
+          : err?.message || 'Failed to retrieve AI chat settings due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,

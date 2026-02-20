@@ -10,6 +10,7 @@ import { authMiddleware } from '../../../infrastructure/http/middleware/auth.mid
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { DeleteUsersUseCase } from '../../../application/use-cases/delete-users.use-case.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { DrizzleQueryError } from 'drizzle-orm'
 /**
  * HTTP controller for user-related endpoints
  *
@@ -198,7 +199,10 @@ export class UserController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to delete users due to a database error'
+          : err?.message || 'Failed to delete users due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -267,7 +271,10 @@ export class UserController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to retrieve users due to a database error'
+          : err?.message || 'Failed to retrieve users due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -331,7 +338,10 @@ export class UserController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to register user due to a database error'
+          : err?.message || 'Failed to register user due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -492,7 +502,10 @@ export class UserController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to retrieve user by id due to a database error'
+          : err?.message || 'Failed to retrieve user by id due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,

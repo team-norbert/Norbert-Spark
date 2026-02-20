@@ -6,6 +6,7 @@ import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { GetCompanyDetailsUseCase } from '../../../application/use-cases/get-company-details.use-case.js'
 import { UpdateCompanyDTO } from '../../../application/dtos/update-company.dto.js'
 import { PutCompanyDetailsUseCase } from '../../../application/use-cases/put-company-details.use-case.js'
+import { DrizzleQueryError } from 'drizzle-orm'
 /**
  * HTTP controller for company-related operations.
  *
@@ -246,7 +247,10 @@ export class CompanyController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to update company details due to a database error'
+          : err?.message || 'Failed to update company details due to a database error'
       return reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -370,7 +374,10 @@ export class CompanyController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to retrieve company details due to a database error'
+          : err?.message || 'Failed to retrieve company details due to a database error'
       return reply.code(statusCode).send({
         success: false,
         error: errorMessage,

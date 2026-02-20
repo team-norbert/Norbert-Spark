@@ -1,3 +1,4 @@
+import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -1563,6 +1564,29 @@ describe('AIController', () => {
         )
       })
 
+      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+        const drizzleError = new DrizzleQueryError('SELECT 1', [])
+
+        mockRequest.user = {
+          sub: new UserId(uuidv7()).getValue(),
+          email: 'user@example.com',
+          roles: ['user'],
+        }
+        vi.mocked(mockGetChatDetailsUseCase.execute).mockRejectedValue(drizzleError)
+
+        await controller.getAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to fetch chat details',
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in getAIChatDetails',
+          expect.any(Error)
+        )
+      })
+
       it('should handle NotFoundException with 404 status code', async () => {
         const notFoundError = new NotFoundException('ChatType', 'test-id')
 
@@ -2877,7 +2901,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'An unexpected error occurred',
+          error: 'Failed to update chat details',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in updateAIChatDetails',
@@ -2933,7 +2957,33 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'An unexpected error occurred',
+          error: 'Failed to update chat details',
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in updateAIChatDetails',
+          expect.any(Error)
+        )
+      })
+
+      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+        const chatTypeId = uuidv7()
+        const userId = new UserId(uuidv7()).getValue()
+        const drizzleError = new DrizzleQueryError(
+          'UPDATE chat_types SET name = $1 WHERE id = $2',
+          []
+        )
+        const requestBody = { id: chatTypeId, name: 'Drizzle Error Test' }
+
+        mockRequest.body = requestBody
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        vi.mocked(mockPutChatDetailsUseCase.execute).mockRejectedValue(drizzleError)
+
+        await controller.updateAIChatDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to update chat details',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in updateAIChatDetails',
@@ -3287,7 +3337,7 @@ describe('AIController', () => {
         })
       })
 
-      it('should return "An unexpected error occurred" when error has no message', async () => {
+      it('should use fallback error message when error has no message', async () => {
         const userId = new UserId(uuidv7()).getValue()
         const emptyError = new Error()
         emptyError.message = ''
@@ -3301,7 +3351,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'An unexpected error occurred',
+          error: 'Failed to create chat type',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in createAIChatType',
@@ -3321,7 +3371,28 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'An unexpected error occurred',
+          error: 'Failed to create chat type',
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in createAIChatType',
+          expect.any(Error)
+        )
+      })
+
+      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+        const drizzleError = new DrizzleQueryError('INSERT INTO chat_types (name) VALUES ($1)', [])
+
+        mockRequest.body = { name: 'Drizzle Type', description: 'Drizzle error test' }
+        mockRequest.user = { sub: userId, email: 'admin@example.com', roles: ['admin'] }
+        vi.mocked(mockPostChatTypesUseCase.execute).mockRejectedValue(drizzleError)
+
+        await controller.createAIChatType(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to create chat type',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in createAIChatType',

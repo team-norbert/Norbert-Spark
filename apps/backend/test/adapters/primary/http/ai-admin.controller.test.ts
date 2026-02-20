@@ -1,3 +1,4 @@
+import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -257,7 +258,27 @@ describe('AIAdminController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'An unexpected error occurred',
+        error: 'Failed to retrieve AI chat settings due to a database error',
+      })
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Error handling ai-admin request',
+        expect.any(Error)
+      )
+    })
+
+    it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+      const chatTypeId = uuidv7()
+      mockRequest.params = { id: chatTypeId }
+
+      const drizzleError = new DrizzleQueryError('SELECT * FROM ai_chat_settings WHERE id = $1', [])
+      vi.mocked(mockGetAIAdminUseCase.execute).mockRejectedValue(drizzleError)
+
+      await controller.getAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(500)
+      expect(mockReply.send).toHaveBeenCalledWith({
+        success: false,
+        error: 'Failed to retrieve AI chat settings due to a database error',
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error handling ai-admin request',
@@ -468,6 +489,30 @@ describe('AIAdminController', () => {
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
         error: 'Unexpected error',
+      })
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Error processing ai-admin PUT request',
+        expect.any(Error)
+      )
+    })
+
+    it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+      const chatTypeId = uuidv7()
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = { prompt: 'Test prompt' }
+
+      const drizzleError = new DrizzleQueryError(
+        'UPDATE ai_chat_settings SET prompt = $1 WHERE id = $2',
+        []
+      )
+      vi.mocked(mockPutAIAdminUseCase.execute).mockRejectedValue(drizzleError)
+
+      await controller.putAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(500)
+      expect(mockReply.send).toHaveBeenCalledWith({
+        success: false,
+        error: 'Failed to update AI chat settings due to a database error',
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error processing ai-admin PUT request',
@@ -773,7 +818,31 @@ describe('AIAdminController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'An unexpected error occurred',
+        error: 'Failed to create AI chat settings due to a database error',
+      })
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Error processing ai-admin POST request',
+        expect.any(Error)
+      )
+    })
+
+    it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+      const chatTypeId = uuidv7()
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = { prompt: 'Test prompt' }
+
+      const drizzleError = new DrizzleQueryError(
+        'INSERT INTO ai_chat_settings (chat_type_id) VALUES ($1)',
+        []
+      )
+      vi.mocked(mockPostAIAdminUseCase.execute).mockRejectedValue(drizzleError)
+
+      await controller.postAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(500)
+      expect(mockReply.send).toHaveBeenCalledWith({
+        success: false,
+        error: 'Failed to create AI chat settings due to a database error',
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error processing ai-admin POST request',

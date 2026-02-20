@@ -17,6 +17,7 @@ import { Output, streamText } from 'ai'
 import { google } from '@ai-sdk/google'
 import { pdfSchema } from '@norberts-spark/shared'
 import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
+import { DrizzleQueryError } from 'drizzle-orm'
 
 /**
  * Allowed file extensions for upload
@@ -276,7 +277,10 @@ export class AIExtractDataController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to fetch chat details due to a database error'
+          : err?.message || 'Failed to fetch chat details due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -366,7 +370,10 @@ export class AIExtractDataController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to generate presigned URLs due to a database error'
+          : err?.message || 'Failed to generate presigned URLs due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,

@@ -1,3 +1,4 @@
+import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -283,7 +284,7 @@ describe('CompanyController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'An unexpected error occurred',
+          error: 'Failed to retrieve company details due to a database error',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in getCompanyDetails handler',
@@ -299,7 +300,24 @@ describe('CompanyController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'An unexpected error occurred',
+          error: 'Failed to retrieve company details due to a database error',
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in getCompanyDetails handler',
+          expect.any(Error)
+        )
+      })
+
+      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+        const drizzleError = new DrizzleQueryError('SELECT * FROM companies WHERE id = $1', [])
+        vi.mocked(mockGetCompanyDetailsUseCase.execute).mockRejectedValue(drizzleError)
+
+        await controller.getCompanyDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to retrieve company details due to a database error',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in getCompanyDetails handler',
@@ -598,7 +616,36 @@ describe('CompanyController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'An unexpected error occurred',
+          error: 'Failed to update company details due to a database error',
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error updating company details',
+          expect.any(Error)
+        )
+      })
+
+      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+        mockRequest.body = {
+          company: { companyId: '0193df0d-0000-7000-8000-000000000000', legalName: 'Test' },
+        }
+        mockRequest.user = {
+          sub: new UserId(uuidv7()).getValue(),
+          email: 'user-123@example.com',
+          roles: ['admin'],
+        }
+
+        const drizzleError = new DrizzleQueryError(
+          'UPDATE companies SET legal_name = $1 WHERE id = $2',
+          []
+        )
+        vi.mocked(mockPutCompanyDetailsUseCase.execute).mockRejectedValue(drizzleError)
+
+        await controller.updateCompanyDetails(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to update company details due to a database error',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error updating company details',

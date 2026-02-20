@@ -6,6 +6,7 @@ import { OAuthSyncDto } from '../../../application/dtos/oauth-sync.dto.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { oauthSyncAuthMiddleware } from '../../../infrastructure/http/middleware/auth-sync-auth.middleware.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { DrizzleQueryError } from 'drizzle-orm'
 /**
  * HTTP controller for authentication endpoints
  *
@@ -204,7 +205,10 @@ export class AuthController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'An unexpected error occurred'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to authenticate user due to a database error'
+          : err?.message || 'Failed to authenticate user due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -285,7 +289,10 @@ export class AuthController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = err?.message || 'OAuth sync failed'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to authenticate user due to a database error'
+          : err?.message || 'Failed to authenticate user due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
