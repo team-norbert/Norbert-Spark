@@ -26,6 +26,7 @@ describe('PostChatTypesUseCase', () => {
     id: uuidv7(),
     name: 'Test Chat Type',
     description: 'A test chat type',
+    rag: false,
     seoFriendlyId: 'test-chat-type',
     seoFriendlyBase64Id: 'AAAAAAAAAAAAAAAAAAAAAA',
     createdAt: new Date(),

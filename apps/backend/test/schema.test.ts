@@ -276,6 +276,11 @@ describe('Database Schema', () => {
         expect(chatTypes.description.name).toBe('description')
       })
 
+      it('should have rag column', () => {
+        expect(chatTypes.rag).toBeDefined()
+        expect(chatTypes.rag.name).toBe('rag')
+      })
+
       it('should have createdAt column', () => {
         expect(chatTypes.createdAt).toBeDefined()
         expect(chatTypes.createdAt.name).toBe('created_at')
@@ -318,6 +323,14 @@ describe('Database Schema', () => {
 
       it('should have not null constraint on description', () => {
         expect(chatTypes.description.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on rag', () => {
+        expect(chatTypes.rag.notNull).toBe(true)
+      })
+
+      it('should have default value of false on rag', () => {
+        expect(chatTypes.rag.default).toBe(false)
       })
 
       it('should have not null constraint on createdAt', () => {
