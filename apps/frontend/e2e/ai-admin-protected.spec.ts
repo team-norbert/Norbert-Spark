@@ -58,7 +58,7 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
 
     // Verify the read-only notice is visible
     await expect(
-      page.getByText(/Note: This page displays read-only AI chat configuration data/i)
+      page.getByText(/Note: This page displays read-only AI chat configuration data/i).first()
     ).toBeVisible()
   })
 

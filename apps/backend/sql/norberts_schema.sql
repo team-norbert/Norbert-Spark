@@ -333,6 +333,7 @@ CREATE TABLE IF NOT EXISTS chat_types (
     seo_friendly_id CITEXT NOT NULL UNIQUE CHECK (length(seo_friendly_id) >= 1 AND length(seo_friendly_id) <= 200 AND seo_friendly_id ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
     seo_friendly_base64_id TEXT NOT NULL UNIQUE CHECK (length(seo_friendly_base64_id) = 22),
     description TEXT NOT NULL CHECK (length(description) >= 1 AND length(description) <= 500),
+    rag BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

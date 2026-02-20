@@ -653,6 +653,7 @@ export const chatTypes = pgTable(
     seoFriendlyId: citext('seo_friendly_id').notNull().unique(),
     seoFriendlyBase64Id: text('seo_friendly_base64_id').notNull().unique(),
     description: text('description').notNull(),
+    rag: boolean('rag').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

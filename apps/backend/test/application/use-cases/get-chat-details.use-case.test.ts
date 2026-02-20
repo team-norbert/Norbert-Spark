@@ -74,6 +74,7 @@ describe('GetChatDetailsUseCase', () => {
           seoFriendlyId: 'general-assistant',
           seoFriendlyBase64Id: 'AbCdEfGhIjKlMnOpQrStUv',
           description: 'A general-purpose AI assistant',
+          rag: false,
           createdAt: new Date('2026-01-20T10:00:00Z'),
           updatedAt: new Date('2026-01-20T10:00:00Z'),
         },
@@ -83,6 +84,7 @@ describe('GetChatDetailsUseCase', () => {
           seoFriendlyId: 'code-helper',
           seoFriendlyBase64Id: 'WxYzAbCdEfGhIjKlMnOpQr',
           description: 'Specialized in coding assistance',
+          rag: false,
           createdAt: new Date('2026-01-19T10:00:00Z'),
           updatedAt: new Date('2026-01-19T10:00:00Z'),
         },
@@ -109,6 +111,7 @@ describe('GetChatDetailsUseCase', () => {
           seoFriendlyId: null as any,
           seoFriendlyBase64Id: 'AbCdEfGhIjKlMnOpQrStUv',
           description: 'Test description',
+          rag: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -132,6 +135,7 @@ describe('GetChatDetailsUseCase', () => {
           seoFriendlyId: 'test-chat-type',
           seoFriendlyBase64Id: null as any,
           description: 'Test description',
+          rag: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -155,6 +159,7 @@ describe('GetChatDetailsUseCase', () => {
           seoFriendlyId: null as any,
           seoFriendlyBase64Id: null as any,
           description: 'New chat type without SEO fields',
+          rag: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -193,6 +198,7 @@ describe('GetChatDetailsUseCase', () => {
           seoFriendlyId: 'complete-type',
           seoFriendlyBase64Id: 'AbCdEfGhIjKlMnOpQrStUv',
           description: 'Has all fields',
+          rag: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -202,6 +208,7 @@ describe('GetChatDetailsUseCase', () => {
           seoFriendlyId: 'missing-base64',
           seoFriendlyBase64Id: null as any,
           description: 'Missing base64 field',
+          rag: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -211,6 +218,7 @@ describe('GetChatDetailsUseCase', () => {
           seoFriendlyId: null as any,
           seoFriendlyBase64Id: null as any,
           description: 'Missing both fields',
+          rag: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -247,6 +255,7 @@ describe('GetChatDetailsUseCase', () => {
           seoFriendlyId: 'test-type',
           seoFriendlyBase64Id: 'TestBase64Id123456',
           description: 'Test description with details',
+          rag: false,
           createdAt,
           updatedAt,
         },
@@ -259,6 +268,7 @@ describe('GetChatDetailsUseCase', () => {
       expect(result[0]!.id).toBe(chatTypeId)
       expect(result[0]!.name).toBe('Test Type')
       expect(result[0]!.description).toBe('Test description with details')
+      expect(result[0]!.rag).toBe(false)
       expect(result[0]!.createdAt).toBe(createdAt)
       expect(result[0]!.updatedAt).toBe(updatedAt)
     })
@@ -281,6 +291,7 @@ describe('GetChatDetailsUseCase', () => {
           seoFriendlyId: 'test',
           seoFriendlyBase64Id: 'test',
           description: 'Test',
+          rag: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         },

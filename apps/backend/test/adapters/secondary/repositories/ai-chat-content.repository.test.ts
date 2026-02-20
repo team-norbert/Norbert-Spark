@@ -52,6 +52,7 @@ describe('AIChatContentRepository', () => {
           seoFriendlyId: 'general-assistant',
           seoFriendlyBase64Id: 'AbCdEfGhIjKlMnOpQrStUv',
           description: 'A general-purpose AI assistant',
+          rag: false,
           createdAt: new Date('2026-01-20T10:00:00Z'),
           updatedAt: new Date('2026-01-20T10:00:00Z'),
         },
@@ -61,6 +62,7 @@ describe('AIChatContentRepository', () => {
           seoFriendlyId: 'code-helper',
           seoFriendlyBase64Id: 'WxYzAbCdEfGhIjKlMnOpQr',
           description: 'Specialized in coding assistance',
+          rag: false,
           createdAt: new Date('2026-01-19T10:00:00Z'),
           updatedAt: new Date('2026-01-19T10:00:00Z'),
         },
@@ -113,6 +115,7 @@ describe('AIChatContentRepository', () => {
         seoFriendlyId: 'test-chat-type',
         seoFriendlyBase64Id: 'A1B2C3D4E5F6G7H8I9J0Kl',
         description: 'Test description',
+        rag: false,
         createdAt: now,
         updatedAt: now,
       }
@@ -130,6 +133,7 @@ describe('AIChatContentRepository', () => {
       expect(result[0]).toHaveProperty('seoFriendlyId', 'test-chat-type')
       expect(result[0]).toHaveProperty('seoFriendlyBase64Id', 'A1B2C3D4E5F6G7H8I9J0Kl')
       expect(result[0]).toHaveProperty('description', 'Test description')
+      expect(result[0]).toHaveProperty('rag', false)
       expect(result[0]).toHaveProperty('createdAt', now)
       expect(result[0]).toHaveProperty('updatedAt', now)
     })

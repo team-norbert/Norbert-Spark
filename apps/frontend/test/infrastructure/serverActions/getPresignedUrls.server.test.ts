@@ -86,7 +86,7 @@ describe('getPresignedUrls', () => {
       expect(mockGetAuthToken).toHaveBeenCalledOnce()
       expect(mockBackendRequest).toHaveBeenCalledWith({
         method: 'POST',
-        endpoint: '/ai/extract-data/presigned-urls',
+        endpoint: '/ai/presigned-urls',
         body: { files },
         headers: {
           Authorization: `Bearer ${TEST_TOKEN}`,
