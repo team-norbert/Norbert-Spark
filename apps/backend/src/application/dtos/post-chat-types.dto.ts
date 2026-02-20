@@ -1,4 +1,4 @@
-import { isString, isDefined, isObject } from '@norberts-spark/shared'
+import { isString, isDefined, isObject, isBoolean, isNullOrUndefined } from '@norberts-spark/shared'
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 
@@ -15,10 +15,12 @@ export class PostChatType {
    *   leading/trailing whitespace removed).
    * @param description - A human-readable description of the chat type
    *   (1–500 characters, leading/trailing whitespace removed).
+   * @param rag - Optional flag indicating if this chat type uses Retrieval-Augmented Generation (RAG) features. Defaults to `false`.
    */
   constructor(
     public readonly name: string,
-    public readonly description: string
+    public readonly description: string,
+    public readonly rag: boolean
   ) {}
 
   /**
@@ -50,12 +52,15 @@ export class PostChatType {
     if (!isString(data.description) || !data.description.trim()) {
       throw new ValidationException('Invalid description: must be a non-empty string')
     }
+    if (!isBoolean(data.rag) || isNullOrUndefined(data.rag)) {
+      throw new ValidationException('Invalid rag: must be a boolean')
+    }
     if (data.name.trim().length > 200) {
       throw new ValidationException('Invalid name: must be less than 200 characters')
     }
     if (data.description.trim().length > 500) {
       throw new ValidationException('Invalid description: must be less than 500 characters')
     }
-    return new PostChatType(data.name.trim(), data.description.trim())
+    return new PostChatType(data.name.trim(), data.description.trim(), data.rag)
   }
 }

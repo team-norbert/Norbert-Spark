@@ -9,17 +9,41 @@ describe('PostChatType', () => {
 
   describe('constructor', () => {
     it('should create an instance with the given name and description', () => {
-      const dto = new PostChatType('General Chat', 'A helpful assistant')
+      const dto = new PostChatType('General Chat', 'A helpful assistant', false)
 
       expect(dto.name).toBe('General Chat')
       expect(dto.description).toBe('A helpful assistant')
     })
 
     it('should expose name and description as readonly properties', () => {
-      const dto = new PostChatType('General Chat', 'A helpful assistant')
+      const dto = new PostChatType('General Chat', 'A helpful assistant', false)
 
       expect(dto).toHaveProperty('name')
       expect(dto).toHaveProperty('description')
+    })
+
+    it('should store false when rag is false', () => {
+      const dto = new PostChatType('General Chat', 'A helpful assistant', false)
+
+      expect(dto.rag).toBe(false)
+    })
+
+    it('should set rag to true when explicitly passed true', () => {
+      const dto = new PostChatType('General Chat', 'A helpful assistant', true)
+
+      expect(dto.rag).toBe(true)
+    })
+
+    it('should set rag to false when explicitly passed false', () => {
+      const dto = new PostChatType('General Chat', 'A helpful assistant', false)
+
+      expect(dto.rag).toBe(false)
+    })
+
+    it('should expose rag as a readonly property', () => {
+      const dto = new PostChatType('General Chat', 'A helpful assistant', false)
+
+      expect(dto).toHaveProperty('rag')
     })
   })
 
@@ -113,23 +137,27 @@ describe('PostChatType', () => {
       const longName = 'a'.repeat(201)
 
       expect(() =>
-        PostChatType.validate({ name: longName, description: 'Valid description' })
+        PostChatType.validate({ name: longName, description: 'Valid description', rag: false })
       ).toThrow(ValidationException)
       expect(() =>
-        PostChatType.validate({ name: longName, description: 'Valid description' })
+        PostChatType.validate({ name: longName, description: 'Valid description', rag: false })
       ).toThrow('Invalid name: must be less than 200 characters')
     })
 
     it('should accept a name of exactly 200 characters', () => {
       const name = 'a'.repeat(200)
 
-      const dto = PostChatType.validate({ name, description: 'Valid description' })
+      const dto = PostChatType.validate({ name, description: 'Valid description', rag: false })
 
       expect(dto.name).toBe(name)
     })
 
     it('should trim leading and trailing whitespace from name', () => {
-      const dto = PostChatType.validate({ name: '  My Chat  ', description: 'Valid description' })
+      const dto = PostChatType.validate({
+        name: '  My Chat  ',
+        description: 'Valid description',
+        rag: false,
+      })
 
       expect(dto.name).toBe('My Chat')
     })
@@ -191,17 +219,17 @@ describe('PostChatType', () => {
       const longDescription = 'a'.repeat(501)
 
       expect(() =>
-        PostChatType.validate({ name: 'Valid name', description: longDescription })
+        PostChatType.validate({ name: 'Valid name', description: longDescription, rag: false })
       ).toThrow(ValidationException)
       expect(() =>
-        PostChatType.validate({ name: 'Valid name', description: longDescription })
+        PostChatType.validate({ name: 'Valid name', description: longDescription, rag: false })
       ).toThrow('Invalid description: must be less than 500 characters')
     })
 
     it('should accept a description of exactly 500 characters', () => {
       const description = 'a'.repeat(500)
 
-      const dto = PostChatType.validate({ name: 'Valid name', description })
+      const dto = PostChatType.validate({ name: 'Valid name', description, rag: false })
 
       expect(dto.description).toBe(description)
     })
@@ -210,9 +238,82 @@ describe('PostChatType', () => {
       const dto = PostChatType.validate({
         name: 'Valid name',
         description: '  A helpful assistant  ',
+        rag: false,
       })
 
       expect(dto.description).toBe('A helpful assistant')
+    })
+  })
+
+  // ── validate() – rag field ─────────────────────────────────────────────────
+
+  describe('validate() - rag validation', () => {
+    it('should throw ValidationException when rag is not provided', () => {
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: 'Valid description' })
+      ).toThrow(ValidationException)
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: 'Valid description' })
+      ).toThrow('Invalid rag: must be a boolean')
+    })
+
+    it('should throw ValidationException when rag is null', () => {
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: null })
+      ).toThrow(ValidationException)
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: null })
+      ).toThrow('Invalid rag: must be a boolean')
+    })
+
+    it('should throw ValidationException when rag is a string', () => {
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: 'true' })
+      ).toThrow(ValidationException)
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: 'true' })
+      ).toThrow('Invalid rag: must be a boolean')
+    })
+
+    it('should throw ValidationException when rag is a number', () => {
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: 1 })
+      ).toThrow(ValidationException)
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: 1 })
+      ).toThrow('Invalid rag: must be a boolean')
+    })
+
+    it('should accept rag: true without throwing', () => {
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: true })
+      ).not.toThrow()
+    })
+
+    it('should accept rag: false without throwing', () => {
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: false })
+      ).not.toThrow()
+    })
+
+    it('should store rag: true on the returned instance', () => {
+      const dto = PostChatType.validate({
+        name: 'RAG Chat',
+        description: 'Uses retrieval-augmented generation',
+        rag: true,
+      })
+
+      expect(dto.rag).toBe(true)
+    })
+
+    it('should store rag: false on the returned instance', () => {
+      const dto = PostChatType.validate({
+        name: 'Standard Chat',
+        description: 'No RAG enabled',
+        rag: false,
+      })
+
+      expect(dto.rag).toBe(false)
     })
   })
 
@@ -223,15 +324,18 @@ describe('PostChatType', () => {
       const dto = PostChatType.validate({
         name: 'General Chat',
         description: 'A helpful assistant',
+        rag: false,
       })
 
       expect(dto).toBeInstanceOf(PostChatType)
+      expect(dto.rag).toBe(false)
     })
 
     it('should set the trimmed name on the returned instance', () => {
       const dto = PostChatType.validate({
         name: '  General Chat  ',
         description: 'A helpful assistant',
+        rag: false,
       })
 
       expect(dto.name).toBe('General Chat')
@@ -241,19 +345,20 @@ describe('PostChatType', () => {
       const dto = PostChatType.validate({
         name: 'General Chat',
         description: '  A helpful assistant  ',
+        rag: false,
       })
 
       expect(dto.description).toBe('A helpful assistant')
     })
 
     it('should accept a single-character name', () => {
-      const dto = PostChatType.validate({ name: 'A', description: 'Valid description' })
+      const dto = PostChatType.validate({ name: 'A', description: 'Valid description', rag: false })
 
       expect(dto.name).toBe('A')
     })
 
     it('should accept a single-character description', () => {
-      const dto = PostChatType.validate({ name: 'Valid name', description: 'D' })
+      const dto = PostChatType.validate({ name: 'Valid name', description: 'D', rag: false })
 
       expect(dto.description).toBe('D')
     })
@@ -262,6 +367,7 @@ describe('PostChatType', () => {
       const dto = PostChatType.validate({
         name: 'General Chat',
         description: 'A helpful assistant',
+        rag: false,
         extra: 'ignored',
       })
 
@@ -278,7 +384,7 @@ describe('PostChatType', () => {
       const longName = 'a'.repeat(201)
 
       expect(() =>
-        PostChatType.validate({ name: longName, description: 'Valid description' })
+        PostChatType.validate({ name: longName, description: 'Valid description', rag: false })
       ).toThrow('Invalid name: must be less than 200 characters')
     })
 
@@ -286,7 +392,7 @@ describe('PostChatType', () => {
       const longDescription = 'a'.repeat(501)
 
       expect(() =>
-        PostChatType.validate({ name: 'Valid name', description: longDescription })
+        PostChatType.validate({ name: 'Valid name', description: longDescription, rag: false })
       ).toThrow('Invalid description: must be less than 500 characters')
     })
 
@@ -295,6 +401,24 @@ describe('PostChatType', () => {
       expect(() => PostChatType.validate({ name: '', description: 'a'.repeat(501) })).toThrow(
         'Invalid name: must be a non-empty string'
       )
+    })
+
+    it('should report rag error before name-length error when rag is missing', () => {
+      // name is too long but rag check fires first
+      const longName = 'a'.repeat(201)
+
+      expect(() =>
+        PostChatType.validate({ name: longName, description: 'Valid description' })
+      ).toThrow('Invalid rag: must be a boolean')
+    })
+
+    it('should report rag error before description-length error when rag is missing', () => {
+      // description is too long but rag check fires first
+      const longDescription = 'a'.repeat(501)
+
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: longDescription })
+      ).toThrow('Invalid rag: must be a boolean')
     })
   })
 })

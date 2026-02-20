@@ -13,7 +13,7 @@ import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
  * Shape of the input data required to create a new chat type.
  * Derived from the database schema, containing only the user-supplied fields.
  */
-export type PostChatTypesData = Pick<DBChatType, 'name' | 'description'>
+export type PostChatTypesData = Pick<DBChatType, 'name' | 'description' | 'rag'>
 
 /**
  * Use case responsible for creating a new chat type.
@@ -60,7 +60,7 @@ export class PostChatTypesUseCase {
   async execute(auditContext: AuditContext, data: PostChatTypesData): Promise<DBChatType> {
     this.logger.info('Executing PostChatTypesUseCase with data', { data })
 
-    const { description, name } = data
+    const { description, name, rag } = data
 
     // Generate a new UUIDv7 for the chat type
     const newId = Uuid7Util.createUuidv7()
@@ -77,6 +77,7 @@ export class PostChatTypesUseCase {
       description,
       seoFriendlyId,
       seoFriendlyBase64Id,
+      rag,
     }
 
     const createdChatType = await this.aiChatContent.createChatType(dataInput)

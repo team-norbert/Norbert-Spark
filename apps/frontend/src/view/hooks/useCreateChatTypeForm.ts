@@ -79,7 +79,6 @@ export function useCreateChatTypeForm() {
 
       if (result.success) {
         setSuccessMessage(`Chat type "${result.data.name}" created successfully!`)
-        setFormData(INITIAL_FORM_DATA)
         // Navigate back to chat types list after a short delay
         setTimeout(() => {
           router.push('/chat-types')
