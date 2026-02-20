@@ -13,11 +13,10 @@ interface FormData {
 interface FormErrors {
   name: string
   description: string
-  rag: boolean
 }
 
 const INITIAL_FORM_DATA: FormData = { name: '', description: '', rag: false }
-const INITIAL_ERRORS: FormErrors = { name: '', description: '', rag: false }
+const INITIAL_ERRORS: FormErrors = { name: '', description: '' }
 
 /**
  * Hook for the Create Chat Type form.
@@ -64,7 +63,6 @@ export function useCreateChatTypeForm() {
     setErrors({
       name: fieldErrors.name?.[0] ?? '',
       description: fieldErrors.description?.[0] ?? '',
-      rag: false,
     })
     return false
   }

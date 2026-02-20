@@ -15,7 +15,7 @@
         "name",
         "seoFriendlyId",
         "seoFriendlyBase64Id",
-        "ragEnabled",
+        "rag",
         "description",
         "createdAt",
         "updatedAt"
