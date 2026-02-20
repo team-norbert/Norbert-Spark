@@ -543,7 +543,10 @@ export class AIController {
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage = error instanceof DrizzleQueryError ? 'Failed to fetch chat details' : err?.message || 'Failed to fetch chat details'
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to fetch chat details'
+          : err?.message || 'Failed to fetch chat details'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
