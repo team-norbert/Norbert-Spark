@@ -7,15 +7,17 @@ import { useCreateChatType } from '@/view/hooks/queries/useCreateChatType.js'
 interface FormData {
   name: string
   description: string
+  rag: boolean
 }
 
 interface FormErrors {
   name: string
   description: string
+  rag: boolean
 }
 
-const INITIAL_FORM_DATA: FormData = { name: '', description: '' }
-const INITIAL_ERRORS: FormErrors = { name: '', description: '' }
+const INITIAL_FORM_DATA: FormData = { name: '', description: '', rag: false }
+const INITIAL_ERRORS: FormErrors = { name: '', description: '', rag: false }
 
 /**
  * Hook for the Create Chat Type form.
@@ -36,9 +38,16 @@ export function useCreateChatTypeForm() {
   const mutation = useCreateChatType()
   const router = useRouter()
 
-  const handleChange = (field: keyof FormData) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [field]: event.target.value }))
-    setErrors((prev) => ({ ...prev, [field]: '' }))
+  const handleChange =
+    (field: 'name' | 'description') => (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: event.target.value }))
+      setErrors((prev) => ({ ...prev, [field]: '' }))
+      setGeneralError('')
+      setSuccessMessage('')
+    }
+
+  const handleRagChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, rag: event.target.checked }))
     setGeneralError('')
     setSuccessMessage('')
   }
@@ -55,6 +64,7 @@ export function useCreateChatTypeForm() {
     setErrors({
       name: fieldErrors.name?.[0] ?? '',
       description: fieldErrors.description?.[0] ?? '',
+      rag: false,
     })
     return false
   }
@@ -108,6 +118,7 @@ export function useCreateChatTypeForm() {
     successMessage,
     isSubmitting: mutation.isPending,
     handleChange,
+    handleRagChange,
     handleSubmit,
     handleCancel,
   }

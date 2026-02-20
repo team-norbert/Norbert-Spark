@@ -16,6 +16,11 @@
       "description": "Detailed description of the chat type",
       "minLength": 1,
       "maxLength": 500
+    },
+    "rag": {
+      "type": "boolean",
+      "description": "Indicates whether Retrieval-Augmented Generation (RAG) is enabled for this chat type",
+      "example": true
     }
   }
 }

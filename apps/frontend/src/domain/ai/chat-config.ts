@@ -90,6 +90,7 @@ export const CreateChatTypeSchema = z.object({
     .string()
     .min(1, 'Description is required')
     .max(500, 'Description must be 500 characters or fewer'),
+  rag: z.boolean().default(false),
 })
 
 export type CreateChatTypeData = z.infer<typeof CreateChatTypeSchema>
