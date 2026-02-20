@@ -25,7 +25,7 @@ In the packages/shared is the OpenAPI spec: packages/shared/src/openapi.json. Th
 
 - Multi-tenant support with role-based access control (RBAC)
 - Integration with AWS services (S3, SES, Lambda, etc.) using Pulumi for IaC
-- FastAPI and LLama for a private, self-hosted alternative to the open models
+- FastAPI and LLaMA for a private, self-hosted alternative to the open models
 - Replacing Drizzle queries with SQL queries for better performance and control
 - Support for multiple AI providers (OpenAI, Google Gemini, Anthropic, etc.) with dynamic provider selection
 - Advanced analytics dashboard with real-time monitoring of AI interactions
