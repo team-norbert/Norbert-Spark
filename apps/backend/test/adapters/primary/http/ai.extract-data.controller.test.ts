@@ -707,7 +707,7 @@ describe('AIExtractDataController', () => {
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error generating presigned URLs',
-          expect.anything()
+          expect.any(Error)
         )
       })
     })
