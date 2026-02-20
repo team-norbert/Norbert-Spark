@@ -98,6 +98,34 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  redis:
+    image: redis:8.6.0-alpine
+    container_name: norbertsSpark-redis
+    restart: unless-stopped
+
+    # Network configuration for isolation
+    networks:
+      - norbertsSpark-network
+
+    ports:
+      - '6377:6377'
+
+    # Resource limits (Best Practice #2)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   norbertsSpark-network:
