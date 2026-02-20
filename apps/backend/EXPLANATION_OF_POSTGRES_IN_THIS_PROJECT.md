@@ -1,10 +1,10 @@
 # PostgreSQL Docker Best Practices Implementation
 
-This document describes the best practices implemented for running PostgreSQL in Docker, based on [Sliplane's PostgreSQL Docker guide](https://sliplane.io/blog/best-practices-for-postgres-in-docker).
+This document describes the best practices implemented for running PostgreSQL in Docker in this project
 
 ## ✅ Implemented Best Practices
 
-### 1. ✅ Use Specific PostgreSQL Version Tags
+### 1. ✅ Used Specific PostgreSQL Version Tags
 
 **Implementation**: Using `postgres:18.1-alpine` instead of `latest`
 
@@ -20,7 +20,7 @@ image: postgres:18.1-alpine
 
 ---
 
-### 2. ✅ Optimize Container Resource Allocation
+### 2. ✅ Optimised Container Resource Allocation
 
 **Implementation**: Added resource limits and reservations
 
@@ -44,7 +44,7 @@ shm_size: 256mb
 
 ---
 
-### 3. ✅ Automate Database Setup with Init Scripts
+### 3. ✅ Automated Database Setup with Init Scripts
 
 **Implementation**: SQL scripts in `/docker-entrypoint-initdb.d/`
 
@@ -61,7 +61,7 @@ Files created:
 
 ---
 
-### 4. ✅ Enable WAL (Write-Ahead Logging) Configuration
+### 4. ✅ Enabled WAL (Write-Ahead Logging) Configuration
 
 **Implementation**: Custom `postgresql.conf` with WAL settings
 
@@ -120,7 +120,7 @@ volumes:
 
 ---
 
-### 6. ✅ Use Alpine Postgres Images
+### 6. ✅ Used Alpine Postgres Image
 
 **Implementation**: Using `postgres:18.1-alpine`
 
@@ -159,7 +159,7 @@ healthcheck:
 
 ---
 
-### 8. ✅ Network Isolation for Security
+### 8. ✅ Isolated the Network for Security
 
 **Implementation**: Custom Docker network with defined subnet
 
@@ -181,7 +181,7 @@ networks:
 
 ---
 
-### 9. ✅ Maximize Observability with Extensions
+### 9. ✅ Maximised Observability with Extensions
 
 **Implementation**: Enabled performance monitoring extensions
 
@@ -225,9 +225,6 @@ LIMIT 10;
 **For Production**: Consider:
 
 - Docker Swarm with secrets
-- Kubernetes secrets
-- HashiCorp Vault
-- AWS Secrets Manager / Azure Key Vault / GCP Secret Manager
 
 ---
 

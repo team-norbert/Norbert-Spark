@@ -99,7 +99,7 @@ export async function getPresignedUrls(files: FileMetadata[]): Promise<Presigned
 
     const response = await backendRequest<PresignedUrlsResponse>({
       method: 'POST',
-      endpoint: '/ai/extract-data/presigned-urls',
+      endpoint: '/ai/presigned-urls',
       body: { files },
       headers: {
         Authorization: `Bearer ${accessToken}`,

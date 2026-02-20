@@ -54,7 +54,7 @@ export class AIExtractDataController {
   registerRoutes(app: FastifyInstance): void {
     // Generate presigned URLs from file metadata (JSON) - no file upload needed
     app.post(
-      '/ai/extract-data/presigned-urls',
+      '/ai/presigned-urls',
       {
         preHandler: [authMiddleware],
       },

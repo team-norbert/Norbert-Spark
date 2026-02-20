@@ -155,7 +155,7 @@ describe('AIExtractDataController', () => {
   })
 
   describe('registerRoutes()', () => {
-    it('should register POST /ai/extract-data/presigned-urls route', () => {
+    it('should register POST /ai/presigned-urls route', () => {
       const mockApp = {
         post: vi.fn(),
         get: vi.fn(),
@@ -165,7 +165,7 @@ describe('AIExtractDataController', () => {
 
       expect(mockApp.post).toHaveBeenCalledTimes(1)
       expect(mockApp.post).toHaveBeenCalledWith(
-        '/ai/extract-data/presigned-urls',
+        '/ai/presigned-urls',
         expect.objectContaining({ preHandler: expect.any(Array) }),
         expect.any(Function)
       )

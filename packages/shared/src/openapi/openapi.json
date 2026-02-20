@@ -89,7 +89,7 @@
     "/ai/fetchChat/{chatId}": {
       "$ref": "paths/ai_fetchChat_{chatId}.json"
     },
-    "/ai/extract-data/presigned-urls": {
+    "/ai/presigned-urls": {
       "$ref": "paths/ai_extract-data_presigned-urls.json"
     },
     "/ai/extract-data/{fileId}": {

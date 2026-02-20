@@ -1,6 +1,6 @@
 {
   "post": {
-    "summary": "Generate presigned URLs for direct R2 upload",
+    "summary": "Generate presigned URLs for direct bucket upload",
     "description": "Accepts file metadata (filename and mimetype) and returns presigned URLs for direct upload to Cloudflare R2 storage. The client can then use these URLs to upload files directly without going through the backend.",
     "operationId": "generatePresignedUrls",
     "tags": ["ai", "data"],
@@ -69,12 +69,12 @@
                           },
                           "uploadUrl": {
                             "type": "string",
-                            "description": "Presigned URL for direct upload to R2",
+                            "description": "Presigned URL for direct upload to bucket",
                             "example": "https://r2.example.com/bucket/data-extraction/uuid/document.pdf?signature=..."
                           },
                           "fileKey": {
                             "type": "string",
-                            "description": "Storage key for the file in R2",
+                            "description": "Storage key for the file in bucket",
                             "example": "data-extraction/01HXYZ123/document.pdf"
                           }
                         },
