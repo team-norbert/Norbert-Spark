@@ -641,6 +641,10 @@ describe('AIExtractDataController', () => {
           success: false,
           error: 'Database error',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error generating presigned URLs',
+          expect.any(Error)
+        )
       })
 
       it('should return appropriate status code for BaseException errors', async () => {
@@ -659,6 +663,10 @@ describe('AIExtractDataController', () => {
           success: false,
           error: 'Custom validation error',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error generating presigned URLs',
+          expect.any(Error)
+        )
       })
 
       it('should handle error without message', async () => {
@@ -677,6 +685,10 @@ describe('AIExtractDataController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error generating presigned URLs',
+          expect.any(Error)
+        )
       })
 
       it('should handle null error', async () => {
@@ -693,6 +705,10 @@ describe('AIExtractDataController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error generating presigned URLs',
+          expect.anything()
+        )
       })
     })
 

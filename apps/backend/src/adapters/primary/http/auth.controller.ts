@@ -5,7 +5,7 @@ import { LoginUserDto } from '../../../application/dtos/login-user.dto.js'
 import { OAuthSyncDto } from '../../../application/dtos/oauth-sync.dto.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { oauthSyncAuthMiddleware } from '../../../infrastructure/http/middleware/auth-sync-auth.middleware.js'
-
+import type { LoggerPort } from '../../../application/ports/logger.port.js'
 /**
  * HTTP controller for authentication endpoints
  *
@@ -47,6 +47,7 @@ export class AuthController {
   /**
    * Creates a new AuthController instance
    *
+   * @param logger - Logger instance for logging within the controller
    * @param {LoginUserUseCase} loginUserUseCase - Use case for user authentication
    * @param {RegisterUserWithProviderUseCase} registerUserWithProviderUseCase - Use case for registering OAuth users
    *
@@ -61,6 +62,7 @@ export class AuthController {
    * ```
    */
   constructor(
+    private readonly logger: LoggerPort,
     private readonly loginUserUseCase: LoginUserUseCase,
     private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase
   ) {}
@@ -196,6 +198,10 @@ export class AuthController {
         },
       })
     } catch (error) {
+      this.logger.error(
+        'Error in login handler',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'
@@ -273,6 +279,10 @@ export class AuthController {
         },
       })
     } catch (error) {
+      this.logger.error(
+        'Error in OAuth sync handler',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'OAuth sync failed'

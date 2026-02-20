@@ -217,6 +217,10 @@ describe('AIAdminController', () => {
         success: false,
         error: 'Database connection failed',
       })
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Error handling ai-admin request',
+        expect.any(Error)
+      )
     })
 
     it('should handle BaseException with custom status code', async () => {
@@ -255,6 +259,10 @@ describe('AIAdminController', () => {
         success: false,
         error: 'An unexpected error occurred',
       })
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Error handling ai-admin request',
+        expect.any(Error)
+      )
     })
 
     it('should extract ID from request params', async () => {
@@ -440,6 +448,10 @@ describe('AIAdminController', () => {
         success: false,
         error: 'Chat configuration not found',
       })
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Error processing ai-admin PUT request',
+        expect.any(Error)
+      )
     })
 
     it('should handle unexpected errors with 500 status', async () => {
@@ -457,6 +469,10 @@ describe('AIAdminController', () => {
         success: false,
         error: 'Unexpected error',
       })
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Error processing ai-admin PUT request',
+        expect.any(Error)
+      )
     })
 
     it('should extract audit context correctly when user is not authenticated', async () => {
@@ -716,6 +732,10 @@ describe('AIAdminController', () => {
         success: false,
         error: 'Unexpected database error',
       })
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Error processing ai-admin POST request',
+        expect.any(Error)
+      )
     })
 
     it('should handle BaseException with custom status code', async () => {
@@ -755,6 +775,10 @@ describe('AIAdminController', () => {
         success: false,
         error: 'An unexpected error occurred',
       })
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Error processing ai-admin POST request',
+        expect.any(Error)
+      )
     })
 
     it('should extract audit context with userId, ipAddress and userAgent', async () => {

@@ -341,7 +341,7 @@ export class AIController {
         this.logger.debug('Stream response', { response: JSON.stringify(response) })
       },
       onError: ({ error }) => {
-        this.logger.error('Stream error', error as Error)
+        this.logger.error('Stream error', error instanceof Error ? error : new Error(String(error)))
       },
     })
 
@@ -536,6 +536,10 @@ export class AIController {
         data: result,
       })
     } catch (error) {
+      this.logger.error(
+        'Error in getAIChatDetails',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'Failed to fetch chat details'
@@ -595,6 +599,10 @@ export class AIController {
       }
       reply.status(204).send()
     } catch (error) {
+      this.logger.error(
+        'Error in updateAIChatDetails',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'
@@ -680,6 +688,10 @@ export class AIController {
         },
       })
     } catch (error) {
+      this.logger.error(
+        'Error in createAIChatType',
+        error instanceof Error ? error : new Error(String(error))
+      )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'

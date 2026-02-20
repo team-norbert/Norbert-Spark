@@ -23,6 +23,12 @@ describe('AuthController', () => {
   let mockLoginUserUseCase: LoginUserUseCase
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
+  let mockLogger: {
+    info: ReturnType<typeof vi.fn>
+    error: ReturnType<typeof vi.fn>
+    warn: ReturnType<typeof vi.fn>
+    debug: ReturnType<typeof vi.fn>
+  }
 
   beforeEach(() => {
     // Reset all mocks before each test
@@ -37,8 +43,19 @@ describe('AuthController', () => {
       execute: vi.fn(),
     } as any
 
+    mockLogger = {
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+    }
+
     // Create controller instance with mocked use case
-    controller = new AuthController(mockLoginUserUseCase, mockRegisterUserWithProviderUseCase)
+    controller = new AuthController(
+      mockLogger as any,
+      mockLoginUserUseCase,
+      mockRegisterUserWithProviderUseCase
+    )
 
     // Create mock Fastify reply with chainable methods
     mockReply = {
@@ -61,7 +78,8 @@ describe('AuthController', () => {
   describe('constructor', () => {
     it('should create instance with LoginUserUseCase dependency', () => {
       const mockRegisterUseCase = { execute: vi.fn() } as any
-      const instance = new AuthController(mockLoginUserUseCase, mockRegisterUseCase)
+      const mockLogger = { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() } as any
+      const instance = new AuthController(mockLogger, mockLoginUserUseCase, mockRegisterUseCase)
 
       expect(instance).toBeInstanceOf(AuthController)
       expect(instance).toBeDefined()
@@ -69,7 +87,8 @@ describe('AuthController', () => {
 
     it('should accept LoginUserUseCase as dependency', () => {
       const mockRegisterUseCase = { execute: vi.fn() } as any
-      const instance = new AuthController(mockLoginUserUseCase, mockRegisterUseCase)
+      const mockLogger = { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() } as any
+      const instance = new AuthController(mockLogger, mockLoginUserUseCase, mockRegisterUseCase)
 
       expect(instance).toBeDefined()
       expect(instance).toBeInstanceOf(AuthController)
@@ -552,6 +571,7 @@ describe('AuthController', () => {
         await controller.login(mockRequest, mockReply)
 
         expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockLogger.error).toHaveBeenCalledWith('Error in login handler', expect.any(Error))
       })
 
       it('should return error message for unexpected errors', async () => {
@@ -570,6 +590,7 @@ describe('AuthController', () => {
           success: false,
           error: 'Unexpected error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith('Error in login handler', expect.any(Error))
       })
 
       it('should use BaseException statusCode when available', async () => {
@@ -602,6 +623,7 @@ describe('AuthController', () => {
           success: false,
           error: 'An unexpected error occurred',
         })
+        expect(mockLogger.error).toHaveBeenCalledWith('Error in login handler', expect.any(Error))
       })
 
       it('should include success property set to false on error', async () => {
@@ -622,6 +644,7 @@ describe('AuthController', () => {
         expect(sentData.success).toBe(false)
         expect(sentData).toHaveProperty('error')
         expect(sentData).not.toHaveProperty('data')
+        expect(mockLogger.error).toHaveBeenCalledWith('Error in login handler', expect.any(Error))
       })
     })
 
