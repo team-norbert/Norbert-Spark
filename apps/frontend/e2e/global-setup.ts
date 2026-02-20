@@ -191,8 +191,6 @@ async function globalSetup() {
         ...process.env,
         DATABASE_URL: connectionString,
         BACKEND_AI_CALLBACK_URL: 'http://localhost:3000/api/v1',
-        BACKEND_AI_CALLBACK_URL_DEV: 'http://localhost:3000/api/v1',
-        BACKEND_AI_CALLBACK_URL_PROD: 'http://localhost:3000/api/v1',
         NEXT_PUBLIC_BASE_URL: 'http://localhost:4321',
         NEXT_PUBLIC_POST_AI_CALLBACK_URL: 'http://localhost:3000/api/v1/ai/chat',
         NEXTAUTH_URL: 'http://localhost:4321',
