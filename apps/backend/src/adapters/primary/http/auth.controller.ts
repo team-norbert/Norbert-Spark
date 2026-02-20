@@ -291,8 +291,10 @@ export class AuthController {
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
         error instanceof DrizzleQueryError
-          ? 'Failed to authenticate user due to a database error'
-          : err?.message || 'Failed to authenticate user due to a database error'
+          ? 'Failed to sync OAuth user due to a database error'
+          : err instanceof BaseException && err.message
+            ? err.message
+            : 'OAuth sync failed'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
