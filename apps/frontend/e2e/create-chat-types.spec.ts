@@ -11,6 +11,12 @@ const NEW_CHAT_TYPE = {
     'Vestibulum libero est, euismod a eleifend a, tempor in sem. Mauris et nunc ac arcu placerat molestie. Aliquam hendrerit tempus enim vitae fringilla.',
 } as const
 
+const NEW_CHAT_TYPE_TWO = {
+  name: 'this is another test chat',
+  description:
+    'Vestibulum libero est, euismod a eleifend a, tempor in sem. Mauris et nunc ac arcu placerat molestie. Aliquam hendrerit tempus enim vitae fringilla.',
+}
+
 async function signIn(page: Page) {
   await page.goto('/signin')
   await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
@@ -22,17 +28,20 @@ async function signIn(page: Page) {
   await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 }
 
-async function createChatTypeWithRag(page: Page) {
+async function createChatTypeWithRag(
+  page: Page,
+  chatType: { name: string; description: string } = NEW_CHAT_TYPE
+) {
   await page.goto('/chat-types/create')
   await expect(page).toHaveURL('/chat-types/create')
 
   const nameInput = page.getByLabel('Name *')
   await expect(nameInput).toBeVisible({ timeout: 10_000 })
-  await nameInput.fill(NEW_CHAT_TYPE.name)
+  await nameInput.fill(chatType.name)
 
   const descriptionInput = page.getByLabel('Description *')
   await expect(descriptionInput).toBeVisible()
-  await descriptionInput.fill(NEW_CHAT_TYPE.description)
+  await descriptionInput.fill(chatType.description)
 
   const ragCheckbox = page.getByLabel('RAG (Retrieval-Augmented Generation)')
   await expect(ragCheckbox).toBeVisible()
@@ -92,13 +101,13 @@ test.describe('Create Chat Type Page', () => {
     await signIn(page)
 
     // ── 2. Create a chat type with RAG enabled ────────────────────────────────
-    await createChatTypeWithRag(page)
+    await createChatTypeWithRag(page, NEW_CHAT_TYPE_TWO)
 
     // ── 3. Verify the RAG value is persisted and shown as true in the RAG column ─
     await page.waitForSelector('.MuiDataGrid-row', { timeout: 15_000 })
     const newChatTypeRow = page
       .locator('.MuiDataGrid-row')
-      .filter({ hasText: NEW_CHAT_TYPE.name })
+      .filter({ hasText: NEW_CHAT_TYPE_TWO.name })
       .first()
     await expect(newChatTypeRow).toBeVisible({ timeout: 10_000 })
     const ragCell = newChatTypeRow.locator('[data-field="rag"]')
