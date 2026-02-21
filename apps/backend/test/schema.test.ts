@@ -899,6 +899,11 @@ describe('Database Schema', () => {
         expect(embeddingModels.createdAt).toBeDefined()
         expect(embeddingModels.createdAt.name).toBe('created_at')
       })
+
+      it('should have updatedAt column', () => {
+        expect(embeddingModels.updatedAt).toBeDefined()
+        expect(embeddingModels.updatedAt.name).toBe('updated_at')
+      })
     })
   })
 

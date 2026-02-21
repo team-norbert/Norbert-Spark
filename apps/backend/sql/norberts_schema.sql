@@ -120,6 +120,7 @@ CREATE TABLE IF NOT EXISTS embedding_models (
     provider TEXT NOT NULL,
     dimension INTEGER NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (name, provider, dimension)
 );
 

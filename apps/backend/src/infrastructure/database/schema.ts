@@ -338,6 +338,7 @@ export const embeddingModels = pgTable(
     provider: text('provider').notNull(),
     dimension: integer('dimension').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     uniqueNameProviderDimension: unique('embedding_models_name_provider_dimension_unique').on(
