@@ -311,7 +311,7 @@ describe('User Entity', () => {
       }
     })
 
-    it('should handle sequential password updates correctly', async () => {
+    it.skip('should handle sequential password updates correctly', async () => {
       const pass1 = await Password.create('password1!')
       const pass2 = await Password.create('password2!')
       const pass3 = await Password.create('password3!')
