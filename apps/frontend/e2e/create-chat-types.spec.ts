@@ -1,4 +1,4 @@
-import { expect, type Page,test } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 const TEST_CREDENTIALS = {
   email: 'james.smith@gmail.com',
