@@ -6,7 +6,16 @@ import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { UnprocessableEntityException } from '../../shared/exceptions/unprocessable-entity.exception.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 /**
- * Detect file type from buffer by checking magic bytes (file signature)
+ * Detects the type of a file by inspecting its magic bytes (file signature).
+ *
+ * Recognised signatures:
+ * - **PDF** — `%PDF` (`0x25 0x50 0x44 0x46`) at offset 0
+ * - **ZIP** — `PK` (`0x50 0x4B`) at offset 0, followed by `0x03 0x04`,
+ *   `0x05 0x06`, or `0x07 0x08` at offsets 2–3
+ *
+ * @param buffer - The raw file bytes to inspect. At least 4 bytes are required;
+ *   shorter buffers always return `'unknown'`.
+ * @returns `'pdf'` | `'zip'` | `'unknown'`.
  */
 function detectFileType(buffer: Uint8Array): 'pdf' | 'zip' | 'unknown' {
   if (buffer.length < 4) {
@@ -32,6 +41,20 @@ function detectFileType(buffer: Uint8Array): 'pdf' | 'zip' | 'unknown' {
   return 'unknown'
 }
 
+/**
+ * Application use-case — retrieves a file from object storage and validates
+ * its type before returning the raw buffer to the caller.
+ *
+ * Orchestrates three steps:
+ * 1. Fetches the file bytes from the configured bucket via {@link BucketPort}.
+ * 2. Validates the file type by inspecting magic bytes with
+ *    {@link detectFileType}. Only `pdf` and `zip` files are accepted;
+ *    all others throw an {@link UnprocessableEntityException}.
+ * 3. Writes a `FETCH` audit log entry via {@link AuditLogPort} regardless of
+ *    outcome (success and failure are both recorded).
+ *
+ * **Supported file types:** PDF, ZIP
+ */
 export class ExtractDataUseCase {
   constructor(
     private readonly logger: LoggerPort,
@@ -39,6 +62,32 @@ export class ExtractDataUseCase {
     private readonly bucketService: BucketPort
   ) {}
 
+  /**
+   * Fetches a file from the bucket, detects its type, and returns the buffer.
+   *
+   * On success an audit entry is written with `reason: 'get_from_bucket'` and
+   * the detected `fileType`. On failure an audit entry is written with
+   * `reason: 'get_from_bucket_failed'` and the original error is re-thrown so
+   * the caller (e.g. {@link AIExtractDataController}) can map it to an HTTP
+   * status code.
+   *
+   * @param GetObjectCommandKeys - DTO containing the `bucketName` and `fileKey`
+   *   that identify the object in storage.
+   * @param auditContext - Caller context used to populate the audit log entry
+   *   (`userId`, `ipAddress`, `userAgent`).
+   * @returns A promise resolving to `{ buffer: Uint8Array, fileType: 'pdf' | 'zip' }`.
+   *
+   * @throws {UnprocessableEntityException} When the file is not found in the
+   *   bucket (`422`) or the detected file type is not PDF or ZIP (`422`).
+   * @throws Re-throws any other error thrown by {@link BucketPort.getFileUrl}.
+   *
+   * @example
+   * const { buffer, fileType } = await extractDataUseCase.execute(
+   *   { bucketName: 'uploads', fileKey: 'docs/report.pdf' },
+   *   auditContext
+   * )
+   * // fileType === 'pdf'
+   */
   async execute(GetObjectCommandKeys: ExtractDataDto, auditContext: AuditContext) {
     this.logger.info('Starting data extraction from file', {
       fileKey: GetObjectCommandKeys.fileKey,
