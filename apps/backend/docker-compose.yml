@@ -108,7 +108,7 @@ services:
       - norbertsSpark-network
 
     ports:
-      - '6377:6377'
+      - '6377:6379'
 
     # Resource limits (Best Practice #2)
     deploy:
