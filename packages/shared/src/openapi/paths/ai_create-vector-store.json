@@ -1,0 +1,36 @@
+{
+  "post": {
+    "tags": ["AI"],
+    "summary": "Create a vector store",
+    "description": "Create a vector store for storing and retrieving vector embeddings.",
+    "operationId": "createVectorStore",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/CreateVectorStoreRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Vector store created successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/CreateVectorStoreResponse.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Bad request"
+      },
+      "500": {
+        "description": "Internal server error"
+      }
+    }
+  }
+}

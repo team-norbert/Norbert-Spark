@@ -92,6 +92,9 @@
     "/ai/presigned-urls": {
       "$ref": "paths/ai_presigned-urls.json"
     },
+    "/ai/create-vector-store": {
+      "$ref": "paths/ai_create-vector-store.json"
+    },
     "/ai/extract-data/{fileId}": {
       "$ref": "paths/ai_extract-data_{fileId}.json"
     },

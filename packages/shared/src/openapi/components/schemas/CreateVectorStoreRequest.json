@@ -1,0 +1,150 @@
+{
+  "object": {
+    "properties": {
+      "required": ["documents", "embeddingModels", "vectorEmbeddings", "chatAIOptions"],
+      "documents": {
+        "type": "object",
+        "description": "Vector store documents configuration",
+        "required": ["title", "source"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the document"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source of the document"
+          }
+        }
+      },
+      "embeddingModels": {
+        "type": "object",
+        "description": "Vector store embedding models configuration",
+        "required": ["modelName", "modelProvider"],
+        "properties": {
+          "modelName": {
+            "type": "string",
+            "description": "Name of the embedding model to use"
+          },
+          "modelProvider": {
+            "type": "string",
+            "description": "Provider of the embedding model (e.g., OpenAI, Hugging Face)"
+          }
+        }
+      },
+      "vectorEmbeddings": {
+        "type": "object",
+        "description": "Vector store vector embeddings configuration",
+        "required": ["dimension", "distanceMetric", "chunkSize", "chunkOverlap"],
+        "properties": {
+          "dimension": {
+            "type": "integer",
+            "description": "Dimension of the vector embeddings",
+            "enum": [1536, 768, 384],
+            "example": 1536
+          },
+          "distanceMetric": {
+            "type": "string",
+            "description": "Distance metric to use for similarity search",
+            "enum": ["cosine", "euclidean", "dot_product"],
+            "example": "cosine"
+          },
+          "chunkSize": {
+            "type": "integer",
+            "description": "Size of text chunks to split documents into for embedding",
+            "minimum": 1,
+            "maximum": 10000,
+            "example": 500
+          },
+          "chunkOverlap": {
+            "type": "integer",
+            "description": "Number of overlapping tokens between text chunks",
+            "minimum": 0,
+            "maximum": 1000,
+            "example": 50
+          }
+        }
+      },
+      "chatAIOptions": {
+        "type": "object",
+        "description": "Chat AI for vector store configuration",
+        "required": [
+          "maxTokens",
+          "temperature",
+          "topP",
+          "frequencyPenalty",
+          "presencePenalty",
+          "stopSequences",
+          "seed",
+          "maxRetries"
+        ],
+        "properties": {
+          "chatTypeId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the chat type to use for AI responses",
+            "example": "01933c89-6f67-7b3a-8e4c-123456789abc"
+          },
+          "maxTokens": {
+            "type": "integer",
+            "description": "Maximum number of tokens for AI responses",
+            "minimum": 1,
+            "maximum": 100000,
+            "example": 4096
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Sampling temperature for AI responses (0 = deterministic, 2 = very random)",
+            "minimum": 0,
+            "maximum": 2,
+            "example": 0.7
+          },
+          "topP": {
+            "type": "number",
+            "description": "Nucleus sampling threshold for AI responses (0-1)",
+            "minimum": 0,
+            "maximum": 1,
+            "example": 0.9
+          },
+          "frequencyPenalty": {
+            "type": "number",
+            "description": "Penalty for repeating words/phrases in AI responses (-2 to 2)",
+            "minimum": -2,
+            "maximum": 2,
+            "example": 0
+          },
+          "presencePenalty": {
+            "type": "number",
+            "description": "Penalty for repeating information from prompt in AI responses (-2 to 2)",
+            "minimum": -2,
+            "maximum": 2,
+            "example": 0
+          },
+          "stopSequences": {
+            "type": "array",
+            "description": "Stop sequences for AI responses",
+            "items": {
+              "type": "string"
+            },
+            "default": [" "],
+            "example": ["\n", " Human:", " AI:"]
+          },
+          "seed": {
+            "type": "integer",
+            "description": "Random seed for AI response generation (for reproducibility)",
+            "minimum": 0,
+            "maximum": 1000000,
+            "example": 42
+          },
+          "maxRetries": {
+            "type": "integer",
+            "description": "Maximum number of retries for AI response generation in case of failures",
+            "minimum": 0,
+            "maximum": 10,
+            "example": 3
+          }
+        }
+      }
+    }
+  }
+}

@@ -449,6 +449,19 @@ export const vectorEmbeddings1536 = pgTable(
      * Storage and index size grow quickly
      */
     embedding: vector('embedding', { dimension: 1536 }).notNull(),
+    /**
+     * Number of tokens (or characters) in each chunk.
+     */
+    chunkSize: integer('chunk_size').notNull().default(700),
+    /**
+     * Number of overlapping tokens (or characters) between consecutive chunks.
+     */
+    chunkOverlap: integer('chunk_overlap').notNull().default(120),
+    /**
+     * The distance metric used when querying this embedding.
+     * Must be one of: 'cosine', 'euclidean', 'dot_product'.
+     */
+    distanceMetric: text('distance_metric').notNull().default('cosine'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -472,6 +485,10 @@ export const vectorEmbeddings1536 = pgTable(
     contentLengthCheck: check(
       'vector_embeddings_1536_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
+    ),
+    distanceMetricCheck: check(
+      'vector_embeddings_1536_distance_metric_check',
+      sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
     ),
   })
 )
@@ -527,6 +544,19 @@ export const vectorEmbeddings768 = pgTable(
      * Slightly more storage + compute
      */
     embedding: vector('embedding', { dimension: 768 }).notNull(),
+    /**
+     * Number of tokens (or characters) in each chunk.
+     */
+    chunkSize: integer('chunk_size').notNull().default(700),
+    /**
+     * Number of overlapping tokens (or characters) between consecutive chunks.
+     */
+    chunkOverlap: integer('chunk_overlap').notNull().default(120),
+    /**
+     * The distance metric used when querying this embedding.
+     * Must be one of: 'cosine', 'euclidean', 'dot_product'.
+     */
+    distanceMetric: text('distance_metric').notNull().default('cosine'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -550,6 +580,10 @@ export const vectorEmbeddings768 = pgTable(
     contentLengthCheck: check(
       'vector_embeddings_768_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
+    ),
+    distanceMetricCheck: check(
+      'vector_embeddings_768_distance_metric_check',
+      sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
     ),
   })
 )
@@ -610,6 +644,19 @@ export const vectorEmbeddings384 = pgTable(
      * Edge / cost-sensitive system
      */
     embedding: vector('embedding', { dimension: 384 }).notNull(),
+    /**
+     * Number of tokens (or characters) in each chunk.
+     */
+    chunkSize: integer('chunk_size').notNull().default(700),
+    /**
+     * Number of overlapping tokens (or characters) between consecutive chunks.
+     */
+    chunkOverlap: integer('chunk_overlap').notNull().default(120),
+    /**
+     * The distance metric used when querying this embedding.
+     * Must be one of: 'cosine', 'euclidean', 'dot_product'.
+     */
+    distanceMetric: text('distance_metric').notNull().default('cosine'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -633,6 +680,10 @@ export const vectorEmbeddings384 = pgTable(
     contentLengthCheck: check(
       'vector_embeddings_384_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
+    ),
+    distanceMetricCheck: check(
+      'vector_embeddings_384_distance_metric_check',
+      sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
     ),
   })
 )
