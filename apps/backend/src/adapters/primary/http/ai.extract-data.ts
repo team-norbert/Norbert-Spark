@@ -116,11 +116,11 @@ export class AIExtractDataController {
    * @returns A promise that resolves once all NDJSON lines have been written and
    *   the stream is closed, or a JSON error response if the request itself fails.
    *
-   * @throws {400} When `ExtractDataDto` validation fails (missing/invalid `fileId`).
    * @throws {422} When the file type is unsupported.
-   * @throws {500} When an unexpected error occurs during extraction.
+   * @throws {500} When `ExtractDataDto` validation fails (missing/invalid `fileId`) or an unexpected error occurs during extraction.
    *
    * @example
+   * // Success (single PDF) — 200 OK  application/x-ndjson
    * // Success (single PDF) — 200 OK  application/x-ndjson
    * // GET /ai/extract-data/invoices%2Finvoice-2026.pdf
    * // Stream output (one line):
