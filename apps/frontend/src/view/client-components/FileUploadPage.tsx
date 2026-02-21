@@ -73,9 +73,18 @@ interface FileUploadPageProps {
  *   uploadedFiles={files}
  *   dragActive={false}
  *   error={null}
+ *   isUploading={false}
+ *   isExtracting={false}
+ *   extractedData={[]}
+ *   text={{ title: 'Upload Files', subtitle: 'Drag and drop PDF or ZIP files to upload.' }}
+ *   testIds={{ fileInput: 'file-upload-input' }}
+ *   onDrag={handleDrag}
  *   onDrop={handleDrop}
+ *   onFileInputChange={handleFileInputChange}
  *   onRemoveFile={removeFile}
+ *   onClearAllFiles={clearAllFiles}
  *   onProcessFiles={processFiles}
+ *   onClearError={clearError}
  *   onNavigateHome={() => router.push('/dashboard')}
  *   onSignOut={() => signOut()}
  * />
