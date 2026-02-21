@@ -146,8 +146,8 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
 
     embedding VECTOR(1536) NOT NULL,
 
-    chunk_size INTEGER NOT NULL DEFAULT 700,
-    chunk_overlap INTEGER NOT NULL DEFAULT 120,
+    chunk_size INTEGER NOT NULL DEFAULT 700 CHECK (chunk_size > 0 AND chunk_size <= 50000),
+    chunk_overlap INTEGER NOT NULL DEFAULT 120 CHECK (chunk_overlap >= 0 AND chunk_overlap < chunk_size),
 
     distance_metric TEXT NOT NULL DEFAULT 'cosine' CHECK (distance_metric IN ('cosine', 'euclidean', 'dot_product')),
 
@@ -189,8 +189,8 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_768 (
 
     embedding VECTOR(768) NOT NULL,
 
-    chunk_size INTEGER NOT NULL DEFAULT 700,
-    chunk_overlap INTEGER NOT NULL DEFAULT 120,
+    chunk_size INTEGER NOT NULL DEFAULT 700 CHECK (chunk_size > 0 AND chunk_size <= 50000),
+    chunk_overlap INTEGER NOT NULL DEFAULT 120 CHECK (chunk_overlap >= 0 AND chunk_overlap < chunk_size),
 
     distance_metric TEXT NOT NULL DEFAULT 'cosine' CHECK (distance_metric IN ('cosine', 'euclidean', 'dot_product')),
 
@@ -233,8 +233,8 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_384 (
 
     embedding VECTOR(384) NOT NULL,
 
-    chunk_size INTEGER NOT NULL DEFAULT 700,
-    chunk_overlap INTEGER NOT NULL DEFAULT 120,
+    chunk_size INTEGER NOT NULL DEFAULT 700 CHECK (chunk_size > 0 AND chunk_size <= 50000),
+    chunk_overlap INTEGER NOT NULL DEFAULT 120 CHECK (chunk_overlap >= 0 AND chunk_overlap < chunk_size),
 
     distance_metric TEXT NOT NULL DEFAULT 'cosine' CHECK (distance_metric IN ('cosine', 'euclidean', 'dot_product')),
 

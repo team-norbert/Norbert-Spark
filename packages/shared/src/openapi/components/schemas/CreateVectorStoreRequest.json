@@ -1,8 +1,9 @@
 {
-  "object": {
-    "properties": {
-      "required": ["documents", "embeddingModels", "vectorEmbeddings", "chatAIOptions"],
-      "documents": {
+  "type": "object",
+  "description": "Request body for creating a new vector store",
+  "required": ["documents", "embeddingModels", "vectorEmbeddings", "chatAIOptions"],
+  "properties": {
+    "documents": {
         "type": "object",
         "description": "Vector store documents configuration",
         "required": ["title", "source"],
@@ -146,5 +147,5 @@
         }
       }
     }
-  }
 }
+
