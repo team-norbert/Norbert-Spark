@@ -81,4 +81,47 @@ test.describe('Create Chat Type Page', () => {
     await expect(ragCell).toBeVisible({ timeout: 10_000 })
     await expect(ragCell).toHaveText(/true/i)
   })
+
+  test('successfully navigate to RAG Files page from the Chat Types page', async ({ page }) => {
+    // ── 1. Sign in ────────────────────────────────────────────────────────────
+    await page.goto('/signin')
+    await page.getByLabel(/email address/i).fill(TEST_CREDENTIALS.email)
+    await page.getByLabel(/^password/i).fill(TEST_CREDENTIALS.password)
+    await Promise.all([
+      page.waitForURL(/\/dashboard/, { timeout: 15_000 }),
+      page.getByRole('button', { name: /^sign in$/i }).click(),
+    ])
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
+    // ── 2. Navigate to /chat-types ────────────────────────────────────────────
+    await page.goto('/chat-types')
+    await expect(page).toHaveURL('/chat-types')
+
+    // ── 3. Verify the RAG value is persisted and shown as true in the RAG column ─
+    const newChatTypeRow = page
+      .locator('.MuiDataGrid-row')
+      .filter({ hasText: NEW_CHAT_TYPE.name })
+      .first()
+    await expect(newChatTypeRow).toBeVisible({ timeout: 10_000 })
+    const ragCell = newChatTypeRow.locator('[data-field="rag"]')
+    await expect(ragCell).toBeVisible({ timeout: 10_000 })
+    await expect(ragCell).toHaveText(/true/i)
+
+    // -- 4 CLick through the link in the RAG column to navigate to the RAG Files page ───────────────────────────────
+    const ragLink = ragCell.locator('a')
+    await expect(ragLink).toBeVisible()
+    await ragLink.click()
+
+    // ── 5. Verify navigation to the RAG Files page ─────────────────────────────
+    const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i
+    await page.waitForURL(new RegExp(`/chat-types/rag-files/${uuidRegex.source}`), {
+      timeout: 15_000,
+    })
+    await expect(page).toHaveURL(new RegExp(`/chat-types/rag-files/${uuidRegex.source}`))
+
+    // ── 6. Verify the RAG Files page content is visible ─────────────────────────
+    await expect(
+      page.getByRole('heading', { name: /retrieval-augmented generation/i })
+    ).toBeVisible()
+    expect(page.getByTestId('rag-files-file-input').first()).toBeDefined()
+  })
 })
