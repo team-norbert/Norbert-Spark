@@ -430,10 +430,11 @@ export class AIController {
     }
 
     /**
-     * Note: You may decide not remove authentication for the chat APIs
-     * when adding the chat to your application.
-     * In which case you should remove the authMiddleware from the preHandle route
-     * in the registerRoutes method and also remove the authorization check below.
+     * Note: By default, authentication is required for the chat APIs via authMiddleware
+     * and the authorization check below. If you intentionally decide to remove
+     * authentication when integrating this into your application, you must remove
+     * the authMiddleware from the preHandler in the route registration and also
+     * remove (or adjust) the authorization check below that relies on request.user.
      */
     // Authorization check: User can only access their own chat history unless they have admin/moderator role
     const authenticatedUserId = request.user?.sub
