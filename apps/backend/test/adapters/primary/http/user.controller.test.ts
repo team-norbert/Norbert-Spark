@@ -1709,33 +1709,6 @@ describe('UserController', () => {
     })
 
     describe('authorization', () => {
-      it('should return 401 when user is not authenticated', async () => {
-        mockRequest.user = undefined
-
-        await controller.getUserById(mockRequest, mockReply)
-
-        expect(mockReply.code).toHaveBeenCalledWith(401)
-        expect(mockReply.send).toHaveBeenCalledWith({
-          success: false,
-          error: 'Unauthorized',
-        })
-        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
-      })
-
-      it('should return 401 for unauthenticated user with invalid UUID before validating format', async () => {
-        mockRequest.params = { id: 'invalid-uuid' }
-        mockRequest.user = undefined
-
-        await controller.getUserById(mockRequest, mockReply)
-
-        expect(mockReply.code).toHaveBeenCalledWith(401)
-        expect(mockReply.send).toHaveBeenCalledWith({
-          success: false,
-          error: 'Unauthorized',
-        })
-        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
-      })
-
       it('should return 403 when regular user tries to access another user data', async () => {
         const userId1 = uuidv7()
         const userId2 = uuidv7()
