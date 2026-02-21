@@ -21,7 +21,7 @@
     "embeddingModels": {
       "type": "object",
       "description": "Vector store embedding models configuration",
-      "required": ["modelName", "modelProvider"],
+      "required": ["modelName", "modelProvider", "dimension"],
       "properties": {
         "modelName": {
           "type": "string",
@@ -30,20 +30,20 @@
         "modelProvider": {
           "type": "string",
           "description": "Provider of the embedding model (e.g., OpenAI, Hugging Face)"
+        },
+        "dimension": {
+          "type": "integer",
+          "description": "Dimension of the vector embeddings",
+          "enum": [1536, 768, 384],
+          "example": 1536
         }
       }
     },
     "vectorEmbeddings": {
       "type": "object",
       "description": "Vector store vector embeddings configuration",
-      "required": ["dimension", "distanceMetric", "chunkSize", "chunkOverlap"],
+      "required": ["distanceMetric", "chunkSize", "chunkOverlap"],
       "properties": {
-        "dimension": {
-          "type": "integer",
-          "description": "Dimension of the vector embeddings",
-          "enum": [1536, 768, 384],
-          "example": 1536
-        },
         "distanceMetric": {
           "type": "string",
           "description": "Distance metric to use for similarity search",

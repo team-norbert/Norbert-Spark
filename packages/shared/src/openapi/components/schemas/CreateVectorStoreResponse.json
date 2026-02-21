@@ -48,7 +48,7 @@
         "embeddingModels": {
           "type": "object",
           "description": "Created embedding model record",
-          "required": ["id", "modelName", "modelProvider", "createdAt", "updatedAt"],
+          "required": ["id", "dimension", "modelName", "modelProvider", "createdAt", "updatedAt"],
           "properties": {
             "id": {
               "type": "string",
@@ -63,6 +63,12 @@
             "modelProvider": {
               "type": "string",
               "description": "Provider of the embedding model (e.g., OpenAI, Hugging Face)"
+            },
+            "dimension": {
+              "type": "integer",
+              "description": "Dimension of the vector embeddings",
+              "enum": [1536, 768, 384],
+              "example": 1536
             },
             "createdAt": {
               "type": "string",
@@ -83,7 +89,6 @@
           "description": "Created vector embeddings record",
           "required": [
             "id",
-            "dimension",
             "distanceMetric",
             "chunkSize",
             "chunkOverlap",
@@ -96,12 +101,6 @@
               "format": "uuid",
               "description": "Unique identifier for the vector embeddings record",
               "example": "01933c89-6f67-7b3a-8e4c-123456789abc"
-            },
-            "dimension": {
-              "type": "integer",
-              "description": "Dimension of the vector embeddings",
-              "enum": [1536, 768, 384],
-              "example": 1536
             },
             "distanceMetric": {
               "type": "string",
