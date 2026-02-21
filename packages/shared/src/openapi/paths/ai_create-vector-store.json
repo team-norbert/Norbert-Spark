@@ -1,6 +1,6 @@
 {
   "post": {
-    "tags": ["AI"],
+    "tags": ["ai", "chat"],
     "summary": "Create a vector store",
     "description": "Create a vector store for storing and retrieving vector embeddings.",
     "operationId": "createVectorStore",
