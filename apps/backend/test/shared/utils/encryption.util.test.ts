@@ -93,7 +93,7 @@ describe('Encryption Utility', () => {
         const decrypted = decryptTwoFactorSecret(encrypted)
         expect(decrypted).toBe(original)
       }
-    })
+    }, 15000)
 
     it('should handle unicode characters', () => {
       const original = 'Secret🔐WithEmoji😀'

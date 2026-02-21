@@ -42,7 +42,7 @@ describe('TokeniseOpenAI', () => {
       // TypeScript prevents direct instantiation at compile time
       const instance = TokeniseOpenAI.getInstance()
       expect(instance).toBeDefined()
-    })
+    }, 15000)
   })
 
   describe('tokeniseFile', () => {

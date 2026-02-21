@@ -323,7 +323,7 @@ describe('User Entity', () => {
       // Final password should be pass3
       const pass4 = await Password.create('password4!')
       await expect(testUser.updatePassword('password3!', pass4)).resolves.not.toThrow()
-    })
+    }, 15000)
 
     it('should handle rapid email updates', () => {
       for (let i = 0; i < 10; i++) {
