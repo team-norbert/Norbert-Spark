@@ -12,6 +12,20 @@ import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
 import type { PostAIAdminUseCase } from '../../../application/use-cases/post-ai-admin.use-case.js'
 import { DrizzleQueryError } from 'drizzle-orm'
 
+/**
+ * HTTP controller for AI admin configuration endpoints.
+ *
+ * Handles CRUD operations for per-chat-type AI settings (model parameters, system prompt, etc.).
+ * All routes require authentication and one of the roles: `admin` or `moderator`.
+ *
+ * **Base resource:** `/ai/chats/config/:id/settings`
+ *
+ * | Method | Route                            | Handler                   |
+ * |--------|----------------------------------|---------------------------|
+ * | GET    | /ai/chats/config/:id/settings    | getAIChatSettingsById     |
+ * | PUT    | /ai/chats/config/:id/settings    | putAIChatSettingsById     |
+ * | POST   | /ai/chats/config/:id/settings    | postAIChatSettingsById    |
+ */
 export class AIAdminController {
   constructor(
     private readonly logger: LoggerPort,
@@ -44,6 +58,34 @@ export class AIAdminController {
     )
   }
 
+  /**
+   * Creates AI chat settings for the specified chat type.
+   *
+   * Validates the `:id` path parameter as a UUID, then delegates to
+   * {@link PostAIAdminUseCase} to persist a new settings record.
+   *
+   * **Route:** `POST /ai/chats/config/:id/settings`
+   * **Auth:** Requires a valid JWT and one of the roles: `admin`, `moderator`.
+   *
+   * @param request - Fastify request. Path param `:id` must be a valid UUID.
+   *   Body is validated by {@link PostAIAdminDTO}.
+   * @param reply - Fastify reply used to send the HTTP response.
+   * @returns A promise that resolves once the response has been sent.
+   *
+   * @throws {400} When `:id` is not a valid UUID.
+   * @throws {400} When the request body fails DTO validation.
+   * @throws {500} When the use-case returns no record or an unexpected error occurs.
+   *
+   * @example
+   * // Success — 201 Created
+   * // POST /ai/chats/config/01933c89-6f67-7b3a-8e4c-123456789abc/settings
+   * // Body: { "prompt": "You are a helpful assistant.", "maxTokens": 4096, ... }
+   * // Response: { "success": true, "data": { ...createdSettings } }
+   *
+   * @example
+   * // Validation failure — 400 Bad Request
+   * // Response: { "success": false, "error": "Invalid id format", "details": "incorrect UUID format" }
+   */
   async postAIChatSettingsById(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.info('Received ai-admin POST request')
     try {
@@ -100,6 +142,34 @@ export class AIAdminController {
     }
   }
 
+  /**
+   * Updates AI chat settings for the specified chat type.
+   *
+   * Validates the `:id` path parameter as a UUID, then delegates to
+   * {@link PutAIAdminUseCase} to update the existing settings record.
+   *
+   * **Route:** `PUT /ai/chats/config/:id/settings`
+   * **Auth:** Requires a valid JWT and one of the roles: `admin`, `moderator`.
+   *
+   * @param request - Fastify request. Path param `:id` must be a valid UUID.
+   *   Body is validated by {@link PutAIAdminDTO}.
+   * @param reply - Fastify reply used to send the HTTP response.
+   * @returns A promise that resolves once the response has been sent.
+   *
+   * @throws {400} When `:id` is not a valid UUID.
+   * @throws {400} When the request body fails DTO validation.
+   * @throws {404} When no settings record exists for the given chat type ID.
+   * @throws {500} When an unexpected error occurs during the update.
+   *
+   * @example
+   * // Success — 204 No Content
+   * // PUT /ai/chats/config/01933c89-6f67-7b3a-8e4c-123456789abc/settings
+   * // Body: { "prompt": "Updated system prompt.", "temperature": 0.5 }
+   *
+   * @example
+   * // Not found — 404
+   * // Response: { "success": false, "error": "AI Chat Configuration not found" }
+   */
   async putAIChatSettingsById(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.info('Received ai-admin PUT request')
     try {
@@ -154,6 +224,43 @@ export class AIAdminController {
     }
   }
 
+  /**
+   * Retrieves AI chat settings for the specified chat type.
+   *
+   * Validates the `:id` path parameter as a UUID, then delegates to
+   * {@link GetAIAdminUseCase} to fetch the settings record.
+   *
+   * **Route:** `GET /ai/chats/config/:id/settings`
+   * **Auth:** Requires a valid JWT and one of the roles: `admin`, `moderator`.
+   *
+   * @param request - Fastify request. Path param `:id` must be a valid UUID.
+   * @param reply - Fastify reply used to send the HTTP response.
+   * @returns A promise that resolves once the response has been sent.
+   *
+   * @throws {400} When `:id` is not a valid UUID.
+   * @throws {404} When no settings record exists for the given chat type ID.
+   * @throws {500} When an unexpected error occurs while retrieving settings.
+   *
+   * @example
+   * // Success — 200 OK
+   * // GET /ai/chats/config/01933c89-6f67-7b3a-8e4c-123456789abc/settings
+   * // Response:
+   * // {
+   * //   "success": true,
+   * //   "data": {
+   * //     "id": "01933c89-6f67-7b3a-8e4c-123456789abc",
+   * //     "prompt": "You are a helpful assistant.",
+   * //     "maxTokens": 4096,
+   * //     "temperature": 0.7,
+   * //     "createdAt": "2026-02-17T10:30:00Z",
+   * //     "updatedAt": "2026-02-17T10:30:00Z"
+   * //   }
+   * // }
+   *
+   * @example
+   * // Not found — 404
+   * // Response: { "success": false, "error": "AI Chat Configuration not found" }
+   */
   async getAIChatSettingsById(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.info('Received ai-admin request')
     try {

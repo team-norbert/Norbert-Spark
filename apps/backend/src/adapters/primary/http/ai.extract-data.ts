@@ -44,6 +44,21 @@ interface PresignedUrlRequestBody {
   files: FileMetadata[]
 }
 
+/**
+ * HTTP controller for AI-powered data extraction endpoints.
+ *
+ * Handles file ingestion (PDF / ZIP) and structured data extraction using
+ * Google Gemini via the AI SDK. Files are uploaded directly to R2 object
+ * storage by the client using presigned URLs; this controller then streams
+ * extracted results back as newline-delimited JSON (NDJSON).
+ *
+ * All routes require a valid JWT (`authMiddleware`).
+ *
+ * | Method | Route                    | Handler                 |
+ * |--------|--------------------------|-------------------------|
+ * | POST   | /ai/presigned-urls       | generatePresignedUrls   |
+ * | GET    | /ai/extract-data/:fileId | extractData             |
+ */
 export class AIExtractDataController {
   constructor(
     private readonly logger: LoggerPort,
@@ -71,6 +86,53 @@ export class AIExtractDataController {
     )
   }
 
+  /**
+   * Streams structured data extracted from a previously uploaded file.
+   *
+   * Fetches the file identified by `:fileId` from R2 storage via
+   * {@link ExtractDataUseCase}, then uses Google Gemini (`streamText`) to
+   * extract invoice data conforming to `pdfSchema`.
+   *
+   * **Supported file types:**
+   * - `pdf` — processes the single PDF and streams one NDJSON line.
+   * - `zip` — iterates over every PDF inside the archive and streams one
+   *   NDJSON line per file.
+   *
+   * **Route:** `GET /ai/extract-data/:fileId`
+   * **Auth:** Requires a valid JWT.
+   *
+   * **Response format** (`Content-Type: application/x-ndjson`):
+   * Each line is a JSON object:
+   * ```json
+   * { "fileName": "invoice.pdf", "data": "<extracted text>", "success": true }
+   * ```
+   * On per-file errors:
+   * ```json
+   * { "fileName": "invoice.pdf", "data": null, "success": false, "error": "..." }
+   * ```
+   *
+   * @param request - Fastify request. Path param `:fileId` is the R2 object key.
+   * @param reply - Fastify reply. Uses raw Node.js response for NDJSON streaming.
+   * @returns A promise that resolves once all NDJSON lines have been written and
+   *   the stream is closed, or a JSON error response if the request itself fails.
+   *
+   * @throws {400} When `ExtractDataDto` validation fails (missing/invalid `fileId`).
+   * @throws {422} When the file type is unsupported.
+   * @throws {500} When an unexpected error occurs during extraction.
+   *
+   * @example
+   * // Success (single PDF) — 200 OK  application/x-ndjson
+   * // GET /ai/extract-data/invoices%2Finvoice-2026.pdf
+   * // Stream output (one line):
+   * // {"fileName":"invoices/invoice-2026.pdf","data":"Invoice #123...","success":true}
+   *
+   * @example
+   * // Success (ZIP with two PDFs) — 200 OK  application/x-ndjson
+   * // GET /ai/extract-data/batch%2Finvoices.zip
+   * // Stream output (two lines):
+   * // {"fileName":"invoice-a.pdf","data":"Invoice A data...","success":true}
+   * // {"fileName":"invoice-b.pdf","data":"Invoice B data...","success":true}
+   */
   async extractData(
     request: FastifyRequest,
     reply: FastifyReply
@@ -289,9 +351,51 @@ export class AIExtractDataController {
   }
 
   /**
-   * Generate presigned URLs for direct R2 upload from file metadata.
-   * This endpoint accepts JSON with file metadata and returns presigned URLs
-   * for the client to upload files directly to R2.
+   * Generates presigned R2 upload URLs from client-supplied file metadata.
+   *
+   * The client sends a list of `{ filename, mimetype }` descriptors; this
+   * handler validates and sanitises each entry (extension allowlist, MIME-type
+   * allowlist, filename sanitisation), then delegates to
+   * {@link PresignedUploadUrlUseCase} to generate short-lived PUT URLs that
+   * allow the client to upload files directly to R2 without proxying through
+   * the server.
+   *
+   * **Allowed extensions:** `pdf`, `zip`
+   * **Allowed MIME types:** `application/pdf`, `application/zip`,
+   * `application/x-zip-compressed`
+   *
+   * **Route:** `POST /ai/presigned-urls`
+   * **Auth:** Requires a valid JWT.
+   *
+   * @param request - Fastify request. Expected body:
+   *   ```json
+   *   { "files": [ { "filename": "invoice.pdf", "mimetype": "application/pdf" } ] }
+   *   ```
+   * @param reply - Fastify reply used to send the HTTP response.
+   * @returns A promise that resolves once the response has been sent.
+   *
+   * @throws {422} When `files` is missing, empty, or not an array.
+   * @throws {422} When any file entry is missing `filename` or `mimetype`.
+   * @throws {422} When a file has a disallowed extension or MIME type.
+   * @throws {500} When an unexpected error occurs while generating URLs.
+   *
+   * @example
+   * // Success — 200 OK
+   * // POST /ai/presigned-urls
+   * // Body: { "files": [{ "filename": "invoice.pdf", "mimetype": "application/pdf" }] }
+   * // Response:
+   * // {
+   * //   "success": true,
+   * //   "data": [
+   * //     { "filename": "invoice.pdf", "presignedUrl": "https://r2.example.com/..." }
+   * //   ],
+   * //   "message": "Presigned URLs generated successfully"
+   * // }
+   *
+   * @example
+   * // Validation failure — 422 Unprocessable Entity
+   * // Body: { "files": [] }
+   * // Response: { "success": false, "error": "No files provided. Expected { files: [...] }" }
    */
   async generatePresignedUrls(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {

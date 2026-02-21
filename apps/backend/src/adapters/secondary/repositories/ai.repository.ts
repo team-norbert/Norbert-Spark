@@ -24,12 +24,37 @@ export type ChatResponseResult = {
   part: MyDBUIMessagePartSelect | null
 }[]
 
+/**
+ * Secondary adapter — Drizzle ORM repository for all AI chat persistence.
+ *
+ * Implements {@link AIServicePort} and is the single source of truth for
+ * reading and writing chat, message, and message-part records. All writes
+ * are performed against the live `db` client; no caching layer is applied
+ * here.
+ *
+ * **Tables touched:**
+ * - `chats` — top-level chat sessions
+ * - `messages` — individual messages within a chat
+ * - `parts` — typed content parts belonging to a message (text, tool calls, …)
+ * - `chat_types` — joined read-only to enrich chat list results
+ */
 export class AIRepository implements AIServicePort {
   constructor(private readonly logger: LoggerPort) {}
 
   /**
-   * Private helper method to insert messages and their associated parts into the database.
-   * This method handles the common logic shared between createChat and appendToChatMessages.
+   * Inserts messages and their associated parts into the database.
+   *
+   * Shared helper used by both {@link createChat} and
+   * {@link appendToChatMessages} to avoid duplicating the
+   * insert-messages-then-insert-parts logic.
+   *
+   * The method is a no-op when `messagesToInsert` is empty, so callers do not
+   * need to guard against empty arrays.
+   *
+   * @param chatId - The ID of the chat that the messages belong to.
+   * @param messagesToInsert - The UI messages to persist. Each message's
+   *   `parts` array is mapped to DB rows via {@link mapUIMessagePartsToDBParts}.
+   * @returns A promise that resolves when all inserts have completed.
    */
   private async insertMessagesWithParts(
     chatId: ChatIdType,
@@ -69,6 +94,25 @@ export class AIRepository implements AIServicePort {
   }
   //user_id
 
+  /**
+   * Creates a new chat session and persists any initial messages.
+   *
+   * Inserts a row into `chats` keyed by the provided `chatId`, then calls
+   * {@link insertMessagesWithParts} to persist `initialMessages` (if any).
+   *
+   * @param chatId - The UUIDv7 identifier for the new chat.
+   * @param userId - The ID of the user who owns the chat.
+   * @param chatTypeId - The ID of the chat type (configuration) to associate
+   *   with this chat session.
+   * @param initialMessages - Optional array of UI messages to insert alongside
+   *   the chat record. Defaults to an empty array.
+   * @returns A promise that resolves to the `chatId` string once the chat and
+   *   all initial messages have been persisted.
+   *
+   * @example
+   * const id = await repo.createChat(chatId, userId, chatTypeId, messages)
+   * // id === chatId
+   */
   async createChat(
     chatId: ChatIdType,
     userId: UserIdType,
@@ -105,6 +149,22 @@ export class AIRepository implements AIServicePort {
     return chatId
   }
 
+  /**
+   * Appends new messages to an existing chat.
+   *
+   * Updates the `updatedAt` timestamp on the parent `chats` row, then
+   * calls {@link insertMessagesWithParts} to persist the new messages and
+   * their parts.
+   *
+   * @param chatId - The ID of the chat to append messages to.
+   * @param messagesToAppend - The UI messages to add. Defaults to an empty
+   *   array (no-op).
+   * @returns A promise that resolves to the `chatId` string once all messages
+   *   have been persisted.
+   *
+   * @example
+   * await repo.appendToChatMessages(chatId, [assistantMessage])
+   */
   async appendToChatMessages(
     chatId: ChatIdType,
     messagesToAppend: UIMessage[] = []
@@ -157,6 +217,21 @@ export class AIRepository implements AIServicePort {
     }))
   }
 
+  /**
+   * Retrieves a chat with all its messages and parts, ordered for streaming.
+   *
+   * Performs an `INNER JOIN` on `messages` and a `LEFT JOIN` on `parts` so
+   * that messages without parts are still included. Results are ordered by
+   * message `createdAt` ascending, then by part `order` ascending (NULLs last).
+   *
+   * @param chatId - The ID of the chat to retrieve.
+   * @returns A promise that resolves to the flat join result
+   *   ({@link ChatResponseResult}) or `null` if the query returns no rows.
+   *
+   * @example
+   * const rows = await repo.getChatResponse(chatId)
+   * // rows[0].chat, rows[0].message, rows[0].part
+   */
   async getChatResponse(chatId: ChatIdType): Promise<ChatResponseResult | null> {
     // Query chats table by id, then join with messages and parts
     const result = await db
@@ -170,6 +245,25 @@ export class AIRepository implements AIServicePort {
     return result
   }
 
+  /**
+   * Retrieves a chat with all its messages and parts by chat ID.
+   *
+   * Functionally identical to {@link getChatResponse} — performs the same
+   * `INNER JOIN` on `messages` and `LEFT JOIN` on `parts`, ordered by message
+   * `createdAt` ascending then part `order` ascending (NULLs last).
+   *
+   * This method is the repository entry point used by
+   * {@link GetChatContentByChatIdUseCase} to serve the
+   * `GET /ai/fetchChat/:chatId` endpoint.
+   *
+   * @param chatId - The ID of the chat to retrieve.
+   * @returns A promise that resolves to the flat join result
+   *   ({@link ChatResponseResult}) or `null` if the query returns no rows.
+   *
+   * @example
+   * const rows = await repo.getAIChatByChatId(chatId)
+   * // rows[0].chat.userId can be used for authorisation checks
+   */
   async getAIChatByChatId(chatId: ChatIdType): Promise<ChatResponseResult | null> {
     // Query chats table by id, then join with messages and parts
     const result = await db
