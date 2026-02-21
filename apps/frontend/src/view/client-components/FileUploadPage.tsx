@@ -29,6 +29,11 @@ import { PageHeader } from './PageHeader.js'
 
 type ExtractedInvoiceData = z.infer<typeof pdfSchema>
 
+interface FileUploadPageText {
+  title: string
+  subtitle: string
+}
+
 interface FileUploadPageProps {
   uploadedFiles: UploadedFile[]
   dragActive: boolean
@@ -36,6 +41,7 @@ interface FileUploadPageProps {
   isUploading: boolean
   isExtracting: boolean
   extractedData: ExtractedInvoiceData[]
+  text: FileUploadPageText
   onDrag: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent) => void
   onFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -85,6 +91,7 @@ export function FileUploadPage({
   onProcessFiles,
   onRemoveFile,
   onSignOut,
+  text,
   uploadedFiles,
 }: FileUploadPageProps) {
   const formatFileSize = (bytes: number): string => {
@@ -98,10 +105,10 @@ export function FileUploadPage({
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <PageHeader title="Extract Data" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
+      <PageHeader title={text.title} onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Upload PDF or ZIP files for data extraction
+        {text.subtitle}
       </Typography>
 
       {isExtracting && (

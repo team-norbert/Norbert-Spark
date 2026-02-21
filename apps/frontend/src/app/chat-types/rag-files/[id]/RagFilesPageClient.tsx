@@ -4,11 +4,11 @@ import { FileUploadPage } from '@/view/client-components/FileUploadPage.js'
 import { useFileUpload } from '@/view/hooks/useFileUpload.js'
 
 /**
- * Extract Data page client component following DDD architecture.
+ * RAG Files page client component following DDD architecture.
  * This component is minimal and declarative - it only orchestrates the hook and component.
  * Business logic is in the hook, presentation is in the component.
  */
-export function ExtractDataPageClient() {
+export function RagFilesPageClient() {
   const {
     clearAllFiles,
     clearError,
@@ -36,8 +36,8 @@ export function ExtractDataPageClient() {
       isExtracting={isExtracting}
       extractedData={extractedData}
       text={{
-        title: 'Extract Data',
-        subtitle: 'Upload PDF or ZIP files for data extraction',
+        title: 'Retrieval-Augmented Generation (RAG) files upload',
+        subtitle: 'Upload PDF or ZIP files for RAG knowledge base',
       }}
       onDrag={handleDrag}
       onDrop={handleDrop}

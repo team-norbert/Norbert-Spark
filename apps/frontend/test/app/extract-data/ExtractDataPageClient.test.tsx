@@ -70,6 +70,10 @@ describe('ExtractDataPageClient', () => {
         isUploading: mockHookReturn.isUploading,
         isExtracting: mockHookReturn.isExtracting,
         extractedData: mockHookReturn.extractedData,
+        text: {
+          title: 'Extract Data',
+          subtitle: 'Upload PDF or ZIP files for data extraction',
+        },
         onDrag: mockHookReturn.handleDrag,
         onDrop: mockHookReturn.handleDrop,
         onFileInputChange: mockHookReturn.handleFileInputChange,
@@ -115,7 +119,7 @@ describe('ExtractDataPageClient', () => {
       const passedProps = fileUploadPageCall?.[0]
 
       expect(passedProps).toBeDefined()
-      expect(Object.keys(passedProps || {})).toHaveLength(15) // All 15 props should be passed
+      expect(Object.keys(passedProps || {})).toHaveLength(16) // All 16 props should be passed
     })
 
     it('should not contain any business logic', () => {
