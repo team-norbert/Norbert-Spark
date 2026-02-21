@@ -430,18 +430,13 @@ export class AIController {
     }
 
     /**
-<<<<<<< HEAD
-     * Note: By default, authentication is required for the chat APIs via authMiddleware
-     * and the authorization check below. If you intentionally decide to remove
-     * authentication when integrating this into your application, you must remove
-     * the authMiddleware from the preHandler in the route registration and also
-     * remove (or adjust) the authorization check below that relies on request.user.
-=======
-     * Note: You may decide to remove authentication for the chat APIs
-     * when adding the chat to your application.
-     * In which case you should remove the authMiddleware from the preHandle route
-     * in the registerRoutes method and also remove the authorization check below.
->>>>>>> 31a058d7 (fix: typo fix in AIController)
+     * Note: Authentication is currently required for the chat APIs via authMiddleware
+     * in the registerRoutes method. The authorization check below enforces that the
+     * authenticated user must own the chat or have an elevated role.
+     *
+     * If you intentionally remove authentication in the future (for example, by
+     * removing authMiddleware from the preHandler route), you should also remove
+     * this authorization check, as it relies on request.user being present.
      */
     // Authorization check: User can only access their own chat history unless they have admin/moderator role
     const authenticatedUserId = request.user?.sub
@@ -797,10 +792,13 @@ export class AIController {
       const userRoles = request.user?.roles || []
 
       /**
-       * Note: You may decide to remove authentication for the chat APIs
-       * when adding the chat to your application.
-       * In which case you should remove the authMiddleware from the preHandle route
-       * in the registerRoutes method and also remove the authorization check below.
+       * Note: Authentication is currently required for the chat APIs via authMiddleware
+       * in the registerRoutes method. The authorization check below enforces that the
+       * authenticated user must own the chat or have an elevated role.
+       *
+       * If you intentionally remove authentication in the future (for example, by
+       * removing authMiddleware from the preHandler route), you should also remove
+       * this authorization check, as it relies on request.user being present.
        */
       // Authorization check: User can access if they own the chat OR have admin/moderator role
       const authenticatedUserId = request.user?.sub
