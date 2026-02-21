@@ -429,31 +429,31 @@ export class AIController {
       })
     }
 
+    /**
+     * Note: You may decide not remove authentication for the chat APIs
+     * when adding the chat to your application.
+     * In which case you should remove the authMiddleware from the preHandle route
+     * in the registerRoutes method and also remove the authorization check below.
+     */
     // Authorization check: User can only access their own chat history unless they have admin/moderator role
     const authenticatedUserId = request.user?.sub
     const userRoles = request.user?.roles || []
 
-    if (!authenticatedUserId) {
-      this.logger.warn('Authorization check failed: User not authenticated')
-      return reply.code(401).send({
-        success: false,
-        error: 'Authentication required',
-      })
-    }
-
     // Check if user is accessing their own data OR has admin/moderator role
-    const isOwnData = authenticatedUserId === userId
-    const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
+    if (authenticatedUserId) {
+      const isOwnData = authenticatedUserId === userId
+      const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
 
-    if (!isOwnData && !hasElevatedRole) {
-      this.logger.warn(
-        `Authorization check failed: User ${authenticatedUserId} attempted to access chats for user ${userId} without required permissions`
-      )
-      return reply.code(403).send({
-        success: false,
-        error:
-          'Access denied. You can only access your own chat history or must have admin/moderator role',
-      })
+      if (!isOwnData && !hasElevatedRole) {
+        this.logger.warn(
+          `Authorization check failed: User ${authenticatedUserId} attempted to access chats for user ${userId} without required permissions`
+        )
+        return reply.code(403).send({
+          success: false,
+          error:
+            'Access denied. You can only access your own chat history or must have admin/moderator role',
+        })
+      }
     }
 
     try {
@@ -765,16 +765,6 @@ export class AIController {
       })
     }
 
-    // Check authentication
-    const authenticatedUserId = request.user?.sub
-    if (!authenticatedUserId) {
-      this.logger.warn('Authorization check failed: User not authenticated')
-      return reply.code(401).send({
-        success: false,
-        error: 'Authentication required',
-      })
-    }
-
     try {
       // Fetch the chat data which includes the userId
       const chatData = await this.getChatContentByChatIdUseCase.execute(chatId, auditContext)
@@ -798,19 +788,28 @@ export class AIController {
 
       const userRoles = request.user?.roles || []
 
+      /**
+       * Note: You may decide not remove authentication for the chat APIs
+       * when adding the chat to your application.
+       * In which case you should remove the authMiddleware from the preHandle route
+       * in the registerRoutes method and also remove the authorization check below.
+       */
       // Authorization check: User can access if they own the chat OR have admin/moderator role
+      const authenticatedUserId = request.user?.sub
       const isOwnChat = authenticatedUserId === chatUserId
       const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
 
-      if (!isOwnChat && !hasElevatedRole) {
-        this.logger.warn(
-          `Authorization check failed: User ${authenticatedUserId} attempted to access chat ${chatId} owned by user ${chatUserId} without required permissions`
-        )
-        // Return 404 instead of 403 to not leak information about chat existence
-        return reply.code(404).send({
-          success: false,
-          error: 'Chat not found',
-        })
+      if (authenticatedUserId) {
+        if (!isOwnChat && !hasElevatedRole) {
+          this.logger.warn(
+            `Authorization check failed: User ${authenticatedUserId} attempted to access chat ${chatId} owned by user ${chatUserId} without required permissions`
+          )
+          // Return 404 instead of 403 to not leak information about chat existence
+          return reply.code(404).send({
+            success: false,
+            error: 'Chat not found',
+          })
+        }
       }
 
       // Transform the database response into UIMessage format
