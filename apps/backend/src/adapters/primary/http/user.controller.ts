@@ -411,18 +411,6 @@ export class UserController {
         userAgent: request.headers['user-agent'] ?? null,
       }
 
-      // Authorization check: users can only access their own data unless they're admin/moderator
-      const requestingUserId = request.user?.sub
-      const userRoles = request.user?.roles || []
-
-      if (!requestingUserId) {
-        reply.code(401).send({
-          success: false,
-          error: 'Unauthorized',
-        })
-        return
-      }
-
       const params = request.params as Record<string, unknown>
       this.logger.debug(`Request params: ${JSON.stringify(params)}`)
       const rawId = params.id
@@ -461,6 +449,9 @@ export class UserController {
       }
       this.logger.debug(`Request userId: ${userId}`)
 
+      // Authorization check: users can only access their own data unless they're admin/moderator
+      const requestingUserId = request.user?.sub
+      const userRoles = request.user?.roles || []
       // Check if user is trying to access someone else's data
       const isAccessingOwnData = requestingUserId === userId
       const isAdminOrModerator = userRoles.includes('admin') || userRoles.includes('moderator')

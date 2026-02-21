@@ -379,7 +379,6 @@ export class AIController {
    * @returns A promise that resolves to an array of ChatIdType or void if an error response is sent
    *
    * @throws {400} When userId parameter is missing or has invalid format (not a valid UUID v7)
-   * @throws {401} When user is not authenticated
    * @throws {403} When user attempts to access another user's chat history without admin/moderator role
    * @throws {500} When an error occurs while fetching chats from the repository
    *
@@ -429,31 +428,34 @@ export class AIController {
       })
     }
 
+    /**
+     * Note: Authentication is currently required for the chat APIs via authMiddleware
+     * in the registerRoutes method. The authorization check below enforces that the
+     * authenticated user must own the chat or have an elevated role.
+     *
+     * If you intentionally remove authentication in the future (for example, by
+     * removing authMiddleware from the preHandler route), you should also remove
+     * this authorization check, as it relies on request.user being present.
+     */
     // Authorization check: User can only access their own chat history unless they have admin/moderator role
     const authenticatedUserId = request.user?.sub
     const userRoles = request.user?.roles || []
 
-    if (!authenticatedUserId) {
-      this.logger.warn('Authorization check failed: User not authenticated')
-      return reply.code(401).send({
-        success: false,
-        error: 'Authentication required',
-      })
-    }
-
     // Check if user is accessing their own data OR has admin/moderator role
-    const isOwnData = authenticatedUserId === userId
-    const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
+    if (authenticatedUserId) {
+      const isOwnData = authenticatedUserId === userId
+      const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
 
-    if (!isOwnData && !hasElevatedRole) {
-      this.logger.warn(
-        `Authorization check failed: User ${authenticatedUserId} attempted to access chats for user ${userId} without required permissions`
-      )
-      return reply.code(403).send({
-        success: false,
-        error:
-          'Access denied. You can only access your own chat history or must have admin/moderator role',
-      })
+      if (!isOwnData && !hasElevatedRole) {
+        this.logger.warn(
+          `Authorization check failed: User ${authenticatedUserId} attempted to access chats for user ${userId} without required permissions`
+        )
+        return reply.code(403).send({
+          success: false,
+          error:
+            'Access denied. You can only access your own chat history or must have admin/moderator role',
+        })
+      }
     }
 
     try {
@@ -726,7 +728,6 @@ export class AIController {
    * @returns A promise that resolves to the chat data with messages and parts
    *
    * @throws {400} When chatId parameter is missing or has invalid format (not a valid UUID v7)
-   * @throws {401} When user is not authenticated
    * @throws {404} When no chat is found with the given chatId, or when the chat belongs to
    *               a different user and the authenticated user doesn't have admin/moderator role
    * @throws {500} When an error occurs while fetching the chat from the repository
@@ -765,16 +766,6 @@ export class AIController {
       })
     }
 
-    // Check authentication
-    const authenticatedUserId = request.user?.sub
-    if (!authenticatedUserId) {
-      this.logger.warn('Authorization check failed: User not authenticated')
-      return reply.code(401).send({
-        success: false,
-        error: 'Authentication required',
-      })
-    }
-
     try {
       // Fetch the chat data which includes the userId
       const chatData = await this.getChatContentByChatIdUseCase.execute(chatId, auditContext)
@@ -798,19 +789,31 @@ export class AIController {
 
       const userRoles = request.user?.roles || []
 
+      /**
+       * Note: Authentication is currently required for the chat APIs via authMiddleware
+       * in the registerRoutes method. The authorization check below enforces that the
+       * authenticated user must own the chat or have an elevated role.
+       *
+       * If you intentionally remove authentication in the future (for example, by
+       * removing authMiddleware from the preHandler route), you should also remove
+       * this authorization check, as it relies on request.user being present.
+       */
       // Authorization check: User can access if they own the chat OR have admin/moderator role
+      const authenticatedUserId = request.user?.sub
       const isOwnChat = authenticatedUserId === chatUserId
       const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
 
-      if (!isOwnChat && !hasElevatedRole) {
-        this.logger.warn(
-          `Authorization check failed: User ${authenticatedUserId} attempted to access chat ${chatId} owned by user ${chatUserId} without required permissions`
-        )
-        // Return 404 instead of 403 to not leak information about chat existence
-        return reply.code(404).send({
-          success: false,
-          error: 'Chat not found',
-        })
+      if (authenticatedUserId) {
+        if (!isOwnChat && !hasElevatedRole) {
+          this.logger.warn(
+            `Authorization check failed: User ${authenticatedUserId} attempted to access chat ${chatId} owned by user ${chatUserId} without required permissions`
+          )
+          // Return 404 instead of 403 to not leak information about chat existence
+          return reply.code(404).send({
+            success: false,
+            error: 'Chat not found',
+          })
+        }
       }
 
       // Transform the database response into UIMessage format
