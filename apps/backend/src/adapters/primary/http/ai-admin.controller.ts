@@ -73,7 +73,7 @@ export class AIAdminController {
    * @returns A promise that resolves once the response has been sent.
    *
    * @throws {400} When `:id` is not a valid UUID.
-   * @throws {400} When the request body fails DTO validation.
+   * @throws {500} When the request body fails DTO validation or a type error occurs during DTO processing.
    * @throws {500} When the use-case returns no record or an unexpected error occurs.
    *
    * @example
