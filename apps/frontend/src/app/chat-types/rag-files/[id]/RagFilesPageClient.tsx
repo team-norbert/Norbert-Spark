@@ -39,6 +39,9 @@ export function RagFilesPageClient() {
         title: 'Retrieval-Augmented Generation (RAG) files upload',
         subtitle: 'Upload PDF or ZIP files for RAG knowledge base',
       }}
+      testIds={{
+        fileInput: 'rag-files-file-input',
+      }}
       onDrag={handleDrag}
       onDrop={handleDrop}
       onFileInputChange={handleFileInputChange}

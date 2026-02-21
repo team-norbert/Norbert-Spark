@@ -39,6 +39,9 @@ export function ExtractDataPageClient() {
         title: 'Extract Data',
         subtitle: 'Upload PDF or ZIP files for data extraction',
       }}
+      testIds={{
+        fileInput: 'extract-data-file-input',
+      }}
       onDrag={handleDrag}
       onDrop={handleDrop}
       onFileInputChange={handleFileInputChange}

@@ -34,6 +34,10 @@ interface FileUploadPageText {
   subtitle: string
 }
 
+interface FileUploadPageTestIds {
+  fileInput: string
+}
+
 interface FileUploadPageProps {
   uploadedFiles: UploadedFile[]
   dragActive: boolean
@@ -42,6 +46,7 @@ interface FileUploadPageProps {
   isExtracting: boolean
   extractedData: ExtractedInvoiceData[]
   text: FileUploadPageText
+  testIds: FileUploadPageTestIds
   onDrag: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent) => void
   onFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -91,6 +96,7 @@ export function FileUploadPage({
   onProcessFiles,
   onRemoveFile,
   onSignOut,
+  testIds,
   text,
   uploadedFiles,
 }: FileUploadPageProps) {
@@ -175,7 +181,7 @@ export function FileUploadPage({
                 multiple
                 onChange={onFileInputChange}
                 style={{ display: 'none' }}
-                data-testid="extract-data-file-input"
+                data-testid={testIds.fileInput}
               />
               <label
                 htmlFor="file-upload"

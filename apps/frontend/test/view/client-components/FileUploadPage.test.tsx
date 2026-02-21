@@ -26,6 +26,9 @@ describe('FileUploadPage Component', () => {
       title: 'Extract Data',
       subtitle: 'Upload PDF or ZIP files for data extraction',
     },
+    testIds: {
+      fileInput: 'extract-data-file-input',
+    },
     onDrag: mockOnDrag,
     onDrop: mockOnDrop,
     onFileInputChange: mockOnFileInputChange,
