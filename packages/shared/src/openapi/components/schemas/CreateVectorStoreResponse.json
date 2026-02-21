@@ -139,19 +139,7 @@
         "chatAIOptions": {
           "type": "object",
           "description": "Created chat AI options record",
-          "required": [
-            "id",
-            "maxTokens",
-            "temperature",
-            "topP",
-            "frequencyPenalty",
-            "presencePenalty",
-            "stopSequences",
-            "seed",
-            "maxRetries",
-            "createdAt",
-            "updatedAt"
-          ],
+          "required": ["id", "createdAt", "updatedAt"],
           "properties": {
             "id": {
               "type": "string",

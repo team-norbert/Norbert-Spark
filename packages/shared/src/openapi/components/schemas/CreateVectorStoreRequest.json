@@ -69,16 +69,7 @@
     "chatAIOptions": {
       "type": "object",
       "description": "Chat AI for vector store configuration",
-      "required": [
-        "maxTokens",
-        "temperature",
-        "topP",
-        "frequencyPenalty",
-        "presencePenalty",
-        "stopSequences",
-        "seed",
-        "maxRetries"
-      ],
+      "required": [],
       "properties": {
         "chatTypeId": {
           "type": "string",
