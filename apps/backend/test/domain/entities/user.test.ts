@@ -311,7 +311,7 @@ describe('User Entity', () => {
       }
     })
 
-    it.skip('should handle sequential password updates correctly', async () => {
+    it('should handle sequential password updates correctly', async () => {
       const pass1 = await Password.create('password1!')
       const pass2 = await Password.create('password2!')
       const pass3 = await Password.create('password3!')
@@ -323,7 +323,7 @@ describe('User Entity', () => {
       // Final password should be pass3
       const pass4 = await Password.create('password4!')
       await expect(testUser.updatePassword('password3!', pass4)).resolves.not.toThrow()
-    })
+    }, 15000)
 
     it('should handle rapid email updates', () => {
       for (let i = 0; i < 10; i++) {
