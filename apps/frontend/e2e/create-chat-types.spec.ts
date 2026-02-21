@@ -106,7 +106,7 @@ test.describe('Create Chat Type Page', () => {
     await expect(ragCell).toBeVisible({ timeout: 10_000 })
     await expect(ragCell).toHaveText(/true/i)
 
-    // -- 4 CLick through the link in the RAG column to navigate to the RAG Files page ───────────────────────────────
+    // -- 4 Click through the link in the RAG column to navigate to the RAG Files page ───────────────────────────────
     const ragLink = ragCell.locator('a')
     await expect(ragLink).toBeVisible()
     await ragLink.click()
