@@ -157,9 +157,10 @@ export class AIAdminController {
    * @returns A promise that resolves once the response has been sent.
    *
    * @throws {400} When `:id` is not a valid UUID.
-   * @throws {400} When the request body fails DTO validation.
+   * @throws {400} When the request body fails DTO validation with well-formed types.
    * @throws {404} When no settings record exists for the given chat type ID.
-   * @throws {500} When an unexpected error occurs during the update.
+   * @throws {500} When the request body contains invalid types that cause DTO validation
+   *   to fail internally, or when an unexpected error occurs during the update.
    *
    * @example
    * // Success — 204 No Content
