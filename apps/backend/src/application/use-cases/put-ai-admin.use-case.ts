@@ -8,6 +8,26 @@ import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { PutAIAdminDTO } from '../dtos/put-ai-admin.dto.js'
 import type { UpdateChanges } from '../../domain/audit/audit-changes.types.js'
 
+/**
+ * Application use-case — updates the AI options record for a specific chat
+ * type configuration.
+ *
+ * Orchestrates two steps:
+ * 1. Delegates the database write to {@link AIAdminPort} (backed by
+ *    {@link AIAdminRepository}) via `putChatAIOptions`.
+ * 2. Writes an `UPDATE` audit log entry via {@link AuditLogPort} in both the
+ *    success and failure paths (fire-and-forget; audit failures never
+ *    propagate). On failure the original error is re-thrown so the caller
+ *    can map it to an HTTP status code.
+ *
+ * The audit entry records a snapshot of all updated fields (`prompt`,
+ * `maxTokens`, `temperature`, `topP`, `frequencyPenalty`, `presencePenalty`,
+ * `topK`, `stopSequences`, `seed`, `maxRetries`) under the `after` key.
+ *
+ * This use-case is called from
+ * {@link AIAdminController.putAIChatSettingsById} to serve the
+ * `PUT /ai-admin/chat-settings/:id` endpoint.
+ */
 export class PutAIAdminUseCase {
   constructor(
     private readonly logger: LoggerPort,
@@ -15,6 +35,29 @@ export class PutAIAdminUseCase {
     private readonly aiAdminPort: AIAdminPort
   ) {}
 
+  /**
+   * Applies the DTO updates to the AI options record and writes an audit log
+   * entry.
+   *
+   * On success an audit entry is written with
+   * `reason: 'chat_ai_options_updated'`. On failure an audit entry is written
+   * with `reason: 'chat_ai_options_update_failed'` and the original error is
+   * re-thrown.
+   *
+   * @param id - The UUID of the `chat_ai_options` record to update.
+   * @param dto - The validated {@link PutAIAdminDTO} containing the fields to
+   *   persist (prompt, model parameters, etc.).
+   * @param auditContext - Caller context used to populate the audit log entry
+   *   (`userId`, `ipAddress`, `userAgent`).
+   * @returns A promise resolving to the updated {@link DBChatAiOptions} row,
+   *   or `null` if the record was not found.
+   *
+   * @throws Re-throws any error thrown by {@link AIAdminPort.putChatAIOptions}.
+   *
+   * @example
+   * const updated = await putAIAdminUseCase.execute(optionsId, dto, auditContext)
+   * // updated?.prompt — the newly persisted system prompt
+   */
   async execute(
     id: UUIDType,
     dto: PutAIAdminDTO,
@@ -37,6 +80,18 @@ export class PutAIAdminUseCase {
     }
   }
 
+  /**
+   * Builds and writes an `UPDATE` audit log entry for the AI options record.
+   *
+   * Shared by both the success and failure branches of {@link execute}.
+   * Never throws per the {@link AuditLogPort} contract.
+   *
+   * @param id - The UUID of the record being updated (used as `entityId`).
+   * @param auditContext - Caller context (`userId`, `ipAddress`, `userAgent`).
+   * @param dto - The DTO whose fields are recorded under the `after` snapshot.
+   * @param reason - A short descriptor (`'chat_ai_options_updated'` or
+   *   `'chat_ai_options_update_failed'`) stored in `changes.reason`.
+   */
   private async logAudit(
     id: UUIDType,
     auditContext: AuditContext,

@@ -10,6 +10,21 @@ import type {
   FetchChatFailedChanges,
 } from '../../domain/audit/audit-changes.types.js'
 
+/**
+ * Application use-case — retrieves all chat sessions belonging to a user.
+ *
+ * Orchestrates two steps:
+ * 1. Delegates the database read to {@link AIServicePort} (backed by
+ *    {@link AIRepository}) via `getChatsByUserId`.
+ * 2. Writes a `FETCH` audit log entry on success (recording the list of
+ *    returned chat IDs) or a `FETCH_FAILED` entry on error, both via
+ *    {@link AuditLogPort} (fire-and-forget; audit failures never propagate).
+ *    On error the original exception is re-thrown so the caller can map it
+ *    to an HTTP status code.
+ *
+ * This use-case is called from {@link AIController.getAIChatsByUserId} to
+ * serve the `GET /ai/chats/:userId` endpoint.
+ */
 export class GetChatsByUserIdUseCase {
   constructor(
     private readonly aiRepository: AIServicePort,
@@ -17,6 +32,28 @@ export class GetChatsByUserIdUseCase {
     private readonly auditLog: AuditLogPort
   ) {}
 
+  /**
+   * Fetches all chats for the given user and writes an audit log entry.
+   *
+   * On success a `FETCH` audit entry is written with `reason:
+   * 'chat_successfully_retrieved_by_userid'` and the list of returned chat
+   * IDs. On failure a `FETCH_FAILED` entry is written and the original
+   * error is re-thrown.
+   *
+   * @param userId - The branded UUID of the user whose chats to retrieve.
+   * @param auditContext - Caller context used to populate the audit log entry
+   *   (`userId`, `ipAddress`, `userAgent`).
+   * @returns A promise that resolves to an array of {@link ChatWithType}
+   *   objects (chat record joined with its chat-type details). Returns an
+   *   empty array when the user has no chats.
+   *
+   * @throws Re-throws any error thrown by {@link AIServicePort.getChatsByUserId}.
+   *
+   * @example
+   * const chats = await getChatsByUserIdUseCase.execute(userId, auditContext)
+   * // chats[0].id — ChatIdType of the first chat
+   * // chats[0].chatType — associated chat-type details
+   */
   async execute(userId: UserIdType, auditContext: AuditContext): Promise<ChatWithType[]> {
     this.logger.info(`Getting chats for user ID: ${userId}`)
 

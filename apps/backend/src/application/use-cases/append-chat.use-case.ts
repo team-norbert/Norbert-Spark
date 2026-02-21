@@ -6,11 +6,30 @@ import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { EntityType, AuditAction } from '../../domain/audit/entity-type.enum.js'
 
+/**
+ * Shape of the value returned by a successful {@link AppendedChatUseCase} execution.
+ */
 export interface AppendedChatResult {
   chatId: string
   appendedMessages: UIMessage[]
 }
 
+/**
+ * Application use-case — appends new messages to an existing chat session.
+ *
+ * Orchestrates three steps:
+ * 1. Delegates the persistence of the new messages to {@link AIServicePort}
+ *    (backed by {@link AIRepository}).
+ * 2. Writes an `UPDATE` audit log entry via {@link AuditLogPort} (fire-and-forget;
+ *    audit failures never propagate to the caller).
+ * 3. Returns an {@link AppendedChatResult} containing the chat ID and the
+ *    messages that were appended.
+ *
+ * This use-case is called from {@link AIController} in two places:
+ * - Before streaming, to persist the incoming user message.
+ * - After streaming, inside `toUIMessageStreamResponse.onFinish`, to persist
+ *   the assistant's response.
+ */
 export class AppendedChatUseCase {
   constructor(
     private readonly aiService: AIServicePort,
@@ -18,6 +37,25 @@ export class AppendedChatUseCase {
     private readonly auditLog: AuditLogPort
   ) {}
 
+  /**
+   * Appends messages to an existing chat and records an audit log entry.
+   *
+   * Returns `null` (without throwing) if `chatId` is falsy, logging the
+   * invalid value at `info` level so callers can handle the no-op gracefully.
+   *
+   * @param chatId - The UUIDv7 identifier of the chat to append to.
+   * @param messages - The {@link UIMessage} array to persist. May be a single
+   *   message (e.g. one user turn) or multiple messages.
+   * @param auditContext - Caller context used to populate the audit log entry
+   *   (`userId`, `ipAddress`, `userAgent`).
+   * @returns A promise that resolves to an {@link AppendedChatResult} on
+   *   success, or `null` when `chatId` is invalid.
+   *
+   * @example
+   * const result = await appendedChatUseCase.execute(chatId, [userMessage], auditContext)
+   * // result?.chatId === chatId
+   * // result?.appendedMessages === [userMessage]
+   */
   async execute(
     chatId: ChatIdType,
     messages: UIMessage[],
