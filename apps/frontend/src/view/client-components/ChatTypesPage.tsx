@@ -447,7 +447,14 @@ export function ChatTypesPage({
       field: 'rag',
       headerName: 'RAG',
       width: 80,
-      renderCell: (params) => String(params.value),
+      renderCell: (params) => {
+        if (params.value === true) {
+          return <Link href={`/chat-types/rag-files/${params.id}`}>{String(params.value)}</Link>
+        }
+        if (params.value === false) {
+          return String(params.value)
+        }
+      },
     },
     {
       field: 'createdAt',

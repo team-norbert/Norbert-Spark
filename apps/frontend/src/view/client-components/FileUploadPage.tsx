@@ -29,6 +29,15 @@ import { PageHeader } from './PageHeader.js'
 
 type ExtractedInvoiceData = z.infer<typeof pdfSchema>
 
+interface FileUploadPageText {
+  title: string
+  subtitle: string
+}
+
+interface FileUploadPageTestIds {
+  fileInput: string
+}
+
 interface FileUploadPageProps {
   uploadedFiles: UploadedFile[]
   dragActive: boolean
@@ -36,6 +45,8 @@ interface FileUploadPageProps {
   isUploading: boolean
   isExtracting: boolean
   extractedData: ExtractedInvoiceData[]
+  text: FileUploadPageText
+  testIds: FileUploadPageTestIds
   onDrag: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent) => void
   onFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -62,9 +73,18 @@ interface FileUploadPageProps {
  *   uploadedFiles={files}
  *   dragActive={false}
  *   error={null}
+ *   isUploading={false}
+ *   isExtracting={false}
+ *   extractedData={[]}
+ *   text={{ title: 'Upload Files', subtitle: 'Drag and drop PDF or ZIP files to upload.' }}
+ *   testIds={{ fileInput: 'file-upload-input' }}
+ *   onDrag={handleDrag}
  *   onDrop={handleDrop}
+ *   onFileInputChange={handleFileInputChange}
  *   onRemoveFile={removeFile}
+ *   onClearAllFiles={clearAllFiles}
  *   onProcessFiles={processFiles}
+ *   onClearError={clearError}
  *   onNavigateHome={() => router.push('/dashboard')}
  *   onSignOut={() => signOut()}
  * />
@@ -85,6 +105,8 @@ export function FileUploadPage({
   onProcessFiles,
   onRemoveFile,
   onSignOut,
+  testIds,
+  text,
   uploadedFiles,
 }: FileUploadPageProps) {
   const formatFileSize = (bytes: number): string => {
@@ -98,10 +120,10 @@ export function FileUploadPage({
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <PageHeader title="Extract Data" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
+      <PageHeader title={text.title} onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Upload PDF or ZIP files for data extraction
+        {text.subtitle}
       </Typography>
 
       {isExtracting && (
@@ -168,7 +190,7 @@ export function FileUploadPage({
                 multiple
                 onChange={onFileInputChange}
                 style={{ display: 'none' }}
-                data-testid="extract-data-file-input"
+                data-testid={testIds.fileInput}
               />
               <label
                 htmlFor="file-upload"
