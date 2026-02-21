@@ -78,8 +78,8 @@ export function CreateChatTypeForm({
                   the chat types table
                 </li>
                 <li>
-                  The description. This is not the prompt. This is a short description of the
-                  chat for internal use only. This can be changed in the chat types table.
+                  The description. This is not the prompt. This is a short description of the chat
+                  for internal use only. This can be changed in the chat types table.
                 </li>
               </ol>
               <p>
