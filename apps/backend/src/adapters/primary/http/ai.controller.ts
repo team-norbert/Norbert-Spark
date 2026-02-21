@@ -379,7 +379,6 @@ export class AIController {
    * @returns A promise that resolves to an array of ChatIdType or void if an error response is sent
    *
    * @throws {400} When userId parameter is missing or has invalid format (not a valid UUID v7)
-   * @throws {401} When user is not authenticated
    * @throws {403} When user attempts to access another user's chat history without admin/moderator role
    * @throws {500} When an error occurs while fetching chats from the repository
    *
@@ -727,7 +726,6 @@ export class AIController {
    * @returns A promise that resolves to the chat data with messages and parts
    *
    * @throws {400} When chatId parameter is missing or has invalid format (not a valid UUID v7)
-   * @throws {401} When user is not authenticated
    * @throws {404} When no chat is found with the given chatId, or when the chat belongs to
    *               a different user and the authenticated user doesn't have admin/moderator role
    * @throws {500} When an error occurs while fetching the chat from the repository
