@@ -490,6 +490,10 @@ export const vectorEmbeddings1536 = pgTable(
       'vector_embeddings_1536_distance_metric_check',
       sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
     ),
+    chunkParamsCheck: check(
+      'vector_embeddings_1536_chunk_params_check',
+      sql`${table.chunkSize} > 0 AND ${table.chunkSize} <= 50000 AND ${table.chunkOverlap} >= 0 AND ${table.chunkOverlap} < ${table.chunkSize}`
+    ),
   })
 )
 
@@ -584,6 +588,10 @@ export const vectorEmbeddings768 = pgTable(
     distanceMetricCheck: check(
       'vector_embeddings_768_distance_metric_check',
       sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
+    ),
+    chunkParamsCheck: check(
+      'vector_embeddings_768_chunk_params_check',
+      sql`${table.chunkSize} > 0 AND ${table.chunkSize} <= 50000 AND ${table.chunkOverlap} >= 0 AND ${table.chunkOverlap} < ${table.chunkSize}`
     ),
   })
 )
@@ -684,6 +692,10 @@ export const vectorEmbeddings384 = pgTable(
     distanceMetricCheck: check(
       'vector_embeddings_384_distance_metric_check',
       sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
+    ),
+    chunkParamsCheck: check(
+      'vector_embeddings_384_chunk_params_check',
+      sql`${table.chunkSize} > 0 AND ${table.chunkSize} <= 50000 AND ${table.chunkOverlap} >= 0 AND ${table.chunkOverlap} < ${table.chunkSize}`
     ),
   })
 )

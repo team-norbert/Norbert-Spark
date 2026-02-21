@@ -4,6 +4,11 @@
     "summary": "Create a vector store",
     "description": "Create a vector store for storing and retrieving vector embeddings.",
     "operationId": "createVectorStore",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "requestBody": {
       "required": true,
       "content": {
@@ -15,7 +20,7 @@
       }
     },
     "responses": {
-      "200": {
+      "201": {
         "description": "Vector store created successfully",
         "content": {
           "application/json": {
@@ -26,10 +31,46 @@
         }
       },
       "400": {
-        "description": "Bad request"
+        "description": "Bad request - Invalid input data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Invalid input data. Please check the request body for required fields and correct data types."
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - Missing or invalid authentication token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Authentication required"
+            }
+          }
+        }
       },
       "500": {
-        "description": "Internal server error"
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Internal server error"
+            }
+          }
+        }
       }
     }
   }
