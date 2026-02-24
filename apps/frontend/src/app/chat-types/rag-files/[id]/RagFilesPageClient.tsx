@@ -25,7 +25,10 @@ export function RagFilesPageClient() {
     isUploading,
     removeFile,
     uploadedFiles,
-  } = useFileUpload()
+  } = useFileUpload({
+    callbackUrl: '/chat-types/rag-files',
+    flow: 'rag',
+  })
 
   return (
     <FileUploadPage

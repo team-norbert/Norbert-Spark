@@ -25,7 +25,10 @@ export function ExtractDataPageClient() {
     isUploading,
     removeFile,
     uploadedFiles,
-  } = useFileUpload()
+  } = useFileUpload({
+    callbackUrl: '/extract-data',
+    flow: 'extract',
+  })
 
   return (
     <FileUploadPage

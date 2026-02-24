@@ -53,7 +53,13 @@ const RETRY_DELAY_BASE_MS = 1000 // Base delay for exponential backoff
  * const { uploadedFiles, handleDrop, removeFile } = useFileUpload()
  * ```
  */
-export function useFileUpload(): UseFileUploadReturn {
+export function useFileUpload({
+  callbackUrl,
+  flow,
+}: {
+  flow: string
+  callbackUrl: string
+}): UseFileUploadReturn {
   const router = useRouter()
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [dragActive, setDragActive] = useState(false)
@@ -288,7 +294,7 @@ export function useFileUpload(): UseFileUploadReturn {
       // Check if session expired (JWT expired on backend)
       if (response.sessionExpired) {
         logger.warn('Session expired, redirecting to signin')
-        router.push('/signin?error=session_expired&callbackUrl=/extract-data')
+        router.push(`/signin?error=session_expired&callbackUrl=/${callbackUrl}`)
         return
       }
 
@@ -339,7 +345,7 @@ export function useFileUpload(): UseFileUploadReturn {
           // Check if session expired (JWT expired on backend)
           if (extractResult.sessionExpired) {
             logger.warn('Session expired during extraction, redirecting to signin')
-            router.push('/signin?error=session_expired&callbackUrl=/extract-data')
+            router.push(`/signin?error=session_expired&callbackUrl=/${callbackUrl}`)
             return
           }
 
@@ -379,7 +385,7 @@ export function useFileUpload(): UseFileUploadReturn {
     } finally {
       setIsUploading(false)
     }
-  }, [uploadedFiles, isUploading, uploadFileToBucket, router])
+  }, [uploadedFiles, isUploading, uploadFileToBucket, router, callbackUrl])
 
   /**
    * Clear the error message
