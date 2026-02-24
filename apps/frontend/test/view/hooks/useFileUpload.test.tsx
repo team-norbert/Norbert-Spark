@@ -79,7 +79,9 @@ describe('useFileUpload', () => {
   describe('Drag and Drop Handlers', () => {
     describe('handleDrag', () => {
       it('should set dragActive to true on dragenter', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const mockEvent = {
           preventDefault: vi.fn(),
@@ -97,7 +99,9 @@ describe('useFileUpload', () => {
       })
 
       it('should set dragActive to true on dragover', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const mockEvent = {
           preventDefault: vi.fn(),
@@ -113,7 +117,9 @@ describe('useFileUpload', () => {
       })
 
       it('should set dragActive to false on dragleave', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         // First set dragActive to true
         const dragEnterEvent = {
@@ -143,7 +149,9 @@ describe('useFileUpload', () => {
       })
 
       it('should prevent default behavior and stop propagation', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const mockEvent = {
           preventDefault: vi.fn(),
@@ -162,7 +170,9 @@ describe('useFileUpload', () => {
 
     describe('handleDrop', () => {
       it('should handle valid PDF file drop', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const pdfFile = new File(['content'], 'test.pdf', { type: 'application/pdf' })
         const mockEvent = {
@@ -187,7 +197,9 @@ describe('useFileUpload', () => {
       })
 
       it('should handle valid ZIP file drop', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const zipFile = new File(['content'], 'archive.zip', { type: 'application/zip' })
         const mockEvent = {
@@ -208,7 +220,9 @@ describe('useFileUpload', () => {
       })
 
       it('should handle multiple valid files drop', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const pdfFile = new File(['content'], 'test.pdf', { type: 'application/pdf' })
         const zipFile = new File(['content'], 'archive.zip', { type: 'application/zip' })
@@ -229,7 +243,9 @@ describe('useFileUpload', () => {
       })
 
       it('should reject invalid file types and show error', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const invalidFile = new File(['content'], 'test.txt', { type: 'text/plain' })
         const mockEvent = {
@@ -250,7 +266,9 @@ describe('useFileUpload', () => {
       })
 
       it('should accept valid files and reject invalid files in same drop', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const pdfFile = new File(['content'], 'valid.pdf', { type: 'application/pdf' })
         const txtFile = new File(['content'], 'invalid.txt', { type: 'text/plain' })
@@ -273,7 +291,9 @@ describe('useFileUpload', () => {
       })
 
       it('should set dragActive to false after drop', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         // First set dragActive to true
         const dragEnterEvent = {
@@ -306,7 +326,9 @@ describe('useFileUpload', () => {
       })
 
       it('should handle drop with no files', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const mockEvent = {
           preventDefault: vi.fn(),
@@ -327,7 +349,9 @@ describe('useFileUpload', () => {
 
     describe('handleFileInputChange', () => {
       it('should handle file input with valid PDF file', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const pdfFile = new File(['content'], 'document.pdf', { type: 'application/pdf' })
         const mockEvent = {
@@ -346,7 +370,9 @@ describe('useFileUpload', () => {
       })
 
       it('should handle file input with valid ZIP file', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const zipFile = new File(['content'], 'data.zip', { type: 'application/zip' })
         const mockEvent = {
@@ -365,7 +391,9 @@ describe('useFileUpload', () => {
       })
 
       it('should reject invalid file type', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const docFile = new File(['content'], 'document.docx', {
           type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -385,7 +413,9 @@ describe('useFileUpload', () => {
       })
 
       it('should handle empty file list', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const mockEvent = {
           target: {
@@ -406,7 +436,9 @@ describe('useFileUpload', () => {
   describe('File Management', () => {
     describe('removeFile', () => {
       it('should remove file by id', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const pdfFile = new File(['content'], 'test.pdf', { type: 'application/pdf' })
         const mockEvent = {
@@ -432,7 +464,9 @@ describe('useFileUpload', () => {
       })
 
       it('should remove correct file when multiple files exist', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const pdfFile1 = new File(['content'], 'test1.pdf', { type: 'application/pdf' })
         const pdfFile2 = new File(['content'], 'test2.pdf', { type: 'application/pdf' })
@@ -460,7 +494,9 @@ describe('useFileUpload', () => {
       })
 
       it('should not affect other files when removing non-existent id', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const pdfFile = new File(['content'], 'test.pdf', { type: 'application/pdf' })
         const mockEvent = {
@@ -487,7 +523,9 @@ describe('useFileUpload', () => {
 
     describe('clearAllFiles', () => {
       it('should clear all uploaded files', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const pdfFile1 = new File(['content'], 'test1.pdf', { type: 'application/pdf' })
         const pdfFile2 = new File(['content'], 'test2.pdf', { type: 'application/pdf' })
@@ -513,7 +551,9 @@ describe('useFileUpload', () => {
       })
 
       it('should clear error when clearing all files', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const invalidFile = new File(['content'], 'test.txt', { type: 'text/plain' })
         const mockEvent = {
@@ -538,7 +578,9 @@ describe('useFileUpload', () => {
       })
 
       it('should work when there are no files', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         expect(result.current.uploadedFiles).toHaveLength(0)
 
@@ -554,7 +596,9 @@ describe('useFileUpload', () => {
   describe('Error Handling', () => {
     describe('clearError', () => {
       it('should clear error message', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const invalidFile = new File(['content'], 'test.txt', { type: 'text/plain' })
         const mockEvent = {
@@ -579,7 +623,9 @@ describe('useFileUpload', () => {
       })
 
       it('should work when there is no error', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         expect(result.current.error).toBeNull()
 
@@ -632,7 +678,9 @@ describe('useFileUpload', () => {
   describe('File Processing', () => {
     describe('handleProcessFiles', () => {
       it('should be callable with uploaded files', async () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         const pdfFile = new File(['content'], 'test.pdf', { type: 'application/pdf' })
         const mockEvent = {
@@ -657,7 +705,9 @@ describe('useFileUpload', () => {
       })
 
       it('should be callable with no files', async () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         // Should not throw when called with no files (early return)
         await act(async () => {
@@ -673,7 +723,9 @@ describe('useFileUpload', () => {
   describe('Navigation Handlers', () => {
     describe('handleNavigateHome', () => {
       it('should navigate to dashboard', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         act(() => {
           result.current.handleNavigateHome()
@@ -686,7 +738,9 @@ describe('useFileUpload', () => {
 
     describe('handleSignOut', () => {
       it('should call signOut with callback to signin page', () => {
-        const { result } = renderHook(() => useFileUpload({ flow: 'upload', callbackUrl: 'upload' }))
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
 
         act(() => {
           result.current.handleSignOut()
