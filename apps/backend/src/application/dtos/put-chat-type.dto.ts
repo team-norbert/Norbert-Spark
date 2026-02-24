@@ -3,7 +3,7 @@ import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 import { Uuid } from '../../domain/value-objects/uuid.js'
 import type { UUIDType } from '../../domain/value-objects/uuid.js'
-import type { PutChatDetailsType } from '../../shared/types/index.js'
+import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * Data Transfer Object for updating chat type details.
@@ -78,9 +78,8 @@ export class PutChatTypeDto {
    *     console.error('Validation failed:', error.message)
    *   }
    * }
-   * ```
    */
-  static validate(data: PutChatDetailsType): PutChatTypeDto {
+  static validate(data: components['schemas']['UpdateAIChatTypeRequest']): PutChatTypeDto {
     if (!isDefined(data) || !isObject(data)) {
       throw new TypeException('Invalid data: expected an object')
     }
@@ -144,9 +143,9 @@ export class PutChatTypeDto {
 
     return new PutChatTypeDto(
       uuidTypeId,
-      name === null ? undefined : (name?.trim() as string | undefined),
-      seoFriendlyId === null ? undefined : (seoFriendlyId?.trim() as string | undefined),
-      description === null ? undefined : (description?.trim() as string | undefined)
+      name ?? undefined,
+      seoFriendlyId ?? undefined,
+      description ?? undefined
     )
   }
 }

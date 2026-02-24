@@ -1,6 +1,7 @@
 import { isString, isDefined, isObject, isBoolean, isNullOrUndefined } from '@norberts-spark/shared'
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
+import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * Data Transfer Object for creating a new chat type (POST requests).
@@ -42,7 +43,7 @@ export class PostChatType {
    * @throws {ValidationException} When `name` or `description` fail their
    *   content or length constraints.
    */
-  static validate(data: any): PostChatType {
+  static validate(data: components['schemas']['CreateAIChatTypeRequest']): PostChatType {
     if (!isDefined(data) || !isObject(data)) {
       throw new TypeException('Invalid data: expected an object')
     }
