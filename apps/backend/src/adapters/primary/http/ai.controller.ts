@@ -124,7 +124,7 @@ export class AIController {
     }
 
     let messages: UIMessage[]
-    let id: string
+    let id: ChatIdType
     let trigger: string
 
     try {
@@ -186,7 +186,7 @@ export class AIController {
     // Conversion of string request.user.sub id to UserIdType branded type
     // happens in middleware so no need to instantiate a new UserId here
     const userId = request.user.sub
-    const chatId = id as ChatIdType
+    const chatId = id
 
     // Resolve chatTypeId from URI parameter (chatTypeParam) or fallback to body.chatTypeId
     // The chatTypeParam can be any of: UUID id, seo_friendly_id, or seo_friendly_base64_id

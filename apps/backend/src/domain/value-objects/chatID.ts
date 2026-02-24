@@ -185,6 +185,6 @@ export class ChatId<T extends string = string> {
    * ```
    */
   getValue(): ChatIdType<T> {
-    return this.value
+    return this.value as ChatIdType<T>
   }
 }
