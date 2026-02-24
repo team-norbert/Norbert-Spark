@@ -69,7 +69,7 @@
     "chatAIOptions": {
       "type": "object",
       "description": "Chat AI for vector store configuration",
-      "required": [],
+      "required": ["chatTypeId"],
       "properties": {
         "chatTypeId": {
           "type": "string",

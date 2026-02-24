@@ -337,34 +337,44 @@ export function useFileUpload({
         setIsExtracting(true)
 
         // Extract data using server action
-        try {
-          logger.info('Starting extraction via server action', { fileKey: urlInfo.fileKey })
+        if (flow === 'extract') {
+          try {
+            logger.info('Starting extraction via server action', { fileKey: urlInfo.fileKey })
 
-          const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
+            const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
 
-          // Check if session expired (JWT expired on backend)
-          if (extractResult.sessionExpired) {
-            logger.warn('Session expired during extraction, redirecting to signin')
-            router.push(`/signin?error=session_expired&callbackUrl=/${callbackUrl}`)
-            return
+            // Check if session expired (JWT expired on backend)
+            if (extractResult.sessionExpired) {
+              logger.warn('Session expired during extraction, redirecting to signin')
+              router.push(`/signin?error=session_expired&callbackUrl=/${callbackUrl}`)
+              return
+            }
+
+            if (
+              extractResult.success &&
+              extractResult.allResults &&
+              extractResult.allResults.length > 0
+            ) {
+              logger.info('Extraction successful', { count: extractResult.allResults.length })
+              setExtractedData(extractResult.allResults)
+            } else if (extractResult.error) {
+              logger.error('Extraction failed', { error: extractResult.error })
+              throw new Error(extractResult.error)
+            }
+          } catch (extractError) {
+            logger.error('Extraction failed', { error: extractError })
+          } finally {
+            setIsExtracting(false)
           }
-
-          if (
-            extractResult.success &&
-            extractResult.allResults &&
-            extractResult.allResults.length > 0
-          ) {
-            logger.info('Extraction successful', { count: extractResult.allResults.length })
-            setExtractedData(extractResult.allResults)
-          } else if (extractResult.error) {
-            logger.error('Extraction failed', { error: extractResult.error })
-            throw new Error(extractResult.error)
-          }
-        } catch (extractError) {
-          logger.error('Extraction failed', { error: extractError })
-        } finally {
-          setIsExtracting(false)
         }
+
+        /* try {
+
+        } catch (error) {
+          logger.error('Extraction failed', { error })
+        } finally {
+
+        }*/
 
         logger.info('File uploaded successfully', {
           filename: uploadedFile.file.name,
@@ -385,7 +395,7 @@ export function useFileUpload({
     } finally {
       setIsUploading(false)
     }
-  }, [uploadedFiles, isUploading, uploadFileToBucket, router, callbackUrl])
+  }, [uploadedFiles, isUploading, uploadFileToBucket, router, callbackUrl, flow])
 
   /**
    * Clear the error message
