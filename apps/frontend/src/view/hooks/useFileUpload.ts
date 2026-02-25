@@ -52,7 +52,11 @@ const RETRY_DELAY_BASE_MS = 1000 // Base delay for exponential backoff
  *
  * @example
  * ```tsx
- * const { uploadedFiles, handleDrop, removeFile } = useFileUpload()
+ * const { uploadedFiles, handleDrop, removeFile } = useFileUpload({
+ *   flow: 'rag',
+ *   callbackUrl: '/dashboard',
+ *   chatTypeId: 'some-chat-type-id',
+ * })
  * ```
  */
 export function useFileUpload({
