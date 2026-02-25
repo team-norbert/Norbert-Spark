@@ -392,15 +392,12 @@ describe('RagDto', () => {
   // -------------------------------------------------------------------------
 
   describe('validate() — chatAIOptions validation', () => {
-    it('should throw ValidationException when stopSequences is missing', () => {
+    it('should accept chatAIOptions without stopSequences (it is optional)', () => {
       const data = {
         ...validInput(),
         chatAIOptions: { chatTypeId: 'id' },
       }
-      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
-      expect(() => RagDto.validate(data as any)).toThrow(
-        'chatAIOptions.stopSequences is required and must be an array of strings'
-      )
+      expect(() => RagDto.validate(data as any)).not.toThrow()
     })
 
     it('should throw ValidationException when stopSequences is not an array', () => {

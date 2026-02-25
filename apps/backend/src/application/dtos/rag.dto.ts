@@ -115,15 +115,17 @@ export class RagDto {
     }
 
     if (
-      !isDefined(data.chatAIOptions.stopSequences) ||
+      isDefined(data.chatAIOptions.stopSequences) &&
       !Array.isArray(data.chatAIOptions.stopSequences)
     ) {
-      throw new ValidationException(
-        'chatAIOptions.stopSequences is required and must be an array of strings'
-      )
+      throw new ValidationException('chatAIOptions.stopSequences must be an array of strings')
     }
 
-    if (!data.chatAIOptions.stopSequences.every((item) => isString(item))) {
+    if (
+      isDefined(data.chatAIOptions.stopSequences) &&
+      Array.isArray(data.chatAIOptions.stopSequences) &&
+      !data.chatAIOptions.stopSequences.every(isString)
+    ) {
       throw new ValidationException('chatAIOptions.stopSequences must be an array of strings')
     }
 
