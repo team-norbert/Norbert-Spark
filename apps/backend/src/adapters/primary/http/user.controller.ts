@@ -315,8 +315,9 @@ export class UserController {
    */
   async register(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
+      const body = request.body as components['schemas']['RegisterUserRequest']
       // Convert HTTP request to DTO
-      const dto = RegisterUserDto.validate(request.body)
+      const dto = RegisterUserDto.validate(body)
 
       // Extract audit context from request
       const auditContext = {
