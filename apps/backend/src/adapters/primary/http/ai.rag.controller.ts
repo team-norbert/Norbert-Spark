@@ -42,7 +42,7 @@ export class AiRagController {
       // const { buffer, fileType } = await this.extractDataUseCase.execute(ragDto, auditContext)
     } catch (error) {
       this.logger.error(
-        'Error in getAIChatSettingsById',
+        'Error in createRagVectorStore',
         error instanceof Error ? error : new Error(String(error))
       )
       const err = error as Error
