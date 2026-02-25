@@ -7,6 +7,7 @@ import { GetCompanyDetailsUseCase } from '../../../application/use-cases/get-com
 import { UpdateCompanyDTO } from '../../../application/dtos/update-company.dto.js'
 import { PutCompanyDetailsUseCase } from '../../../application/use-cases/put-company-details.use-case.js'
 import { DrizzleQueryError } from 'drizzle-orm'
+import type { components } from '@norberts-spark/shared/openapi-types'
 /**
  * HTTP controller for company-related operations.
  *
@@ -227,7 +228,8 @@ export class CompanyController {
     }
 
     try {
-      const dto = UpdateCompanyDTO.validate(request.body)
+      const body = request.body as components['schemas']['CompanyDetailsRequest']
+      const dto = UpdateCompanyDTO.validate(body)
 
       const result = await this.putCompanyDetailsUseCase.execute(auditContext, dto)
 

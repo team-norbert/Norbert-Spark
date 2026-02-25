@@ -2,6 +2,7 @@ import { isDefined, isObject, isNumber, isString, isBoolean } from '@norberts-sp
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 import { Uuid } from '../../domain/value-objects/uuid.js'
+import type { components } from '@norberts-spark/shared/openapi-types'
 
 export type CompanyUpdate = {
   companyId?: string
@@ -30,7 +31,7 @@ export class UpdateCompanyDTO {
     public readonly company?: CompanyUpdate,
     public readonly keyPerson?: KeyPersonUpdate
   ) {}
-  static validate(data: any): UpdateCompanyDTO {
+  static validate(data: components['schemas']['CompanyDetailsRequest']): UpdateCompanyDTO {
     if (!isDefined(data) || !isObject(data)) {
       throw new TypeException('Invalid data: expected an object')
     }
