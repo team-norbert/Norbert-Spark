@@ -38,11 +38,20 @@ export class AiRagController {
       const body = request.body as components['schemas']['CreateVectorStoreRequest']
       const ragDto = RagDto.validate(body)
       // TODO: Implement the logic to handle the RAG request, such as processing the uploaded file, extracting text, and generating embeddings.
-
       // const { buffer, fileType } = await this.extractDataUseCase.execute(ragDto, auditContext)
+
+      // Placeholder response until RAG vector store creation is fully implemented
+      reply.code(501).send({
+        success: false,
+        message: 'createRagVectorStore is not implemented yet',
+        data: {
+          auditContext,
+          ragRequest: ragDto,
+        },
+      })
     } catch (error) {
       this.logger.error(
-        'Error in getAIChatSettingsById',
+        'Error in createRagVectorStore',
         error instanceof Error ? error : new Error(String(error))
       )
       const err = error as Error
