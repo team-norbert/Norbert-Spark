@@ -5,6 +5,7 @@ import { ValidationException } from '../../shared/exceptions/validation.exceptio
 
 export class RagDto {
   constructor(
+    public readonly id: string,
     public readonly documents: {
       title: string
       source: string
@@ -51,6 +52,10 @@ export class RagDto {
 
     if (!isDefined(data.chatAIOptions) || !isObject(data.chatAIOptions)) {
       throw new TypeException('Data must be a valid object')
+    }
+
+    if (!isString(data.id)) {
+      throw new ValidationException('id is required and must be a string')
     }
 
     if (!isString(data.documents.title)) {
@@ -161,6 +166,7 @@ export class RagDto {
     }
 
     return new RagDto(
+      data.id,
       {
         title: data.documents.title,
         source: data.documents.source,

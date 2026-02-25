@@ -7,6 +7,12 @@
       "items": {
         "type": "object",
         "properties": {
+          "flow": {
+            "type": "string",
+            "description": "Flow to associate the file with (e.g., 'data-extraction')",
+            "enum": ["flow", "data-extraction"],
+            "example": "data-extraction"
+          },
           "filename": {
             "type": "string",
             "description": "Name of the file",

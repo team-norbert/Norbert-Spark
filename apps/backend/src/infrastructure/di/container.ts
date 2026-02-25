@@ -43,6 +43,8 @@ import { AIAdminRepository } from '../../adapters/secondary/repositories/ai-admi
 import { AIChatOptionsRepository } from '../../adapters/secondary/repositories/ai-chat-options.repository.js'
 import { CompanyRepository } from '../../adapters/secondary/repositories/company.repository.js'
 import { CompanyController } from '../../adapters/primary/http/company.controller.js'
+import { AiRagController } from '../../adapters/primary/http/ai.rag.controller.js'
+import { AIRAGRepository } from '../../adapters/secondary/repositories/ai-rag.repository.js'
 // Utils
 import { PDFUtils } from '../../shared/utils/pdf.utils.js'
 
@@ -131,6 +133,7 @@ export class Container {
   public readonly aiExtractDataController: AIExtractDataController
   public readonly aiAdminController: AIAdminController
   public readonly companyController: CompanyController
+  public readonly aiRagController: AiRagController
 
   // Audit log
   public readonly auditLog: AuditLogRepository
@@ -360,6 +363,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.getCompanyDetailsUseCase,
       this.putCompanyDetailsUseCase
     )
+    this.aiRagController = new AiRagController(
+      this.logger,
+      this.presignedUploadUrlUseCase,
+      this.pdfUtils
+    )
     // Register routes
     this.registerRoutes()
   }
@@ -382,6 +390,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
         this.aiExtractDataController.registerRoutes(instance)
         this.aiAdminController.registerRoutes(instance)
         this.companyController.registerRoutes(instance)
+        this.aiRagController.registerRoutes(instance)
         done()
       },
       { prefix: `/api/${EnvConfig.API_VERSION}` }

@@ -38,6 +38,7 @@ describe('FileUploadPage Component', () => {
     onClearError: mockOnClearError,
     onNavigateHome: mockOnNavigateHome,
     onSignOut: mockOnSignOut,
+    flow: 'extract' as const,
   }
 
   const createMockFile = (name: string, size: number, type: string): File => {

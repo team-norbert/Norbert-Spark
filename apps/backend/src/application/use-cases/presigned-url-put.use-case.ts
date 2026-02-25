@@ -7,7 +7,6 @@ import { uuidv7 } from 'uuidv7'
 import type { MultipartFile } from '@fastify/multipart'
 import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
-import type { LoginFailedChanges } from '../../domain/audit/audit-changes.types.js'
 
 /**
  * Describes a single pre-signed S3 PUT URL generated for a file upload.
@@ -65,6 +64,7 @@ export class PresignedUploadUrlUseCase {
    *   Each entry must have `filename` and `mimetype` fields.
    * @param auditContext - Caller context used to populate the audit log entry
    *   (`userId`, `ipAddress`, `userAgent`).
+   * @param flow
    * @returns A promise resolving to `{ uploadUrls }` where each entry
    *   contains the original `filename`, the pre-signed `uploadUrl`, and the
    *   assigned `fileKey`.
@@ -80,7 +80,8 @@ export class PresignedUploadUrlUseCase {
    */
   async execute(
     files: MultipartFile[],
-    auditContext: AuditContext
+    auditContext: AuditContext,
+    flow: 'data-extraction' | 'rag'
   ): Promise<{ uploadUrls: PresignedUploadUrl[] }> {
     const bucketName = EnvConfig.BUCKET
     const uploadUrls: PresignedUploadUrl[] = []
@@ -94,7 +95,7 @@ export class PresignedUploadUrlUseCase {
       // Generate presigned URLs for each file
       for (const file of files) {
         const fileId = uuidv7()
-        const fileKey = `data-extraction/${fileId}/${file.filename}`
+        const fileKey = `${flow}/${fileId}/${file.filename}`
 
         this.logger.info('Generating presigned URL for file', {
           filename: file.filename,

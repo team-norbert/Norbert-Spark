@@ -9,6 +9,7 @@ import { ValidationException } from '../../../src/shared/exceptions/validation.e
 // ---------------------------------------------------------------------------
 
 const validInput = () => ({
+  id: '01935e8a-7890-7123-b456-123456789abc',
   documents: {
     title: 'My Document',
     source: 'https://example.com/doc.pdf',
@@ -35,6 +36,7 @@ describe('RagDto', () => {
   describe('constructor', () => {
     it('should create an instance with all required fields', () => {
       const dto = new RagDto(
+        '01933c89-6f67-7b3a-8e4c-123456789abc',
         { title: 'Title', source: 'source' },
         { modelName: 'model', modelProvider: 'provider', dimension: 1536 },
         { distanceMetric: 'cosine', chunkSize: 500, chunkOverlap: 50 },
@@ -54,6 +56,7 @@ describe('RagDto', () => {
 
     it('should create an instance with all optional chatAIOptions fields', () => {
       const dto = new RagDto(
+        '01933c89-6f67-7b3a-8e4c-123456789abc',
         { title: 'Title', source: 'source' },
         { modelName: 'model', modelProvider: 'provider', dimension: 768 },
         { distanceMetric: 'euclidean', chunkSize: 200, chunkOverlap: 20 },

@@ -35,6 +35,8 @@ interface UseFileUploadReturn {
   clearError: () => void
   handleNavigateHome: () => void
   handleSignOut: () => void
+  showRagForm: boolean
+  ragFileKeys: string[]
 }
 
 const ACCEPTED_FILE_TYPES = ['.pdf', '.zip']
@@ -69,6 +71,8 @@ export function useFileUpload({
   const [isUploading, setIsUploading] = useState(false)
   const [isExtracting, setIsExtracting] = useState(false)
   const [extractedData, setExtractedData] = useState<ExtractedInvoiceData[]>([])
+  const [showRagForm, setShowRagForm] = useState(false)
+  const [ragFileKeys, setRagFileKeys] = useState<string[]>([])
 
   /**
    * Validate if a file has an accepted extension or MIME type
@@ -312,6 +316,7 @@ export function useFileUpload({
       const urlMap = new Map(uploadUrls.map((u) => [u.filename, u]))
 
       // Upload files directly to bucket using presigned URLs
+      const ragUploadedFileKeys: string[] = []
       for (const uploadedFile of uploadedFiles) {
         const urlInfo = urlMap.get(uploadedFile.file.name)
 
@@ -330,16 +335,15 @@ export function useFileUpload({
           uploadedFile.id
         )
 
-        logger.info('=== UPLOAD COMPLETE, STARTING EXTRACTION ===')
+        logger.info('=== UPLOAD COMPLETE ===')
         logger.info('File:', uploadedFile.file.name)
         logger.info('FileKey:', urlInfo.fileKey)
 
-        // Clear previous extraction results
-        setExtractedData([])
-        setIsExtracting(true)
-
-        // Extract data using server action
         if (flow === 'extract') {
+          // Clear previous extraction results
+          setExtractedData([])
+          setIsExtracting(true)
+
           try {
             logger.info('Starting extraction via server action', { fileKey: urlInfo.fileKey })
 
@@ -368,19 +372,9 @@ export function useFileUpload({
           } finally {
             setIsExtracting(false)
           }
+        } else if (flow === 'rag') {
+          ragUploadedFileKeys.push(urlInfo.fileKey)
         }
-
-        // TODO: For RAG flow, will need to trigger embedding and indexing here,
-        //  or we might have a separate step for that.
-        //  It depends on the desired user experience and flow design.
-        //  For now, we just log the upload success and extraction results if applicable.
-        /* try {
-
-        } catch (error) {
-          logger.error('Extraction failed', { error })
-        } finally {
-
-        }*/
 
         logger.info('File uploaded successfully', {
           filename: uploadedFile.file.name,
@@ -392,7 +386,10 @@ export function useFileUpload({
 
       // All files uploaded successfully
       logger.info('All files uploaded successfully to bucket')
-      // You can add navigation or success notification here
+      if (flow === 'rag' && ragUploadedFileKeys.length > 0) {
+        setRagFileKeys(ragUploadedFileKeys)
+        setShowRagForm(true)
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'An error occurred during upload'
@@ -441,5 +438,7 @@ export function useFileUpload({
     clearError,
     handleNavigateHome,
     handleSignOut,
+    showRagForm,
+    ragFileKeys,
   }
 }

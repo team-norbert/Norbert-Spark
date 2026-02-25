@@ -32,7 +32,9 @@ describe('RagFilesPageClient', () => {
     handleSignOut: vi.fn(),
     isExtracting: false,
     isUploading: false,
+    ragFileKeys: [],
     removeFile: vi.fn(),
+    showRagForm: false,
     uploadedFiles: [],
   }
 
@@ -94,28 +96,32 @@ describe('RagFilesPageClient', () => {
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]).toEqual({
-        uploadedFiles: mockHookReturn.uploadedFiles,
+        chatTypeId: 'test-chat-type-id',
         dragActive: mockHookReturn.dragActive,
         error: mockHookReturn.error,
-        isUploading: mockHookReturn.isUploading,
-        isExtracting: mockHookReturn.isExtracting,
         extractedData: mockHookReturn.extractedData,
+        flow: 'rag',
+        isExtracting: mockHookReturn.isExtracting,
+        isUploading: mockHookReturn.isUploading,
+        onClearAllFiles: mockHookReturn.clearAllFiles,
+        onClearError: mockHookReturn.clearError,
+        onDrag: mockHookReturn.handleDrag,
+        onDrop: mockHookReturn.handleDrop,
+        onFileInputChange: mockHookReturn.handleFileInputChange,
+        onNavigateHome: mockHookReturn.handleNavigateHome,
+        onProcessFiles: mockHookReturn.handleProcessFiles,
+        onRemoveFile: mockHookReturn.removeFile,
+        onSignOut: mockHookReturn.handleSignOut,
+        ragFileKeys: mockHookReturn.ragFileKeys,
+        showRagForm: mockHookReturn.showRagForm,
+        testIds: {
+          fileInput: 'rag-files-file-input',
+        },
         text: {
           title: 'Retrieval-Augmented Generation (RAG) files upload',
           subtitle: 'Upload PDF or ZIP files for RAG knowledge base',
         },
-        testIds: {
-          fileInput: 'rag-files-file-input',
-        },
-        onDrag: mockHookReturn.handleDrag,
-        onDrop: mockHookReturn.handleDrop,
-        onFileInputChange: mockHookReturn.handleFileInputChange,
-        onRemoveFile: mockHookReturn.removeFile,
-        onClearAllFiles: mockHookReturn.clearAllFiles,
-        onProcessFiles: mockHookReturn.handleProcessFiles,
-        onClearError: mockHookReturn.clearError,
-        onNavigateHome: mockHookReturn.handleNavigateHome,
-        onSignOut: mockHookReturn.handleSignOut,
+        uploadedFiles: mockHookReturn.uploadedFiles,
       })
     })
 
@@ -152,7 +158,7 @@ describe('RagFilesPageClient', () => {
       const passedProps = fileUploadPageCall?.[0]
 
       expect(passedProps).toBeDefined()
-      expect(Object.keys(passedProps || {})).toHaveLength(17) // All 17 props should be passed
+      expect(Object.keys(passedProps || {})).toHaveLength(21) // All 21 props should be passed
     })
 
     it('should not contain any business logic', () => {

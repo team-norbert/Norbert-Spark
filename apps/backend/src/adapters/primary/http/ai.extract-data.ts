@@ -18,6 +18,8 @@ import { google } from '@ai-sdk/google'
 import { pdfSchema } from '@norberts-spark/shared'
 import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 import { DrizzleQueryError } from 'drizzle-orm'
+import type { components } from '@norberts-spark/shared/openapi-types'
+import { PresignedUrlDto } from '../../../application/dtos/presignedUrl.dto.js'
 /**
  * Allowed file extensions for upload
  */
@@ -398,21 +400,19 @@ export class AIExtractDataController {
    */
   async generatePresignedUrls(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
-      const body = request.body as PresignedUrlRequestBody
-
-      if (!body?.files || !Array.isArray(body.files) || body.files.length === 0) {
-        throw new UnprocessableEntityException('No files provided. Expected { files: [...] }')
-      }
+      //CreateVectorStoreRequest.json
+      const body = request.body as components['schemas']['AIPreSignedRequest']
+      const dto = PresignedUrlDto.validate(body)
 
       this.logger.info('Generating presigned URLs from metadata', {
-        fileCount: body.files.length,
-        files: body.files.map((f) => ({ filename: f.filename, mimetype: f.mimetype })),
+        fileCount: dto.files.length,
+        files: dto.files.map((f) => ({ filename: f.filename, mimetype: f.mimetype })),
       })
 
       // Validate and sanitize each file's metadata using security utilities
       const sanitizedFiles: FileMetadata[] = []
 
-      for (const file of body.files) {
+      for (const file of dto.files) {
         if (!file.filename || !file.mimetype) {
           throw new UnprocessableEntityException(
             'Each file must have filename and mimetype properties'
@@ -459,7 +459,8 @@ export class AIExtractDataController {
       })) as MultipartFile[]
 
       // Execute use case to generate presigned URLs
-      const result = await this.presignedUploadUrlUseCase.execute(fileMetadata, auditContext)
+      const flow = (dto.files[0]?.flow ?? 'data-extraction') as 'data-extraction' | 'rag'
+      const result = await this.presignedUploadUrlUseCase.execute(fileMetadata, auditContext, flow)
 
       return reply.status(200).send({
         success: true,
