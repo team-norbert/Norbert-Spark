@@ -80,27 +80,31 @@ describe('PutAIAdminDTO', () => {
   describe('validate', () => {
     describe('data type validation', () => {
       it('should throw TypeException when data is undefined', () => {
-        expect(() => PutAIAdminDTO.validate(undefined)).toThrow(TypeException)
-        expect(() => PutAIAdminDTO.validate(undefined)).toThrow('Invalid data: expected an object')
+        expect(() => PutAIAdminDTO.validate(undefined as any)).toThrow(TypeException)
+        expect(() => PutAIAdminDTO.validate(undefined as any)).toThrow(
+          'Invalid data: expected an object'
+        )
       })
 
       it('should throw TypeException when data is null', () => {
-        expect(() => PutAIAdminDTO.validate(null)).toThrow(TypeException)
-        expect(() => PutAIAdminDTO.validate(null)).toThrow('Invalid data: expected an object')
+        expect(() => PutAIAdminDTO.validate(null as any)).toThrow(TypeException)
+        expect(() => PutAIAdminDTO.validate(null as any)).toThrow(
+          'Invalid data: expected an object'
+        )
       })
 
       it('should throw TypeException when data is not an object', () => {
-        expect(() => PutAIAdminDTO.validate('string')).toThrow(TypeException)
-        expect(() => PutAIAdminDTO.validate(123)).toThrow(TypeException)
-        expect(() => PutAIAdminDTO.validate(true)).toThrow(TypeException)
-        expect(() => PutAIAdminDTO.validate([])).toThrow(TypeException)
+        expect(() => PutAIAdminDTO.validate('string' as any)).toThrow(TypeException)
+        expect(() => PutAIAdminDTO.validate(123 as any)).toThrow(TypeException)
+        expect(() => PutAIAdminDTO.validate(true as any)).toThrow(TypeException)
+        expect(() => PutAIAdminDTO.validate([] as any)).toThrow(TypeException)
       })
     })
 
     describe('prompt validation', () => {
       it('should throw ValidationException when prompt is missing', () => {
-        expect(() => PutAIAdminDTO.validate({})).toThrow(ValidationException)
-        expect(() => PutAIAdminDTO.validate({})).toThrow(
+        expect(() => PutAIAdminDTO.validate({} as any)).toThrow(ValidationException)
+        expect(() => PutAIAdminDTO.validate({} as any)).toThrow(
           'Invalid prompt: must be a non-empty string'
         )
       })
@@ -121,9 +125,9 @@ describe('PutAIAdminDTO', () => {
       })
 
       it('should throw ValidationException when prompt is not a string', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 123 })).toThrow(ValidationException)
-        expect(() => PutAIAdminDTO.validate({ prompt: null })).toThrow(ValidationException)
-        expect(() => PutAIAdminDTO.validate({ prompt: {} })).toThrow(ValidationException)
+        expect(() => PutAIAdminDTO.validate({ prompt: 123 } as any)).toThrow(ValidationException)
+        expect(() => PutAIAdminDTO.validate({ prompt: null } as any)).toThrow(ValidationException)
+        expect(() => PutAIAdminDTO.validate({ prompt: {} } as any)).toThrow(ValidationException)
       })
 
       it('should accept valid prompt', () => {
@@ -136,10 +140,10 @@ describe('PutAIAdminDTO', () => {
 
     describe('maxTokens validation', () => {
       it('should throw ValidationException when maxTokens is not a number', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: 'many' })).toThrow(
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: 'many' } as any)).toThrow(
           ValidationException
         )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: 'many' })).toThrow(
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxTokens: 'many' } as any)).toThrow(
           'Invalid maxTokens: must be a number'
         )
       })
@@ -189,12 +193,12 @@ describe('PutAIAdminDTO', () => {
 
     describe('temperature validation', () => {
       it('should throw ValidationException when temperature is not a number', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', temperature: 'high' })).toThrow(
-          ValidationException
-        )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', temperature: 'high' })).toThrow(
-          'Invalid temperature: must be a number'
-        )
+        expect(() =>
+          PutAIAdminDTO.validate({ prompt: 'Test', temperature: 'high' } as any)
+        ).toThrow(ValidationException)
+        expect(() =>
+          PutAIAdminDTO.validate({ prompt: 'Test', temperature: 'high' } as any)
+        ).toThrow('Invalid temperature: must be a number')
       })
 
       it('should throw ValidationException when temperature is below 0', () => {
@@ -242,10 +246,10 @@ describe('PutAIAdminDTO', () => {
 
     describe('topP validation', () => {
       it('should throw ValidationException when topP is not a number', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', topP: 'high' })).toThrow(
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', topP: 'high' } as any)).toThrow(
           ValidationException
         )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', topP: 'high' })).toThrow(
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', topP: 'high' } as any)).toThrow(
           'Invalid topP: must be a number'
         )
       })
@@ -289,12 +293,12 @@ describe('PutAIAdminDTO', () => {
 
     describe('frequencyPenalty validation', () => {
       it('should throw ValidationException when frequencyPenalty is not a number', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', frequencyPenalty: 'high' })).toThrow(
-          ValidationException
-        )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', frequencyPenalty: 'high' })).toThrow(
-          'Invalid frequencyPenalty: must be a number'
-        )
+        expect(() =>
+          PutAIAdminDTO.validate({ prompt: 'Test', frequencyPenalty: 'high' } as any)
+        ).toThrow(ValidationException)
+        expect(() =>
+          PutAIAdminDTO.validate({ prompt: 'Test', frequencyPenalty: 'high' } as any)
+        ).toThrow('Invalid frequencyPenalty: must be a number')
       })
 
       it('should throw ValidationException when frequencyPenalty is below -2', () => {
@@ -336,12 +340,12 @@ describe('PutAIAdminDTO', () => {
 
     describe('presencePenalty validation', () => {
       it('should throw ValidationException when presencePenalty is not a number', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', presencePenalty: 'high' })).toThrow(
-          ValidationException
-        )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', presencePenalty: 'high' })).toThrow(
-          'Invalid presencePenalty: must be a number'
-        )
+        expect(() =>
+          PutAIAdminDTO.validate({ prompt: 'Test', presencePenalty: 'high' } as any)
+        ).toThrow(ValidationException)
+        expect(() =>
+          PutAIAdminDTO.validate({ prompt: 'Test', presencePenalty: 'high' } as any)
+        ).toThrow('Invalid presencePenalty: must be a number')
       })
 
       it('should throw ValidationException when presencePenalty is below -2', () => {
@@ -383,10 +387,10 @@ describe('PutAIAdminDTO', () => {
 
     describe('topK validation', () => {
       it('should throw ValidationException when topK is not a number', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', topK: 'high' })).toThrow(
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', topK: 'high' } as any)).toThrow(
           ValidationException
         )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', topK: 'high' })).toThrow(
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', topK: 'high' } as any)).toThrow(
           'Invalid topK: must be a number'
         )
       })
@@ -439,32 +443,32 @@ describe('PutAIAdminDTO', () => {
 
     describe('stopSequences validation', () => {
       it('should throw ValidationException when stopSequences is not an array', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: 'STOP' })).toThrow(
-          ValidationException
-        )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: 'STOP' })).toThrow(
-          'Invalid stopSequences: must be an array'
-        )
+        expect(() =>
+          PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: 'STOP' } as any)
+        ).toThrow(ValidationException)
+        expect(() =>
+          PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: 'STOP' } as any)
+        ).toThrow('Invalid stopSequences: must be an array')
       })
 
       it('should throw ValidationException when stopSequences contains non-strings', () => {
         expect(() =>
-          PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: ['STOP', 123] })
+          PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: ['STOP', 123] } as any)
         ).toThrow(ValidationException)
         expect(() =>
-          PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: ['STOP', 123] })
+          PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: ['STOP', 123] } as any)
         ).toThrow('Invalid stopSequences: all items must be strings')
       })
 
       it('should throw ValidationException when stopSequences contains null', () => {
         expect(() =>
-          PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: ['STOP', null] })
+          PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: ['STOP', null] } as any)
         ).toThrow(ValidationException)
       })
 
       it('should throw ValidationException when stopSequences contains undefined', () => {
         expect(() =>
-          PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: ['STOP', undefined] })
+          PutAIAdminDTO.validate({ prompt: 'Test', stopSequences: ['STOP', undefined] } as any)
         ).toThrow(ValidationException)
       })
 
@@ -490,10 +494,10 @@ describe('PutAIAdminDTO', () => {
 
     describe('seed validation', () => {
       it('should throw ValidationException when seed is not a number', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', seed: 'random' })).toThrow(
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', seed: 'random' } as any)).toThrow(
           ValidationException
         )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', seed: 'random' })).toThrow(
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', seed: 'random' } as any)).toThrow(
           'Invalid seed: must be a number'
         )
       })
@@ -537,10 +541,10 @@ describe('PutAIAdminDTO', () => {
 
     describe('maxRetries validation', () => {
       it('should throw ValidationException when maxRetries is not a number', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxRetries: 'many' })).toThrow(
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxRetries: 'many' } as any)).toThrow(
           ValidationException
         )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxRetries: 'many' })).toThrow(
+        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxRetries: 'many' } as any)).toThrow(
           'Invalid maxRetries: must be a number'
         )
       })
