@@ -44,7 +44,6 @@ import { AIChatOptionsRepository } from '../../adapters/secondary/repositories/a
 import { CompanyRepository } from '../../adapters/secondary/repositories/company.repository.js'
 import { CompanyController } from '../../adapters/primary/http/company.controller.js'
 import { AiRagController } from '../../adapters/primary/http/ai.rag.controller.js'
-import { AIRAGRepository } from '../../adapters/secondary/repositories/ai-rag.repository.js'
 // Utils
 import { PDFUtils } from '../../shared/utils/pdf.utils.js'
 
