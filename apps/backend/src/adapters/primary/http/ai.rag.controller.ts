@@ -22,11 +22,11 @@ export class AiRagController {
       {
         preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
       },
-      this.getAIChatSettingsById.bind(this)
+      this.createRagVectorStore.bind(this)
     )
   }
 
-  async getAIChatSettingsById(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  async createRagVectorStore(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       // Extract audit context from request
       const auditContext = {
