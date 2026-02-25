@@ -29,7 +29,7 @@ import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
 import { PutChatDetailsUseCase } from '../../../application/use-cases/put-chat-details.use-case.js'
 import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
 import { PostChatTypesUseCase } from '../../../application/use-cases/post-chat-types.use-case.js'
-import type { components } from '@norberts-spark/shared/openapi-types'
+import type { components, operations } from '@norberts-spark/shared/openapi-types'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -411,8 +411,8 @@ export class AIController {
       userAgent: request.headers['user-agent'] ?? null,
     }
 
-    const params = request.params as Record<string, unknown>
-    const userIdParam = params.userId as string
+    const params = request.params as operations['getAIChatsByUserId']['parameters']['path']
+    const userIdParam = params.userId
 
     if (!userIdParam) {
       return reply.code(400).send({
@@ -749,7 +749,7 @@ export class AIController {
       userAgent: request.headers['user-agent'] ?? null,
     }
 
-    const params = request.params as Record<string, unknown>
+    const params = request.params as any
     const chatIdParam = params.chatId as string
 
     if (!chatIdParam) {

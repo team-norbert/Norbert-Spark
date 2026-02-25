@@ -1,6 +1,7 @@
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { Uuid7Util } from '../../shared/utils/uuid7.util.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
+import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * Data Transfer Object (DTO) for batch user deletion requests.
@@ -79,7 +80,7 @@ export class DeleteUsersDto {
    * console.log(emptyDto.userIds); // []
    * ```
    */
-  static validate(data: any): DeleteUsersDto {
+  static validate(data: components['schemas']['UserDeleteRequest']): DeleteUsersDto {
     if (!data || typeof data !== 'object' || Array.isArray(data)) {
       throw new TypeException('Data must be a valid array of user IDs')
     }
@@ -96,6 +97,6 @@ export class DeleteUsersDto {
       }
     }
 
-    return new DeleteUsersDto(data.userIds)
+    return new DeleteUsersDto(data.userIds as UserIdType[])
   }
 }

@@ -119,15 +119,15 @@ describe('DeleteUsersDto', () => {
 
     describe('data validation failures', () => {
       it('should throw TypeException when data is null', () => {
-        expect(() => DeleteUsersDto.validate(null)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(null)).toThrow(
+        expect(() => DeleteUsersDto.validate(null as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(null as any)).toThrow(
           'Data must be a valid array of user IDs'
         )
       })
 
       it('should throw TypeException when data is undefined', () => {
-        expect(() => DeleteUsersDto.validate(undefined)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(undefined)).toThrow(
+        expect(() => DeleteUsersDto.validate(undefined as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(undefined as any)).toThrow(
           'Data must be a valid array of user IDs'
         )
       })
@@ -135,34 +135,38 @@ describe('DeleteUsersDto', () => {
       it('should throw TypeException when data is an array', () => {
         const data = [uuidv7(), uuidv7()]
 
-        expect(() => DeleteUsersDto.validate(data)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(data)).toThrow(
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(
           'Data must be a valid array of user IDs'
         )
       })
 
       it('should throw TypeException when data is a string', () => {
-        expect(() => DeleteUsersDto.validate('not an object')).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate('not an object')).toThrow(
+        expect(() => DeleteUsersDto.validate('not an object' as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate('not an object' as any)).toThrow(
           'Data must be a valid array of user IDs'
         )
       })
 
       it('should throw TypeException when data is a number', () => {
-        expect(() => DeleteUsersDto.validate(123)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(123)).toThrow('Data must be a valid array of user IDs')
+        expect(() => DeleteUsersDto.validate(123 as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(123 as any)).toThrow(
+          'Data must be a valid array of user IDs'
+        )
       })
 
       it('should throw TypeException when data is a boolean', () => {
-        expect(() => DeleteUsersDto.validate(true)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(true)).toThrow(
+        expect(() => DeleteUsersDto.validate(true as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(true as any)).toThrow(
           'Data must be a valid array of user IDs'
         )
       })
 
       it('should throw TypeException for empty object', () => {
-        expect(() => DeleteUsersDto.validate({})).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate({})).toThrow('userIds must be an array of strings')
+        expect(() => DeleteUsersDto.validate({} as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate({} as any)).toThrow(
+          'userIds must be an array of strings'
+        )
       })
     })
 
@@ -170,64 +174,82 @@ describe('DeleteUsersDto', () => {
       it('should throw TypeException when userIds is missing', () => {
         const data = { otherProperty: 'value' }
 
-        expect(() => DeleteUsersDto.validate(data)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(data)).toThrow('userIds must be an array of strings')
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(
+          'userIds must be an array of strings'
+        )
       })
 
       it('should throw TypeException when userIds is not an array', () => {
         const data = { userIds: 'not-an-array' }
 
-        expect(() => DeleteUsersDto.validate(data)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(data)).toThrow('userIds must be an array of strings')
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(
+          'userIds must be an array of strings'
+        )
       })
 
       it('should throw TypeException when userIds is null', () => {
         const data = { userIds: null }
 
-        expect(() => DeleteUsersDto.validate(data)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(data)).toThrow('userIds must be an array of strings')
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(
+          'userIds must be an array of strings'
+        )
       })
 
       it('should throw TypeException when userIds is an object', () => {
         const data = { userIds: { id: uuidv7() } }
 
-        expect(() => DeleteUsersDto.validate(data)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(data)).toThrow('userIds must be an array of strings')
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(
+          'userIds must be an array of strings'
+        )
       })
 
       it('should throw TypeException when userIds contains non-string values', () => {
         const data = { userIds: [uuidv7(), 123, uuidv7()] }
 
-        expect(() => DeleteUsersDto.validate(data)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(data)).toThrow('userIds must be an array of strings')
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(
+          'userIds must be an array of strings'
+        )
       })
 
       it('should throw TypeException when userIds contains null', () => {
         const data = { userIds: [uuidv7(), null, uuidv7()] }
 
-        expect(() => DeleteUsersDto.validate(data)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(data)).toThrow('userIds must be an array of strings')
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(
+          'userIds must be an array of strings'
+        )
       })
 
       it('should throw TypeException when userIds contains undefined', () => {
         const data = { userIds: [uuidv7(), undefined, uuidv7()] }
 
-        expect(() => DeleteUsersDto.validate(data)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(data)).toThrow('userIds must be an array of strings')
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(
+          'userIds must be an array of strings'
+        )
       })
 
       it('should throw TypeException when userIds contains objects', () => {
         const data = { userIds: [uuidv7(), { id: uuidv7() }, uuidv7()] }
 
-        expect(() => DeleteUsersDto.validate(data)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(data)).toThrow('userIds must be an array of strings')
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(
+          'userIds must be an array of strings'
+        )
       })
 
       it('should throw TypeException when userIds contains arrays', () => {
         const data = { userIds: [uuidv7(), [uuidv7()], uuidv7()] }
 
-        expect(() => DeleteUsersDto.validate(data)).toThrow(TypeException)
-        expect(() => DeleteUsersDto.validate(data)).toThrow('userIds must be an array of strings')
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(TypeException)
+        expect(() => DeleteUsersDto.validate(data as any)).toThrow(
+          'userIds must be an array of strings'
+        )
       })
 
       it('should throw TypeException when userIds is empty array', () => {
