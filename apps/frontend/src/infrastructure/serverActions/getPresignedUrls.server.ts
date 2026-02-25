@@ -13,6 +13,7 @@ const logger = createLogger({ prefix: 'getPresignedUrls' })
 export interface FileMetadata {
   filename: string
   mimetype: string
+  flow?: string
 }
 
 /**
@@ -97,7 +98,7 @@ export async function getPresignedUrls(
 
     logger.info('Requesting presigned URLs', {
       fileCount: files.length,
-      files: files.map((f) => ({ filename: f.filename, mimetype: f.mimetype })),
+      files: files.map((f) => ({ filename: f.filename, mimetype: f.mimetype, flow: f.flow })),
     })
 
     const response = await backendRequest<PresignedUrlsResponse>({

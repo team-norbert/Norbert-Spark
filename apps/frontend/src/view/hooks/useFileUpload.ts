@@ -287,9 +287,11 @@ export function useFileUpload({
 
     try {
       // Prepare file metadata for presigned URL generation
+      const backendFlowType = flow === 'rag' ? 'rag' : 'data-extraction'
       const fileMetadata = uploadedFiles.map((uf) => ({
         filename: uf.file.name,
         mimetype: uf.file.type || 'application/octet-stream',
+        flow: backendFlowType,
       }))
 
       logger.info('Requesting presigned URLs for files', { fileCount: fileMetadata.length })
