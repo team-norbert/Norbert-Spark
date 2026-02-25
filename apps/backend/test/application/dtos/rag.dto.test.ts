@@ -425,6 +425,15 @@ describe('RagDto', () => {
       expect(dto.chatAIOptions.stopSequences).toEqual([])
     })
 
+    it('should throw ValidationException when chatTypeId is missing', () => {
+      const data = {
+        ...validInput(),
+        chatAIOptions: { stopSequences: [] },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow('chatAIOptions.chatTypeId is required')
+    })
+
     it('should throw ValidationException when chatTypeId is not a string', () => {
       const data = {
         ...validInput(),
@@ -432,7 +441,7 @@ describe('RagDto', () => {
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
-        'chatAIOptions.chatTypeId is required and must be a string'
+        'chatAIOptions.chatTypeId must be a string'
       )
     })
 
