@@ -163,8 +163,12 @@ export class RagDto {
       throw new ValidationException('chatAIOptions.maxRetries must be a number')
     }
 
+    if (!isDefined(data.chatAIOptions.chatTypeId)) {
+      throw new ValidationException('chatAIOptions.chatTypeId is required')
+    }
+
     if (!isString(data.chatAIOptions.chatTypeId)) {
-      throw new ValidationException('chatAIOptions.chatTypeId is required and must be a string')
+      throw new ValidationException('chatAIOptions.chatTypeId must be a string')
     }
 
     return new RagDto(
