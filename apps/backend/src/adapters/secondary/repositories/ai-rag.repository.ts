@@ -6,6 +6,6 @@ export class AIRAGRepository implements AiRagRepositoryPost {
   constructor(private readonly logger: LoggerPort) {}
 
   async createRagVectorEntry(data: RagDto): Promise<void> {
-    // Here is the drizzle query based on the provided schema
+    throw new Error('Not implemented')
   }
 }
