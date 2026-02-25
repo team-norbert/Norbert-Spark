@@ -2,6 +2,7 @@ import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 import { ValidationUtil } from '../../shared/utils/validation.util.js'
 import { isString } from '@norberts-spark/shared'
+import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * Data Transfer Object for OAuth user synchronization requests
@@ -89,7 +90,7 @@ export class OAuthSyncDto {
    * }
    * ```
    */
-  static validate(data: any): OAuthSyncDto {
+  static validate(data: components['schemas']['OAuthSyncRequest']): OAuthSyncDto {
     if (!data || typeof data !== 'object' || Array.isArray(data)) {
       throw new TypeException('Data must be a valid object')
     }

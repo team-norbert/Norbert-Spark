@@ -271,7 +271,9 @@ export class AuthController {
         userAgent: request.headers['user-agent'] ?? null,
       }
 
-      const dto = OAuthSyncDto.validate(request.body)
+      const body = request.body as components['schemas']['OAuthSyncRequest']
+
+      const dto = OAuthSyncDto.validate(body)
 
       const result = await this.registerUserWithProviderUseCase.execute(dto, auditContext)
 

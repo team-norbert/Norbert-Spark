@@ -234,28 +234,28 @@ describe('OAuthSyncDto', () => {
 
     describe('TypeException - invalid data type', () => {
       it('should throw TypeException when data is null', () => {
-        expect(() => OAuthSyncDto.validate(null)).toThrow(TypeException)
-        expect(() => OAuthSyncDto.validate(null)).toThrow('Data must be a valid object')
+        expect(() => OAuthSyncDto.validate(null as any)).toThrow(TypeException)
+        expect(() => OAuthSyncDto.validate(null as any)).toThrow('Data must be a valid object')
       })
 
       it('should throw TypeException when data is undefined', () => {
-        expect(() => OAuthSyncDto.validate(undefined)).toThrow(TypeException)
-        expect(() => OAuthSyncDto.validate(undefined)).toThrow('Data must be a valid object')
+        expect(() => OAuthSyncDto.validate(undefined as any)).toThrow(TypeException)
+        expect(() => OAuthSyncDto.validate(undefined as any)).toThrow('Data must be a valid object')
       })
 
       it('should throw TypeException when data is an array', () => {
-        expect(() => OAuthSyncDto.validate([])).toThrow(TypeException)
-        expect(() => OAuthSyncDto.validate([])).toThrow('Data must be a valid object')
+        expect(() => OAuthSyncDto.validate([] as any)).toThrow(TypeException)
+        expect(() => OAuthSyncDto.validate([] as any)).toThrow('Data must be a valid object')
       })
 
       it('should throw TypeException when data is a string', () => {
-        expect(() => OAuthSyncDto.validate('string')).toThrow(TypeException)
-        expect(() => OAuthSyncDto.validate('string')).toThrow('Data must be a valid object')
+        expect(() => OAuthSyncDto.validate('string' as any)).toThrow(TypeException)
+        expect(() => OAuthSyncDto.validate('string' as any)).toThrow('Data must be a valid object')
       })
 
       it('should throw TypeException when data is a number', () => {
-        expect(() => OAuthSyncDto.validate(123)).toThrow(TypeException)
-        expect(() => OAuthSyncDto.validate(123)).toThrow('Data must be a valid object')
+        expect(() => OAuthSyncDto.validate(123 as any)).toThrow(TypeException)
+        expect(() => OAuthSyncDto.validate(123 as any)).toThrow('Data must be a valid object')
       })
     })
 
@@ -267,8 +267,8 @@ describe('OAuthSyncDto', () => {
           name: 'Test User',
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'Provider is required and must be a non-empty string'
         )
       })
@@ -281,8 +281,8 @@ describe('OAuthSyncDto', () => {
           name: 'Test User',
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'Provider is required and must be a non-empty string'
         )
       })
@@ -309,8 +309,8 @@ describe('OAuthSyncDto', () => {
           name: 'Test User',
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'Provider is required and must be a non-empty string'
         )
       })
@@ -324,8 +324,8 @@ describe('OAuthSyncDto', () => {
           name: 'Test User',
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'ProviderId is required and must be a non-empty string'
         )
       })
@@ -338,8 +338,8 @@ describe('OAuthSyncDto', () => {
           name: 'Test User',
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'ProviderId is required and must be a non-empty string'
         )
       })
@@ -366,8 +366,8 @@ describe('OAuthSyncDto', () => {
           name: 'Test User',
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'ProviderId is required and must be a non-empty string'
         )
       })
@@ -380,8 +380,8 @@ describe('OAuthSyncDto', () => {
           providerId: '12345',
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'Email is required and must be a non-empty string'
         )
       })
@@ -393,8 +393,8 @@ describe('OAuthSyncDto', () => {
           email: null,
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'Email is required and must be a non-empty string'
         )
       })
@@ -419,8 +419,8 @@ describe('OAuthSyncDto', () => {
           email: 123,
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'Email is required and must be a non-empty string'
         )
       })
@@ -485,8 +485,8 @@ describe('OAuthSyncDto', () => {
           name: 123,
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'Name is required and must be a non-empty string'
         )
       })
@@ -499,8 +499,8 @@ describe('OAuthSyncDto', () => {
           name: true,
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'Name is required and must be a non-empty string'
         )
       })
@@ -513,8 +513,8 @@ describe('OAuthSyncDto', () => {
           name: { first: 'John', last: 'Doe' },
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'Name is required and must be a non-empty string'
         )
       })
@@ -527,8 +527,8 @@ describe('OAuthSyncDto', () => {
           name: ['John', 'Doe'],
         }
 
-        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data as any)).toThrow(
           'Name is required and must be a non-empty string'
         )
       })

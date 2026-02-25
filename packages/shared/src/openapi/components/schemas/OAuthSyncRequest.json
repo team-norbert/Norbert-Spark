@@ -23,6 +23,12 @@
       "type": "string",
       "example": "John Doe",
       "description": "User's display name from OAuth provider (optional)"
+    },
+    "role": {
+      "type": "string",
+      "enum": ["user", "admin", "moderator"],
+      "example": "user",
+      "description": "Role to assign to the user (optional, defaults to 'user')"
     }
   }
 }
