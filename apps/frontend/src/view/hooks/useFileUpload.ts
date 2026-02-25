@@ -354,7 +354,9 @@ export function useFileUpload({
             // Check if session expired (JWT expired on backend)
             if (extractResult.sessionExpired) {
               logger.warn('Session expired during extraction, redirecting to signin')
-              router.push(`/signin?error=session_expired&callbackUrl=${encodeURIComponent(callbackUrl)}`)
+              router.push(
+                `/signin?error=session_expired&callbackUrl=${encodeURIComponent(callbackUrl)}`
+              )
               return
             }
 
