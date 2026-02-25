@@ -19,20 +19,23 @@ function fillRequiredFields({
   chunkOverlap = '50',
   chunkSize = '512',
   distanceMetric = 'cosine',
+  id = 'test-id-0000-0000-0000-000000000001',
   modelName = 'text-embedding-ada-002',
   modelProvider = 'openai',
   source = 'https://example.com',
   title = 'My Document',
 } = {}) {
+  fireEvent.change(screen.getByLabelText(/^vector store id/i), { target: { value: id } })
   fireEvent.change(screen.getByLabelText(/^title/i), { target: { value: title } })
   fireEvent.change(screen.getByLabelText(/^source/i), { target: { value: source } })
   fireEvent.change(screen.getByLabelText(/^model name/i), { target: { value: modelName } })
   fireEvent.change(screen.getByLabelText(/^model provider/i), {
     target: { value: modelProvider },
   })
-  fireEvent.change(screen.getByLabelText(/^distance metric/i), {
-    target: { value: distanceMetric },
-  })
+  // distanceMetric is a Select; only interact if a non-default value is needed
+  if (distanceMetric !== 'cosine') {
+    selectDistanceMetric(distanceMetric)
+  }
   fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: chunkSize } })
   fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: chunkOverlap } })
   fireEvent.change(screen.getByLabelText(/^chat type id/i), { target: { value: chatTypeId } })
@@ -41,6 +44,15 @@ function fillRequiredFields({
 /** Submit the form via the submit button. */
 function submitForm() {
   fireEvent.click(screen.getByRole('button', { name: /create vector store/i }))
+}
+
+/** Open the Distance Metric Select dropdown and click the given option. */
+function selectDistanceMetric(value: string) {
+  const selectButton = screen
+    .getByText('cosine')
+    .closest('[role="combobox"], [role="button"]') as HTMLElement
+  fireEvent.mouseDown(selectButton)
+  fireEvent.click(screen.getByRole('option', { name: value }))
 }
 
 const DEFAULT_FILE_KEYS = ['uploads/file-a.pdf', 'uploads/file-b.pdf']
@@ -90,6 +102,7 @@ describe('CreateVectorStoreForm', () => {
     it('renders the Title and Source text fields', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
+      expect(screen.getByLabelText(/^vector store id/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^title/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^source/i)).toBeInTheDocument()
     })
@@ -156,11 +169,11 @@ describe('CreateVectorStoreForm', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       const labelRegexes = [
+        /^vector store id/i,
         /^title/i,
         /^source/i,
         /^model name/i,
         /^model provider/i,
-        /^distance metric/i,
         /^chat type id/i,
         /^max tokens/i,
         /^temperature/i,
@@ -180,6 +193,18 @@ describe('CreateVectorStoreForm', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       expect((screen.getByLabelText(/^chat type id/i) as HTMLInputElement).value).toBe('')
+    })
+
+    it('id field starts empty', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe('')
+    })
+
+    it('distanceMetric Select defaults to "cosine"', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      expect(screen.getByText('cosine')).toBeInTheDocument()
     })
 
     it('chatTypeId is pre-populated when initialChatTypeId is provided', () => {
@@ -222,6 +247,16 @@ describe('CreateVectorStoreForm', () => {
       })
     })
 
+    it('passes the required id field', () => {
+      const testId = 'abc12345-0000-0000-0000-000000000001'
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ id: testId })
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.id).toBe(testId)
+    })
+
     it('passes the correct embeddingModels shape', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
@@ -258,6 +293,15 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('euclidean')
     })
 
+    it('distanceMetric defaults to "cosine" in the submitted data', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields() // uses default distanceMetric = 'cosine'
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('cosine')
+    })
+
     it('includes chatTypeId in chatAIOptions', () => {
       const id = 'chattype-uuid-here-0001'
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
@@ -284,7 +328,7 @@ describe('CreateVectorStoreForm', () => {
       expect(chatAIOptions).not.toHaveProperty('topP')
       expect(chatAIOptions).not.toHaveProperty('frequencyPenalty')
       expect(chatAIOptions).not.toHaveProperty('presencePenalty')
-      expect(chatAIOptions).not.toHaveProperty('stopSequences')
+      expect(chatAIOptions.stopSequences).toEqual([])
       expect(chatAIOptions).not.toHaveProperty('seed')
       expect(chatAIOptions).not.toHaveProperty('maxRetries')
     })
@@ -409,13 +453,13 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.stopSequences).toEqual(['END'])
     })
 
-    it('omits stopSequences when the field is empty', () => {
+    it('sends empty array for stopSequences when the field is empty', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields() // stop sequences field left empty
       submitForm()
 
-      expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions).not.toHaveProperty('stopSequences')
+      expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.stopSequences).toEqual([])
     })
   })
 
@@ -462,6 +506,34 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(384)
+    })
+  })
+
+  // ── Distance Metric Select ────────────────────────────────────────────────────
+
+  describe('Distance Metric Select', () => {
+    it('selecting euclidean updates distanceMetric in the submitted data', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields()
+
+      selectDistanceMetric('euclidean')
+
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('euclidean')
+    })
+
+    it('selecting dot_product updates distanceMetric in the submitted data', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields()
+
+      selectDistanceMetric('dot_product')
+
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('dot_product')
     })
   })
 

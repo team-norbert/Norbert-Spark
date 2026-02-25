@@ -13,36 +13,17 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
+import type { components } from '@norberts-spark/shared/openapi-types'
 import type React from 'react'
 import { useState } from 'react'
 
-export interface CreateVectorStoreFormData {
-  documents: {
-    title: string
-    source: string
-  }
-  embeddingModels: {
-    modelName: string
-    modelProvider: string
-    dimension: 1536 | 768 | 384
-  }
-  vectorEmbeddings: {
-    distanceMetric: string
-    chunkSize: number
-    chunkOverlap: number
-  }
-  chatAIOptions: {
-    chatTypeId: string
-    maxTokens?: number
-    temperature?: number
-    topP?: number
-    frequencyPenalty?: number
-    presencePenalty?: number
-    stopSequences?: string[]
-    seed?: number
-    maxRetries?: number
-  }
-}
+export type CreateVectorStoreFormData = components['schemas']['CreateVectorStoreRequest']
+
+const DISTANCE_METRICS: CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric'][] = [
+  'cosine',
+  'euclidean',
+  'dot_product',
+]
 
 interface CreateVectorStoreFormProps {
   fileKeys: string[]
@@ -55,14 +36,19 @@ interface CreateVectorStoreFormProps {
  * Renders after a successful RAG file upload to collect the configuration
  * needed to call the POST /ai/create-vector-store endpoint.
  *
- * All fields are text inputs except embeddingModels.dimension which is a
- * Select with values [1536, 768, 384].
+ * The form is typed against the generated OpenAPI `CreateVectorStoreRequest`
+ * schema. Select fields are used for enum-constrained values:
+ * - `embeddingModels.dimension`: [1536, 768, 384]
+ * - `vectorEmbeddings.distanceMetric`: ['cosine', 'euclidean', 'dot_product']
  */
 export function CreateVectorStoreForm({
   fileKeys,
   initialChatTypeId,
   onSubmit,
 }: CreateVectorStoreFormProps) {
+  // top-level id
+  const [id, setId] = useState('')
+
   // documents
   const [documentsTitle, setDocumentsTitle] = useState('')
   const [documentsSource, setDocumentsSource] = useState('')
@@ -73,7 +59,8 @@ export function CreateVectorStoreForm({
   const [dimension, setDimension] = useState<1536 | 768 | 384>(1536)
 
   // vectorEmbeddings
-  const [distanceMetric, setDistanceMetric] = useState('')
+  const [distanceMetric, setDistanceMetric] =
+    useState<CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']>('cosine')
   const [chunkSize, setChunkSize] = useState('')
   const [chunkOverlap, setChunkOverlap] = useState('')
 
@@ -92,6 +79,7 @@ export function CreateVectorStoreForm({
     e.preventDefault()
 
     const formData: CreateVectorStoreFormData = {
+      id,
       documents: {
         title: documentsTitle,
         source: documentsSource,
@@ -113,7 +101,9 @@ export function CreateVectorStoreForm({
         ...(topP ? { topP: Number(topP) } : {}),
         ...(frequencyPenalty ? { frequencyPenalty: Number(frequencyPenalty) } : {}),
         ...(presencePenalty ? { presencePenalty: Number(presencePenalty) } : {}),
-        ...(stopSequences ? { stopSequences: stopSequences.split(',').map((s) => s.trim()) } : {}),
+        ...(stopSequences
+          ? { stopSequences: stopSequences.split(',').map((s) => s.trim()) }
+          : { stopSequences: [] }),
         ...(seed ? { seed: Number(seed) } : {}),
         ...(maxRetries ? { maxRetries: Number(maxRetries) } : {}),
       },
@@ -136,6 +126,16 @@ export function CreateVectorStoreForm({
         )}
 
         <Box component="form" onSubmit={handleSubmit}>
+          {/* ID */}
+          <TextField
+            label="Vector Store ID"
+            value={id}
+            onChange={(e) => setId(e.target.value)}
+            fullWidth
+            required
+            sx={{ mb: 2 }}
+          />
+
           {/* Documents */}
           <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1.5 }}>
             Documents
@@ -199,14 +199,25 @@ export function CreateVectorStoreForm({
           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
             Vector Embeddings
           </Typography>
-          <TextField
-            label="Distance Metric"
-            value={distanceMetric}
-            onChange={(e) => setDistanceMetric(e.target.value)}
-            fullWidth
-            required
-            sx={{ mb: 2 }}
-          />
+          <FormControl fullWidth required sx={{ mb: 2 }}>
+            <InputLabel id="distance-metric-label">Distance Metric</InputLabel>
+            <Select
+              labelId="distance-metric-label"
+              label="Distance Metric"
+              value={distanceMetric}
+              onChange={(e) =>
+                setDistanceMetric(
+                  e.target.value as CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']
+                )
+              }
+            >
+              {DISTANCE_METRICS.map((metric) => (
+                <MenuItem key={metric} value={metric}>
+                  {metric}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             label="Chunk Size"
             type="number"
