@@ -10,7 +10,7 @@
           "flow": {
             "type": "string",
             "description": "Flow to associate the file with (e.g., 'data-extraction')",
-            "enum": ["flow", "data-extraction"],
+            "enum": ["rag", "data-extraction"],
             "example": "data-extraction"
           },
           "filename": {
