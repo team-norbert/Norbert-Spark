@@ -58,8 +58,8 @@ export class AiRagController {
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
         error instanceof DrizzleQueryError
-          ? 'Failed to generate presigned URLs due to a database error'
-          : err?.message || 'Failed to generate presigned URLs due to a database error'
+          ? 'Failed to create vector store due to a database error'
+          : err?.message || 'Failed to create vector store due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
