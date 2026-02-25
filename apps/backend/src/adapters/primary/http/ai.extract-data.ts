@@ -18,8 +18,6 @@ import { google } from '@ai-sdk/google'
 import { pdfSchema } from '@norberts-spark/shared'
 import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 import { DrizzleQueryError } from 'drizzle-orm'
-import type { components } from '@norberts-spark/shared/openapi-types'
-
 /**
  * Allowed file extensions for upload
  */

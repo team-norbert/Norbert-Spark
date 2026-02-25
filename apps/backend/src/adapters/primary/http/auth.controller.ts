@@ -7,6 +7,7 @@ import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { oauthSyncAuthMiddleware } from '../../../infrastructure/http/middleware/auth-sync-auth.middleware.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { DrizzleQueryError } from 'drizzle-orm'
+import type { components } from '@norberts-spark/shared/openapi-types'
 /**
  * HTTP controller for authentication endpoints
  *
@@ -175,8 +176,9 @@ export class AuthController {
    */
   async login(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
+      const body = request.body as components['schemas']['UserLoginRequest']
       // Convert HTTP request to DTO
-      const dto = LoginUserDto.validate(request.body)
+      const dto = LoginUserDto.validate(body)
 
       // Extract audit context from request
       const auditContext = {
