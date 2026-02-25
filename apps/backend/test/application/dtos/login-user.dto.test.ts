@@ -208,47 +208,49 @@ describe('LoginUserDto', () => {
 
     describe('TypeException - invalid data type', () => {
       it('should throw TypeException when data is null', () => {
-        expect(() => LoginUserDto.validate(null)).toThrow(TypeException)
-        expect(() => LoginUserDto.validate(null)).toThrow('Data must be a valid object')
+        expect(() => LoginUserDto.validate(null as any)).toThrow(TypeException)
+        expect(() => LoginUserDto.validate(null as any)).toThrow('Data must be a valid object')
       })
 
       it('should throw TypeException when data is undefined', () => {
-        expect(() => LoginUserDto.validate(undefined)).toThrow(TypeException)
-        expect(() => LoginUserDto.validate(undefined)).toThrow('Data must be a valid object')
+        expect(() => LoginUserDto.validate(undefined as any)).toThrow(TypeException)
+        expect(() => LoginUserDto.validate(undefined as any)).toThrow('Data must be a valid object')
       })
 
       it('should throw TypeException when data is an array', () => {
-        expect(() => LoginUserDto.validate([])).toThrow(TypeException)
-        expect(() => LoginUserDto.validate([])).toThrow('Data must be a valid object')
+        expect(() => LoginUserDto.validate([] as any)).toThrow(TypeException)
+        expect(() => LoginUserDto.validate([] as any)).toThrow('Data must be a valid object')
       })
 
       it('should throw TypeException when data is an array with values', () => {
-        expect(() => LoginUserDto.validate(['email@example.com', 'password123'])).toThrow(
+        expect(() => LoginUserDto.validate(['email@example.com', 'password123'] as any)).toThrow(
           TypeException
         )
-        expect(() => LoginUserDto.validate(['email@example.com', 'password123'])).toThrow(
+        expect(() => LoginUserDto.validate(['email@example.com', 'password123'] as any)).toThrow(
           'Data must be a valid object'
         )
       })
 
       it('should throw TypeException when data is a string', () => {
-        expect(() => LoginUserDto.validate('string')).toThrow(TypeException)
-        expect(() => LoginUserDto.validate('string')).toThrow('Data must be a valid object')
+        expect(() => LoginUserDto.validate('string' as any)).toThrow(TypeException)
+        expect(() => LoginUserDto.validate('string' as any)).toThrow('Data must be a valid object')
       })
 
       it('should throw TypeException when data is a number', () => {
-        expect(() => LoginUserDto.validate(123)).toThrow(TypeException)
-        expect(() => LoginUserDto.validate(123)).toThrow('Data must be a valid object')
+        expect(() => LoginUserDto.validate(123 as any)).toThrow(TypeException)
+        expect(() => LoginUserDto.validate(123 as any)).toThrow('Data must be a valid object')
       })
 
       it('should throw TypeException when data is a boolean', () => {
-        expect(() => LoginUserDto.validate(true)).toThrow(TypeException)
-        expect(() => LoginUserDto.validate(true)).toThrow('Data must be a valid object')
+        expect(() => LoginUserDto.validate(true as any)).toThrow(TypeException)
+        expect(() => LoginUserDto.validate(true as any)).toThrow('Data must be a valid object')
       })
 
       it('should throw TypeException when data is a function', () => {
-        expect(() => LoginUserDto.validate(() => {})).toThrow(TypeException)
-        expect(() => LoginUserDto.validate(() => {})).toThrow('Data must be a valid object')
+        expect(() => LoginUserDto.validate((() => {}) as any)).toThrow(TypeException)
+        expect(() => LoginUserDto.validate((() => {}) as any)).toThrow(
+          'Data must be a valid object'
+        )
       })
     })
 
@@ -258,8 +260,10 @@ describe('LoginUserDto', () => {
           password: 'password123',
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
+          'Email is required and must be a string'
+        )
       })
 
       it('should throw ValidationException when email is null', () => {
@@ -268,8 +272,10 @@ describe('LoginUserDto', () => {
           password: 'password123',
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
+          'Email is required and must be a string'
+        )
       })
 
       it('should throw ValidationException when email is undefined', () => {
@@ -278,8 +284,10 @@ describe('LoginUserDto', () => {
           password: 'password123',
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
+          'Email is required and must be a string'
+        )
       })
 
       it('should throw ValidationException when email is empty string', () => {
@@ -298,8 +306,10 @@ describe('LoginUserDto', () => {
           password: 'password123',
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
+          'Email is required and must be a string'
+        )
       })
 
       it('should throw ValidationException when email is a boolean', () => {
@@ -308,8 +318,10 @@ describe('LoginUserDto', () => {
           password: 'password123',
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
+          'Email is required and must be a string'
+        )
       })
 
       it('should throw ValidationException when email is an object', () => {
@@ -318,8 +330,10 @@ describe('LoginUserDto', () => {
           password: 'password123',
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
+          'Email is required and must be a string'
+        )
       })
 
       it('should throw ValidationException when email is an array', () => {
@@ -328,8 +342,10 @@ describe('LoginUserDto', () => {
           password: 'password123',
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
+          'Email is required and must be a string'
+        )
       })
     })
 
@@ -339,8 +355,8 @@ describe('LoginUserDto', () => {
           email: 'test@example.com',
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow(
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
           'Password is required and must be a string'
         )
       })
@@ -351,8 +367,8 @@ describe('LoginUserDto', () => {
           password: null,
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow(
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
           'Password is required and must be a string'
         )
       })
@@ -363,8 +379,8 @@ describe('LoginUserDto', () => {
           password: undefined,
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow(
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
           'Password is required and must be a string'
         )
       })
@@ -387,8 +403,8 @@ describe('LoginUserDto', () => {
           password: 123456,
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow(
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
           'Password is required and must be a string'
         )
       })
@@ -399,8 +415,8 @@ describe('LoginUserDto', () => {
           password: false,
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow(
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
           'Password is required and must be a string'
         )
       })
@@ -411,8 +427,8 @@ describe('LoginUserDto', () => {
           password: { value: 'password123' },
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow(
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
           'Password is required and must be a string'
         )
       })
@@ -423,8 +439,8 @@ describe('LoginUserDto', () => {
           password: ['password123'],
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow(
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
           'Password is required and must be a string'
         )
       })
@@ -434,8 +450,10 @@ describe('LoginUserDto', () => {
       it('should throw ValidationException for email when both are missing', () => {
         const data = {}
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
+          'Email is required and must be a string'
+        )
       })
 
       it('should throw ValidationException for email when both are null', () => {
@@ -444,8 +462,10 @@ describe('LoginUserDto', () => {
           password: null,
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
+          'Email is required and must be a string'
+        )
       })
 
       it('should throw ValidationException for email when both are empty strings', () => {
@@ -464,8 +484,10 @@ describe('LoginUserDto', () => {
           password: true,
         }
 
-        expect(() => LoginUserDto.validate(data)).toThrow(ValidationException)
-        expect(() => LoginUserDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => LoginUserDto.validate(data as any)).toThrow(ValidationException)
+        expect(() => LoginUserDto.validate(data as any)).toThrow(
+          'Email is required and must be a string'
+        )
       })
     })
 

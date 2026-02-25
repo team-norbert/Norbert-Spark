@@ -61,32 +61,40 @@ describe('UpdateCompanyDTO', () => {
 
   describe('validate() - type validation', () => {
     it('should throw TypeException when data is undefined', () => {
-      expect(() => UpdateCompanyDTO.validate(undefined)).toThrow(TypeException)
-      expect(() => UpdateCompanyDTO.validate(undefined)).toThrow('Invalid data: expected an object')
+      expect(() => UpdateCompanyDTO.validate(undefined as any)).toThrow(TypeException)
+      expect(() => UpdateCompanyDTO.validate(undefined as any)).toThrow(
+        'Invalid data: expected an object'
+      )
     })
 
     it('should throw TypeException when data is null', () => {
-      expect(() => UpdateCompanyDTO.validate(null)).toThrow(TypeException)
-      expect(() => UpdateCompanyDTO.validate(null)).toThrow('Invalid data: expected an object')
+      expect(() => UpdateCompanyDTO.validate(null as any)).toThrow(TypeException)
+      expect(() => UpdateCompanyDTO.validate(null as any)).toThrow(
+        'Invalid data: expected an object'
+      )
     })
 
     it('should throw TypeException when data is not an object', () => {
-      expect(() => UpdateCompanyDTO.validate('string')).toThrow(TypeException)
-      expect(() => UpdateCompanyDTO.validate(123)).toThrow(TypeException)
-      expect(() => UpdateCompanyDTO.validate(true)).toThrow(TypeException)
-      expect(() => UpdateCompanyDTO.validate([])).toThrow(TypeException)
+      expect(() => UpdateCompanyDTO.validate('string' as any)).toThrow(TypeException)
+      expect(() => UpdateCompanyDTO.validate(123 as any)).toThrow(TypeException)
+      expect(() => UpdateCompanyDTO.validate(true as any)).toThrow(TypeException)
+      expect(() => UpdateCompanyDTO.validate([] as any)).toThrow(TypeException)
     })
 
     it('should throw ValidationException when company is not an object', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: 'invalid' })).toThrow(ValidationException)
-      expect(() => UpdateCompanyDTO.validate({ company: 'invalid' })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: 'invalid' } as any)).toThrow(
+        ValidationException
+      )
+      expect(() => UpdateCompanyDTO.validate({ company: 'invalid' } as any)).toThrow(
         'Invalid company: must be a defined object'
       )
     })
 
     it('should throw ValidationException when keyPerson is not an object', () => {
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: 'invalid' })).toThrow(ValidationException)
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: 'invalid' })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: 'invalid' } as any)).toThrow(
+        ValidationException
+      )
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: 'invalid' } as any)).toThrow(
         'Invalid keyPerson: must be a defined object'
       )
     })
@@ -105,10 +113,10 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when companyId is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { companyId: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { companyId: 123 } } as any)).toThrow(
         ValidationException
       )
-      expect(() => UpdateCompanyDTO.validate({ company: { companyId: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { companyId: 123 } } as any)).toThrow(
         'Invalid companyId: must be a string'
       )
     })
@@ -134,7 +142,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid legalName', () => {
       const data = {
         company: { legalName: 'Acme Corporation Ltd.' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -142,20 +150,20 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when legalName is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { legalName: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { legalName: 123 } } as any)).toThrow(
         'Invalid legalName: must be a string'
       )
     })
 
     it('should throw ValidationException when legalName is too short', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { legalName: 'A' } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { legalName: 'A' } } as any)).toThrow(
         'Invalid legalName: must be between 2 and 200 characters long'
       )
     })
 
     it('should throw ValidationException when legalName is too long', () => {
       const longName = 'A'.repeat(201)
-      expect(() => UpdateCompanyDTO.validate({ company: { legalName: longName } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { legalName: longName } } as any)).toThrow(
         'Invalid legalName: must be between 2 and 200 characters long'
       )
     })
@@ -163,7 +171,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept legalName at minimum length', () => {
       const data = {
         company: { legalName: 'AB' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -174,7 +182,7 @@ describe('UpdateCompanyDTO', () => {
       const maxName = 'A'.repeat(200)
       const data = {
         company: { legalName: maxName },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -186,7 +194,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid displayName', () => {
       const data = {
         company: { displayName: 'Acme Corp' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -194,22 +202,22 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when displayName is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { displayName: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { displayName: 123 } } as any)).toThrow(
         'Invalid displayName: must be a string'
       )
     })
 
     it('should throw ValidationException when displayName is too short', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { displayName: 'A' } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { displayName: 'A' } } as any)).toThrow(
         'Invalid displayName: must be between 2 and 200 characters long'
       )
     })
 
     it('should throw ValidationException when displayName is too long', () => {
       const longName = 'A'.repeat(201)
-      expect(() => UpdateCompanyDTO.validate({ company: { displayName: longName } })).toThrow(
-        'Invalid displayName: must be between 2 and 200 characters long'
-      )
+      expect(() =>
+        UpdateCompanyDTO.validate({ company: { displayName: longName } } as any)
+      ).toThrow('Invalid displayName: must be between 2 and 200 characters long')
     })
   })
 
@@ -217,7 +225,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid status "prospect"', () => {
       const data = {
         company: { status: 'prospect' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -227,7 +235,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid status "active"', () => {
       const data = {
         company: { status: 'active' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -237,7 +245,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid status "paused"', () => {
       const data = {
         company: { status: 'paused' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -247,7 +255,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid status "churned"', () => {
       const data = {
         company: { status: 'churned' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -255,13 +263,13 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when status is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { status: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { status: 123 } } as any)).toThrow(
         'Invalid status: must be a string'
       )
     })
 
     it('should throw ValidationException when status is invalid', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { status: 'invalid' } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { status: 'invalid' } } as any)).toThrow(
         'Invalid status: must be one of "prospect", "active", "paused", "churned"'
       )
     })
@@ -271,7 +279,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid industry', () => {
       const data = {
         company: { industry: 'Technology' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -279,23 +287,23 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when industry is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { industry: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { industry: 123 } } as any)).toThrow(
         'Invalid industry: must be a string'
       )
     })
 
     it('should throw ValidationException when industry is too long', () => {
       const longIndustry = 'A'.repeat(101)
-      expect(() => UpdateCompanyDTO.validate({ company: { industry: longIndustry } })).toThrow(
-        'Invalid industry: must be less than 100 characters long'
-      )
+      expect(() =>
+        UpdateCompanyDTO.validate({ company: { industry: longIndustry } } as any)
+      ).toThrow('Invalid industry: must be less than 100 characters long')
     })
 
     it('should accept industry at maximum length', () => {
       const maxIndustry = 'A'.repeat(100)
       const data = {
         company: { industry: maxIndustry },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -307,7 +315,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid companySize', () => {
       const data = {
         company: { companySize: 500 },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -315,17 +323,17 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when companySize is not a number', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { companySize: '500' } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { companySize: '500' } } as any)).toThrow(
         'Invalid companySize: must be a number'
       )
     })
 
     it('should throw ValidationException when companySize is less than 1', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { companySize: 0 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { companySize: 0 } } as any)).toThrow(
         'Invalid companySize: must be greater than 0'
       )
 
-      expect(() => UpdateCompanyDTO.validate({ company: { companySize: -5 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { companySize: -5 } } as any)).toThrow(
         'Invalid companySize: must be greater than 0'
       )
     })
@@ -333,7 +341,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept companySize at minimum value', () => {
       const data = {
         company: { companySize: 1 },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -345,7 +353,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid websiteUrl', () => {
       const data = {
         company: { websiteUrl: 'https://acme.com' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -355,7 +363,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid websiteUrl with http', () => {
       const data = {
         company: { websiteUrl: 'http://acme.com' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -363,15 +371,15 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when websiteUrl is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { websiteUrl: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { websiteUrl: 123 } } as any)).toThrow(
         'Invalid websiteUrl: must be a string'
       )
     })
 
     it('should throw ValidationException when websiteUrl is invalid', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { websiteUrl: 'not-a-url' } })).toThrow(
-        'Invalid websiteUrl: must be a valid URL'
-      )
+      expect(() =>
+        UpdateCompanyDTO.validate({ company: { websiteUrl: 'not-a-url' } } as any)
+      ).toThrow('Invalid websiteUrl: must be a valid URL')
     })
   })
 
@@ -379,7 +387,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid billingCountry', () => {
       const data = {
         company: { billingCountry: 'US' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -392,7 +400,7 @@ describe('UpdateCompanyDTO', () => {
       for (const code of countryCodes) {
         const data = {
           company: { billingCountry: code },
-        }
+        } as any
 
         const dto = UpdateCompanyDTO.validate(data)
 
@@ -401,33 +409,33 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when billingCountry is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { billingCountry: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { billingCountry: 123 } } as any)).toThrow(
         'Invalid billingCountry: must be a string'
       )
     })
 
     it('should throw ValidationException when billingCountry is not 2 letters', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { billingCountry: 'USA' } })).toThrow(
-        'Invalid billingCountry: must be a 2-letter ISO country code (uppercase)'
-      )
+      expect(() =>
+        UpdateCompanyDTO.validate({ company: { billingCountry: 'USA' } } as any)
+      ).toThrow('Invalid billingCountry: must be a 2-letter ISO country code (uppercase)')
 
-      expect(() => UpdateCompanyDTO.validate({ company: { billingCountry: 'U' } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { billingCountry: 'U' } } as any)).toThrow(
         'Invalid billingCountry: must be a 2-letter ISO country code (uppercase)'
       )
     })
 
     it('should throw ValidationException when billingCountry is not uppercase', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { billingCountry: 'us' } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { billingCountry: 'us' } } as any)).toThrow(
         'Invalid billingCountry: must be a 2-letter ISO country code (uppercase)'
       )
 
-      expect(() => UpdateCompanyDTO.validate({ company: { billingCountry: 'Us' } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { billingCountry: 'Us' } } as any)).toThrow(
         'Invalid billingCountry: must be a 2-letter ISO country code (uppercase)'
       )
     })
 
     it('should throw ValidationException when billingCountry contains non-letters', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { billingCountry: '12' } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { billingCountry: '12' } } as any)).toThrow(
         'Invalid billingCountry: must be a 2-letter ISO country code (uppercase)'
       )
     })
@@ -437,7 +445,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid timezone', () => {
       const data = {
         company: { timezone: 'America/New_York' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -450,7 +458,7 @@ describe('UpdateCompanyDTO', () => {
       for (const timezone of timezones) {
         const data = {
           company: { timezone },
-        }
+        } as any
 
         const dto = UpdateCompanyDTO.validate(data)
 
@@ -459,7 +467,7 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when timezone is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ company: { timezone: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ company: { timezone: 123 } } as any)).toThrow(
         'Invalid timezone: must be a string'
       )
     })
@@ -478,7 +486,7 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when keyPersonId is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { keyPersonId: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { keyPersonId: 123 } } as any)).toThrow(
         'Invalid keyPersonId: must be a string'
       )
     })
@@ -494,7 +502,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid firstName', () => {
       const data = {
         keyPerson: { firstName: 'John' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -502,28 +510,28 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when firstName is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { firstName: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { firstName: 123 } } as any)).toThrow(
         'Invalid firstName: must be a string'
       )
     })
 
     it('should throw ValidationException when firstName is too short', () => {
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { firstName: '' } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { firstName: '' } } as any)).toThrow(
         'Invalid firstName: must be between 1 and 100 characters long'
       )
     })
 
     it('should throw ValidationException when firstName is too long', () => {
       const longName = 'A'.repeat(101)
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { firstName: longName } })).toThrow(
-        'Invalid firstName: must be between 1 and 100 characters long'
-      )
+      expect(() =>
+        UpdateCompanyDTO.validate({ keyPerson: { firstName: longName } } as any)
+      ).toThrow('Invalid firstName: must be between 1 and 100 characters long')
     })
 
     it('should accept firstName at minimum length', () => {
       const data = {
         keyPerson: { firstName: 'A' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -534,7 +542,7 @@ describe('UpdateCompanyDTO', () => {
       const maxName = 'A'.repeat(100)
       const data = {
         keyPerson: { firstName: maxName },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -546,7 +554,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid lastName', () => {
       const data = {
         keyPerson: { lastName: 'Doe' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -554,20 +562,20 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when lastName is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { lastName: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { lastName: 123 } } as any)).toThrow(
         'Invalid lastName: must be a string'
       )
     })
 
     it('should throw ValidationException when lastName is too short', () => {
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { lastName: '' } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { lastName: '' } } as any)).toThrow(
         'Invalid lastName: must be between 1 and 100 characters long'
       )
     })
 
     it('should throw ValidationException when lastName is too long', () => {
       const longName = 'A'.repeat(101)
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { lastName: longName } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { lastName: longName } } as any)).toThrow(
         'Invalid lastName: must be between 1 and 100 characters long'
       )
     })
@@ -577,7 +585,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid email', () => {
       const data = {
         keyPerson: { email: 'john.doe@acme.com' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -595,7 +603,7 @@ describe('UpdateCompanyDTO', () => {
       for (const email of validEmails) {
         const data = {
           keyPerson: { email },
-        }
+        } as any
 
         const dto = UpdateCompanyDTO.validate(data)
 
@@ -604,7 +612,7 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when email is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { email: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { email: 123 } } as any)).toThrow(
         'Invalid email: must be a string'
       )
     })
@@ -619,7 +627,7 @@ describe('UpdateCompanyDTO', () => {
       ]
 
       for (const email of invalidEmails) {
-        expect(() => UpdateCompanyDTO.validate({ keyPerson: { email } })).toThrow(
+        expect(() => UpdateCompanyDTO.validate({ keyPerson: { email } } as any)).toThrow(
           'Invalid email: must be a valid email address'
         )
       }
@@ -630,7 +638,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid phone', () => {
       const data = {
         keyPerson: { phone: '+1-555-123-4567' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -643,7 +651,7 @@ describe('UpdateCompanyDTO', () => {
       for (const phone of validPhones) {
         const data = {
           keyPerson: { phone },
-        }
+        } as any
 
         const dto = UpdateCompanyDTO.validate(data)
 
@@ -652,14 +660,14 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when phone is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { phone: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { phone: 123 } } as any)).toThrow(
         'Invalid phone: must be a string'
       )
     })
 
     it('should throw ValidationException when phone is too long', () => {
       const longPhone = '1'.repeat(31)
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { phone: longPhone } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { phone: longPhone } } as any)).toThrow(
         'Invalid phone: must be less than 30 characters long'
       )
     })
@@ -668,7 +676,7 @@ describe('UpdateCompanyDTO', () => {
       const maxPhone = '1'.repeat(30)
       const data = {
         keyPerson: { phone: maxPhone },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -680,7 +688,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept valid jobTitle', () => {
       const data = {
         keyPerson: { jobTitle: 'Chief Executive Officer' },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -688,23 +696,23 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when jobTitle is not a string', () => {
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { jobTitle: 123 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { jobTitle: 123 } } as any)).toThrow(
         'Invalid jobTitle: must be a string'
       )
     })
 
     it('should throw ValidationException when jobTitle is too long', () => {
       const longTitle = 'A'.repeat(101)
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { jobTitle: longTitle } })).toThrow(
-        'Invalid jobTitle: must be less than 100 characters long'
-      )
+      expect(() =>
+        UpdateCompanyDTO.validate({ keyPerson: { jobTitle: longTitle } } as any)
+      ).toThrow('Invalid jobTitle: must be less than 100 characters long')
     })
 
     it('should accept jobTitle at maximum length', () => {
       const maxTitle = 'A'.repeat(100)
       const data = {
         keyPerson: { jobTitle: maxTitle },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -716,7 +724,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept isActive as true', () => {
       const data = {
         keyPerson: { isActive: true },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -726,7 +734,7 @@ describe('UpdateCompanyDTO', () => {
     it('should accept isActive as false', () => {
       const data = {
         keyPerson: { isActive: false },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -734,11 +742,11 @@ describe('UpdateCompanyDTO', () => {
     })
 
     it('should throw ValidationException when isActive is not a boolean', () => {
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { isActive: 'true' } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { isActive: 'true' } } as any)).toThrow(
         'Invalid isActive: must be a boolean'
       )
 
-      expect(() => UpdateCompanyDTO.validate({ keyPerson: { isActive: 1 } })).toThrow(
+      expect(() => UpdateCompanyDTO.validate({ keyPerson: { isActive: 1 } } as any)).toThrow(
         'Invalid isActive: must be a boolean'
       )
     })
@@ -769,7 +777,7 @@ describe('UpdateCompanyDTO', () => {
           jobTitle: 'Chief Executive Officer',
           isActive: true,
         },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -842,7 +850,7 @@ describe('UpdateCompanyDTO', () => {
           status: 'active',
           timezone: 'UTC',
         },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 
@@ -857,7 +865,7 @@ describe('UpdateCompanyDTO', () => {
           email: 'john@example.com',
           isActive: false,
         },
-      }
+      } as any
 
       const dto = UpdateCompanyDTO.validate(data)
 

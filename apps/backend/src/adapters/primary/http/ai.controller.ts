@@ -29,6 +29,7 @@ import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
 import { PutChatDetailsUseCase } from '../../../application/use-cases/put-chat-details.use-case.js'
 import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
 import { PostChatTypesUseCase } from '../../../application/use-cases/post-chat-types.use-case.js'
+import type { components, operations } from '@norberts-spark/shared/openapi-types'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -124,11 +125,17 @@ export class AIController {
     }
 
     let messages: UIMessage[]
-    let id: string
+    let id: ChatIdType
     let trigger: string
 
     try {
-      const body = request.body as any
+      const body = request.body as components['schemas']['AIRequest'] & {
+        id: string
+        trigger: string
+        chatTypeParam?: string
+        chatTypeId?: string
+        messages: any[]
+      }
 
       this.logger.info('Request body:', {
         id: body?.id,
@@ -144,7 +151,7 @@ export class AIController {
       })
 
       // Extract id and trigger from body
-      id = body?.id
+      id = body?.id as ChatIdType
 
       trigger = body?.trigger
 
@@ -186,7 +193,7 @@ export class AIController {
     // Conversion of string request.user.sub id to UserIdType branded type
     // happens in middleware so no need to instantiate a new UserId here
     const userId = request.user.sub
-    const chatId = id as ChatIdType
+    const chatId = id
 
     // Resolve chatTypeId from URI parameter (chatTypeParam) or fallback to body.chatTypeId
     // The chatTypeParam can be any of: UUID id, seo_friendly_id, or seo_friendly_base64_id
@@ -404,8 +411,8 @@ export class AIController {
       userAgent: request.headers['user-agent'] ?? null,
     }
 
-    const params = request.params as Record<string, unknown>
-    const userIdParam = params.userId as string
+    const params = request.params as operations['getAIChatsByUserId']['parameters']['path']
+    const userIdParam = params.userId
 
     if (!userIdParam) {
       return reply.code(400).send({
@@ -593,7 +600,7 @@ export class AIController {
     }
 
     try {
-      const body = request.body as any
+      const body = request.body as components['schemas']['UpdateAIChatTypeRequest']
       const dto = PutChatTypeDto.validate(body)
       const result = await this.putChatDetailsUseCase.execute(auditContext, dto)
       if (!result) {
@@ -681,7 +688,7 @@ export class AIController {
     }
 
     try {
-      const body = request.body as any
+      const body = request.body as components['schemas']['CreateAIChatTypeRequest']
       const dto = PostChatType.validate(body)
       const createdChatType = await this.postChatTypesUseCase.execute(auditContext, dto)
       reply.code(201).send({
@@ -742,7 +749,7 @@ export class AIController {
       userAgent: request.headers['user-agent'] ?? null,
     }
 
-    const params = request.params as Record<string, unknown>
+    const params = request.params as any
     const chatIdParam = params.chatId as string
 
     if (!chatIdParam) {

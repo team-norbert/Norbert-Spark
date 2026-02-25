@@ -1,6 +1,7 @@
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 import { isString } from '@norberts-spark/shared'
+import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * Data Transfer Object for user login requests
@@ -64,7 +65,7 @@ export class LoginUserDto {
    * }
    * ```
    */
-  static validate(data: any): LoginUserDto {
+  static validate(data: components['schemas']['UserLoginRequest']): LoginUserDto {
     if (!data || typeof data !== 'object' || Array.isArray(data)) {
       throw new TypeException('Data must be a valid object')
     }

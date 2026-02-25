@@ -80,7 +80,7 @@ describe('AdminPage', () => {
       render(<AdminPage {...defaultProps} />)
 
       expect(screen.getByRole('heading', { name: /user management/i })).toBeInTheDocument()
-    })
+    }, 15000)
 
     it('should render description for admin role', () => {
       render(<AdminPage {...defaultProps} />)

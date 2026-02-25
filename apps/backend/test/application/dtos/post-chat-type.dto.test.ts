@@ -51,31 +51,35 @@ describe('PostChatType', () => {
 
   describe('validate() - type validation', () => {
     it('should throw TypeException when data is undefined', () => {
-      expect(() => PostChatType.validate(undefined)).toThrow(TypeException)
-      expect(() => PostChatType.validate(undefined)).toThrow('Invalid data: expected an object')
+      expect(() => PostChatType.validate(undefined as any)).toThrow(TypeException)
+      expect(() => PostChatType.validate(undefined as any)).toThrow(
+        'Invalid data: expected an object'
+      )
     })
 
     it('should throw TypeException when data is null', () => {
-      expect(() => PostChatType.validate(null)).toThrow(TypeException)
-      expect(() => PostChatType.validate(null)).toThrow('Invalid data: expected an object')
+      expect(() => PostChatType.validate(null as any)).toThrow(TypeException)
+      expect(() => PostChatType.validate(null as any)).toThrow('Invalid data: expected an object')
     })
 
     it('should throw TypeException when data is a string', () => {
-      expect(() => PostChatType.validate('string')).toThrow(TypeException)
-      expect(() => PostChatType.validate('string')).toThrow('Invalid data: expected an object')
+      expect(() => PostChatType.validate('string' as any)).toThrow(TypeException)
+      expect(() => PostChatType.validate('string' as any)).toThrow(
+        'Invalid data: expected an object'
+      )
     })
 
     it('should throw TypeException when data is a number', () => {
-      expect(() => PostChatType.validate(42)).toThrow(TypeException)
+      expect(() => PostChatType.validate(42 as any)).toThrow(TypeException)
     })
 
     it('should throw TypeException when data is a boolean', () => {
-      expect(() => PostChatType.validate(true)).toThrow(TypeException)
+      expect(() => PostChatType.validate(true as any)).toThrow(TypeException)
     })
 
     it('should throw TypeException when data is an array', () => {
-      expect(() => PostChatType.validate([])).toThrow(TypeException)
-      expect(() => PostChatType.validate([])).toThrow('Invalid data: expected an object')
+      expect(() => PostChatType.validate([] as any)).toThrow(TypeException)
+      expect(() => PostChatType.validate([] as any)).toThrow('Invalid data: expected an object')
     })
   })
 
@@ -83,36 +87,36 @@ describe('PostChatType', () => {
 
   describe('validate() - name validation', () => {
     it('should throw ValidationException when name is missing', () => {
-      expect(() => PostChatType.validate({ description: 'Valid description' })).toThrow(
+      expect(() => PostChatType.validate({ description: 'Valid description' } as any)).toThrow(
         ValidationException
       )
-      expect(() => PostChatType.validate({ description: 'Valid description' })).toThrow(
+      expect(() => PostChatType.validate({ description: 'Valid description' } as any)).toThrow(
         'Invalid name: must be a non-empty string'
       )
     })
 
     it('should throw ValidationException when name is undefined', () => {
       expect(() =>
-        PostChatType.validate({ name: undefined, description: 'Valid description' })
+        PostChatType.validate({ name: undefined as any, description: 'Valid description' })
       ).toThrow(ValidationException)
     })
 
     it('should throw ValidationException when name is null', () => {
-      expect(() => PostChatType.validate({ name: null, description: 'Valid description' })).toThrow(
-        ValidationException
-      )
-      expect(() => PostChatType.validate({ name: null, description: 'Valid description' })).toThrow(
-        'Invalid name: must be a non-empty string'
-      )
+      expect(() =>
+        PostChatType.validate({ name: null as any, description: 'Valid description' })
+      ).toThrow(ValidationException)
+      expect(() =>
+        PostChatType.validate({ name: null as any, description: 'Valid description' })
+      ).toThrow('Invalid name: must be a non-empty string')
     })
 
     it('should throw ValidationException when name is a number', () => {
-      expect(() => PostChatType.validate({ name: 123, description: 'Valid description' })).toThrow(
-        ValidationException
-      )
-      expect(() => PostChatType.validate({ name: 123, description: 'Valid description' })).toThrow(
-        'Invalid name: must be a non-empty string'
-      )
+      expect(() =>
+        PostChatType.validate({ name: 123 as any, description: 'Valid description' })
+      ).toThrow(ValidationException)
+      expect(() =>
+        PostChatType.validate({ name: 123 as any, description: 'Valid description' })
+      ).toThrow('Invalid name: must be a non-empty string')
     })
 
     it('should throw ValidationException when name is an empty string', () => {
@@ -167,32 +171,34 @@ describe('PostChatType', () => {
 
   describe('validate() - description validation', () => {
     it('should throw ValidationException when description is missing', () => {
-      expect(() => PostChatType.validate({ name: 'Valid name' })).toThrow(ValidationException)
-      expect(() => PostChatType.validate({ name: 'Valid name' })).toThrow(
+      expect(() => PostChatType.validate({ name: 'Valid name' } as any)).toThrow(
+        ValidationException
+      )
+      expect(() => PostChatType.validate({ name: 'Valid name' } as any)).toThrow(
         'Invalid description: must be a non-empty string'
       )
     })
 
     it('should throw ValidationException when description is undefined', () => {
-      expect(() => PostChatType.validate({ name: 'Valid name', description: undefined })).toThrow(
-        ValidationException
-      )
+      expect(() =>
+        PostChatType.validate({ name: 'Valid name', description: undefined as any })
+      ).toThrow(ValidationException)
     })
 
     it('should throw ValidationException when description is null', () => {
-      expect(() => PostChatType.validate({ name: 'Valid name', description: null })).toThrow(
+      expect(() => PostChatType.validate({ name: 'Valid name', description: null as any })).toThrow(
         ValidationException
       )
-      expect(() => PostChatType.validate({ name: 'Valid name', description: null })).toThrow(
+      expect(() => PostChatType.validate({ name: 'Valid name', description: null as any })).toThrow(
         'Invalid description: must be a non-empty string'
       )
     })
 
     it('should throw ValidationException when description is a number', () => {
-      expect(() => PostChatType.validate({ name: 'Valid name', description: 42 })).toThrow(
+      expect(() => PostChatType.validate({ name: 'Valid name', description: 42 as any })).toThrow(
         ValidationException
       )
-      expect(() => PostChatType.validate({ name: 'Valid name', description: 42 })).toThrow(
+      expect(() => PostChatType.validate({ name: 'Valid name', description: 42 as any })).toThrow(
         'Invalid description: must be a non-empty string'
       )
     })
@@ -259,28 +265,52 @@ describe('PostChatType', () => {
 
     it('should throw ValidationException when rag is null', () => {
       expect(() =>
-        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: null })
+        PostChatType.validate({
+          name: 'Valid name',
+          description: 'Valid description',
+          rag: null as any,
+        })
       ).toThrow(ValidationException)
       expect(() =>
-        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: null })
+        PostChatType.validate({
+          name: 'Valid name',
+          description: 'Valid description',
+          rag: null as any,
+        })
       ).toThrow('Invalid rag: must be a boolean')
     })
 
     it('should throw ValidationException when rag is a string', () => {
       expect(() =>
-        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: 'true' })
+        PostChatType.validate({
+          name: 'Valid name',
+          description: 'Valid description',
+          rag: 'true' as any,
+        })
       ).toThrow(ValidationException)
       expect(() =>
-        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: 'true' })
+        PostChatType.validate({
+          name: 'Valid name',
+          description: 'Valid description',
+          rag: 'true' as any,
+        })
       ).toThrow('Invalid rag: must be a boolean')
     })
 
     it('should throw ValidationException when rag is a number', () => {
       expect(() =>
-        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: 1 })
+        PostChatType.validate({
+          name: 'Valid name',
+          description: 'Valid description',
+          rag: 1 as any,
+        })
       ).toThrow(ValidationException)
       expect(() =>
-        PostChatType.validate({ name: 'Valid name', description: 'Valid description', rag: 1 })
+        PostChatType.validate({
+          name: 'Valid name',
+          description: 'Valid description',
+          rag: 1 as any,
+        })
       ).toThrow('Invalid rag: must be a boolean')
     })
 
@@ -369,7 +399,7 @@ describe('PostChatType', () => {
         description: 'A helpful assistant',
         rag: false,
         extra: 'ignored',
-      })
+      } as any)
 
       expect(dto).toBeInstanceOf(PostChatType)
       expect(dto.name).toBe('General Chat')

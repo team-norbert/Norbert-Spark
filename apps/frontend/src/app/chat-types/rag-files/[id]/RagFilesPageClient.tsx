@@ -8,7 +8,7 @@ import { useFileUpload } from '@/view/hooks/useFileUpload.js'
  * This component is minimal and declarative - it only orchestrates the hook and component.
  * Business logic is in the hook, presentation is in the component.
  */
-export function RagFilesPageClient() {
+export function RagFilesPageClient({ chatTypeId }: { chatTypeId: string }) {
   const {
     clearAllFiles,
     clearError,
@@ -23,34 +23,44 @@ export function RagFilesPageClient() {
     handleSignOut,
     isExtracting,
     isUploading,
+    ragFileKeys,
     removeFile,
+    showRagForm,
     uploadedFiles,
-  } = useFileUpload()
+  } = useFileUpload({
+    callbackUrl: '/chat-types/rag-files',
+    flow: 'rag',
+    chatTypeId,
+  })
 
   return (
     <FileUploadPage
-      uploadedFiles={uploadedFiles}
+      chatTypeId={chatTypeId}
       dragActive={dragActive}
       error={error}
-      isUploading={isUploading}
-      isExtracting={isExtracting}
       extractedData={extractedData}
+      flow="rag"
+      isExtracting={isExtracting}
+      isUploading={isUploading}
+      onClearAllFiles={clearAllFiles}
+      onClearError={clearError}
+      onDrag={handleDrag}
+      onDrop={handleDrop}
+      onFileInputChange={handleFileInputChange}
+      onNavigateHome={handleNavigateHome}
+      onProcessFiles={handleProcessFiles}
+      onRemoveFile={removeFile}
+      onSignOut={handleSignOut}
+      ragFileKeys={ragFileKeys}
+      showRagForm={showRagForm}
+      testIds={{
+        fileInput: 'rag-files-file-input',
+      }}
       text={{
         title: 'Retrieval-Augmented Generation (RAG) files upload',
         subtitle: 'Upload PDF or ZIP files for RAG knowledge base',
       }}
-      testIds={{
-        fileInput: 'rag-files-file-input',
-      }}
-      onDrag={handleDrag}
-      onDrop={handleDrop}
-      onFileInputChange={handleFileInputChange}
-      onRemoveFile={removeFile}
-      onClearAllFiles={clearAllFiles}
-      onProcessFiles={handleProcessFiles}
-      onClearError={clearError}
-      onNavigateHome={handleNavigateHome}
-      onSignOut={handleSignOut}
+      uploadedFiles={uploadedFiles}
     />
   )
 }

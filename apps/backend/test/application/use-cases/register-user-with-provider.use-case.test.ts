@@ -543,7 +543,7 @@ describe('RegisterUserWithProviderUseCase', () => {
             email: 'john@example.com',
             name: 'John Doe',
             role: 'user',
-          })
+          } as any)
         }).toThrow(ValidationException)
       })
 

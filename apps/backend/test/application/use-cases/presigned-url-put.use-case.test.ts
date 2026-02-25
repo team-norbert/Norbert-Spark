@@ -65,7 +65,7 @@ describe('PresignedUploadUrlUseCase', () => {
       it('should generate presigned URL for single file', async () => {
         const files = [{ filename: 'document.pdf', mimetype: 'application/pdf' }] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls).toHaveLength(1)
         expect(result.uploadUrls[0]!).toMatchObject({
@@ -82,7 +82,7 @@ describe('PresignedUploadUrlUseCase', () => {
           { filename: 'archive.zip', mimetype: 'application/zip' },
         ] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls).toHaveLength(3)
         expect(result.uploadUrls[0]!.filename).toBe('document1.pdf')
@@ -93,7 +93,7 @@ describe('PresignedUploadUrlUseCase', () => {
       it('should call bucketService.getUploadURL with correct parameters', async () => {
         const files = [{ filename: 'test.pdf', mimetype: 'application/pdf' }] as any
 
-        await useCase.execute(files, auditContext)
+        await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockBucketService.getUploadURL).toHaveBeenCalledTimes(1)
         expect(mockBucketService.getUploadURL).toHaveBeenCalledWith(
@@ -109,7 +109,7 @@ describe('PresignedUploadUrlUseCase', () => {
           { filename: 'test.pdf', mimetype: 'application/pdf' },
         ] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls[0]!.fileKey).not.toBe(result.uploadUrls[1]!.fileKey)
       })
@@ -117,7 +117,7 @@ describe('PresignedUploadUrlUseCase', () => {
       it('should log file information when generating presigned URLs', async () => {
         const files = [{ filename: 'document.pdf', mimetype: 'application/pdf' }] as any
 
-        await useCase.execute(files, auditContext)
+        await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockLogger.info).toHaveBeenCalledWith(
           'Generating presigned URL for file',
@@ -135,7 +135,7 @@ describe('PresignedUploadUrlUseCase', () => {
           { filename: 'file2.pdf', mimetype: 'application/pdf' },
         ] as any
 
-        await useCase.execute(files, auditContext)
+        await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockLogger.info).toHaveBeenCalledWith('Presigned URLs generated successfully', {
           fileCount: 2,
@@ -148,7 +148,7 @@ describe('PresignedUploadUrlUseCase', () => {
           { filename: 'doc2.zip', mimetype: 'application/zip' },
         ] as any
 
-        await useCase.execute(files, auditContext)
+        await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
         expect(mockAuditLog.log).toHaveBeenCalledWith({
@@ -176,7 +176,7 @@ describe('PresignedUploadUrlUseCase', () => {
           userId: null,
         }
 
-        await useCase.execute(files, contextWithNullUser)
+        await useCase.execute(files, contextWithNullUser, 'data-extraction')
 
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -193,7 +193,7 @@ describe('PresignedUploadUrlUseCase', () => {
           userAgent: null,
         }
 
-        await useCase.execute(files, contextWithNullUserAgent)
+        await useCase.execute(files, contextWithNullUserAgent, 'data-extraction')
 
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -209,7 +209,7 @@ describe('PresignedUploadUrlUseCase', () => {
           { filename: 'third.pdf', mimetype: 'application/pdf' },
         ] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls[0]!.filename).toBe('first.pdf')
         expect(result.uploadUrls[1]!.filename).toBe('second.zip')
@@ -222,7 +222,7 @@ describe('PresignedUploadUrlUseCase', () => {
         vi.spyOn(EnvConfig, 'BUCKET', 'get').mockReturnValue('')
         const files = [{ filename: 'test.pdf', mimetype: 'application/pdf' }] as any
 
-        await expect(useCase.execute(files, auditContext)).rejects.toThrow(
+        await expect(useCase.execute(files, auditContext, 'data-extraction')).rejects.toThrow(
           'Bucket configuration is missing'
         )
 
@@ -235,7 +235,7 @@ describe('PresignedUploadUrlUseCase', () => {
         vi.spyOn(EnvConfig, 'BUCKET', 'get').mockReturnValue(undefined as any)
         const files = [{ filename: 'test.pdf', mimetype: 'application/pdf' }] as any
 
-        await expect(useCase.execute(files, auditContext)).rejects.toThrow(
+        await expect(useCase.execute(files, auditContext, 'data-extraction')).rejects.toThrow(
           'Bucket configuration is missing'
         )
       })
@@ -245,7 +245,9 @@ describe('PresignedUploadUrlUseCase', () => {
         const error = new Error('S3 service unavailable')
         vi.mocked(mockBucketService.getUploadURL).mockRejectedValue(error)
 
-        await expect(useCase.execute(files, auditContext)).rejects.toThrow('S3 service unavailable')
+        await expect(useCase.execute(files, auditContext, 'data-extraction')).rejects.toThrow(
+          'S3 service unavailable'
+        )
       })
 
       it('should log error with context when generation fails', async () => {
@@ -253,7 +255,9 @@ describe('PresignedUploadUrlUseCase', () => {
         const error = new Error('Network error')
         vi.mocked(mockBucketService.getUploadURL).mockRejectedValue(error)
 
-        await expect(useCase.execute(files, auditContext)).rejects.toThrow('Network error')
+        await expect(useCase.execute(files, auditContext, 'data-extraction')).rejects.toThrow(
+          'Network error'
+        )
 
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error generating presigned URLs',
@@ -275,7 +279,9 @@ describe('PresignedUploadUrlUseCase', () => {
           .mockResolvedValueOnce('https://r2.example.com/url1')
           .mockRejectedValueOnce(new Error('Failed on second file'))
 
-        await expect(useCase.execute(files, auditContext)).rejects.toThrow('Failed on second file')
+        await expect(useCase.execute(files, auditContext, 'data-extraction')).rejects.toThrow(
+          'Failed on second file'
+        )
       })
     })
 
@@ -283,7 +289,7 @@ describe('PresignedUploadUrlUseCase', () => {
       it('should handle empty files array', async () => {
         const files = [] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls).toHaveLength(0)
         expect(mockBucketService.getUploadURL).not.toHaveBeenCalled()
@@ -292,7 +298,7 @@ describe('PresignedUploadUrlUseCase', () => {
       it('should handle files with special characters in filename', async () => {
         const files = [{ filename: 'my document (1).pdf', mimetype: 'application/pdf' }] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls[0]!.filename).toBe('my document (1).pdf')
         expect(result.uploadUrls[0]!.fileKey).toContain('my document (1).pdf')
@@ -301,7 +307,7 @@ describe('PresignedUploadUrlUseCase', () => {
       it('should handle files with unicode characters in filename', async () => {
         const files = [{ filename: 'документ.pdf', mimetype: 'application/pdf' }] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls[0]!.filename).toBe('документ.pdf')
       })
@@ -310,7 +316,7 @@ describe('PresignedUploadUrlUseCase', () => {
         const longFilename = 'a'.repeat(200) + '.pdf'
         const files = [{ filename: longFilename, mimetype: 'application/pdf' }] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls[0]!.filename).toBe(longFilename)
       })
@@ -323,7 +329,7 @@ describe('PresignedUploadUrlUseCase', () => {
             mimetype: 'application/pdf',
           })) as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls).toHaveLength(100)
         expect(mockBucketService.getUploadURL).toHaveBeenCalledTimes(100)
@@ -336,7 +342,7 @@ describe('PresignedUploadUrlUseCase', () => {
           { filename: 'compressed.zip', mimetype: 'application/x-zip-compressed' },
         ] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls).toHaveLength(3)
       })
@@ -347,7 +353,7 @@ describe('PresignedUploadUrlUseCase', () => {
           { filename: 'document.zip', mimetype: 'application/zip' },
         ] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls).toHaveLength(2)
         expect(result.uploadUrls[0]!.fileKey).not.toBe(result.uploadUrls[1]!.fileKey)
@@ -361,7 +367,7 @@ describe('PresignedUploadUrlUseCase', () => {
           { filename: 'data.zip', mimetype: 'application/zip' },
         ] as any
 
-        await useCase.execute(files, auditContext)
+        await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -383,7 +389,7 @@ describe('PresignedUploadUrlUseCase', () => {
           { filename: 'file2.zip', mimetype: 'application/zip' },
         ] as any
 
-        await useCase.execute(files, auditContext)
+        await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockLogger.info).toHaveBeenCalledWith(
           'Generating presigned URL for file',
@@ -398,7 +404,7 @@ describe('PresignedUploadUrlUseCase', () => {
       it('should include fileKey in log messages', async () => {
         const files = [{ filename: 'test.pdf', mimetype: 'application/pdf' }] as any
 
-        await useCase.execute(files, auditContext)
+        await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockLogger.info).toHaveBeenCalledWith(
           'Generating presigned URL for file',
@@ -416,7 +422,7 @@ describe('PresignedUploadUrlUseCase', () => {
             mimetype: 'application/pdf',
           })) as any
 
-        await useCase.execute(files, auditContext)
+        await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockLogger.info).toHaveBeenCalledWith('Presigned URLs generated successfully', {
           fileCount: 5,
@@ -428,7 +434,7 @@ describe('PresignedUploadUrlUseCase', () => {
       it('should generate file keys with data-extraction prefix', async () => {
         const files = [{ filename: 'test.pdf', mimetype: 'application/pdf' }] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls[0]!.fileKey).toMatch(/^data-extraction\//)
       })
@@ -436,7 +442,7 @@ describe('PresignedUploadUrlUseCase', () => {
       it('should include UUID in file key', async () => {
         const files = [{ filename: 'test.pdf', mimetype: 'application/pdf' }] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         // UUIDv7 format: xxxxxxxx-xxxx-7xxx-xxxx-xxxxxxxxxxxx
         expect(result.uploadUrls[0]!.fileKey).toMatch(
@@ -447,7 +453,7 @@ describe('PresignedUploadUrlUseCase', () => {
       it('should end with original filename', async () => {
         const files = [{ filename: 'my-document.pdf', mimetype: 'application/pdf' }] as any
 
-        const result = await useCase.execute(files, auditContext)
+        const result = await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(result.uploadUrls[0]!.fileKey).toMatch(/\/my-document\.pdf$/)
       })

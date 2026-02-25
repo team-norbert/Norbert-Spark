@@ -11,6 +11,7 @@ import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
 import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
 import type { PostAIAdminUseCase } from '../../../application/use-cases/post-ai-admin.use-case.js'
 import { DrizzleQueryError } from 'drizzle-orm'
+import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * HTTP controller for AI admin configuration endpoints.
@@ -95,7 +96,7 @@ export class AIAdminController {
         ipAddress: request.ip,
         userAgent: request.headers['user-agent'] ?? null,
       }
-      const params = request.params as Record<string, unknown>
+      const params = request.params as any
       this.logger.debug(`Request params: ${JSON.stringify(params)}`)
       const id = params.id as string
       this.logger.debug(`Request id: ${id}`)
@@ -195,7 +196,8 @@ export class AIAdminController {
         })
       }
       this.logger.debug(`Request uuidID: ${uuidID}`)
-      const dto = PutAIAdminDTO.validate(request.body)
+      const body = request.body as components['schemas']['PutRequestAIChatSettings']
+      const dto = PutAIAdminDTO.validate(body)
       const result = await this.putAIAdminUseCase.execute(uuidID, dto, auditContext)
 
       if (!result) {

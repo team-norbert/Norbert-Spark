@@ -18,7 +18,9 @@ import { google } from '@ai-sdk/google'
 import { pdfSchema } from '@norberts-spark/shared'
 import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 import { DrizzleQueryError } from 'drizzle-orm'
-
+import type { components } from '@norberts-spark/shared/openapi-types'
+import { PresignedUrlDto } from '../../../application/dtos/presignedUrl.dto.js'
+import { TypeException } from '../../../shared/exceptions/type.exception.js'
 /**
  * Allowed file extensions for upload
  */
@@ -28,6 +30,12 @@ const ALLOWED_EXTENSIONS = ['pdf', 'zip']
  * Allowed MIME types for upload
  */
 const ALLOWED_MIME_TYPES = ['application/pdf', 'application/zip', 'application/x-zip-compressed']
+
+/**
+ * Allowed flow values for presigned URL generation
+ */
+const ALLOWED_FLOWS = ['data-extraction', 'rag'] as const
+type AllowedFlow = (typeof ALLOWED_FLOWS)[number]
 
 /**
  * File metadata for presigned URL generation
@@ -399,21 +407,28 @@ export class AIExtractDataController {
    */
   async generatePresignedUrls(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
-      const body = request.body as PresignedUrlRequestBody
-
-      if (!body?.files || !Array.isArray(body.files) || body.files.length === 0) {
-        throw new UnprocessableEntityException('No files provided. Expected { files: [...] }')
+      //CreateVectorStoreRequest.json
+      const body = request.body as components['schemas']['AIPreSignedRequest']
+      let dto: PresignedUrlDto
+      try {
+        dto = PresignedUrlDto.validate(body)
+      } catch (validationError) {
+        if (validationError instanceof TypeException) {
+          reply.code(422).send({ success: false, error: (validationError as Error).message })
+          return
+        }
+        throw validationError
       }
 
       this.logger.info('Generating presigned URLs from metadata', {
-        fileCount: body.files.length,
-        files: body.files.map((f) => ({ filename: f.filename, mimetype: f.mimetype })),
+        fileCount: dto.files.length,
+        files: dto.files.map((f) => ({ filename: f.filename, mimetype: f.mimetype })),
       })
 
       // Validate and sanitize each file's metadata using security utilities
       const sanitizedFiles: FileMetadata[] = []
 
-      for (const file of body.files) {
+      for (const file of dto.files) {
         if (!file.filename || !file.mimetype) {
           throw new UnprocessableEntityException(
             'Each file must have filename and mimetype properties'
@@ -460,7 +475,18 @@ export class AIExtractDataController {
       })) as MultipartFile[]
 
       // Execute use case to generate presigned URLs
-      const result = await this.presignedUploadUrlUseCase.execute(fileMetadata, auditContext)
+      const rawFlow = dto.files[0]?.flow ?? 'data-extraction'
+      if (!ALLOWED_FLOWS.includes(rawFlow as AllowedFlow)) {
+        throw new UnprocessableEntityException(
+          `Invalid flow value: "${rawFlow}". Allowed values are: ${ALLOWED_FLOWS.join(', ')}`
+        )
+      }
+      const distinctFlows = new Set(dto.files.map((f) => f.flow ?? 'data-extraction'))
+      if (distinctFlows.size > 1) {
+        throw new UnprocessableEntityException('All files must share the same flow value')
+      }
+      const flow = rawFlow as AllowedFlow
+      const result = await this.presignedUploadUrlUseCase.execute(fileMetadata, auditContext, flow)
 
       return reply.status(200).send({
         success: true,

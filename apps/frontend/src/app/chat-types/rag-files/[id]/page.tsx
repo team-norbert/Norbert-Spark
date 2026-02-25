@@ -26,5 +26,5 @@ export default async function RagFilesPage({ params }: RagFilesPageProps) {
     redirect(`/signin?${searchParams.toString()}`)
   }
 
-  return <RagFilesPageClient />
+  return <RagFilesPageClient chatTypeId={params.id} />
 }

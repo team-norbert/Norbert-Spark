@@ -312,6 +312,33 @@ describe('AIExtractDataController', () => {
         expect(mockReply.status).toHaveBeenCalledWith(200)
       })
 
+      it('should accept valid rag flow value', async () => {
+        const mockResult = {
+          uploadUrls: [
+            {
+              filename: 'document.pdf',
+              uploadUrl: 'https://r2.example.com/presigned-url',
+              fileKey: 'rag/uuid/document.pdf',
+            },
+          ],
+        }
+
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
+
+        mockRequest.body = {
+          files: [{ filename: 'document.pdf', mimetype: 'application/pdf', flow: 'rag' }],
+        }
+
+        await controller.generatePresignedUrls(mockRequest, mockReply)
+
+        expect(mockReply.status).toHaveBeenCalledWith(200)
+        expect(mockPresignedUploadUrlUseCase.execute).toHaveBeenCalledWith(
+          expect.any(Array),
+          expect.any(Object),
+          'rag'
+        )
+      })
+
       it('should log file information when generating presigned URLs', async () => {
         const mockResult = { uploadUrls: [] }
         vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
@@ -355,7 +382,8 @@ describe('AIExtractDataController', () => {
             userId: userId,
             ipAddress: '192.168.1.1',
             userAgent: 'TestAgent/1.0',
-          })
+          }),
+          expect.any(String)
         )
       })
 
@@ -374,7 +402,8 @@ describe('AIExtractDataController', () => {
           expect.any(Array),
           expect.objectContaining({
             userId: null,
-          })
+          }),
+          expect.any(String)
         )
       })
 
@@ -393,7 +422,8 @@ describe('AIExtractDataController', () => {
           expect.any(Array),
           expect.objectContaining({
             userAgent: null,
-          })
+          }),
+          expect.any(String)
         )
       })
     })
@@ -407,7 +437,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(422)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'No files provided. Expected { files: [...] }',
+          error: 'Request body must be a valid object',
         })
       })
 
@@ -419,7 +449,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(422)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'No files provided. Expected { files: [...] }',
+          error: 'files is required and must be an array',
         })
       })
 
@@ -431,7 +461,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(422)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'No files provided. Expected { files: [...] }',
+          error: 'files is required and must be an array',
         })
       })
 
@@ -457,7 +487,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(422)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Each file must have filename and mimetype properties',
+          error: 'files[0].filename is required and must be a string',
         })
       })
 
@@ -471,7 +501,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(422)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Each file must have filename and mimetype properties',
+          error: 'files[0].mimetype is required and must be a string',
         })
       })
 
@@ -557,6 +587,37 @@ describe('AIExtractDataController', () => {
             mimeType: 'application/javascript',
           })
         )
+      })
+
+      it('should return 422 when flow has an invalid value', async () => {
+        mockRequest.body = {
+          files: [{ filename: 'document.pdf', mimetype: 'application/pdf', flow: 'invalid-flow' }],
+        }
+
+        await controller.generatePresignedUrls(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(422)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid flow value: "invalid-flow". Allowed values are: data-extraction, rag',
+        })
+      })
+
+      it('should return 422 when files have different flow values', async () => {
+        mockRequest.body = {
+          files: [
+            { filename: 'document.pdf', mimetype: 'application/pdf', flow: 'data-extraction' },
+            { filename: 'archive.zip', mimetype: 'application/zip', flow: 'rag' },
+          ],
+        }
+
+        await controller.generatePresignedUrls(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(422)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'All files must share the same flow value',
+        })
       })
     })
 
@@ -801,7 +862,8 @@ describe('AIExtractDataController', () => {
         expect(mockReply.status).toHaveBeenCalledWith(200)
         expect(mockPresignedUploadUrlUseCase.execute).toHaveBeenCalledWith(
           expect.arrayContaining([expect.objectContaining({ filename: 'document0.pdf' })]),
-          expect.any(Object)
+          expect.any(Object),
+          expect.any(String)
         )
       })
 

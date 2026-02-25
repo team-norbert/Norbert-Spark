@@ -1,6 +1,7 @@
 import { isObject, isDefined, isString, isNumber } from '@norberts-spark/shared'
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
+import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * Data Transfer Object for AI admin configuration settings.
@@ -96,7 +97,7 @@ export class PutAIAdminDTO {
    * }
    * ```
    */
-  static validate(data: any): PutAIAdminDTO {
+  static validate(data: components['schemas']['PutRequestAIChatSettings']): PutAIAdminDTO {
     if (!isDefined(data) || !isObject(data)) {
       throw new TypeException('Invalid data: expected an object')
     }
@@ -174,15 +175,15 @@ export class PutAIAdminDTO {
 
     return new PutAIAdminDTO(
       prompt.trim(),
-      maxTokens === null ? undefined : (maxTokens as number | undefined),
-      temperature === null ? undefined : (temperature as number | undefined),
-      topP === null ? undefined : (topP as number | undefined),
-      frequencyPenalty === null ? undefined : (frequencyPenalty as number | undefined),
-      presencePenalty === null ? undefined : (presencePenalty as number | undefined),
-      topK === null ? undefined : (topK as number | undefined),
-      stopSequences === null ? undefined : (stopSequences as string[] | undefined),
-      seed === null ? undefined : (seed as number | undefined),
-      maxRetries === null ? undefined : (maxRetries as number | undefined)
+      maxTokens ?? undefined,
+      temperature ?? undefined,
+      topP ?? undefined,
+      frequencyPenalty ?? undefined,
+      presencePenalty ?? undefined,
+      topK ?? undefined,
+      stopSequences ?? undefined,
+      seed ?? undefined,
+      maxRetries ?? undefined
     )
   }
 }

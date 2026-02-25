@@ -173,7 +173,7 @@ describe('RegisterUserDto', () => {
         const data = {
           password: 'password123',
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -186,7 +186,7 @@ describe('RegisterUserDto', () => {
           email: null,
           password: 'password123',
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -199,7 +199,7 @@ describe('RegisterUserDto', () => {
           email: undefined,
           password: 'password123',
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -225,7 +225,7 @@ describe('RegisterUserDto', () => {
           email: 123,
           password: 'password123',
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -238,7 +238,7 @@ describe('RegisterUserDto', () => {
           email: ['test@example.com'],
           password: 'password123',
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -251,7 +251,7 @@ describe('RegisterUserDto', () => {
           email: { value: 'test@example.com' },
           password: 'password123',
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -265,7 +265,7 @@ describe('RegisterUserDto', () => {
         const data = {
           email: 'test@example.com',
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -278,7 +278,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: null,
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -291,7 +291,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: undefined,
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -317,7 +317,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: 12345678,
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -330,7 +330,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: true,
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -343,7 +343,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: ['password123'],
           name: 'John Doe',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -357,7 +357,7 @@ describe('RegisterUserDto', () => {
         const data = {
           email: 'test@example.com',
           password: 'password123',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -370,7 +370,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: 'password123',
           name: null,
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -383,7 +383,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: 'password123',
           name: undefined,
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -409,7 +409,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: 'password123',
           name: 123,
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -422,7 +422,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: 'password123',
           name: { first: 'John', last: 'Doe' },
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -435,7 +435,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: 'password123',
           name: ['John Doe'],
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -624,7 +624,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           name: 'John Doe',
           provider: 123,
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -637,7 +637,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           name: 'John Doe',
           provider: ['google'],
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -650,7 +650,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           name: 'John Doe',
           provider: { name: 'google' },
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -679,7 +679,7 @@ describe('RegisterUserDto', () => {
           name: 'John Doe',
           provider: 'google',
           providerId: 12345,
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -720,7 +720,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           name: 'John Doe',
           provider: 'google',
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -734,7 +734,7 @@ describe('RegisterUserDto', () => {
           name: 'John Doe',
           provider: 'google',
           providerId: undefined,
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
@@ -818,16 +818,18 @@ describe('RegisterUserDto', () => {
 
     describe('edge cases', () => {
       it('should throw error when data is null', () => {
-        expect(() => RegisterUserDto.validate(null)).toThrow()
+        expect(() => RegisterUserDto.validate(null as any)).toThrow()
       })
 
       it('should throw error when data is undefined', () => {
-        expect(() => RegisterUserDto.validate(undefined)).toThrow()
+        expect(() => RegisterUserDto.validate(undefined as any)).toThrow()
       })
 
       it('should throw ValidationException when data is empty object', () => {
-        expect(() => RegisterUserDto.validate({})).toThrow(ValidationException)
-        expect(() => RegisterUserDto.validate({})).toThrow('Email is required and must be a string')
+        expect(() => RegisterUserDto.validate({} as any)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate({} as any)).toThrow(
+          'Email is required and must be a string'
+        )
       })
 
       it('should validate only the first error (email checked first)', () => {
@@ -835,7 +837,7 @@ describe('RegisterUserDto', () => {
           email: 123,
           password: 456,
           name: 789,
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(
           'Email is required and must be a string'
@@ -847,7 +849,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: 456,
           name: 789,
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(
           'Password must be a string when provider is not provided'
@@ -859,7 +861,7 @@ describe('RegisterUserDto', () => {
           email: 'test@example.com',
           password: 'password123',
           name: 789,
-        }
+        } as any
 
         expect(() => RegisterUserDto.validate(data)).toThrow(
           'Name is required and must be a string'

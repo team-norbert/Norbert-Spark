@@ -35,6 +35,8 @@ interface UseFileUploadReturn {
   clearError: () => void
   handleNavigateHome: () => void
   handleSignOut: () => void
+  showRagForm: boolean
+  ragFileKeys: string[]
 }
 
 const ACCEPTED_FILE_TYPES = ['.pdf', '.zip']
@@ -50,10 +52,22 @@ const RETRY_DELAY_BASE_MS = 1000 // Base delay for exponential backoff
  *
  * @example
  * ```tsx
- * const { uploadedFiles, handleDrop, removeFile } = useFileUpload()
+ * const { uploadedFiles, handleDrop, removeFile } = useFileUpload({
+ *   flow: 'rag',
+ *   callbackUrl: '/dashboard',
+ *   chatTypeId: 'some-chat-type-id',
+ * })
  * ```
  */
-export function useFileUpload(): UseFileUploadReturn {
+export function useFileUpload({
+  callbackUrl,
+  chatTypeId,
+  flow,
+}: {
+  flow: string
+  callbackUrl: string
+  chatTypeId?: string
+}): UseFileUploadReturn {
   const router = useRouter()
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [dragActive, setDragActive] = useState(false)
@@ -61,6 +75,8 @@ export function useFileUpload(): UseFileUploadReturn {
   const [isUploading, setIsUploading] = useState(false)
   const [isExtracting, setIsExtracting] = useState(false)
   const [extractedData, setExtractedData] = useState<ExtractedInvoiceData[]>([])
+  const [showRagForm, setShowRagForm] = useState(false)
+  const [ragFileKeys, setRagFileKeys] = useState<string[]>([])
 
   /**
    * Validate if a file has an accepted extension or MIME type
@@ -275,20 +291,22 @@ export function useFileUpload(): UseFileUploadReturn {
 
     try {
       // Prepare file metadata for presigned URL generation
+      const backendFlowType = flow === 'rag' ? 'rag' : 'data-extraction'
       const fileMetadata = uploadedFiles.map((uf) => ({
         filename: uf.file.name,
         mimetype: uf.file.type || 'application/octet-stream',
+        flow: backendFlowType,
       }))
 
       logger.info('Requesting presigned URLs for files', { fileCount: fileMetadata.length })
 
       // Get presigned URLs from the server action
-      const response = await getPresignedUrls(fileMetadata)
+      const response = await getPresignedUrls(fileMetadata, chatTypeId)
 
       // Check if session expired (JWT expired on backend)
       if (response.sessionExpired) {
         logger.warn('Session expired, redirecting to signin')
-        router.push('/signin?error=session_expired&callbackUrl=/extract-data')
+        router.push(`/signin?error=session_expired&callbackUrl=${encodeURIComponent(callbackUrl)}`)
         return
       }
 
@@ -304,6 +322,7 @@ export function useFileUpload(): UseFileUploadReturn {
       const urlMap = new Map(uploadUrls.map((u) => [u.filename, u]))
 
       // Upload files directly to bucket using presigned URLs
+      const ragUploadedFileKeys: string[] = []
       for (const uploadedFile of uploadedFiles) {
         const urlInfo = urlMap.get(uploadedFile.file.name)
 
@@ -322,42 +341,47 @@ export function useFileUpload(): UseFileUploadReturn {
           uploadedFile.id
         )
 
-        console.log('=== UPLOAD COMPLETE, STARTING EXTRACTION ===')
-        console.log('File:', uploadedFile.file.name)
-        console.log('FileKey:', urlInfo.fileKey)
+        logger.info('=== UPLOAD COMPLETE ===')
+        logger.info('File:', uploadedFile.file.name)
+        logger.info('FileKey:', urlInfo.fileKey)
 
-        // Clear previous extraction results
-        setExtractedData([])
-        setIsExtracting(true)
+        if (flow === 'extract') {
+          // Clear previous extraction results
+          setExtractedData([])
+          setIsExtracting(true)
 
-        // Extract data using server action
-        try {
-          logger.info('Starting extraction via server action', { fileKey: urlInfo.fileKey })
+          try {
+            logger.info('Starting extraction via server action', { fileKey: urlInfo.fileKey })
 
-          const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
+            const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
 
-          // Check if session expired (JWT expired on backend)
-          if (extractResult.sessionExpired) {
-            logger.warn('Session expired during extraction, redirecting to signin')
-            router.push('/signin?error=session_expired&callbackUrl=/extract-data')
-            return
+            // Check if session expired (JWT expired on backend)
+            if (extractResult.sessionExpired) {
+              logger.warn('Session expired during extraction, redirecting to signin')
+              router.push(
+                `/signin?error=session_expired&callbackUrl=${encodeURIComponent(callbackUrl)}`
+              )
+              return
+            }
+
+            if (
+              extractResult.success &&
+              extractResult.allResults &&
+              extractResult.allResults.length > 0
+            ) {
+              logger.info('Extraction successful', { count: extractResult.allResults.length })
+              setExtractedData(extractResult.allResults)
+            } else if (extractResult.error) {
+              logger.error('Extraction failed', { error: extractResult.error })
+              throw new Error(extractResult.error)
+            }
+          } catch (extractError) {
+            logger.error('Extraction failed', { error: extractError })
+          } finally {
+            setIsExtracting(false)
           }
-
-          if (
-            extractResult.success &&
-            extractResult.allResults &&
-            extractResult.allResults.length > 0
-          ) {
-            logger.info('Extraction successful', { count: extractResult.allResults.length })
-            setExtractedData(extractResult.allResults)
-          } else if (extractResult.error) {
-            logger.error('Extraction failed', { error: extractResult.error })
-            throw new Error(extractResult.error)
-          }
-        } catch (extractError) {
-          logger.error('Extraction failed', { error: extractError })
-        } finally {
-          setIsExtracting(false)
+        } else if (flow === 'rag') {
+          ragUploadedFileKeys.push(urlInfo.fileKey)
         }
 
         logger.info('File uploaded successfully', {
@@ -370,7 +394,10 @@ export function useFileUpload(): UseFileUploadReturn {
 
       // All files uploaded successfully
       logger.info('All files uploaded successfully to bucket')
-      // You can add navigation or success notification here
+      if (flow === 'rag' && ragUploadedFileKeys.length > 0) {
+        setRagFileKeys(ragUploadedFileKeys)
+        setShowRagForm(true)
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'An error occurred during upload'
@@ -379,7 +406,7 @@ export function useFileUpload(): UseFileUploadReturn {
     } finally {
       setIsUploading(false)
     }
-  }, [uploadedFiles, isUploading, uploadFileToBucket, router])
+  }, [uploadedFiles, isUploading, uploadFileToBucket, router, callbackUrl, flow, chatTypeId])
 
   /**
    * Clear the error message
@@ -419,5 +446,7 @@ export function useFileUpload(): UseFileUploadReturn {
     clearError,
     handleNavigateHome,
     handleSignOut,
+    showRagForm,
+    ragFileKeys,
   }
 }

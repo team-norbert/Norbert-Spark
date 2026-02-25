@@ -13,6 +13,7 @@ const logger = createLogger({ prefix: 'getPresignedUrls' })
 export interface FileMetadata {
   filename: string
   mimetype: string
+  flow?: string
 }
 
 /**
@@ -62,7 +63,10 @@ export interface PresignedUrlsResponse {
  * }
  * ```
  */
-export async function getPresignedUrls(files: FileMetadata[]): Promise<PresignedUrlsResponse> {
+export async function getPresignedUrls(
+  files: FileMetadata[],
+  chatTypeId?: string
+): Promise<PresignedUrlsResponse> {
   try {
     // Get the JWT token for backend requests
     const accessToken = await getAuthToken()
@@ -94,13 +98,13 @@ export async function getPresignedUrls(files: FileMetadata[]): Promise<Presigned
 
     logger.info('Requesting presigned URLs', {
       fileCount: files.length,
-      files: files.map((f) => ({ filename: f.filename, mimetype: f.mimetype })),
+      files: files.map((f) => ({ filename: f.filename, mimetype: f.mimetype, flow: f.flow })),
     })
 
     const response = await backendRequest<PresignedUrlsResponse>({
       method: 'POST',
       endpoint: '/ai/presigned-urls',
-      body: { files },
+      body: { files, ...(chatTypeId ? { chatTypeId } : {}) },
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

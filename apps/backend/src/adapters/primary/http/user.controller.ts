@@ -11,6 +11,7 @@ import { requireRole } from '../../../infrastructure/http/middleware/role.middle
 import { DeleteUsersUseCase } from '../../../application/use-cases/delete-users.use-case.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { DrizzleQueryError } from 'drizzle-orm'
+import type { components } from '@norberts-spark/shared/openapi-types'
 /**
  * HTTP controller for user-related endpoints
  *
@@ -172,7 +173,8 @@ export class UserController {
   async deleteUsers(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       // Convert HTTP request to DTO
-      const dto = DeleteUsersDto.validate(request.body)
+      const body = request.body as components['schemas']['UserDeleteRequest']
+      const dto = DeleteUsersDto.validate(body)
 
       // Extract audit context from request
       const auditContext = {
@@ -313,8 +315,9 @@ export class UserController {
    */
   async register(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
+      const body = request.body as components['schemas']['RegisterUserRequest']
       // Convert HTTP request to DTO
-      const dto = RegisterUserDto.validate(request.body)
+      const dto = RegisterUserDto.validate(body)
 
       // Extract audit context from request
       const auditContext = {

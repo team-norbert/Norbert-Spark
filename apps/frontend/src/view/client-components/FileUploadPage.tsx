@@ -24,6 +24,8 @@ import type { z } from 'zod'
 
 import type { UploadedFile } from '@/view/hooks/useFileUpload.js'
 
+import type { CreateVectorStoreFormData } from './CreateVectorStoreForm.js'
+import { CreateVectorStoreForm } from './CreateVectorStoreForm.js'
 import { ExtractedDataDisplay } from './ExtractedDataDisplay.js'
 import { PageHeader } from './PageHeader.js'
 
@@ -47,6 +49,11 @@ interface FileUploadPageProps {
   extractedData: ExtractedInvoiceData[]
   text: FileUploadPageText
   testIds: FileUploadPageTestIds
+  flow: 'extract' | 'rag'
+  showRagForm?: boolean
+  ragFileKeys?: string[]
+  chatTypeId?: string
+  onSubmitVectorStore?: (data: CreateVectorStoreFormData) => void
   onDrag: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent) => void
   onFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -91,9 +98,11 @@ interface FileUploadPageProps {
  * ```
  */
 export function FileUploadPage({
+  chatTypeId,
   dragActive,
   error,
   extractedData,
+  flow,
   isExtracting,
   isUploading,
   onClearAllFiles,
@@ -105,6 +114,9 @@ export function FileUploadPage({
   onProcessFiles,
   onRemoveFile,
   onSignOut,
+  onSubmitVectorStore,
+  ragFileKeys,
+  showRagForm,
   testIds,
   text,
   uploadedFiles,
@@ -126,7 +138,7 @@ export function FileUploadPage({
         {text.subtitle}
       </Typography>
 
-      {isExtracting && (
+      {flow === 'extract' && isExtracting && (
         <Box sx={{ mb: 3 }}>
           <Card elevation={3}>
             <CardContent>
@@ -144,7 +156,7 @@ export function FileUploadPage({
         </Box>
       )}
 
-      {extractedData.length > 0 && (
+      {flow === 'extract' && extractedData.length > 0 && (
         <Box sx={{ mb: 3 }}>
           {extractedData.map((data, index) => (
             <ExtractedDataDisplay key={index} data={data} fileName={`PDF ${index + 1}`} />
@@ -326,6 +338,14 @@ export function FileUploadPage({
           </form>
         </CardContent>
       </Card>
+
+      {flow === 'rag' && showRagForm && (
+        <CreateVectorStoreForm
+          fileKeys={ragFileKeys ?? []}
+          initialChatTypeId={chatTypeId}
+          onSubmit={onSubmitVectorStore}
+        />
+      )}
     </Container>
   )
 }

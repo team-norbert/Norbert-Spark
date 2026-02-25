@@ -32,7 +32,9 @@ describe('ExtractDataPageClient', () => {
     handleSignOut: vi.fn(),
     isExtracting: false,
     isUploading: false,
+    ragFileKeys: [],
     removeFile: vi.fn(),
+    showRagForm: false,
     uploadedFiles: [],
   }
 
@@ -70,6 +72,7 @@ describe('ExtractDataPageClient', () => {
         isUploading: mockHookReturn.isUploading,
         isExtracting: mockHookReturn.isExtracting,
         extractedData: mockHookReturn.extractedData,
+        flow: 'extract',
         text: {
           title: 'Extract Data',
           subtitle: 'Upload PDF or ZIP files for data extraction',
@@ -122,7 +125,7 @@ describe('ExtractDataPageClient', () => {
       const passedProps = fileUploadPageCall?.[0]
 
       expect(passedProps).toBeDefined()
-      expect(Object.keys(passedProps || {})).toHaveLength(17) // All 17 props should be passed
+      expect(Object.keys(passedProps || {})).toHaveLength(18) // All 18 props should be passed
     })
 
     it('should not contain any business logic', () => {

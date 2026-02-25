@@ -25,7 +25,10 @@ export function ExtractDataPageClient() {
     isUploading,
     removeFile,
     uploadedFiles,
-  } = useFileUpload()
+  } = useFileUpload({
+    callbackUrl: '/extract-data',
+    flow: 'extract',
+  })
 
   return (
     <FileUploadPage
@@ -35,6 +38,7 @@ export function ExtractDataPageClient() {
       isUploading={isUploading}
       isExtracting={isExtracting}
       extractedData={extractedData}
+      flow="extract"
       text={{
         title: 'Extract Data',
         subtitle: 'Upload PDF or ZIP files for data extraction',
