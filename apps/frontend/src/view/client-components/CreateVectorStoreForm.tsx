@@ -101,7 +101,9 @@ export function CreateVectorStoreForm({
         ...(topP ? { topP: Number(topP) } : {}),
         ...(frequencyPenalty ? { frequencyPenalty: Number(frequencyPenalty) } : {}),
         ...(presencePenalty ? { presencePenalty: Number(presencePenalty) } : {}),
-        ...(stopSequences ? { stopSequences: stopSequences.split(',').map((s) => s.trim()) } : { stopSequences: [] }),
+        ...(stopSequences
+          ? { stopSequences: stopSequences.split(',').map((s) => s.trim()) }
+          : { stopSequences: [] }),
         ...(seed ? { seed: Number(seed) } : {}),
         ...(maxRetries ? { maxRetries: Number(maxRetries) } : {}),
       },
