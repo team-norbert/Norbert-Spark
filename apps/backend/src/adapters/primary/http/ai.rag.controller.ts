@@ -37,6 +37,7 @@ export class AiRagController {
 
       const body = request.body as components['schemas']['CreateVectorStoreRequest']
       const ragDto = RagDto.validate(body)
+      // TODO: Implement the logic to handle the RAG request, such as processing the uploaded file, extracting text, and generating embeddings.
 
       // const { buffer, fileType } = await this.extractDataUseCase.execute(ragDto, auditContext)
     } catch (error) {
