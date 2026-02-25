@@ -18,7 +18,7 @@ export class AiRagController {
 
   registerRoutes(app: FastifyInstance): void {
     app.post(
-      '/ai/rag',
+      '/ai/create-vector-store',
       {
         preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
       },
