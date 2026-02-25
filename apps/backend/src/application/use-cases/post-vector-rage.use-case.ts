@@ -17,7 +17,7 @@ export class PostVectorRagUseCase {
       await this.aiRagRepositoryPost.createRagVectorEntry(data)
     } catch (error) {
       this.logger.error(
-        'Error in PostVectorRageUseCase',
+        'Error in PostVectorRagUseCase',
         error instanceof Error ? error : new Error(String(error))
       )
     }
