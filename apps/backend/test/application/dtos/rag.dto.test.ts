@@ -252,7 +252,7 @@ describe('RagDto', () => {
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
-        'embeddingModels.dimension is required and must be a string'
+        'embeddingModels.dimension is required and must be a number'
       )
     })
 

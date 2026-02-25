@@ -71,7 +71,7 @@ export class RagDto {
     }
 
     if (!isNumber(data.embeddingModels.dimension)) {
-      throw new ValidationException('embeddingModels.dimension is required and must be a string')
+      throw new ValidationException('embeddingModels.dimension is required and must be a number')
     }
 
     if (
