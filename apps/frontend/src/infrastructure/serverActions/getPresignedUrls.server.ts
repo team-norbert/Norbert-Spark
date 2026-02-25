@@ -62,7 +62,10 @@ export interface PresignedUrlsResponse {
  * }
  * ```
  */
-export async function getPresignedUrls(files: FileMetadata[]): Promise<PresignedUrlsResponse> {
+export async function getPresignedUrls(
+  files: FileMetadata[],
+  chatTypeId?: string
+): Promise<PresignedUrlsResponse> {
   try {
     // Get the JWT token for backend requests
     const accessToken = await getAuthToken()
@@ -100,7 +103,7 @@ export async function getPresignedUrls(files: FileMetadata[]): Promise<Presigned
     const response = await backendRequest<PresignedUrlsResponse>({
       method: 'POST',
       endpoint: '/ai/presigned-urls',
-      body: { files },
+      body: { files, ...(chatTypeId ? { chatTypeId } : {}) },
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

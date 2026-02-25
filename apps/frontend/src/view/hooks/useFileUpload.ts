@@ -55,10 +55,12 @@ const RETRY_DELAY_BASE_MS = 1000 // Base delay for exponential backoff
  */
 export function useFileUpload({
   callbackUrl,
+  chatTypeId,
   flow,
 }: {
   flow: string
   callbackUrl: string
+  chatTypeId?: string
 }): UseFileUploadReturn {
   const router = useRouter()
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
@@ -289,7 +291,7 @@ export function useFileUpload({
       logger.info('Requesting presigned URLs for files', { fileCount: fileMetadata.length })
 
       // Get presigned URLs from the server action
-      const response = await getPresignedUrls(fileMetadata)
+      const response = await getPresignedUrls(fileMetadata, chatTypeId)
 
       // Check if session expired (JWT expired on backend)
       if (response.sessionExpired) {
@@ -328,9 +330,9 @@ export function useFileUpload({
           uploadedFile.id
         )
 
-        console.log('=== UPLOAD COMPLETE, STARTING EXTRACTION ===')
-        console.log('File:', uploadedFile.file.name)
-        console.log('FileKey:', urlInfo.fileKey)
+        logger.info('=== UPLOAD COMPLETE, STARTING EXTRACTION ===')
+        logger.info('File:', uploadedFile.file.name)
+        logger.info('FileKey:', urlInfo.fileKey)
 
         // Clear previous extraction results
         setExtractedData([])
@@ -368,6 +370,10 @@ export function useFileUpload({
           }
         }
 
+        // TODO: For RAG flow, will need to trigger embedding and indexing here,
+        //  or we might have a separate step for that.
+        //  It depends on the desired user experience and flow design.
+        //  For now, we just log the upload success and extraction results if applicable.
         /* try {
 
         } catch (error) {
@@ -395,7 +401,7 @@ export function useFileUpload({
     } finally {
       setIsUploading(false)
     }
-  }, [uploadedFiles, isUploading, uploadFileToBucket, router, callbackUrl, flow])
+  }, [uploadedFiles, isUploading, uploadFileToBucket, router, callbackUrl, flow, chatTypeId])
 
   /**
    * Clear the error message

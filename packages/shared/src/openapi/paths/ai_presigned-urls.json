@@ -1,7 +1,7 @@
 {
   "post": {
     "summary": "Generate presigned URLs for direct bucket upload",
-    "description": "Accepts file metadata (filename and mimetype) and returns presigned URLs for direct upload to Cloudflare R2 storage. The client can then use these URLs to upload files directly without going through the backend.",
+    "description": "Accepts file metadata (filename and mimetype) and an optional chatTypeId to associate files with a specific chat type, then returns presigned URLs for direct upload to Cloudflare R2 storage. The client can then use these URLs to upload files directly without going through the backend.",
     "operationId": "generatePresignedUrls",
     "tags": ["ai", "data"],
     "security": [
@@ -14,30 +14,7 @@
       "content": {
         "application/json": {
           "schema": {
-            "type": "object",
-            "properties": {
-              "files": {
-                "type": "array",
-                "description": "Array of file metadata objects",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "filename": {
-                      "type": "string",
-                      "description": "Name of the file",
-                      "example": "document.pdf"
-                    },
-                    "mimetype": {
-                      "type": "string",
-                      "description": "MIME type of the file",
-                      "example": "application/pdf"
-                    }
-                  },
-                  "required": ["filename", "mimetype"]
-                }
-              }
-            },
-            "required": ["files"]
+            "$ref": "../components/schemas/AIPreSignedRequest.json"
           }
         }
       }

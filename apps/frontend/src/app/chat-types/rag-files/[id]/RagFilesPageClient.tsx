@@ -8,7 +8,7 @@ import { useFileUpload } from '@/view/hooks/useFileUpload.js'
  * This component is minimal and declarative - it only orchestrates the hook and component.
  * Business logic is in the hook, presentation is in the component.
  */
-export function RagFilesPageClient() {
+export function RagFilesPageClient({ chatTypeId }: { chatTypeId: string }) {
   const {
     clearAllFiles,
     clearError,
@@ -28,6 +28,7 @@ export function RagFilesPageClient() {
   } = useFileUpload({
     callbackUrl: '/chat-types/rag-files',
     flow: 'rag',
+    chatTypeId,
   })
 
   return (

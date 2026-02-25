@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "properties": {
+    "files": {
+      "type": "array",
+      "description": "Array of file metadata objects",
+      "items": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "Name of the file",
+            "example": "document.pdf"
+          },
+          "mimetype": {
+            "type": "string",
+            "description": "MIME type of the file",
+            "example": "application/pdf"
+          }
+        },
+        "required": ["filename", "mimetype"]
+      }
+    },
+    "chatTypeId": {
+      "type": "string",
+      "description": "Optional chat type ID to associate uploaded files with a specific chat type",
+      "example": "01HXYZ123"
+    }
+  },
+  "required": ["files"]
+}

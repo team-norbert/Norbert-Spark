@@ -7,6 +7,7 @@ import { requireRole } from '../../../infrastructure/http/middleware/role.middle
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { DrizzleQueryError } from 'drizzle-orm'
 import type { components } from '@norberts-spark/shared/openapi-types'
+import { RagDto } from '../../../application/dtos/rag.dto.js'
 
 export class AiRagController {
   constructor(
@@ -35,6 +36,9 @@ export class AiRagController {
       }
 
       const body = request.body as components['schemas']['CreateVectorStoreRequest']
+      const ragDto = RagDto.validate(body)
+
+      // const { buffer, fileType } = await this.extractDataUseCase.execute(ragDto, auditContext)
     } catch (error) {
       this.logger.error(
         'Error in getAIChatSettingsById',

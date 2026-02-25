@@ -43,45 +43,45 @@ describe('RagFilesPageClient', () => {
 
   describe('Component Rendering', () => {
     it('should render without crashing', () => {
-      const { container } = render(<RagFilesPageClient />)
+      const { container } = render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
       expect(container).toBeInTheDocument()
     })
 
     it('should render FileUploadPage component', () => {
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
       expect(FileUploadPage).toHaveBeenCalledTimes(1)
     })
 
     it('should call useFileUpload hook', () => {
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
       expect(useFileUpload).toHaveBeenCalledTimes(1)
     })
   })
 
   describe('RAG-specific text prop', () => {
     it('should pass the RAG title text to FileUploadPage', () => {
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]?.text?.title).toBe('Retrieval-Augmented Generation (RAG) files upload')
     })
 
     it('should pass the RAG subtitle text to FileUploadPage', () => {
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]?.text?.subtitle).toBe('Upload PDF or ZIP files for RAG knowledge base')
     })
 
     it('should pass a different title than ExtractDataPageClient', () => {
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]?.text?.title).not.toBe('Extract Data')
     })
 
     it('should pass a different subtitle than ExtractDataPageClient', () => {
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]?.text?.subtitle).not.toBe('Upload PDF or ZIP files for data extraction')
@@ -90,7 +90,7 @@ describe('RagFilesPageClient', () => {
 
   describe('Props Passing to FileUploadPage', () => {
     it('should pass all state values from useFileUpload hook to FileUploadPage', () => {
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]).toEqual({
@@ -120,7 +120,7 @@ describe('RagFilesPageClient', () => {
     })
 
     it('should pass all handler functions from useFileUpload hook to FileUploadPage', () => {
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       const props = call?.[0]
@@ -139,7 +139,7 @@ describe('RagFilesPageClient', () => {
 
   describe('DDD Architecture Compliance', () => {
     it('should act as a minimal orchestrator between hook and component', () => {
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       // Component should only call the hook once
       expect(useFileUpload).toHaveBeenCalledTimes(1)
@@ -156,7 +156,7 @@ describe('RagFilesPageClient', () => {
     })
 
     it('should not contain any business logic', () => {
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       // All logic should come from the hook
       expect(useFileUpload).toHaveBeenCalled()
@@ -178,7 +178,7 @@ describe('RagFilesPageClient', () => {
         uploadedFiles,
       })
 
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]).toMatchObject({ uploadedFiles })
@@ -190,7 +190,7 @@ describe('RagFilesPageClient', () => {
         dragActive: true,
       })
 
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]).toMatchObject({ dragActive: true })
@@ -204,7 +204,7 @@ describe('RagFilesPageClient', () => {
         error,
       })
 
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]).toMatchObject({ error })
@@ -216,7 +216,7 @@ describe('RagFilesPageClient', () => {
         isUploading: true,
       })
 
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]).toMatchObject({ isUploading: true })
@@ -228,7 +228,7 @@ describe('RagFilesPageClient', () => {
         isExtracting: true,
       })
 
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]).toMatchObject({ isExtracting: true })
@@ -240,7 +240,7 @@ describe('RagFilesPageClient', () => {
         error: null,
       })
 
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]).toMatchObject({ error: null })
@@ -266,7 +266,7 @@ describe('RagFilesPageClient', () => {
         ...customHandlers,
       })
 
-      render(<RagFilesPageClient />)
+      render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[0]
       expect(call?.[0]).toMatchObject({
@@ -285,21 +285,21 @@ describe('RagFilesPageClient', () => {
 
   describe('Re-rendering Behavior', () => {
     it('should re-render when hook state changes', () => {
-      const { rerender } = render(<RagFilesPageClient />)
+      const { rerender } = render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       vi.mocked(useFileUpload).mockReturnValue({
         ...mockHookReturn,
         isUploading: true,
       })
 
-      rerender(<RagFilesPageClient />)
+      rerender(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       // FileUploadPage should have been called twice (initial render + rerender)
       expect(FileUploadPage).toHaveBeenCalledTimes(2)
     })
 
     it('should pass updated state to FileUploadPage on re-render', () => {
-      const { rerender } = render(<RagFilesPageClient />)
+      const { rerender } = render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       // First render
       let call = vi.mocked(FileUploadPage).mock.calls[0]
@@ -312,7 +312,7 @@ describe('RagFilesPageClient', () => {
         uploadedFiles: [{ file: new File([''], 'knowledge-base.pdf'), id: '1' }],
       })
 
-      rerender(<RagFilesPageClient />)
+      rerender(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       // Second render with updated state
       call = vi.mocked(FileUploadPage).mock.calls[1]
@@ -323,14 +323,14 @@ describe('RagFilesPageClient', () => {
     })
 
     it('should preserve the RAG text prop on re-render', () => {
-      const { rerender } = render(<RagFilesPageClient />)
+      const { rerender } = render(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       vi.mocked(useFileUpload).mockReturnValue({
         ...mockHookReturn,
         dragActive: true,
       })
 
-      rerender(<RagFilesPageClient />)
+      rerender(<RagFilesPageClient chatTypeId="test-chat-type-id" />)
 
       const call = vi.mocked(FileUploadPage).mock.calls[1]
       expect(call?.[0]?.text).toEqual({
