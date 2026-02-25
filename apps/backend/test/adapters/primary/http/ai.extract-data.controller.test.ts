@@ -355,7 +355,8 @@ describe('AIExtractDataController', () => {
             userId: userId,
             ipAddress: '192.168.1.1',
             userAgent: 'TestAgent/1.0',
-          })
+          }),
+          expect.any(String)
         )
       })
 
@@ -374,7 +375,8 @@ describe('AIExtractDataController', () => {
           expect.any(Array),
           expect.objectContaining({
             userId: null,
-          })
+          }),
+          expect.any(String)
         )
       })
 
@@ -393,7 +395,8 @@ describe('AIExtractDataController', () => {
           expect.any(Array),
           expect.objectContaining({
             userAgent: null,
-          })
+          }),
+          expect.any(String)
         )
       })
     })
@@ -407,7 +410,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(422)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'No files provided. Expected { files: [...] }',
+          error: 'Request body must be a valid object',
         })
       })
 
@@ -419,7 +422,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(422)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'No files provided. Expected { files: [...] }',
+          error: 'files is required and must be an array',
         })
       })
 
@@ -431,7 +434,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(422)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'No files provided. Expected { files: [...] }',
+          error: 'files is required and must be an array',
         })
       })
 
@@ -457,7 +460,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(422)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Each file must have filename and mimetype properties',
+          error: 'files[0].filename is required and must be a string',
         })
       })
 
@@ -471,7 +474,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(422)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Each file must have filename and mimetype properties',
+          error: 'files[0].mimetype is required and must be a string',
         })
       })
 
@@ -801,7 +804,8 @@ describe('AIExtractDataController', () => {
         expect(mockReply.status).toHaveBeenCalledWith(200)
         expect(mockPresignedUploadUrlUseCase.execute).toHaveBeenCalledWith(
           expect.arrayContaining([expect.objectContaining({ filename: 'document0.pdf' })]),
-          expect.any(Object)
+          expect.any(Object),
+          expect.any(String)
         )
       })
 

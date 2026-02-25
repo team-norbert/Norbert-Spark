@@ -43,6 +43,7 @@ describe('RagDto', () => {
         { chatTypeId: 'chat-type-id', stopSequences: [] }
       )
 
+      expect(dto.id).toBe('01933c89-6f67-7b3a-8e4c-123456789abc')
       expect(dto.documents.title).toBe('Title')
       expect(dto.documents.source).toBe('source')
       expect(dto.embeddingModels.modelName).toBe('model')
@@ -146,6 +147,43 @@ describe('RagDto', () => {
       expect(() => RagDto.validate({ ...validInput(), chatAIOptions: [] } as any)).toThrow(
         TypeException
       )
+    })
+  })
+
+  // -------------------------------------------------------------------------
+
+  describe('validate() — id validation', () => {
+    it('should throw ValidationException when id is missing', () => {
+      const { id: _id, ...rest } = validInput()
+      expect(() => RagDto.validate(rest as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(rest as any)).toThrow('id is required and must be a string')
+    })
+
+    it('should throw ValidationException when id is null', () => {
+      expect(() => RagDto.validate({ ...validInput(), id: null } as any)).toThrow(
+        ValidationException
+      )
+      expect(() => RagDto.validate({ ...validInput(), id: null } as any)).toThrow(
+        'id is required and must be a string'
+      )
+    })
+
+    it('should throw ValidationException when id is a number', () => {
+      expect(() => RagDto.validate({ ...validInput(), id: 42 } as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate({ ...validInput(), id: 42 } as any)).toThrow(
+        'id is required and must be a string'
+      )
+    })
+
+    it('should throw ValidationException when id is an empty string', () => {
+      // empty string is still a string — validate() accepts it (isString('')  === true)
+      // confirm no throw
+      expect(() => RagDto.validate({ ...validInput(), id: '' })).not.toThrow()
+    })
+
+    it('should accept any non-empty string as id', () => {
+      const dto = RagDto.validate({ ...validInput(), id: 'custom-id-123' })
+      expect(dto.id).toBe('custom-id-123')
     })
   })
 
@@ -495,6 +533,7 @@ describe('RagDto', () => {
       const dto = RagDto.validate(validInput())
 
       expect(dto).toBeInstanceOf(RagDto)
+      expect(dto.id).toBe('01935e8a-7890-7123-b456-123456789abc')
       expect(dto.documents.title).toBe('My Document')
       expect(dto.documents.source).toBe('https://example.com/doc.pdf')
       expect(dto.embeddingModels.modelName).toBe('text-embedding-3-small')

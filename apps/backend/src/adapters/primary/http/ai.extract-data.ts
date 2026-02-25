@@ -20,6 +20,7 @@ import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 import { DrizzleQueryError } from 'drizzle-orm'
 import type { components } from '@norberts-spark/shared/openapi-types'
 import { PresignedUrlDto } from '../../../application/dtos/presignedUrl.dto.js'
+import { TypeException } from '../../../shared/exceptions/type.exception.js'
 /**
  * Allowed file extensions for upload
  */
@@ -402,7 +403,16 @@ export class AIExtractDataController {
     try {
       //CreateVectorStoreRequest.json
       const body = request.body as components['schemas']['AIPreSignedRequest']
-      const dto = PresignedUrlDto.validate(body)
+      let dto: PresignedUrlDto
+      try {
+        dto = PresignedUrlDto.validate(body)
+      } catch (validationError) {
+        if (validationError instanceof TypeException) {
+          reply.code(422).send({ success: false, error: (validationError as Error).message })
+          return
+        }
+        throw validationError
+      }
 
       this.logger.info('Generating presigned URLs from metadata', {
         fileCount: dto.files.length,

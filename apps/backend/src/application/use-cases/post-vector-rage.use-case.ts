@@ -8,5 +8,18 @@ export class PostVectorRageUseCase {
     private readonly logger: LoggerPort,
     private readonly auditLog: AuditLogPort
   ) {}
-  async execute() {}
+  async execute(
+    data: any, // Replace with actual DTO type
+    auditContext: any // Replace with actual AuditContext type
+  ): Promise<void> {
+    try {
+      // Call the repository method to create a new RAG vector entry
+      await this.aiRagRepositoryPost.createRagVectorEntry(data)
+    } catch (error) {
+      this.logger.error(
+        'Error in PostVectorRageUseCase',
+        error instanceof Error ? error : new Error(String(error))
+      )
+    }
+  }
 }
