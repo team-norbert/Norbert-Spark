@@ -15,7 +15,7 @@ import {
 } from '@mui/material'
 import type { components } from '@norberts-spark/shared/openapi-types'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { AccordionComponent } from './AccordionComponent.js'
 
@@ -62,26 +62,25 @@ export function CreateVectorStoreForm({
   // top-level id
   const [id, setId] = useState(initialChatTypeId ?? '')
 
-  // documents — one entry per uploaded file, pre-populated from fileKeys
-  const [documents, setDocuments] = useState<DocumentEntry[]>(() =>
-    fileKeys.length > 0
-      ? fileKeys.map((key) => ({ title: titleFromFileKey(key), source: key }))
-      : [{ title: '', source: '' }]
-  )
+  // Track per-index edits made by the user (both title and source).
+  // Derived from fileKeys so no useEffect is needed.
+  // Map<index, DocumentEntry> avoids object-injection lint warnings.
+  const [editedDocs, setEditedDocs] = useState<Map<number, DocumentEntry>>(new Map())
 
-  // Sync documents when fileKeys changes (e.g. parent renders before uploads finish),
-  // preserving any titles the user has already edited.
-  useEffect(() => {
-    setDocuments((prev) => {
-      if (fileKeys.length === 0) {
-        return [{ title: '', source: '' }]
-      }
-      return fileKeys.map((key) => prev.find((doc) => doc.source === key) ?? { title: titleFromFileKey(key), source: key })
-    })
-  }, [fileKeys])
+  const documents: DocumentEntry[] = useMemo(() => {
+    const base: DocumentEntry[] =
+      fileKeys.length > 0
+        ? fileKeys.map((key) => ({ title: titleFromFileKey(key), source: key }))
+        : [{ title: '', source: '' }]
+    return base.map((entry, i) => editedDocs.get(i) ?? entry)
+  }, [fileKeys, editedDocs])
 
   const handleDocumentChange = (index: number, field: keyof DocumentEntry, value: string) => {
-    setDocuments((prev) => prev.map((doc, i) => (i === index ? { ...doc, [field]: value } : doc)))
+    setEditedDocs((prev) => {
+      // eslint-disable-next-line security/detect-object-injection -- Safe: index is a controlled render index bounded by documents array length
+      const current = prev.get(index) ?? documents[index] ?? { title: '', source: '' }
+      return new Map(prev).set(index, { ...current, [field]: value })
+    })
   }
 
   // embeddingModels
