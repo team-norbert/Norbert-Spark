@@ -19,7 +19,6 @@ import { AIChatOptionsRepository } from '../../adapters/secondary/repositories/a
 import { AIRAGRepository } from '../../adapters/secondary/repositories/ai-rag.repository.js'
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
 import { CompanyRepository } from '../../adapters/secondary/repositories/company.repository.js'
-// Adapters
 import { UserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { ResendService } from '../../adapters/secondary/services/email.service.js'
 import { JwtTokenGeneratorService } from '../../adapters/secondary/services/jwt-token-generator.service.js'
@@ -44,14 +43,13 @@ import { PresignedUploadUrlUseCase } from '../../application/use-cases/presigned
 import { PutAIAdminUseCase } from '../../application/use-cases/put-ai-admin.use-case.js'
 import { PutChatDetailsUseCase } from '../../application/use-cases/put-chat-details.use-case.js'
 import { PutCompanyDetailsUseCase } from '../../application/use-cases/put-company-details.use-case.js'
-// Application
 import { RegisterUserUseCase } from '../../application/use-cases/register-user.use-case.js'
 import { RegisterUserWithProviderUseCase } from '../../application/use-cases/register-user-with-provider.use-case.js'
 import { ResolveChatTypeUseCase } from '../../application/use-cases/resolve-chat-type.use-case.js'
 import { SaveChatUseCase } from '../../application/use-cases/save-chat.use-case.js'
-// Utils
 import { PDFUtils } from '../../shared/utils/pdf.utils.js'
 import { EnvConfig } from '../config/env.config.js'
+import { pool } from '../database/index.js'
 import { createFastifyApp } from '../http/fastify.config.js'
 
 /**
@@ -181,7 +179,7 @@ export class Container {
             },
           } as FastifyServerOptions
           this.logger.info('🔒 HTTPS enabled for development')
-        } catch (error) {
+        } catch {
           const instructions = `To generate certificates with proper Subject Alternative Names:
 cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
   localhost \\
@@ -480,6 +478,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
    */
   async stop(): Promise<void> {
     await this.app.close()
+    await pool.end()
     this.logger.info('Server stopped')
   }
 }
