@@ -37,8 +37,11 @@ pool.on('error', (err) => {
 
 const db = drizzle(pool)
 
+const shouldCaptureQueryText =
+  EnvConfig.NODE_ENV !== 'production' && EnvConfig.OTEL_CAPTURE_QUERY_TEXT === 'true'
+
 const instrumentedDb = instrumentDrizzleClient(db, {
-  captureQueryText: EnvConfig.NODE_ENV !== 'production',
+  captureQueryText: shouldCaptureQueryText,
   maxQueryTextLength: 500,
 })
 
