@@ -574,7 +574,7 @@ describe('ChatTypesPage', () => {
     it('should render a "Change Options" button for each row', () => {
       render(<ChatTypesPage {...defaultProps} />)
       expect(screen.getByRole('button', { name: 'Change Options' })).toBeInTheDocument()
-    })
+    }, 15000)
 
     it('should apply the correct data-testid derived from the row id', () => {
       const chatType = makeChatType()

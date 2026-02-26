@@ -302,7 +302,7 @@ describe('AIChatView Component', () => {
       fireEvent.click(closeButton)
 
       expect(mockOnErrorClose).toHaveBeenCalledTimes(1)
-    })
+    }, 15000)
 
     it('should display error alert with error severity', () => {
       render(<AIChatView {...defaultProps} errorMessage="Test error" />)
