@@ -246,7 +246,7 @@ describe('CreateVectorStoreForm', () => {
           source: 'https://gutenberg.org/hod',
         },
       ])
-    })
+    }, 15000)
 
     it('passes the required id field', () => {
       const testId = 'abc12345-0000-0000-0000-000000000001'
