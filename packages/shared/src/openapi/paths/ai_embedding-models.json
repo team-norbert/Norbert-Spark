@@ -35,7 +35,7 @@
         }
       },
       "403": {
-        "description": "Forbidden - User does not have required role (user, moderator or admin)",
+        "description": "Forbidden - User does not have required role (admin or moderator)",
         "content": {
           "application/json": {
             "schema": {
@@ -43,7 +43,7 @@
             },
             "example": {
               "success": false,
-              "error": "Access denied. You can only access your own chat history or must have admin/moderator role"
+              "error": "Access denied. You must have admin or moderator role to access embedding models"
             }
           }
         }
