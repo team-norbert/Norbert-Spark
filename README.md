@@ -810,6 +810,6 @@ norberts-spark/
 
 ### AGPLv3
 
-This project is licensed under the [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.en.html).
+This project is licensed under the [GNU General Public License, version 2 or later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
 
 For more details, see the [LICENSE](./LICENSE) file.
