@@ -50,7 +50,6 @@ export const contactRoleEnum = pgEnum('contact_role', [
   'stakeholder',
 ])
 
-
 /**
  * Company table: Stores customer information
  * Note: This is a singleton table - only one company record is allowed
