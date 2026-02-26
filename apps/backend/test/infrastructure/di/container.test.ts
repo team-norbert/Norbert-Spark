@@ -7,6 +7,7 @@ import { PinoLoggerService } from '../../../src/adapters/secondary/services/logg
 import { RegisterUserUseCase } from '../../../src/application/use-cases/register-user.use-case.js'
 import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
 import { Container } from '../../../src/infrastructure/di/container.js'
+import { pool } from '../../../src/infrastructure/database/index.js'
 import { createFastifyApp } from '../../../src/infrastructure/http/fastify.config.js'
 
 // Mock database before all other imports to prevent validation errors
@@ -364,6 +365,16 @@ describe('Container', () => {
       expect(mockClose).toHaveBeenCalledTimes(1)
     })
 
+    it('should call pool.end() to close the database pool', async () => {
+      const container = Container.getInstance()
+      vi.mocked(container.app.close).mockResolvedValue(undefined as any)
+      vi.mocked(pool.end).mockResolvedValue(undefined as any)
+
+      await container.stop()
+
+      expect(pool.end).toHaveBeenCalledTimes(1)
+    })
+
     it('should log server shutdown', async () => {
       const container = Container.getInstance()
       vi.mocked(container.app.close).mockResolvedValue(undefined as any)
@@ -371,6 +382,17 @@ describe('Container', () => {
       await container.stop()
 
       expect(container.logger.info).toHaveBeenCalledWith('Server stopped')
+    })
+
+    it('should call pool.end() even when app.close() rejects', async () => {
+      const container = Container.getInstance()
+      const mockError = new Error('Failed to close server')
+      vi.mocked(container.app.close).mockRejectedValue(mockError)
+      vi.mocked(pool.end).mockResolvedValue(undefined as any)
+
+      await container.stop()
+
+      expect(pool.end).toHaveBeenCalledTimes(1)
     })
 
     it('should handle close errors gracefully', async () => {
@@ -382,6 +404,21 @@ describe('Container', () => {
       await container.stop()
 
       expect(container.logger.error).toHaveBeenCalledWith('Error while closing server', mockError)
+      expect(container.logger.info).toHaveBeenCalledWith('Server stopped')
+    })
+
+    it('should handle pool.end() errors gracefully', async () => {
+      const container = Container.getInstance()
+      vi.mocked(container.app.close).mockResolvedValue(undefined as any)
+      const poolError = new Error('Failed to close database pool')
+      vi.mocked(pool.end).mockRejectedValue(poolError)
+
+      await container.stop()
+
+      expect(container.logger.error).toHaveBeenCalledWith(
+        'Error while closing database pool',
+        poolError
+      )
       expect(container.logger.info).toHaveBeenCalledWith('Server stopped')
     })
   })
