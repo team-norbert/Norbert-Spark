@@ -339,7 +339,9 @@ export function FileUploadPage({
         </CardContent>
       </Card>
 
-      {flow === 'rag' && showRagForm && (
+      {/* {flow === 'rag' && showRagForm && (*/}
+
+      {flow === 'rag' && (
         <CreateVectorStoreForm
           fileKeys={ragFileKeys ?? []}
           initialChatTypeId={chatTypeId}

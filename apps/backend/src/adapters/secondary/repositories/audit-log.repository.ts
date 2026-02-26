@@ -54,12 +54,23 @@ export class AuditLogRepository implements AuditLogPort {
       // Redact sensitive data before storing in database
       const redactedEntry = redactCreateAuditLogDTO(entry)
 
+      // redactSensitiveData builds objects with Object.create(null) (null-prototype)
+      // to prevent prototype pollution. Drizzle ORM 0.45.x calls
+      // Object.getPrototypeOf() on column values inside its is() helper and then
+      // accesses .constructor on the result — crashing when the prototype is null.
+      // Serialising through JSON produces a regular plain object that Drizzle
+      // can safely introspect.
+      const safeChanges =
+        redactedEntry.changes != null
+          ? (JSON.parse(JSON.stringify(redactedEntry.changes)) as Record<string, unknown>)
+          : null
+
       await db.insert(auditLog).values({
         userId: redactedEntry.userId ?? null,
         entityType: redactedEntry.entityType,
         entityId: redactedEntry.entityId ?? null,
         action: redactedEntry.action,
-        changes: redactedEntry.changes ?? null,
+        changes: safeChanges,
         ipAddress: redactedEntry.ipAddress ?? null,
         userAgent: redactedEntry.userAgent ?? null,
       })

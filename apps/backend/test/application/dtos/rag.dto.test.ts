@@ -10,10 +10,7 @@ import { ValidationException } from '../../../src/shared/exceptions/validation.e
 
 const validInput = () => ({
   id: '01935e8a-7890-7123-b456-123456789abc',
-  documents: {
-    title: 'My Document',
-    source: 'https://example.com/doc.pdf',
-  },
+  documents: [{ title: 'My Document', source: 'https://example.com/doc.pdf' }],
   embeddingModels: {
     modelName: 'text-embedding-3-small',
     modelProvider: 'OpenAI',
@@ -37,15 +34,14 @@ describe('RagDto', () => {
     it('should create an instance with all required fields', () => {
       const dto = new RagDto(
         '01933c89-6f67-7b3a-8e4c-123456789abc',
-        { title: 'Title', source: 'source' },
+        [{ title: 'Title', source: 'source' }],
         { modelName: 'model', modelProvider: 'provider', dimension: 1536 },
         { distanceMetric: 'cosine', chunkSize: 500, chunkOverlap: 50 },
         { chatTypeId: 'chat-type-id', stopSequences: [] }
       )
 
       expect(dto.id).toBe('01933c89-6f67-7b3a-8e4c-123456789abc')
-      expect(dto.documents.title).toBe('Title')
-      expect(dto.documents.source).toBe('source')
+      expect(dto.documents).toEqual([{ title: 'Title', source: 'source' }])
       expect(dto.embeddingModels.modelName).toBe('model')
       expect(dto.embeddingModels.modelProvider).toBe('provider')
       expect(dto.embeddingModels.dimension).toBe(1536)
@@ -58,7 +54,7 @@ describe('RagDto', () => {
     it('should create an instance with all optional chatAIOptions fields', () => {
       const dto = new RagDto(
         '01933c89-6f67-7b3a-8e4c-123456789abc',
-        { title: 'Title', source: 'source' },
+        [{ title: 'Title', source: 'source' }],
         { modelName: 'model', modelProvider: 'provider', dimension: 768 },
         { distanceMetric: 'euclidean', chunkSize: 200, chunkOverlap: 20 },
         {
@@ -191,7 +187,7 @@ describe('RagDto', () => {
 
   describe('validate() — documents validation', () => {
     it('should throw ValidationException when documents.title is missing', () => {
-      const data = { ...validInput(), documents: { source: 'src' } }
+      const data = { ...validInput(), documents: [{ source: 'src' }] }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
         'documents.title is required and must be a string'
@@ -199,7 +195,7 @@ describe('RagDto', () => {
     })
 
     it('should throw ValidationException when documents.title is not a string', () => {
-      const data = { ...validInput(), documents: { title: 123, source: 'src' } }
+      const data = { ...validInput(), documents: [{ title: 123, source: 'src' }] }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
         'documents.title is required and must be a string'
@@ -207,7 +203,7 @@ describe('RagDto', () => {
     })
 
     it('should throw ValidationException when documents.source is missing', () => {
-      const data = { ...validInput(), documents: { title: 'Title' } }
+      const data = { ...validInput(), documents: [{ title: 'Title' }] }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
         'documents.source is required and must be a string'
@@ -215,7 +211,7 @@ describe('RagDto', () => {
     })
 
     it('should throw ValidationException when documents.source is not a string', () => {
-      const data = { ...validInput(), documents: { title: 'Title', source: 99 } }
+      const data = { ...validInput(), documents: [{ title: 'Title', source: 99 }] }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
         'documents.source is required and must be a string'
@@ -540,8 +536,9 @@ describe('RagDto', () => {
 
       expect(dto).toBeInstanceOf(RagDto)
       expect(dto.id).toBe('01935e8a-7890-7123-b456-123456789abc')
-      expect(dto.documents.title).toBe('My Document')
-      expect(dto.documents.source).toBe('https://example.com/doc.pdf')
+      expect(dto.documents).toEqual([
+        { title: 'My Document', source: 'https://example.com/doc.pdf' },
+      ])
       expect(dto.embeddingModels.modelName).toBe('text-embedding-3-small')
       expect(dto.embeddingModels.modelProvider).toBe('OpenAI')
       expect(dto.embeddingModels.dimension).toBe(1536)

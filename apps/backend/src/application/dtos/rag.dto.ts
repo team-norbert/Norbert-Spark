@@ -7,10 +7,10 @@ import { ValidationException } from '../../shared/exceptions/validation.exceptio
 export class RagDto {
   constructor(
     public readonly id: string,
-    public readonly documents: {
+    public readonly documents: Array<{
       title: string
       source: string
-    },
+    }>,
     public readonly embeddingModels: {
       modelName: string
       modelProvider: string
@@ -39,7 +39,11 @@ export class RagDto {
       throw new TypeException('Data must be a valid object')
     }
 
-    if (!isDefined(data.documents) || !isObject(data.documents)) {
+    if (
+      !isDefined(data.documents) ||
+      !Array.isArray(data.documents) ||
+      data.documents.length === 0
+    ) {
       throw new TypeException('Data must be a valid object')
     }
 
@@ -59,12 +63,14 @@ export class RagDto {
       throw new ValidationException('id is required and must be a string')
     }
 
-    if (!isString(data.documents.title)) {
-      throw new ValidationException('documents.title is required and must be a string')
-    }
+    for (const doc of data.documents) {
+      if (!isString(doc.title)) {
+        throw new ValidationException('documents.title is required and must be a string')
+      }
 
-    if (!isString(data.documents.source)) {
-      throw new ValidationException('documents.source is required and must be a string')
+      if (!isString(doc.source)) {
+        throw new ValidationException('documents.source is required and must be a string')
+      }
     }
 
     if (!isString(data.embeddingModels.modelName)) {
@@ -174,10 +180,7 @@ export class RagDto {
 
     return new RagDto(
       data.id,
-      {
-        title: data.documents.title,
-        source: data.documents.source,
-      },
+      data.documents.map((doc) => ({ title: doc.title, source: doc.source })),
       {
         modelName: data.embeddingModels.modelName,
         modelProvider: data.embeddingModels.modelProvider,

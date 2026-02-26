@@ -5,9 +5,9 @@ import { hasAnyRole } from '@/lib/auth/auth.js'
 import { RagFilesPageClient } from './RagFilesPageClient.js'
 
 interface RagFilesPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 /**
@@ -16,15 +16,16 @@ interface RagFilesPageProps {
  * Server Component that checks authentication before rendering.
  */
 export default async function RagFilesPage({ params }: RagFilesPageProps) {
+  const { id } = await params
   const hasAccess = await hasAnyRole(['admin', 'ai-admin'])
 
   if (!hasAccess) {
     const searchParams = new URLSearchParams({
-      callbackUrl: `/chat-types/rag-files/${params.id}`,
+      callbackUrl: `/chat-types/rag-files/${id}`,
       error: 'unauthorized',
     })
     redirect(`/signin?${searchParams.toString()}`)
   }
 
-  return <RagFilesPageClient chatTypeId={params.id} />
+  return <RagFilesPageClient chatTypeId={id} />
 }
