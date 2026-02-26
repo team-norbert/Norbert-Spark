@@ -11,7 +11,7 @@
     ],
     "responses": {
       "200": {
-        "description": "AI response found",
+        "description": "Embedding models retrieved",
         "content": {
           "application/json": {
             "schema": {
