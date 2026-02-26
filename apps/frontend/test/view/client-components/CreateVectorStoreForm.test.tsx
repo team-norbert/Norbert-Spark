@@ -213,6 +213,19 @@ describe('CreateVectorStoreForm', () => {
       expect((screen.getByLabelText(/^chat type id/i) as HTMLInputElement).value).toBe(id)
     })
 
+    it('id field is pre-populated from initialChatTypeId when provided', () => {
+      const initialId = 'aabbccdd-1234-1234-1234-aabbccddee01'
+      render(
+        <CreateVectorStoreForm
+          fileKeys={[]}
+          initialChatTypeId={initialId}
+          onSubmit={mockOnSubmit}
+        />
+      )
+
+      expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe(initialId)
+    })
+
     it('dimension defaults to 1536', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
@@ -256,6 +269,22 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.id).toBe(testId)
+    })
+
+    it('submits the id pre-populated from initialChatTypeId when the field is not changed', () => {
+      const initialId = 'prepopulated-0000-0000-0000-000000000001'
+      render(
+        <CreateVectorStoreForm
+          fileKeys={[]}
+          initialChatTypeId={initialId}
+          onSubmit={mockOnSubmit}
+        />
+      )
+
+      fillRequiredFields({ id: initialId })
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.id).toBe(initialId)
     })
 
     it('passes the correct embeddingModels shape', () => {

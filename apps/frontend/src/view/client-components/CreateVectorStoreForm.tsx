@@ -60,7 +60,7 @@ export function CreateVectorStoreForm({
   onSubmit,
 }: CreateVectorStoreFormProps) {
   // top-level id
-  const [id, setId] = useState('')
+  const [id, setId] = useState(initialChatTypeId ?? '')
 
   // documents — one entry per uploaded file, pre-populated from fileKeys
   const [documents, setDocuments] = useState<DocumentEntry[]>(() =>
@@ -142,7 +142,7 @@ export function CreateVectorStoreForm({
           {/* ID */}
           <TextField
             label="Vector Store ID"
-            value={chatTypeId}
+            value={id}
             onChange={(e) => setId(e.target.value)}
             fullWidth
             required
