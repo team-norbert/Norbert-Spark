@@ -19,14 +19,14 @@ import { db } from '../src/infrastructure/database/index.js'
 import { embeddingModels } from '../src/infrastructure/database/schema.js'
 import rawData from './embedding_models.json' with { type: 'json' }
 
-type EmbeddingDimension = '3072' | '1536' | '1024' | '768' | '384'
+type EmbeddingDimension = 384 | 768 | 1024 | 1536 | 3072
 
-const VALID_DIMENSIONS = new Set<string>(['3072', '1536', '1024', '768', '384'])
+const VALID_DIMENSIONS = new Set<number>([3072, 1536, 1024, 768, 384])
 
 const models = rawData.embedding_models
 
 // Validate that all models in the JSON have supported dimension values
-const invalidModels = models.filter((m) => !VALID_DIMENSIONS.has(String(m.dimension)))
+const invalidModels = models.filter((m) => !VALID_DIMENSIONS.has(Number(m.dimension)))
 if (invalidModels.length > 0) {
   console.error('❌ The following models have unsupported dimensions and cannot be seeded:')
   invalidModels.forEach((m) => {
@@ -39,7 +39,7 @@ if (invalidModels.length > 0) {
 const rows = models.map((m) => ({
   name: m.name,
   provider: m.provider,
-  dimension: String(m.dimension) as EmbeddingDimension,
+  dimension: Number(m.dimension) as EmbeddingDimension,
 }))
 
 console.log(`🌱 Seeding ${rows.length} embedding models…`)
