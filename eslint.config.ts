@@ -46,8 +46,6 @@ const config: Linter.Config[] = [
       'import/named': 'off',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'off',
-      'no-redeclare': 'off', // TypeScript compiler handles redeclaration errors; const+type same-name is valid TS
-      '@typescript-eslint/no-redeclare': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
@@ -80,6 +78,18 @@ const config: Linter.Config[] = [
     files: ['**/*.test.ts', '**/*.spec.ts', '**/*.test.tsx', '**/*.spec.tsx'],
     rules: {
       'max-lines': 'off',
+    },
+  },
+  {
+    // TypeScript files: turn off both redeclare rules because:
+    // 1. The TypeScript compiler already enforces true redeclaration errors.
+    // 2. The `const Foo = ... as const` + `type Foo = ...` idiom is valid TypeScript
+    //    (value and type namespaces are distinct) but triggers both ESLint rules.
+    // JS/JSX files keep the base no-redeclare from js.configs.recommended unchanged.
+    files: ['**/*.ts', '**/*.tsx'],
+    rules: {
+      'no-redeclare': 'off',
+      '@typescript-eslint/no-redeclare': 'off',
     },
   },
   {
