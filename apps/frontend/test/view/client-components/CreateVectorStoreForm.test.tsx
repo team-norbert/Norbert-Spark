@@ -476,6 +476,38 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(1536)
     })
 
+    it('selecting 3072 updates dimension in the submitted data', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields()
+
+      const selectButton = screen
+        .getByText('1536')
+        .closest('[role="combobox"], [role="button"]') as HTMLElement
+      fireEvent.mouseDown(selectButton)
+      fireEvent.click(screen.getByRole('option', { name: '3072' }))
+
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(3072)
+    })
+
+    it('selecting 1024 updates dimension in the submitted data', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields()
+
+      const selectButton = screen
+        .getByText('1536')
+        .closest('[role="combobox"], [role="button"]') as HTMLElement
+      fireEvent.mouseDown(selectButton)
+      fireEvent.click(screen.getByRole('option', { name: '1024' }))
+
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(1024)
+    })
+
     it('selecting 768 updates dimension in the submitted data', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 

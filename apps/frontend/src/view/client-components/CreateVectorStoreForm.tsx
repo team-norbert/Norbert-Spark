@@ -51,7 +51,7 @@ interface CreateVectorStoreFormProps {
  *
  * The form is typed against the generated OpenAPI `CreateVectorStoreRequest`
  * schema. Select fields are used for enum-constrained values:
- * - `embeddingModels.dimension`: [1536, 768, 384]
+ * - `embeddingModels.dimension`: [3072, 1536, 1024, 768, 384]
  * - `vectorEmbeddings.distanceMetric`: ['cosine', 'euclidean', 'dot_product']
  */
 export function CreateVectorStoreForm({
@@ -76,8 +76,7 @@ export function CreateVectorStoreForm({
   // embeddingModels
   const [modelName, setModelName] = useState('')
   const [modelProvider, setModelProvider] = useState('')
-  const [dimension, setDimension] = useState<1536 | 768 | 384>(1536)
-
+  const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384>(1536)
   // vectorEmbeddings
   const [distanceMetric, setDistanceMetric] =
     useState<CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']>('cosine')
@@ -215,9 +214,13 @@ export function CreateVectorStoreForm({
               label="Dimension"
               value={dimension}
               data-test-id="embedding-models-dimension-select"
-              onChange={(e) => setDimension(Number(e.target.value) as 1536 | 768 | 384)}
+              onChange={(e) =>
+                setDimension(Number(e.target.value) as 3072 | 1536 | 1024 | 768 | 384)
+              }
             >
+              <MenuItem value={3072}>3072</MenuItem>
               <MenuItem value={1536}>1536</MenuItem>
+              <MenuItem value={1024}>1024</MenuItem>
               <MenuItem value={768}>768</MenuItem>
               <MenuItem value={384}>384</MenuItem>
             </Select>
