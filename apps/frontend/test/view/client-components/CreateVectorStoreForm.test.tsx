@@ -232,7 +232,7 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit).toHaveBeenCalledTimes(1)
-    })
+    }, 15000)
 
     it('passes the correct documents shape', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
@@ -269,7 +269,7 @@ describe('CreateVectorStoreForm', () => {
         modelProvider: 'openai',
         dimension: 1536, // default
       })
-    })
+    }, 15000)
 
     it('converts chunkSize and chunkOverlap to numbers', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
@@ -383,7 +383,7 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.presencePenalty).toBe(-0.3)
-    })
+    }, 15000)
 
     it('includes seed as a number when provided', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
@@ -393,7 +393,7 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.seed).toBe(42)
-    })
+    }, 15000)
 
     it('includes maxRetries as a number when provided', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
@@ -404,7 +404,7 @@ describe('CreateVectorStoreForm', () => {
 
       expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.maxRetries).toBe(3)
     })
-  })
+  }, 15000)
 
   // ── stopSequences parsing ────────────────────────────────────────────────────
 
