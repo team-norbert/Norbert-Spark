@@ -18,7 +18,9 @@ import {
   user,
   vectorEmbeddings384,
   vectorEmbeddings768,
+  vectorEmbeddings1024,
   vectorEmbeddings1536,
+  vectorEmbeddings3072,
 } from '../src/infrastructure/database/schema.js'
 
 describe('Database Schema', () => {
@@ -81,6 +83,16 @@ describe('Database Schema', () => {
     it('should export vectorEmbeddings384 table constant', () => {
       expect(vectorEmbeddings384).toBeDefined()
       expect(typeof vectorEmbeddings384).toBe('object')
+    })
+
+    it('should export vectorEmbeddings3072 table constant', () => {
+      expect(vectorEmbeddings3072).toBeDefined()
+      expect(typeof vectorEmbeddings3072).toBe('object')
+    })
+
+    it('should export vectorEmbeddings1024 table constant', () => {
+      expect(vectorEmbeddings1024).toBeDefined()
+      expect(typeof vectorEmbeddings1024).toBe('object')
     })
 
     it('should export company table constant', () => {
@@ -152,6 +164,14 @@ describe('Database Schema', () => {
 
     it('should have correct table name for vector_embeddings_384', () => {
       expect(getTableName(vectorEmbeddings384)).toBe('vector_embeddings_384')
+    })
+
+    it('should have correct table name for vector_embeddings_3072', () => {
+      expect(getTableName(vectorEmbeddings3072)).toBe('vector_embeddings_3072')
+    })
+
+    it('should have correct table name for vector_embeddings_1024', () => {
+      expect(getTableName(vectorEmbeddings1024)).toBe('vector_embeddings_1024')
     })
 
     it('should have correct table name for company', () => {
@@ -890,9 +910,10 @@ describe('Database Schema', () => {
         expect(embeddingModels.provider.name).toBe('provider')
       })
 
-      it('should have dimension column', () => {
+      it('should have dimension column as an integer', () => {
         expect(embeddingModels.dimension).toBeDefined()
         expect(embeddingModels.dimension.name).toBe('dimension')
+        expect(embeddingModels.dimension.columnType).toBe('PgInteger')
       })
 
       it('should have createdAt column', () => {
@@ -1038,7 +1059,7 @@ describe('Database Schema', () => {
   })
 
   describe('Schema structure validation', () => {
-    it('should have all seventeen table constants exported', () => {
+    it('should have all nineteen table constants exported', () => {
       const tables = [
         user,
         chats,
@@ -1052,13 +1073,15 @@ describe('Database Schema', () => {
         vectorEmbeddings1536,
         vectorEmbeddings768,
         vectorEmbeddings384,
+        vectorEmbeddings3072,
+        vectorEmbeddings1024,
         company,
         keyPerson,
         companyPeople,
         documents,
         embeddingModels,
       ]
-      expect(tables).toHaveLength(17)
+      expect(tables).toHaveLength(19)
       tables.forEach((table) => {
         expect(table).toBeDefined()
         expect(typeof table).toBe('object')
@@ -1539,6 +1562,320 @@ describe('Database Schema', () => {
       })
     })
 
+    describe('vectorEmbeddings3072', () => {
+      describe('columns', () => {
+        it('should have id column', () => {
+          expect(vectorEmbeddings3072.id).toBeDefined()
+          expect(vectorEmbeddings3072.id.name).toBe('id')
+        })
+
+        it('should have content column', () => {
+          expect(vectorEmbeddings3072.content).toBeDefined()
+          expect(vectorEmbeddings3072.content.name).toBe('content')
+        })
+
+        it('should have documentId column', () => {
+          expect(vectorEmbeddings3072.documentId).toBeDefined()
+          expect(vectorEmbeddings3072.documentId.name).toBe('document_id')
+        })
+
+        it('should have metadata column', () => {
+          expect(vectorEmbeddings3072.metadata).toBeDefined()
+          expect(vectorEmbeddings3072.metadata.name).toBe('metadata')
+        })
+
+        it('should have chunkIndex column', () => {
+          expect(vectorEmbeddings3072.chunkIndex).toBeDefined()
+          expect(vectorEmbeddings3072.chunkIndex.name).toBe('chunk_index')
+        })
+
+        it('should have embedding column', () => {
+          expect(vectorEmbeddings3072.embedding).toBeDefined()
+          expect(vectorEmbeddings3072.embedding.name).toBe('embedding')
+        })
+
+        it('should have chunkSize column', () => {
+          expect(vectorEmbeddings3072.chunkSize).toBeDefined()
+          expect(vectorEmbeddings3072.chunkSize.name).toBe('chunk_size')
+        })
+
+        it('should have chunkOverlap column', () => {
+          expect(vectorEmbeddings3072.chunkOverlap).toBeDefined()
+          expect(vectorEmbeddings3072.chunkOverlap.name).toBe('chunk_overlap')
+        })
+
+        it('should have distanceMetric column', () => {
+          expect(vectorEmbeddings3072.distanceMetric).toBeDefined()
+          expect(vectorEmbeddings3072.distanceMetric.name).toBe('distance_metric')
+        })
+
+        it('should have createdAt column', () => {
+          expect(vectorEmbeddings3072.createdAt).toBeDefined()
+          expect(vectorEmbeddings3072.createdAt.name).toBe('created_at')
+        })
+
+        it('should have updatedAt column', () => {
+          expect(vectorEmbeddings3072.updatedAt).toBeDefined()
+          expect(vectorEmbeddings3072.updatedAt.name).toBe('updated_at')
+        })
+      })
+
+      describe('column properties', () => {
+        it('should have primary key on id', () => {
+          expect(vectorEmbeddings3072.id.primary).toBe(true)
+        })
+
+        it('should have not null constraint on content', () => {
+          expect(vectorEmbeddings3072.content.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on documentId', () => {
+          expect(vectorEmbeddings3072.documentId.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on metadata', () => {
+          expect(vectorEmbeddings3072.metadata.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on chunkIndex', () => {
+          expect(vectorEmbeddings3072.chunkIndex.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on embedding', () => {
+          expect(vectorEmbeddings3072.embedding.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on createdAt', () => {
+          expect(vectorEmbeddings3072.createdAt.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on updatedAt', () => {
+          expect(vectorEmbeddings3072.updatedAt.notNull).toBe(true)
+        })
+
+        it('should have default value for chunkIndex', () => {
+          expect(vectorEmbeddings3072.chunkIndex.hasDefault).toBe(true)
+        })
+
+        it('should have default value for metadata', () => {
+          expect(vectorEmbeddings3072.metadata.hasDefault).toBe(true)
+        })
+
+        it('should have not null constraint on chunkSize', () => {
+          expect(vectorEmbeddings3072.chunkSize.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on chunkOverlap', () => {
+          expect(vectorEmbeddings3072.chunkOverlap.notNull).toBe(true)
+        })
+
+        it('should have default value for chunkSize', () => {
+          expect(vectorEmbeddings3072.chunkSize.hasDefault).toBe(true)
+        })
+
+        it('should have default value for chunkOverlap', () => {
+          expect(vectorEmbeddings3072.chunkOverlap.hasDefault).toBe(true)
+        })
+
+        it('should have not null constraint on distanceMetric', () => {
+          expect(vectorEmbeddings3072.distanceMetric.notNull).toBe(true)
+        })
+
+        it('should have default value for distanceMetric', () => {
+          expect(vectorEmbeddings3072.distanceMetric.hasDefault).toBe(true)
+        })
+
+        it('should default distanceMetric to cosine', () => {
+          expect(vectorEmbeddings3072.distanceMetric.default).toBe('cosine')
+        })
+      })
+
+      describe('embedding column configuration', () => {
+        it('should configure embedding column as custom pgvector type', () => {
+          expect(vectorEmbeddings3072.embedding.columnType).toBe('PgCustomColumn')
+          expect(vectorEmbeddings3072.embedding.dataType).toBe('custom')
+        })
+      })
+
+      describe('indexes', () => {
+        it('should have the table properly configured with index definitions', () => {
+          expect(vectorEmbeddings3072).toBeDefined()
+          expect(typeof vectorEmbeddings3072).toBe('object')
+        })
+
+        it('should be able to query the table (indexes will be applied at DB level)', () => {
+          const tableName = getTableName(vectorEmbeddings3072)
+          expect(tableName).toBe('vector_embeddings_3072')
+        })
+
+        it('should have columns that will be indexed (embedding, documentId, chunkIndex)', () => {
+          expect(vectorEmbeddings3072.embedding).toBeDefined()
+          expect(vectorEmbeddings3072.embedding.name).toBe('embedding')
+          expect(vectorEmbeddings3072.documentId).toBeDefined()
+          expect(vectorEmbeddings3072.documentId.name).toBe('document_id')
+          expect(vectorEmbeddings3072.chunkIndex).toBeDefined()
+          expect(vectorEmbeddings3072.chunkIndex.name).toBe('chunk_index')
+        })
+      })
+    })
+
+    describe('vectorEmbeddings1024', () => {
+      describe('columns', () => {
+        it('should have id column', () => {
+          expect(vectorEmbeddings1024.id).toBeDefined()
+          expect(vectorEmbeddings1024.id.name).toBe('id')
+        })
+
+        it('should have content column', () => {
+          expect(vectorEmbeddings1024.content).toBeDefined()
+          expect(vectorEmbeddings1024.content.name).toBe('content')
+        })
+
+        it('should have documentId column', () => {
+          expect(vectorEmbeddings1024.documentId).toBeDefined()
+          expect(vectorEmbeddings1024.documentId.name).toBe('document_id')
+        })
+
+        it('should have metadata column', () => {
+          expect(vectorEmbeddings1024.metadata).toBeDefined()
+          expect(vectorEmbeddings1024.metadata.name).toBe('metadata')
+        })
+
+        it('should have chunkIndex column', () => {
+          expect(vectorEmbeddings1024.chunkIndex).toBeDefined()
+          expect(vectorEmbeddings1024.chunkIndex.name).toBe('chunk_index')
+        })
+
+        it('should have embedding column', () => {
+          expect(vectorEmbeddings1024.embedding).toBeDefined()
+          expect(vectorEmbeddings1024.embedding.name).toBe('embedding')
+        })
+
+        it('should have chunkSize column', () => {
+          expect(vectorEmbeddings1024.chunkSize).toBeDefined()
+          expect(vectorEmbeddings1024.chunkSize.name).toBe('chunk_size')
+        })
+
+        it('should have chunkOverlap column', () => {
+          expect(vectorEmbeddings1024.chunkOverlap).toBeDefined()
+          expect(vectorEmbeddings1024.chunkOverlap.name).toBe('chunk_overlap')
+        })
+
+        it('should have distanceMetric column', () => {
+          expect(vectorEmbeddings1024.distanceMetric).toBeDefined()
+          expect(vectorEmbeddings1024.distanceMetric.name).toBe('distance_metric')
+        })
+
+        it('should have createdAt column', () => {
+          expect(vectorEmbeddings1024.createdAt).toBeDefined()
+          expect(vectorEmbeddings1024.createdAt.name).toBe('created_at')
+        })
+
+        it('should have updatedAt column', () => {
+          expect(vectorEmbeddings1024.updatedAt).toBeDefined()
+          expect(vectorEmbeddings1024.updatedAt.name).toBe('updated_at')
+        })
+      })
+
+      describe('column properties', () => {
+        it('should have primary key on id', () => {
+          expect(vectorEmbeddings1024.id.primary).toBe(true)
+        })
+
+        it('should have not null constraint on content', () => {
+          expect(vectorEmbeddings1024.content.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on documentId', () => {
+          expect(vectorEmbeddings1024.documentId.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on metadata', () => {
+          expect(vectorEmbeddings1024.metadata.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on chunkIndex', () => {
+          expect(vectorEmbeddings1024.chunkIndex.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on embedding', () => {
+          expect(vectorEmbeddings1024.embedding.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on createdAt', () => {
+          expect(vectorEmbeddings1024.createdAt.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on updatedAt', () => {
+          expect(vectorEmbeddings1024.updatedAt.notNull).toBe(true)
+        })
+
+        it('should have default value for chunkIndex', () => {
+          expect(vectorEmbeddings1024.chunkIndex.hasDefault).toBe(true)
+        })
+
+        it('should have default value for metadata', () => {
+          expect(vectorEmbeddings1024.metadata.hasDefault).toBe(true)
+        })
+
+        it('should have not null constraint on chunkSize', () => {
+          expect(vectorEmbeddings1024.chunkSize.notNull).toBe(true)
+        })
+
+        it('should have not null constraint on chunkOverlap', () => {
+          expect(vectorEmbeddings1024.chunkOverlap.notNull).toBe(true)
+        })
+
+        it('should have default value for chunkSize', () => {
+          expect(vectorEmbeddings1024.chunkSize.hasDefault).toBe(true)
+        })
+
+        it('should have default value for chunkOverlap', () => {
+          expect(vectorEmbeddings1024.chunkOverlap.hasDefault).toBe(true)
+        })
+
+        it('should have not null constraint on distanceMetric', () => {
+          expect(vectorEmbeddings1024.distanceMetric.notNull).toBe(true)
+        })
+
+        it('should have default value for distanceMetric', () => {
+          expect(vectorEmbeddings1024.distanceMetric.hasDefault).toBe(true)
+        })
+
+        it('should default distanceMetric to cosine', () => {
+          expect(vectorEmbeddings1024.distanceMetric.default).toBe('cosine')
+        })
+      })
+
+      describe('embedding column configuration', () => {
+        it('should configure embedding column as custom pgvector type', () => {
+          expect(vectorEmbeddings1024.embedding.columnType).toBe('PgCustomColumn')
+          expect(vectorEmbeddings1024.embedding.dataType).toBe('custom')
+        })
+      })
+
+      describe('indexes', () => {
+        it('should have the table properly configured with index definitions', () => {
+          expect(vectorEmbeddings1024).toBeDefined()
+          expect(typeof vectorEmbeddings1024).toBe('object')
+        })
+
+        it('should be able to query the table (indexes will be applied at DB level)', () => {
+          const tableName = getTableName(vectorEmbeddings1024)
+          expect(tableName).toBe('vector_embeddings_1024')
+        })
+
+        it('should have columns that will be indexed (embedding, documentId, chunkIndex)', () => {
+          expect(vectorEmbeddings1024.embedding).toBeDefined()
+          expect(vectorEmbeddings1024.embedding.name).toBe('embedding')
+          expect(vectorEmbeddings1024.documentId).toBeDefined()
+          expect(vectorEmbeddings1024.documentId.name).toBe('document_id')
+          expect(vectorEmbeddings1024.chunkIndex).toBeDefined()
+          expect(vectorEmbeddings1024.chunkIndex.name).toBe('chunk_index')
+        })
+      })
+    })
+
     describe('all vectorEmbeddings tables share common structure', () => {
       it('should have same column names across all dimension variants', () => {
         const getColumnKeys = (table: Record<string, unknown>): string[] =>
@@ -1560,14 +1897,24 @@ describe('Database Schema', () => {
         )
         const columns768 = getColumnKeys(vectorEmbeddings768 as unknown as Record<string, unknown>)
         const columns384 = getColumnKeys(vectorEmbeddings384 as unknown as Record<string, unknown>)
+        const columns3072 = getColumnKeys(
+          vectorEmbeddings3072 as unknown as Record<string, unknown>
+        )
+        const columns1024 = getColumnKeys(
+          vectorEmbeddings1024 as unknown as Record<string, unknown>
+        )
         expect(columns1536).toEqual(columns768)
         expect(columns768).toEqual(columns384)
+        expect(columns384).toEqual(columns3072)
+        expect(columns3072).toEqual(columns1024)
       })
 
       it('should all have embedding columns configured for pgvector', () => {
         expect(vectorEmbeddings1536.embedding.columnType).toBe('PgCustomColumn')
         expect(vectorEmbeddings768.embedding.columnType).toBe('PgCustomColumn')
         expect(vectorEmbeddings384.embedding.columnType).toBe('PgCustomColumn')
+        expect(vectorEmbeddings3072.embedding.columnType).toBe('PgCustomColumn')
+        expect(vectorEmbeddings1024.embedding.columnType).toBe('PgCustomColumn')
       })
     })
   })
@@ -1586,6 +1933,8 @@ describe('Database Schema', () => {
       expect(vectorEmbeddings1536.id.name).toBe('id')
       expect(vectorEmbeddings768.id.name).toBe('id')
       expect(vectorEmbeddings384.id.name).toBe('id')
+      expect(vectorEmbeddings3072.id.name).toBe('id')
+      expect(vectorEmbeddings1024.id.name).toBe('id')
     })
 
     it('should have consistent foreign key naming pattern', () => {

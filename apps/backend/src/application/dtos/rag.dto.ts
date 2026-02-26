@@ -7,14 +7,14 @@ import { ValidationException } from '../../shared/exceptions/validation.exceptio
 export class RagDto {
   constructor(
     public readonly id: string,
-    public readonly documents: {
+    public readonly documents: Array<{
       title: string
       source: string
-    },
+    }>,
     public readonly embeddingModels: {
       modelName: string
       modelProvider: string
-      dimension: 1536 | 768 | 384
+      dimension: 1536 | 768 | 384 | 3072 | 1024
     },
     public readonly vectorEmbeddings: {
       distanceMetric: 'cosine' | 'euclidean' | 'dot_product'
@@ -39,7 +39,11 @@ export class RagDto {
       throw new TypeException('Data must be a valid object')
     }
 
-    if (!isDefined(data.documents) || !isObject(data.documents)) {
+    if (
+      !isDefined(data.documents) ||
+      !Array.isArray(data.documents) ||
+      data.documents.length === 0
+    ) {
       throw new TypeException('Data must be a valid object')
     }
 
@@ -59,12 +63,18 @@ export class RagDto {
       throw new ValidationException('id is required and must be a string')
     }
 
-    if (!isString(data.documents.title)) {
-      throw new ValidationException('documents.title is required and must be a string')
-    }
+    for (const doc of data.documents) {
+      if (!isObject(doc)) {
+        throw new ValidationException('each document must be a valid object')
+      }
 
-    if (!isString(data.documents.source)) {
-      throw new ValidationException('documents.source is required and must be a string')
+      if (!isString(doc.title)) {
+        throw new ValidationException('documents.title is required and must be a string')
+      }
+
+      if (!isString(doc.source)) {
+        throw new ValidationException('documents.source is required and must be a string')
+      }
     }
 
     if (!isString(data.embeddingModels.modelName)) {
@@ -75,12 +85,12 @@ export class RagDto {
       throw new ValidationException('embeddingModels.dimension is required and must be a number')
     }
 
-    if (
-      data.embeddingModels.dimension !== 1536 &&
-      data.embeddingModels.dimension !== 768 &&
-      data.embeddingModels.dimension !== 384
-    ) {
-      throw new ValidationException('embeddingModels.dimension must be either 1536, 768, or 384')
+    const VALID_DIMENSIONS = [1536, 768, 384, 3072, 1024] as const
+    type ValidDimension = (typeof VALID_DIMENSIONS)[number]
+    if (!VALID_DIMENSIONS.includes(data.embeddingModels.dimension as ValidDimension)) {
+      throw new ValidationException(
+        'embeddingModels.dimension must be either 1536, 768, 384, 3072, or 1024'
+      )
     }
 
     if (!isString(data.embeddingModels.modelProvider)) {
@@ -174,10 +184,7 @@ export class RagDto {
 
     return new RagDto(
       data.id,
-      {
-        title: data.documents.title,
-        source: data.documents.source,
-      },
+      data.documents.map((doc) => ({ title: doc.title, source: doc.source })),
       {
         modelName: data.embeddingModels.modelName,
         modelProvider: data.embeddingModels.modelProvider,

@@ -50,6 +50,10 @@ DROP TABLE IF EXISTS "company" CASCADE;
 -- Vector / RAG tables (source of truth: norberts_schema.sql)
 DROP TABLE IF EXISTS "data" CASCADE;
 
+-- Vector / RAG tables (explicit for clarity)
+DROP TABLE IF EXISTS "vector_embeddings_3072" CASCADE;
+DROP TABLE IF EXISTS "vector_embeddings_1024" CASCADE;
+
 -- Legacy tables (created by Drizzle, no longer in the SQL schema)
 DROP TABLE IF EXISTS "vector_embeddings_1536" CASCADE;
 DROP TABLE IF EXISTS "vector_embeddings_768" CASCADE;
@@ -83,6 +87,7 @@ DROP INDEX IF EXISTS "data_retrieval_message_parts_text_json_idx";
 -- Drop ENUM types
 DROP TYPE IF EXISTS "contact_role" CASCADE;
 DROP TYPE IF EXISTS "customer_status" CASCADE;
+DROP TYPE IF EXISTS "embedding_dimension" CASCADE;
 
 -- Drop functions
 DROP FUNCTION IF EXISTS "touch_updated_at"() CASCADE;

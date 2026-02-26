@@ -16,6 +16,7 @@ import { AIRepository } from '../../adapters/secondary/repositories/ai.repositor
 import { AIAdminRepository } from '../../adapters/secondary/repositories/ai-admin.repository.js'
 import { AIChatContentRepository } from '../../adapters/secondary/repositories/ai-chat-content.repository.js'
 import { AIChatOptionsRepository } from '../../adapters/secondary/repositories/ai-chat-options.repository.js'
+import { AIRAGRepository } from '../../adapters/secondary/repositories/ai-rag.repository.js'
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
 import { CompanyRepository } from '../../adapters/secondary/repositories/company.repository.js'
 // Adapters
@@ -34,6 +35,7 @@ import { GetChatContentByChatIdUseCase } from '../../application/use-cases/get-c
 import { GetChatDetailsUseCase } from '../../application/use-cases/get-chat-details.use-case.js'
 import { GetChatsByUserIdUseCase } from '../../application/use-cases/get-chats-by-userid.use-case.js'
 import { GetCompanyDetailsUseCase } from '../../application/use-cases/get-company-details.use-case.js'
+import { GetEmbeddingModelUseCase } from '../../application/use-cases/get-embedding-model.use-case.js'
 import { GetUserByIdUseCase } from '../../application/use-cases/get-user-by-id.use-case.js'
 import { LoginUserUseCase } from '../../application/use-cases/login-user.use-case.js'
 import { PostAIAdminUseCase } from '../../application/use-cases/post-ai-admin.use-case.js'
@@ -96,6 +98,7 @@ export class Container {
   public readonly aiAdminRepository: AIAdminRepository
   public readonly aiChatOptionsRepository: AIChatOptionsRepository
   public readonly companyRepository: CompanyRepository
+  public readonly aiRagRepository: AIRAGRepository
 
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
@@ -121,6 +124,7 @@ export class Container {
   private readonly putChatDetailsUseCase: PutChatDetailsUseCase
   private readonly postChatTypesUseCase: PostChatTypesUseCase
   private readonly postAIAdminUseCase: PostAIAdminUseCase
+  private readonly getEmbeddingModelUseCase: GetEmbeddingModelUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -218,6 +222,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.aiChatOptionsRepository = new AIChatOptionsRepository(this.logger)
     this.companyRepository = new CompanyRepository(this.logger)
     this.bucketService = new BucketService(this.logger)
+    this.aiRagRepository = new AIRAGRepository(this.logger)
     // Initialize use cases
     this.registerUserUseCase = new RegisterUserUseCase(
       this.userRepository,
@@ -319,6 +324,12 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.auditLog,
       this.aiAdminRepository
     )
+    this.getEmbeddingModelUseCase = new GetEmbeddingModelUseCase(
+      this.logger,
+      this.auditLog,
+      this.aiRagRepository
+    )
+
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
       this.registerUserUseCase,
@@ -364,6 +375,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     )
     this.aiRagController = new AiRagController(
       this.logger,
+      this.getEmbeddingModelUseCase,
       this.presignedUploadUrlUseCase,
       this.pdfUtils
     )

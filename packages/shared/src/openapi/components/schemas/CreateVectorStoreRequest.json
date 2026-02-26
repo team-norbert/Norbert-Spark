@@ -10,17 +10,21 @@
       "example": "01933c89-6f67-7b3a-8e4c-123456789abc"
     },
     "documents": {
-      "type": "object",
-      "description": "Vector store documents configuration",
-      "required": ["title", "source"],
-      "properties": {
-        "title": {
-          "type": "string",
-          "description": "Title of the document"
-        },
-        "source": {
-          "type": "string",
-          "description": "Source of the document"
+      "type": "array",
+      "description": "Vector store documents configuration. One entry per uploaded file.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["title", "source"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the document"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source of the document (e.g. the bucket file key)"
+          }
         }
       }
     },
@@ -40,7 +44,7 @@
         "dimension": {
           "type": "integer",
           "description": "Dimension of the vector embeddings",
-          "enum": [1536, 768, 384],
+          "enum": [3072, 1536, 1024, 768, 384],
           "example": 1536
         }
       }

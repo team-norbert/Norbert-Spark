@@ -25,7 +25,7 @@ vi.mock('@/app/chat-types/rag-files/[id]/RagFilesPageClient.js', () => ({
   })),
 }))
 
-const defaultParams = { params: { id: '019bda39-6197-7557-9071-d7ed1c719138' } }
+const defaultParams = { params: Promise.resolve({ id: '019bda39-6197-7557-9071-d7ed1c719138' }) }
 
 describe('RagFilesPage', () => {
   beforeEach(() => {
@@ -155,7 +155,7 @@ describe('RagFilesPage', () => {
     })
 
     it('should include the dynamic id param in the callback URL', async () => {
-      const customParams = { params: { id: 'abc-custom-id-123' } }
+      const customParams = { params: Promise.resolve({ id: 'abc-custom-id-123' }) }
       vi.mocked(hasAnyRole).mockResolvedValueOnce(false)
 
       await expect(RagFilesPage(customParams)).rejects.toThrow('NEXT_REDIRECT')
@@ -165,8 +165,8 @@ describe('RagFilesPage', () => {
     })
 
     it('should use different callback URLs for different chat type ids', async () => {
-      const paramsA = { params: { id: 'id-aaa' } }
-      const paramsB = { params: { id: 'id-bbb' } }
+      const paramsA = { params: Promise.resolve({ id: 'id-aaa' }) }
+      const paramsB = { params: Promise.resolve({ id: 'id-bbb' }) }
 
       vi.mocked(hasAnyRole).mockResolvedValue(false)
 
@@ -222,7 +222,7 @@ describe('RagFilesPage', () => {
     it('should accept any string as the id param', async () => {
       vi.mocked(hasAnyRole).mockResolvedValueOnce(true)
 
-      const result = await RagFilesPage({ params: { id: 'some-arbitrary-id' } })
+      const result = await RagFilesPage({ params: Promise.resolve({ id: 'some-arbitrary-id' }) })
 
       expect(result).toBeDefined()
       expect(redirect).not.toHaveBeenCalled()
@@ -232,7 +232,9 @@ describe('RagFilesPage', () => {
       const specificId = 'my-specific-rag-chat-type'
       vi.mocked(hasAnyRole).mockResolvedValueOnce(false)
 
-      await expect(RagFilesPage({ params: { id: specificId } })).rejects.toThrow('NEXT_REDIRECT')
+      await expect(RagFilesPage({ params: Promise.resolve({ id: specificId }) })).rejects.toThrow(
+        'NEXT_REDIRECT'
+      )
 
       const redirectCall = vi.mocked(redirect).mock.calls[0]?.[0] as string
       const decoded = decodeURIComponent(redirectCall)

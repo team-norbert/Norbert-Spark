@@ -347,6 +347,10 @@ export const embeddingModels = pgTable(
       table.provider,
       table.dimension
     ),
+    dimensionCheck: check(
+      'embedding_models_dimension_check',
+      sql`${table.dimension} IN (384, 768, 1024, 1536, 3072)`
+    ),
   })
 )
 
@@ -704,6 +708,218 @@ export const vectorEmbeddings384 = pgTable(
 
 export type DBVectorEmbeddings384 = typeof vectorEmbeddings384.$inferInsert
 export type DBVectorEmbeddingsSelect384 = typeof vectorEmbeddings384.$inferSelect
+
+/**
+ * Vector Embeddings table: Stores 3072-dimension vector embeddings for RAG
+ */
+export const vectorEmbeddings3072 = pgTable(
+  'vector_embeddings_3072',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    /**
+     * Identifier of the source document this chunk/embedding belongs to.
+     * Foreign key to documents table.
+     */
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, {
+        onDelete: 'cascade',
+      }),
+    /**
+     * Identifier of the embedding model used to generate this embedding.
+     * Foreign key to embedding_models table.
+     */
+    embeddingModelId: uuid('embedding_model_id')
+      .notNull()
+      .references(() => embeddingModels.id, {
+        onDelete: 'restrict',
+      }),
+    /**
+     * Position of this chunk within its document, used to reconstruct ordering.
+     */
+    chunkIndex: integer('chunk_index').notNull().default(0),
+    content: text('content').notNull(),
+    /**
+     * Flexible metadata about the chunk/document (page, section, author, etc.).
+     * Stored as JSONB with an empty-object default for backwards compatibility.
+     */
+    metadata: jsonb('metadata')
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    /**
+     * Vector embedding representation of the content.
+     * Used by:
+     * - OpenAI text-embedding-3-large
+     * - Google gemini-embedding-001
+     *
+     * Pros:
+     * Highest semantic resolution available
+     * Best retrieval precision for complex or nuanced queries
+     *
+     * Cons:
+     * Largest storage footprint and index size
+     * Higher latency per query vs smaller dimensions
+     */
+    embedding: vector('embedding', { dimension: 3072 }).notNull(),
+    /**
+     * Number of tokens (or characters) in each chunk.
+     */
+    chunkSize: integer('chunk_size').notNull().default(700),
+    /**
+     * Number of overlapping tokens (or characters) between consecutive chunks.
+     */
+    chunkOverlap: integer('chunk_overlap').notNull().default(120),
+    /**
+     * The distance metric used when querying this embedding.
+     * Must be one of: 'cosine', 'euclidean', 'dot_product'.
+     */
+    distanceMetric: text('distance_metric').notNull().default('cosine'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    embeddingCosineIdx: index('vector_embeddings_3072_embedding_cosine_idx').using(
+      'hnsw',
+      sql`(embedding::halfvec(3072)) halfvec_cosine_ops`
+    ),
+    documentChunkIdx: index('vector_embeddings_3072_document_chunk_idx').on(
+      table.documentId,
+      table.chunkIndex
+    ),
+    embeddingModelIdIdx: index('vector_embeddings_3072_embedding_model_id_idx').on(
+      table.embeddingModelId
+    ),
+    uniqueDocumentModelChunk: unique('vector_embeddings_3072_document_model_chunk_unique').on(
+      table.documentId,
+      table.embeddingModelId,
+      table.chunkIndex
+    ),
+    contentLengthCheck: check(
+      'vector_embeddings_3072_content_length_check',
+      sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
+    ),
+    distanceMetricCheck: check(
+      'vector_embeddings_3072_distance_metric_check',
+      sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
+    ),
+    chunkParamsCheck: check(
+      'vector_embeddings_3072_chunk_params_check',
+      sql`${table.chunkSize} > 0 AND ${table.chunkSize} <= 50000 AND ${table.chunkOverlap} >= 0 AND ${table.chunkOverlap} < ${table.chunkSize}`
+    ),
+  })
+)
+
+export type DBVectorEmbeddings3072 = typeof vectorEmbeddings3072.$inferInsert
+export type DBVectorEmbeddingsSelect3072 = typeof vectorEmbeddings3072.$inferSelect
+
+/**
+ * Vector Embeddings table: Stores 1024-dimension vector embeddings for RAG
+ */
+export const vectorEmbeddings1024 = pgTable(
+  'vector_embeddings_1024',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    /**
+     * Identifier of the source document this chunk/embedding belongs to.
+     * Foreign key to documents table.
+     */
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, {
+        onDelete: 'cascade',
+      }),
+    /**
+     * Identifier of the embedding model used to generate this embedding.
+     * Foreign key to embedding_models table.
+     */
+    embeddingModelId: uuid('embedding_model_id')
+      .notNull()
+      .references(() => embeddingModels.id, {
+        onDelete: 'restrict',
+      }),
+    /**
+     * Position of this chunk within its document, used to reconstruct ordering.
+     */
+    chunkIndex: integer('chunk_index').notNull().default(0),
+    content: text('content').notNull(),
+    /**
+     * Flexible metadata about the chunk/document (page, section, author, etc.).
+     * Stored as JSONB with an empty-object default for backwards compatibility.
+     */
+    metadata: jsonb('metadata')
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    /**
+     * Vector embedding representation of the content.
+     * Used by:
+     * - Cohere embed-english-v3.0 / embed-multilingual-v3.0
+     * - Amazon Titan embed-text-v2:0
+     * - Voyage AI voyage-4, voyage-4-lite, voyage-code-3
+     * - Mistral mistral-embed
+     * - Jina jina-embeddings-v3
+     *
+     * Pros:
+     * Strong balance of semantic quality and storage efficiency
+     * Wide provider support for multilingual and code use-cases
+     *
+     * Cons:
+     * Slightly lower resolution than 1536/3072 models
+     */
+    embedding: vector('embedding', { dimension: 1024 }).notNull(),
+    /**
+     * Number of tokens (or characters) in each chunk.
+     */
+    chunkSize: integer('chunk_size').notNull().default(700),
+    /**
+     * Number of overlapping tokens (or characters) between consecutive chunks.
+     */
+    chunkOverlap: integer('chunk_overlap').notNull().default(120),
+    /**
+     * The distance metric used when querying this embedding.
+     * Must be one of: 'cosine', 'euclidean', 'dot_product'.
+     */
+    distanceMetric: text('distance_metric').notNull().default('cosine'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    embeddingCosineIdx: index('vector_embeddings_1024_embedding_cosine_idx').using(
+      'ivfflat',
+      table.embedding.asc().op('vector_cosine_ops')
+    ),
+    documentChunkIdx: index('vector_embeddings_1024_document_chunk_idx').on(
+      table.documentId,
+      table.chunkIndex
+    ),
+    embeddingModelIdIdx: index('vector_embeddings_1024_embedding_model_id_idx').on(
+      table.embeddingModelId
+    ),
+    uniqueDocumentModelChunk: unique('vector_embeddings_1024_document_model_chunk_unique').on(
+      table.documentId,
+      table.embeddingModelId,
+      table.chunkIndex
+    ),
+    contentLengthCheck: check(
+      'vector_embeddings_1024_content_length_check',
+      sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
+    ),
+    distanceMetricCheck: check(
+      'vector_embeddings_1024_distance_metric_check',
+      sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
+    ),
+    chunkParamsCheck: check(
+      'vector_embeddings_1024_chunk_params_check',
+      sql`${table.chunkSize} > 0 AND ${table.chunkSize} <= 50000 AND ${table.chunkOverlap} >= 0 AND ${table.chunkOverlap} < ${table.chunkSize}`
+    ),
+  })
+)
+
+export type DBVectorEmbeddings1024 = typeof vectorEmbeddings1024.$inferInsert
+export type DBVectorEmbeddingsSelect1024 = typeof vectorEmbeddings1024.$inferSelect
 
 /**
  * Chat Types table: Stores reusable chat templates/configurations

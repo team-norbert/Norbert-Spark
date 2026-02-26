@@ -1,0 +1,67 @@
+{
+  "get": {
+    "summary": "Get all embedding models",
+    "description": "Retrieves all embedding models in the database",
+    "operationId": "getEmbeddingModels",
+    "tags": ["ai", "chat"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Embedding models retrieved",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/AIEmbeddingModels.json"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Authentication required"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - User does not have required role (admin or moderator)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Access denied. You must have admin or moderator role to access embedding models"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Internal server error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

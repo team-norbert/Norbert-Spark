@@ -26,8 +26,8 @@ function fillRequiredFields({
   title = 'My Document',
 } = {}) {
   fireEvent.change(screen.getByLabelText(/^vector store id/i), { target: { value: id } })
-  fireEvent.change(screen.getByLabelText(/^title/i), { target: { value: title } })
-  fireEvent.change(screen.getByLabelText(/^source/i), { target: { value: source } })
+  fireEvent.change(screen.getAllByLabelText(/^title/i)[0]!, { target: { value: title } })
+  fireEvent.change(screen.getAllByLabelText(/^source/i)[0]!, { target: { value: source } })
   fireEvent.change(screen.getByLabelText(/^model name/i), { target: { value: modelName } })
   fireEvent.change(screen.getByLabelText(/^model provider/i), {
     target: { value: modelProvider },
@@ -147,12 +147,11 @@ describe('CreateVectorStoreForm', () => {
       expect(screen.getByRole('button', { name: /create vector store/i })).toBeInTheDocument()
     })
 
-    it('shows the list of fileKeys when non-empty', () => {
+    it('shows a caption for each uploaded file', () => {
       render(<CreateVectorStoreForm fileKeys={DEFAULT_FILE_KEYS} onSubmit={mockOnSubmit} />)
 
-      expect(
-        screen.getByText(`Files to embed: ${DEFAULT_FILE_KEYS.join(', ')}`)
-      ).toBeInTheDocument()
+      expect(screen.getByText(/File 1:.*file-a\.pdf/i)).toBeInTheDocument()
+      expect(screen.getByText(/File 2:.*file-b\.pdf/i)).toBeInTheDocument()
     })
 
     it('does not show the fileKeys line when the array is empty', () => {
@@ -214,6 +213,19 @@ describe('CreateVectorStoreForm', () => {
       expect((screen.getByLabelText(/^chat type id/i) as HTMLInputElement).value).toBe(id)
     })
 
+    it('id field is pre-populated from initialChatTypeId when provided', () => {
+      const initialId = 'aabbccdd-1234-1234-1234-aabbccddee01'
+      render(
+        <CreateVectorStoreForm
+          fileKeys={[]}
+          initialChatTypeId={initialId}
+          onSubmit={mockOnSubmit}
+        />
+      )
+
+      expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe(initialId)
+    })
+
     it('dimension defaults to 1536', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
@@ -241,11 +253,13 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       const { documents } = mockOnSubmit.mock.calls[0]![0]!
-      expect(documents).toEqual({
-        title: 'Heart of Darkness',
-        source: 'https://gutenberg.org/hod',
-      })
-    })
+      expect(documents).toEqual([
+        {
+          title: 'Heart of Darkness',
+          source: 'https://gutenberg.org/hod',
+        },
+      ])
+    }, 15000)
 
     it('passes the required id field', () => {
       const testId = 'abc12345-0000-0000-0000-000000000001'
@@ -255,6 +269,22 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.id).toBe(testId)
+    })
+
+    it('submits the id pre-populated from initialChatTypeId when the field is not changed', () => {
+      const initialId = 'prepopulated-0000-0000-0000-000000000001'
+      render(
+        <CreateVectorStoreForm
+          fileKeys={[]}
+          initialChatTypeId={initialId}
+          onSubmit={mockOnSubmit}
+        />
+      )
+
+      fillRequiredFields({ id: initialId })
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.id).toBe(initialId)
     })
 
     it('passes the correct embeddingModels shape', () => {
@@ -473,6 +503,38 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(1536)
+    })
+
+    it('selecting 3072 updates dimension in the submitted data', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields()
+
+      const selectButton = screen
+        .getByText('1536')
+        .closest('[role="combobox"], [role="button"]') as HTMLElement
+      fireEvent.mouseDown(selectButton)
+      fireEvent.click(screen.getByRole('option', { name: '3072' }))
+
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(3072)
+    })
+
+    it('selecting 1024 updates dimension in the submitted data', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields()
+
+      const selectButton = screen
+        .getByText('1536')
+        .closest('[role="combobox"], [role="button"]') as HTMLElement
+      fireEvent.mouseDown(selectButton)
+      fireEvent.click(screen.getByRole('option', { name: '1024' }))
+
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(1024)
     })
 
     it('selecting 768 updates dimension in the submitted data', () => {

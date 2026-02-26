@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "description": "Response containing a list of AI embedding models",
+  "required": ["success", "data"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "example": true
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "provider", "dimension", "createdAt", "updatedAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "name": {
+            "type": "string",
+            "example": "text-embedding-3-small"
+          },
+          "provider": {
+            "type": "string",
+            "example": "azure"
+          },
+          "dimension": {
+            "type": "integer",
+            "example": 1536,
+            "description": "The number of dimensions in the embedding vector produced by this model",
+            "enum": [3072, 1536, 1024, 768, 384]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00Z"
+          }
+        }
+      }
+    }
+  }
+}

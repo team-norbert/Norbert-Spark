@@ -1,11 +1,72 @@
+import { desc } from 'drizzle-orm'
+
 import { RagDto } from '../../../application/dtos/rag.dto.js'
 import type { AiRagRepositoryPost } from '../../../application/ports/ai.rag.repository.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { db } from '../../../infrastructure/database/index.js'
+import {
+  type DBEmbeddingModelSelect,
+  embeddingModels,
+} from '../../../infrastructure/database/schema.js'
 
+/**
+ * Secondary adapter (repository) for Retrieval-Augmented Generation data access.
+ *
+ * Implements the {@link AiRagRepositoryPost} port and provides all database
+ * I/O for RAG-related features: storing vector embeddings and querying the
+ * catalogue of available embedding models.
+ *
+ * All methods interact directly with the PostgreSQL database via Drizzle ORM.
+ * Business logic must not reside here — this class is concerned only with
+ * translating application-layer requests into database operations and
+ * returning well-typed results.
+ */
 export class AIRAGRepository implements AiRagRepositoryPost {
+  /**
+   * @param logger - Structured logger used to record errors during database operations.
+   */
   constructor(private readonly logger: LoggerPort) {}
 
-  async createRagVectorEntry(data: RagDto): Promise<void> {
-    throw new Error('Not implemented')
+  /**
+   * Persists a new RAG vector entry derived from the provided DTO.
+   *
+   * @param _data - The validated RAG DTO containing the document metadata and
+   *   embedding configuration required to create the vector entry.
+   * @returns A promise that resolves when the entry has been written.
+   *
+   * @todo Implement the actual vector insertion logic using `_data`.
+   */
+  async createRagVectorEntry(_data: RagDto): Promise<void> {
+    const error = new Error('createRagVectorEntry is not implemented yet')
+    this.logger.error('createRagVectorEntry called before implementation', error)
+    throw error
+  }
+
+  /**
+   * Retrieves all embedding models from the `embedding_models` table, ordered
+   * by `createdAt` descending (most recently added first).
+   *
+   * Logs and rethrows any database error so callers receive a rejected promise
+   * and the HTTP layer can respond with a 500 status instead of silently
+   * returning an empty list.
+   *
+   * @returns A promise that resolves to an array of `DBEmbeddingModelSelect`
+   *   records.
+   * @throws The original database error after logging it.
+   */
+  async getAllEmbeddingModels(): Promise<DBEmbeddingModelSelect[]> {
+    try {
+      const rows: DBEmbeddingModelSelect[] = await db
+        .select()
+        .from(embeddingModels)
+        .orderBy(desc(embeddingModels.createdAt))
+      return rows
+    } catch (error) {
+      this.logger.error(
+        'Error in getAllEmbeddingModels',
+        error instanceof Error ? error : new Error(String(error))
+      )
+      throw error
+    }
   }
 }

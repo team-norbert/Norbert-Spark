@@ -469,6 +469,19 @@ export class AIExtractDataController {
         userAgent: request.headers['user-agent'] ?? null,
       }
 
+      // Build a map from sanitized filename → original filename so we can restore
+      // the original name in the response. The frontend matches presigned URLs back
+      // to browser File objects by File.name (original), but sanitizeFilename may
+      // alter the name (e.g. spaces → underscores). Without this remapping the
+      // frontend lookup fails for any filename that contains spaces or other
+      // characters normalised during sanitization.
+      const originalFilenameMap = new Map<string, string>(
+        sanitizedFiles.map((sanitized, i) => [
+          sanitized.filename,
+          dto.files.at(i)?.filename ?? sanitized.filename,
+        ])
+      )
+
       // Create file-like objects for the use case with sanitized filenames
       const fileMetadata = sanitizedFiles.map((f) => ({
         filename: f.filename,
@@ -489,9 +502,16 @@ export class AIExtractDataController {
       const flow = rawFlow as AllowedFlow
       const result = await this.presignedUploadUrlUseCase.execute(fileMetadata, auditContext, flow)
 
+      // Restore the original (pre-sanitization) filename in each upload URL entry
+      // so the frontend can match it against the browser File.name it originally sent.
+      const uploadUrls = result.uploadUrls.map((u) => ({
+        ...u,
+        filename: originalFilenameMap.get(u.filename) ?? u.filename,
+      }))
+
       return reply.status(200).send({
         success: true,
-        data: result,
+        data: { uploadUrls },
         message: 'Presigned URLs generated successfully',
       })
     } catch (error) {

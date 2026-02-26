@@ -20,6 +20,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Fetch base branch for affected detection
+      run: git fetch origin main --depth=1
+
     - name: Install pnpm
       uses: pnpm/action-setup@v4
       with:
