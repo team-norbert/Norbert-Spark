@@ -4,4 +4,4 @@ Retrieval Augmented Generation (RAG) is a powerful technique that combines retri
 
 In the form, there are default settings for RAG, but it is advisable to customise them based on your specific use case.
 
-Here are the main settings you can adjust. You can still change them the values later after form submission
+Here are the main settings you can adjust. You can still change the values later after form submission
