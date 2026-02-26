@@ -25,6 +25,39 @@ export class AiRagController {
       },
       this.createRagVectorStore.bind(this)
     )
+    app.get(
+      '/ai/embedding-models',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.getEmbeddingModels.bind(this)
+    )
+  }
+
+  async getEmbeddingModels(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      // Extract audit context from request
+      const auditContext = {
+        userId: request.user?.sub ?? null,
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] ?? null,
+      }
+    } catch (error) {
+      this.logger.error(
+        'Error in createRagVectorStore',
+        error instanceof Error ? error : new Error(String(error))
+      )
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to create vector store due to a database error'
+          : err?.message || 'Failed to create vector store due to a database error'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
   }
 
   async createRagVectorStore(request: FastifyRequest, reply: FastifyReply): Promise<void> {
