@@ -6,8 +6,8 @@ import { ResendService } from '../../../src/adapters/secondary/services/email.se
 import { PinoLoggerService } from '../../../src/adapters/secondary/services/logger.service.js'
 import { RegisterUserUseCase } from '../../../src/application/use-cases/register-user.use-case.js'
 import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
-import { Container } from '../../../src/infrastructure/di/container.js'
 import { pool } from '../../../src/infrastructure/database/index.js'
+import { Container } from '../../../src/infrastructure/di/container.js'
 import { createFastifyApp } from '../../../src/infrastructure/http/fastify.config.js'
 
 // Mock database before all other imports to prevent validation errors
