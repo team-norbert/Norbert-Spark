@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS documents (
 -- embedding model configurations (name, provider, dimension)
 -- ============================================================
 
-CREATE TYPE embedding_dimension AS ENUM ('3072', '1536', '768', '384');
+CREATE TYPE embedding_dimension AS ENUM ('3072', '1536', '1024', '768', '384');
 
 CREATE TABLE IF NOT EXISTS embedding_models (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
@@ -153,8 +153,7 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_3072 (
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_3072_embedding_cosine_idx
     ON vector_embeddings_3072
-    USING ivfflat (embedding vector_cosine_ops)
-    WITH (lists = 100);
+    USING hnsw ((embedding::halfvec(3072)) halfvec_cosine_ops);
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_3072_document_chunk_idx
     ON vector_embeddings_3072 (document_id, chunk_index);
@@ -165,6 +164,42 @@ CREATE INDEX IF NOT EXISTS vector_embeddings_3072_embedding_model_id_idx
 ALTER TABLE vector_embeddings_3072
     ADD CONSTRAINT vector_embeddings_3072_content_length_check
         CHECK (length(content) >= 1 AND length(content) <= 50000);
+
+CREATE TABLE IF NOT EXISTS vector_embeddings_1024 (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    document_id UUID NOT NULL
+    REFERENCES documents(id)
+    ON DELETE CASCADE,
+    embedding_model_id UUID NOT NULL
+    REFERENCES embedding_models(id)
+    ON DELETE RESTRICT,
+    chunk_index INTEGER NOT NULL DEFAULT 0,
+    content TEXT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    embedding VECTOR(1024) NOT NULL,
+    chunk_size INTEGER NOT NULL DEFAULT 700 CHECK (chunk_size > 0 AND chunk_size <= 50000),
+    chunk_overlap INTEGER NOT NULL DEFAULT 120 CHECK (chunk_overlap >= 0 AND chunk_overlap < chunk_size),
+    distance_metric TEXT NOT NULL DEFAULT 'cosine' CHECK (distance_metric IN ('cosine', 'euclidean', 'dot_product')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT vector_embeddings_1024_document_model_chunk_unique
+        UNIQUE (document_id, embedding_model_id, chunk_index)
+    );
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_1024_embedding_cosine_idx
+    ON vector_embeddings_1024
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 100);
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_1024_document_chunk_idx
+    ON vector_embeddings_1024 (document_id, chunk_index);
+
+CREATE INDEX IF NOT EXISTS vector_embeddings_1024_embedding_model_id_idx
+    ON vector_embeddings_1024 (embedding_model_id);
+
+ALTER TABLE vector_embeddings_1024
+    ADD CONSTRAINT vector_embeddings_1024_content_length_check
+    CHECK (length(content) >= 1 AND length(content) <= 50000);
 
 CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
