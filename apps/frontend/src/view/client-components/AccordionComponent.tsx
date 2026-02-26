@@ -22,7 +22,7 @@ export const AccordionComponent = ({ body, header, id }: AccordionComponentProps
         <Typography className="accordion-header">{header}</Typography>
       </AccordionSummary>
       <AccordionDetails id={contentId}>
-        <Typography component="div">{body}</Typography>
+        <Typography>{body}</Typography>
       </AccordionDetails>
     </Accordion>
   )

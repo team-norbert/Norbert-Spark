@@ -50,6 +50,8 @@ export const contactRoleEnum = pgEnum('contact_role', [
   'stakeholder',
 ])
 
+export const embeddingDimensionEnum = pgEnum('embedding_dimension', ['1536', '768', '384'])
+
 /**
  * Company table: Stores customer information
  * Note: This is a singleton table - only one company record is allowed
@@ -337,7 +339,7 @@ export const embeddingModels = pgTable(
       .default(sql`uuidv7()`),
     name: text('name').notNull(),
     provider: text('provider').notNull(),
-    dimension: integer('dimension').notNull(),
+    dimension: embeddingDimensionEnum('dimension').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

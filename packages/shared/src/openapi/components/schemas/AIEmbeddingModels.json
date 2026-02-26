@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "description": "Response returned when fetching a chat",
+  "required": ["success", "data"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "example": true
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "text-embedding-3-small"
+        },
+        "provider": {
+          "type": "string",
+          "example": "azure"
+        },
+        "dimensions": {
+          "type": "number",
+          "example": 1536,
+          "description": "The number of dimensions in the embedding vector produced by this model",
+          "enum": [1536, 768, 384]
+        }
+      }
+    }
+  }
+}
