@@ -43,7 +43,7 @@ const defaultProps = {
 
 describe('AIAdminPage', () => {
   beforeEach(() => {
-    vi.resetAllMocks()
+    vi.clearAllMocks()
   })
 
   // ── Header ────────────────────────────────────────────────────────────────
