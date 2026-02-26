@@ -135,7 +135,7 @@ describe('AiRagController', () => {
 
       await controller.getEmbeddingModels(mockRequest, mockReply)
 
-      expect(mockLogger.error).toHaveBeenCalledWith('Error in createRagVectorStore', error)
+      expect(mockLogger.error).toHaveBeenCalledWith('Error in getEmbeddingModels', error)
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
@@ -169,7 +169,7 @@ describe('AiRagController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Failed to create vector store due to a database error',
+        error: 'Failed to fetch embedding models due to a database error',
       })
     })
 
@@ -179,7 +179,7 @@ describe('AiRagController', () => {
       await controller.getEmbeddingModels(mockRequest, mockReply)
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error in createRagVectorStore',
+        'Error in getEmbeddingModels',
         new Error('unexpected string error')
       )
       expect(mockReply.code).toHaveBeenCalledWith(500)
