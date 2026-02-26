@@ -17,7 +17,7 @@
 
 import { db } from '../src/infrastructure/database/index.js'
 import { embeddingModels } from '../src/infrastructure/database/schema.js'
-import rawData from './embedding_models.json' with { type: 'json' }
+import rawData from '../src/shared/data/embedding_models.json' with { type: 'json' }
 
 type EmbeddingDimension = 384 | 768 | 1024 | 1536 | 3072
 
