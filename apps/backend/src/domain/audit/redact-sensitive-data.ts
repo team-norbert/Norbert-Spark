@@ -64,6 +64,11 @@ const SENSITIVE_FIELDS = [
 const REDACTED_PLACEHOLDER = '[REDACTED]'
 
 /**
+ * Keys that must never be written to a plain object to prevent prototype pollution
+ */
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
+/**
  * Recursively redacts sensitive fields from an object
  *
  * This function deeply traverses nested objects and arrays to ensure
@@ -128,9 +133,16 @@ export function redactSensitiveData(
   }
 
   // Handle regular objects
-  const redacted: Record<string, unknown> = {}
+  // Use a null-prototype object so that keys like __proto__ cannot mutate
+  // the prototype chain (defense-in-depth alongside the DANGEROUS_KEYS guard).
+  const redacted: Record<string, unknown> = Object.create(null) as Record<string, unknown>
 
   for (const [key, value] of Object.entries(data)) {
+    // Skip keys that could lead to prototype pollution
+    if (DANGEROUS_KEYS.has(key)) {
+      continue
+    }
+
     // Check if the field name matches any sensitive field (case-insensitive)
     const isFieldSensitive = SENSITIVE_FIELDS.some(
       (sensitiveField) => key.toLowerCase() === sensitiveField.toLowerCase()
@@ -138,13 +150,13 @@ export function redactSensitiveData(
 
     if (isFieldSensitive) {
       // Redact the entire field
-      Reflect.set(redacted, key, REDACTED_PLACEHOLDER)
+      redacted[key] = REDACTED_PLACEHOLDER
     } else if (typeof value === 'object' && value !== null) {
       // Recursively redact nested objects
-      Reflect.set(redacted, key, redactSensitiveData(value, depth + 1, maxDepth))
+      redacted[key] = redactSensitiveData(value, depth + 1, maxDepth)
     } else {
       // Keep non-sensitive primitive values
-      Reflect.set(redacted, key, value)
+      redacted[key] = value
     }
   }
 
