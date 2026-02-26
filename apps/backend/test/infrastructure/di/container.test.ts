@@ -381,10 +381,7 @@ describe('Container', () => {
       // stop() catches the error, logs it, and resolves — it does not reject
       await container.stop()
 
-      expect(container.logger.error).toHaveBeenCalledWith(
-        'Error while closing server',
-        mockError
-      )
+      expect(container.logger.error).toHaveBeenCalledWith('Error while closing server', mockError)
       expect(container.logger.info).toHaveBeenCalledWith('Server stopped')
     })
   })
