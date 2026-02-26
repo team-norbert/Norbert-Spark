@@ -44,15 +44,11 @@ const rows = models.map((m) => ({
 
 console.log(`🌱 Seeding ${rows.length} embedding models…`)
 
-const inserted = await db
-  .insert(embeddingModels)
-  .values(rows)
-  .onConflictDoNothing()
-  .returning({
-    id: embeddingModels.id,
-    name: embeddingModels.name,
-    provider: embeddingModels.provider,
-  })
+const inserted = await db.insert(embeddingModels).values(rows).onConflictDoNothing().returning({
+  id: embeddingModels.id,
+  name: embeddingModels.name,
+  provider: embeddingModels.provider,
+})
 
 if (inserted.length === 0) {
   console.log('ℹ️  All models already exist — nothing to insert.')
