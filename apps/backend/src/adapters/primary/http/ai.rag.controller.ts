@@ -36,12 +36,11 @@ export class AiRagController {
 
   async getEmbeddingModels(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
-      // Extract audit context from request
-      const auditContext = {
-        userId: request.user?.sub ?? null,
-        ipAddress: request.ip,
-        userAgent: request.headers['user-agent'] ?? null,
-      }
+      // TODO: Implement fetching embedding models from the repository
+      reply.code(501).send({
+        success: false,
+        message: 'getEmbeddingModels is not implemented yet',
+      })
     } catch (error) {
       this.logger.error(
         'Error in createRagVectorStore',

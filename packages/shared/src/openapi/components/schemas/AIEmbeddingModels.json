@@ -9,6 +9,7 @@
     },
     "data": {
       "type": "object",
+      "required": ["id", "name", "provider", "dimensions", "created_at", "updated_at"],
       "properties": {
         "id": {
           "type": "string",
