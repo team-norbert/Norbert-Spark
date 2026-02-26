@@ -85,7 +85,6 @@ export function CreateVectorStoreForm({
 
   // chatAIOptions
   const [chatTypeId, setChatTypeId] = useState(initialChatTypeId ?? '')
-  console.log(chatTypeId)
   const [maxTokens, setMaxTokens] = useState('')
   const [temperature, setTemperature] = useState('')
   const [topP, setTopP] = useState('')
