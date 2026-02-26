@@ -378,7 +378,14 @@ describe('Container', () => {
       const mockError = new Error('Failed to close server')
       vi.mocked(container.app.close).mockRejectedValue(mockError)
 
-      await expect(container.stop()).rejects.toThrow('Failed to close server')
+      // stop() catches the error, logs it, and resolves — it does not reject
+      await container.stop()
+
+      expect(container.logger.error).toHaveBeenCalledWith(
+        'Error while closing server',
+        mockError
+      )
+      expect(container.logger.info).toHaveBeenCalledWith('Server stopped')
     })
   })
 
