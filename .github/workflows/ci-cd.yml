@@ -44,4 +44,4 @@ jobs:
       run: pnpm run test
 
     - name: Build project
-      run: pnpm run build
+      run: git fetch origin main && pnpm run build
