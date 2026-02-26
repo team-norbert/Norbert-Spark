@@ -1,9 +1,9 @@
-import type { LoggerPort } from '../ports/logger.port.js'
-import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
-import type { AIContentPort } from '../ports/ai-content.port.js'
+import type { ChatTypeChange } from '../../domain/audit/audit-changes.types.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
-import type { ChatTypeChange } from '../../domain/audit/audit-changes.types.js'
+import type { AIContentPort } from '../ports/ai-content.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
+import type { LoggerPort } from '../ports/logger.port.js'
 
 /**
  * Resolves a chat type parameter (UUID, seoFriendlyId, or seoFriendlyBase64Id)

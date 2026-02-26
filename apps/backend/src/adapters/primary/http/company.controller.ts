@@ -1,13 +1,14 @@
+import type { components } from '@norberts-spark/shared/openapi-types'
+import { DrizzleQueryError } from 'drizzle-orm'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+
+import { UpdateCompanyDTO } from '../../../application/dtos/update-company.dto.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { GetCompanyDetailsUseCase } from '../../../application/use-cases/get-company-details.use-case.js'
+import { PutCompanyDetailsUseCase } from '../../../application/use-cases/put-company-details.use-case.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
-import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
-import { GetCompanyDetailsUseCase } from '../../../application/use-cases/get-company-details.use-case.js'
-import { UpdateCompanyDTO } from '../../../application/dtos/update-company.dto.js'
-import { PutCompanyDetailsUseCase } from '../../../application/use-cases/put-company-details.use-case.js'
-import { DrizzleQueryError } from 'drizzle-orm'
-import type { components } from '@norberts-spark/shared/openapi-types'
 /**
  * HTTP controller for company-related operations.
  *

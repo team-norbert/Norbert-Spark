@@ -1,9 +1,10 @@
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { obscured } from 'obscured'
+
 import type { BucketPort } from '../../../application/ports/bucket.service.port.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
-import { obscured } from 'obscured'
 
 export class BucketService implements BucketPort {
   private readonly client: S3Client

@@ -1,17 +1,18 @@
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { RegisterUserUseCase } from '../../../application/use-cases/register-user.use-case.js'
+import type { components } from '@norberts-spark/shared/openapi-types'
+import { DrizzleQueryError } from 'drizzle-orm'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+
+import { DeleteUsersDto } from '../../../application/dtos/delete-users.dto.js'
+import { RegisterUserDto } from '../../../application/dtos/register-user.dto.js'
+import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { DeleteUsersUseCase } from '../../../application/use-cases/delete-users.use-case.js'
 import { GetAllUsersUseCase } from '../../../application/use-cases/get-all-users.use-case.js'
 import { GetUserByIdUseCase } from '../../../application/use-cases/get-user-by-id.use-case.js'
-import { RegisterUserDto } from '../../../application/dtos/register-user.dto.js'
-import { DeleteUsersDto } from '../../../application/dtos/delete-users.dto.js'
+import { RegisterUserUseCase } from '../../../application/use-cases/register-user.use-case.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
-import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
-import { DeleteUsersUseCase } from '../../../application/use-cases/delete-users.use-case.js'
-import type { LoggerPort } from '../../../application/ports/logger.port.js'
-import { DrizzleQueryError } from 'drizzle-orm'
-import type { components } from '@norberts-spark/shared/openapi-types'
+import { BaseException } from '../../../shared/exceptions/base.exception.js'
 /**
  * HTTP controller for user-related endpoints
  *

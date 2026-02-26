@@ -1,22 +1,21 @@
-import type { AIServicePort } from 'apps/backend/src/application/ports/ai.port.js'
-import { desc, eq, asc, sql } from 'drizzle-orm'
+import { isArray } from '@norberts-spark/shared'
+import type { UIMessage } from 'ai'
+import { asc, desc, eq, sql } from 'drizzle-orm'
+
+import type { AIServicePort, ChatWithType } from '../../../application/ports/ai.port.js'
+import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import type { ChatIdType } from '../../../domain/value-objects/chatID.js'
+import type { UserIdType } from '../../../domain/value-objects/userID.js'
 import { db } from '../../../infrastructure/database/index.js'
 import {
   chats,
   chatTypes,
-  messages,
-  parts,
   type DBMessageSelect,
+  messages,
   type MyDBUIMessagePartSelect,
+  parts,
 } from '../../../infrastructure/database/schema.js'
-import type { UIMessage } from 'ai'
-import type { UserIdType } from '../../../domain/value-objects/userID.js'
-import type { ChatIdType } from '../../../domain/value-objects/chatID.js'
-import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { mapUIMessagePartsToDBParts } from '../../../shared/mapper/index.js'
-import { isArray } from '@norberts-spark/shared'
-
-import type { ChatWithType } from '../../../application/ports/ai.port.js'
 
 export type ChatResponseResult = {
   chat: typeof chats.$inferSelect
@@ -76,7 +75,7 @@ export class AIRepository implements AIServicePort {
 
     // Map all message parts from all messages to DB format
     const partsRecords = insertedMessages.flatMap((insertedMsg, index) => {
-      const correspondingMessage = messagesToInsert[index]
+      const correspondingMessage = messagesToInsert.at(index)
       if (!correspondingMessage?.parts) return []
       return mapUIMessagePartsToDBParts(
         correspondingMessage.parts as any,

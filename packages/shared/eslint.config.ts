@@ -1,8 +1,7 @@
-import type { ESLint, Linter } from 'eslint'
-
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import vitestPlugin from '@vitest/eslint-plugin'
+import type { ESLint, Linter } from 'eslint'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import sortDestructureKeys from 'eslint-plugin-sort-destructure-keys'
 

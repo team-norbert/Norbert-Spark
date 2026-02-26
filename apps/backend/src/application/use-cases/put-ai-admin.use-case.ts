@@ -1,12 +1,12 @@
-import type { LoggerPort } from '../ports/logger.port.js'
-import type { AIAdminPort } from '../ports/ai-admin.port.js'
-import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
+import type { UpdateChanges } from '../../domain/audit/audit-changes.types.js'
+import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { UUIDType } from '../../domain/value-objects/uuid.js'
 import type { DBChatAiOptions } from '../../infrastructure/database/schema.js'
-import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { PutAIAdminDTO } from '../dtos/put-ai-admin.dto.js'
-import type { UpdateChanges } from '../../domain/audit/audit-changes.types.js'
+import type { AIAdminPort } from '../ports/ai-admin.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
+import type { LoggerPort } from '../ports/logger.port.js'
 
 /**
  * Application use-case — updates the AI options record for a specific chat

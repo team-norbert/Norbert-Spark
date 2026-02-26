@@ -1,4 +1,4 @@
-import { isObject, isDefined, isString } from '@norberts-spark/shared'
+import { isDefined, isObject, isString } from '@norberts-spark/shared'
 
 export class ExtractDataDto {
   constructor(

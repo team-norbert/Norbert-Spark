@@ -1,7 +1,8 @@
-import type { FastifyRequest, FastifyReply } from 'fastify'
 import { timingSafeEqual } from 'crypto'
-import { EnvConfig } from '../../config/env.config.js'
+import type { FastifyReply, FastifyRequest } from 'fastify'
 import { obscured } from 'obscured'
+
+import { EnvConfig } from '../../config/env.config.js'
 
 /**
  * Fastify middleware for OAuth sync endpoint authentication

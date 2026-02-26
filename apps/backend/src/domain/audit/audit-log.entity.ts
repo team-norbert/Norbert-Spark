@@ -1,5 +1,5 @@
-import { EntityType, AuditAction } from './entity-type.enum.js'
 import type { AuditChanges } from './audit-changes.types.js'
+import { AuditAction, EntityType } from './entity-type.enum.js'
 
 export class AuditLog {
   constructor(

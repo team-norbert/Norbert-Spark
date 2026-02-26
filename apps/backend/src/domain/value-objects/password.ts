@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcrypt'
+
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 /**
  * Unique symbol for password branding to ensure type safety.

@@ -1,7 +1,9 @@
-import { Tiktoken } from 'js-tiktoken/lite'
-import o200k_base from 'js-tiktoken/ranks/o200k_base'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+
+import { Tiktoken } from 'js-tiktoken/lite'
+import o200k_base from 'js-tiktoken/ranks/o200k_base'
+
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 
 /**

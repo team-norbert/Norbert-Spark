@@ -1,15 +1,16 @@
+import { isDefined } from '@norberts-spark/shared'
 import { eq } from 'drizzle-orm'
+
+import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
+import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
 import type { AIAdminPort } from '../../../application/ports/ai-admin.port.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
-import { db } from '../../../infrastructure/database/index.js'
-import { chatAiOptions } from '../../../infrastructure/database/schema.js'
-import type { DBChatAiOptions } from '../../../infrastructure/database/schema.js'
 import type { UUIDType } from '../../../domain/value-objects/uuid.js'
-import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
-import { isDefined } from '@norberts-spark/shared'
-import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
-import { DatabaseUtil } from '../../../shared/utils/database.util.js'
+import { db } from '../../../infrastructure/database/index.js'
+import type { DBChatAiOptions } from '../../../infrastructure/database/schema.js'
+import { chatAiOptions } from '../../../infrastructure/database/schema.js'
 import { ConflictException } from '../../../shared/exceptions/conflict.exception.js'
+import { DatabaseUtil } from '../../../shared/utils/database.util.js'
 
 /**
  * Secondary adapter that implements {@link AIAdminPort} using Drizzle ORM.

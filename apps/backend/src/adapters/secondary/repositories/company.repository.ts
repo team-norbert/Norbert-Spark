@@ -1,14 +1,15 @@
-import type {
-  DBCompanySelect,
-  DBKeyPersonSelect,
-  DBCompany,
-  DBKeyPerson,
-} from '../../../infrastructure/database/schema.js'
-import { company, keyPerson } from '../../../infrastructure/database/schema.js'
-import { db } from '../../../infrastructure/database/index.js'
 import { eq, sql } from 'drizzle-orm'
+
 import type { CompanyDetailsPort } from '../../../application/ports/company.repository.port.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { db } from '../../../infrastructure/database/index.js'
+import type {
+  DBCompany,
+  DBCompanySelect,
+  DBKeyPerson,
+  DBKeyPersonSelect,
+} from '../../../infrastructure/database/schema.js'
+import { company, keyPerson } from '../../../infrastructure/database/schema.js'
 
 /**
  * Repository for accessing company and key person data from the database.

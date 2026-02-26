@@ -1,9 +1,10 @@
-import { isObject, isDefined, isString } from '@norberts-spark/shared'
+import { isDefined, isObject, isString } from '@norberts-spark/shared'
+import type { components } from '@norberts-spark/shared/openapi-types'
+
+import type { UUIDType } from '../../domain/value-objects/uuid.js'
+import { Uuid } from '../../domain/value-objects/uuid.js'
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
-import { Uuid } from '../../domain/value-objects/uuid.js'
-import type { UUIDType } from '../../domain/value-objects/uuid.js'
-import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * Data Transfer Object for updating chat type details.
@@ -84,7 +85,7 @@ export class PutChatTypeDto {
       throw new TypeException('Invalid data: expected an object')
     }
 
-    const { id, name, seoFriendlyId, description } = data
+    const { description, id, name, seoFriendlyId } = data
 
     // Validate id (required)
     if (!isDefined(id)) {
@@ -122,7 +123,7 @@ export class PutChatTypeDto {
           'Invalid seoFriendlyId: must be a string between 1 and 200 characters'
         )
       }
-      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(seoFriendlyId)) {
+      if (!/^[a-z0-9](?:[a-z0-9]|-[a-z0-9])*$/.test(seoFriendlyId)) {
         throw new ValidationException(
           'Invalid seoFriendlyId: must contain only lowercase letters, numbers, and hyphens in kebab-case format'
         )

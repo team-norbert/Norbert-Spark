@@ -1,17 +1,18 @@
-import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import type { components } from '@norberts-spark/shared/openapi-types'
+import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+
+import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
+import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
+import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import type { GetAIAdminUseCase } from '../../../application/use-cases/get-ai-admin.use-case.js'
+import type { PostAIAdminUseCase } from '../../../application/use-cases/post-ai-admin.use-case.js'
+import type { PutAIAdminUseCase } from '../../../application/use-cases/put-ai-admin.use-case.js'
+import type { UUIDType } from '../../../domain/value-objects/uuid.js'
+import { Uuid } from '../../../domain/value-objects/uuid.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
-import { Uuid } from '../../../domain/value-objects/uuid.js'
-import type { UUIDType } from '../../../domain/value-objects/uuid.js'
-import type { GetAIAdminUseCase } from '../../../application/use-cases/get-ai-admin.use-case.js'
-import type { PutAIAdminUseCase } from '../../../application/use-cases/put-ai-admin.use-case.js'
-import { PutAIAdminDTO } from '../../../application/dtos/put-ai-admin.dto.js'
-import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
-import type { PostAIAdminUseCase } from '../../../application/use-cases/post-ai-admin.use-case.js'
-import { DrizzleQueryError } from 'drizzle-orm'
-import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * HTTP controller for AI admin configuration endpoints.

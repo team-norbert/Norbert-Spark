@@ -14,7 +14,7 @@
  */
 
 import { db } from '../src/infrastructure/database/index.js'
-import { company, keyPerson, companyPeople } from '../src/infrastructure/database/schema.js'
+import { company, companyPeople, keyPerson } from '../src/infrastructure/database/schema.js'
 import { SeedHelpers } from '../src/shared/utils/seed-helpers.util.js'
 
 // Get the number of relationships to create
@@ -248,7 +248,7 @@ async function seedCompany() {
 
     console.log('📝 Generating company data...')
 
-    const { legal, display } = SeedHelpers.generateCompanyName()
+    const { display, legal } = SeedHelpers.generateCompanyName()
     const industry = SeedHelpers.randomElement(industries)
     const country = SeedHelpers.randomElement(countries)
     const websiteUrl = SeedHelpers.generateWebsiteUrl(display)

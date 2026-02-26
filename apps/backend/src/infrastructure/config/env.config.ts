@@ -61,7 +61,7 @@ export class EnvConfig {
   static readonly BUCKET = process.env.BUCKET || ''
 
   static validate(): void {
-    const missing = requiredEnvs.filter((key) => !process.env[key])
+    const missing = requiredEnvs.filter((key) => !Reflect.get(process.env, key))
 
     if (missing.length > 0) {
       throw new Error(`Missing required environment variables: ${missing.join(', ')}`)

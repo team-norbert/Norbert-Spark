@@ -14,6 +14,7 @@ import sortDestructureKeys from 'eslint-plugin-sort-destructure-keys'
 const config: Linter.Config[] = [
   js.configs.recommended,
   {
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     plugins: {
       '@typescript-eslint': tseslint as any,
       codegen: codegen as any,
@@ -70,6 +71,25 @@ const config: Linter.Config[] = [
       'jsdoc/check-types': 'warn',
       'jsdoc/require-param-description': 'warn',
       'jsdoc/require-returns-description': 'warn',
+      'max-lines': ['error', { max: 600, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
+    files: ['**/*.test.ts', '**/*.spec.ts', '**/*.test.tsx', '**/*.spec.tsx'],
+    rules: {
+      'max-lines': 'off',
+    },
+  },
+  {
+    // TypeScript files: turn off both redeclare rules because:
+    // 1. The TypeScript compiler already enforces true redeclaration errors.
+    // 2. The `const Foo = ... as const` + `type Foo = ...` idiom is valid TypeScript
+    //    (value and type namespaces are distinct) but triggers both ESLint rules.
+    // JS/JSX files keep the base no-redeclare from js.configs.recommended unchanged.
+    files: ['**/*.ts', '**/*.tsx'],
+    rules: {
+      'no-redeclare': 'off',
+      '@typescript-eslint/no-redeclare': 'off',
     },
   },
   {

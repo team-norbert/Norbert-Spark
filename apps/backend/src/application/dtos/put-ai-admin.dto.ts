@@ -1,7 +1,8 @@
-import { isObject, isDefined, isString, isNumber } from '@norberts-spark/shared'
+import { isDefined, isNumber, isObject, isString } from '@norberts-spark/shared'
+import type { components } from '@norberts-spark/shared/openapi-types'
+
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
-import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * Data Transfer Object for AI admin configuration settings.
@@ -103,16 +104,16 @@ export class PutAIAdminDTO {
     }
 
     const {
-      prompt,
-      maxTokens,
-      temperature,
-      topP,
       frequencyPenalty,
-      presencePenalty,
-      topK,
-      stopSequences,
-      seed,
       maxRetries,
+      maxTokens,
+      presencePenalty,
+      prompt,
+      seed,
+      stopSequences,
+      temperature,
+      topK,
+      topP,
     } = data
 
     if (!prompt || !isString(prompt) || !prompt.trim()) {

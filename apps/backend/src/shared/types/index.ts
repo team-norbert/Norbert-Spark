@@ -1,10 +1,11 @@
 import {
-  type UIMessagePart,
   type InferUITools,
-  type UIMessageStreamWriter,
   type UIMessage,
+  type UIMessagePart,
+  type UIMessageStreamWriter,
 } from 'ai'
 import { z } from 'zod'
+
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { DBChatType } from '../../infrastructure/database/schema.js'
 

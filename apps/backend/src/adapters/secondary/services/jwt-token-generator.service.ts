@@ -1,6 +1,6 @@
 import type { TokenGeneratorPort } from '../../../application/ports/token-generator.port.js'
-import type { JwtUserClaims } from '../../../shared/types/index.js'
 import { JwtUtil } from '../../../infrastructure/security/jwt.util.js'
+import type { JwtUserClaims } from '../../../shared/types/index.js'
 
 /**
  * JWT implementation of the TokenGeneratorPort interface

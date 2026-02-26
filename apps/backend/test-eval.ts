@@ -1,8 +1,9 @@
-import { streamText } from 'ai'
-import type { ModelMessage } from 'ai'
 import { google } from '@ai-sdk/google'
-import { HeartOfDarknessTool } from './src/infrastructure/ai/tools/heart-of-darkness.tool.js'
+import type { ModelMessage } from 'ai'
+import { streamText } from 'ai'
+
 import type { LoggerPort } from './src/application/ports/logger.port.js'
+import { HeartOfDarknessTool } from './src/infrastructure/ai/tools/heart-of-darkness.tool.js'
 import { EnvConfig } from './src/infrastructure/config/env.config.js'
 
 /**

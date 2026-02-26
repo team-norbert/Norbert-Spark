@@ -1,13 +1,14 @@
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { LoginUserUseCase } from '../../../application/use-cases/login-user.use-case.js'
-import { RegisterUserWithProviderUseCase } from '../../../application/use-cases/register-user-with-provider.use-case.js'
+import type { components } from '@norberts-spark/shared/openapi-types'
+import { DrizzleQueryError } from 'drizzle-orm'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+
 import { LoginUserDto } from '../../../application/dtos/login-user.dto.js'
 import { OAuthSyncDto } from '../../../application/dtos/oauth-sync.dto.js'
-import { BaseException } from '../../../shared/exceptions/base.exception.js'
-import { oauthSyncAuthMiddleware } from '../../../infrastructure/http/middleware/auth-sync-auth.middleware.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
-import { DrizzleQueryError } from 'drizzle-orm'
-import type { components } from '@norberts-spark/shared/openapi-types'
+import { LoginUserUseCase } from '../../../application/use-cases/login-user.use-case.js'
+import { RegisterUserWithProviderUseCase } from '../../../application/use-cases/register-user-with-provider.use-case.js'
+import { oauthSyncAuthMiddleware } from '../../../infrastructure/http/middleware/auth-sync-auth.middleware.js'
+import { BaseException } from '../../../shared/exceptions/base.exception.js'
 /**
  * HTTP controller for authentication endpoints
  *

@@ -1,6 +1,7 @@
+import pino from 'pino'
+
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
-import pino from 'pino'
 
 /**
  * Pino-based logging service implementation

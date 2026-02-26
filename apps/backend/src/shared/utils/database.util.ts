@@ -1,5 +1,5 @@
-import { POSTGRES_ERROR_CODE } from '../constants/error-codes.js'
 import type { PostgresErrorCode } from '../constants/error-codes.js'
+import { POSTGRES_ERROR_CODE } from '../constants/error-codes.js'
 /**
  * Utility class for database error handling operations.
  * Provides methods to identify specific database errors, particularly PostgreSQL errors.

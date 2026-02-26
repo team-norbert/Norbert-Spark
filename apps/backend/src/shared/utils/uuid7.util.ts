@@ -1,9 +1,10 @@
+import { isString } from '@norberts-spark/shared'
 import { uuidv7 } from 'uuidv7'
 import { isValidUUID, uuidVersionValidation } from 'uuidv7-utilities'
+
+import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { UUIDType } from '../../domain/value-objects/uuid.js'
-import type { ChatIdType } from '../../domain/value-objects/chatID.js'
-import { isString } from '@norberts-spark/shared'
 
 type Uuid7UtilInputType = UserIdType | UUIDType | ChatIdType | string
 

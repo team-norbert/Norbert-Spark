@@ -1,23 +1,24 @@
+/* eslint-disable max-lines */
 import { relations, sql } from 'drizzle-orm'
 import {
-  pgTable,
-  uuid,
-  text,
-  varchar,
-  timestamp,
-  integer,
-  jsonb,
-  inet,
-  index,
+  boolean,
+  char,
   check,
   customType,
+  date,
+  index,
+  inet,
+  integer,
+  jsonb,
   numeric,
   pgEnum,
-  boolean,
-  date,
-  uniqueIndex,
+  pgTable,
+  text,
+  timestamp,
   unique,
-  char,
+  uniqueIndex,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core'
 
 // Define CITEXT custom type for case-insensitive text
@@ -984,7 +985,7 @@ export const auditLog = pgTable(
 
 export type DBAuditLogSelect = typeof auditLog.$inferSelect
 
-export const chatTypesRelations = relations(chatTypes, ({ one, many }) => ({
+export const chatTypesRelations = relations(chatTypes, ({ many, one }) => ({
   chatAiOptions: one(chatAiOptions, {
     fields: [chatTypes.id],
     references: [chatAiOptions.chatTypeId],
@@ -992,7 +993,7 @@ export const chatTypesRelations = relations(chatTypes, ({ one, many }) => ({
   chats: many(chats),
 }))
 
-export const chatsRelations = relations(chats, ({ one, many }) => ({
+export const chatsRelations = relations(chats, ({ many, one }) => ({
   messages: many(messages),
   chatType: one(chatTypes, {
     fields: [chats.chatTypeId],
@@ -1000,7 +1001,7 @@ export const chatsRelations = relations(chats, ({ one, many }) => ({
   }),
 }))
 
-export const messagesRelations = relations(messages, ({ one, many }) => ({
+export const messagesRelations = relations(messages, ({ many, one }) => ({
   chat: one(chats, {
     fields: [messages.chatId],
     references: [chats.id],

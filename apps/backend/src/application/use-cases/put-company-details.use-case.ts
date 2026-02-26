@@ -1,11 +1,11 @@
-import type { LoggerPort } from '../ports/logger.port.js'
-import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
-import type { CompanyDetailsPort } from '../ports/company.repository.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
-import type { CompanyUpdate, KeyPersonUpdate } from '../dtos/update-company.dto.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { Uuid } from '../../domain/value-objects/uuid.js'
 import type { DBCompanySelect, DBKeyPersonSelect } from '../../infrastructure/database/schema.js'
+import type { CompanyUpdate, KeyPersonUpdate } from '../dtos/update-company.dto.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
+import type { CompanyDetailsPort } from '../ports/company.repository.port.js'
+import type { LoggerPort } from '../ports/logger.port.js'
 /**
  * Data structure for updating company and/or key person details.
  *

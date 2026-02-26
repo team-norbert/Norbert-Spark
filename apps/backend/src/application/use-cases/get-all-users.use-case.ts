@@ -1,7 +1,7 @@
-import type { UserRepositoryPort, PaginationParams } from '../ports/user.repository.port.js'
-import type { LoggerPort } from '../ports/logger.port.js'
-import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
+import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
+import type { LoggerPort } from '../ports/logger.port.js'
+import type { PaginationParams, UserRepositoryPort } from '../ports/user.repository.port.js'
 /**
  * Data Transfer Object for user information
  * @interface UserDto

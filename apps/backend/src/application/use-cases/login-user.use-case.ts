@@ -1,15 +1,14 @@
+import type { LoginChanges, LoginFailedChanges } from '../../domain/audit/audit-changes.types.js'
+import type { AuditContext } from '../../domain/audit/audit-context.js'
+import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
+import type { UserIdType } from '../../domain/value-objects/userID.js'
+import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
+import { UnauthorizedException } from '../../shared/exceptions/unauthorized.exception.js'
 import { LoginUserDto } from '../dtos/login-user.dto.js'
-import type { UserRepositoryPort } from '../ports/user.repository.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
 import type { TokenGeneratorPort } from '../ports/token-generator.port.js'
-import { UnauthorizedException } from '../../shared/exceptions/unauthorized.exception.js'
-import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
-import type { UserIdType } from '../../domain/value-objects/userID.js'
-import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
-import { EntityType } from '../../domain/audit/entity-type.enum.js'
-import { AuditAction } from '../../domain/audit/entity-type.enum.js'
-import type { AuditContext } from '../../domain/audit/audit-context.js'
-import type { LoginChanges, LoginFailedChanges } from '../../domain/audit/audit-changes.types.js'
+import type { UserRepositoryPort } from '../ports/user.repository.port.js'
 
 /**
  * Use case for authenticating users and generating access tokens
@@ -87,7 +86,7 @@ export class LoginUserUseCase {
    *
    * @async
    * @param {LoginUserDto} dto - Login credentials (email and password)
-   * @param {Object} auditContext - Audit context information from the request
+   * @param {object} auditContext - Audit context information from the request
    * @param {string} auditContext.ipAddress - IP address of the client making the request
    * @param {string | null} auditContext.userAgent - User agent string from the request, or null if not available
    * @returns {Promise<{userId: string, email: string, accessToken: string, roles: string[]}>}

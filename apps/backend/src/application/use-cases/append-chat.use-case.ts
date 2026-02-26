@@ -1,10 +1,11 @@
-import type { LoggerPort } from '../ports/logger.port.js'
 import type { UIMessage } from 'ai'
-import type { AIServicePort } from '../ports/ai.port.js'
-import type { ChatIdType } from '../../domain/value-objects/chatID.js'
-import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
+
 import type { AuditContext } from '../../domain/audit/audit-context.js'
-import { EntityType, AuditAction } from '../../domain/audit/entity-type.enum.js'
+import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
+import type { ChatIdType } from '../../domain/value-objects/chatID.js'
+import type { AIServicePort } from '../ports/ai.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
+import type { LoggerPort } from '../ports/logger.port.js'
 
 /**
  * Shape of the value returned by a successful {@link AppendedChatUseCase} execution.

@@ -1,8 +1,9 @@
-import { isDefined, isObject, isNumber, isString, isBoolean } from '@norberts-spark/shared'
+import { isBoolean, isDefined, isNumber, isObject, isString } from '@norberts-spark/shared'
+import type { components } from '@norberts-spark/shared/openapi-types'
+
+import { Uuid } from '../../domain/value-objects/uuid.js'
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
-import { Uuid } from '../../domain/value-objects/uuid.js'
-import type { components } from '@norberts-spark/shared/openapi-types'
 
 export type CompanyUpdate = {
   companyId?: string

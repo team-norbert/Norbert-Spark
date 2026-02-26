@@ -1,6 +1,5 @@
-import type { Linter } from 'eslint'
-
 import vitestPlugin from '@vitest/eslint-plugin'
+import type { Linter } from 'eslint'
 
 import rootConfig from '../../eslint.config.js'
 
@@ -13,6 +12,9 @@ const config: Linter.Config[] = [
     languageOptions: {
       globals: {
         Request: 'readonly', // Web API Request used in tests
+        Response: 'readonly', // Web Fetch API Response (Node.js 18+)
+        URL: 'readonly', // Web API URL (Node.js 10+)
+        NodeJS: 'readonly', // TypeScript @types/node global namespace
       },
     },
     rules: {

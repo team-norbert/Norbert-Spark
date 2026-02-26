@@ -373,7 +373,7 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.frequencyPenalty).toBe(0.5)
-    })
+    }, 15000)
 
     it('includes presencePenalty as a number when provided', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)

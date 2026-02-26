@@ -1,7 +1,8 @@
+import type { components } from '@norberts-spark/shared/openapi-types'
+
+import type { UserIdType } from '../../domain/value-objects/userID.js'
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { Uuid7Util } from '../../shared/utils/uuid7.util.js'
-import type { UserIdType } from '../../domain/value-objects/userID.js'
-import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * Data Transfer Object (DTO) for batch user deletion requests.

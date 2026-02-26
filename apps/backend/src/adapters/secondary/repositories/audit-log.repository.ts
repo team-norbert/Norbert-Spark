@@ -1,11 +1,12 @@
-import { db } from '../../../infrastructure/database/index.js'
-import { auditLog, type DBAuditLogSelect } from '../../../infrastructure/database/schema.js'
+import { and, desc, eq } from 'drizzle-orm'
+
 import type { AuditLogPort, CreateAuditLogDTO } from '../../../application/ports/audit-log.port.js'
-import { eq, desc, and } from 'drizzle-orm'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { AuditLog } from '../../../domain/audit/audit-log.entity.js'
-import { EntityType, AuditAction } from '../../../domain/audit/entity-type.enum.js'
+import { AuditAction, EntityType } from '../../../domain/audit/entity-type.enum.js'
 import { redactCreateAuditLogDTO } from '../../../domain/audit/redact-sensitive-data.js'
+import { db } from '../../../infrastructure/database/index.js'
+import { auditLog, type DBAuditLogSelect } from '../../../infrastructure/database/schema.js'
 
 /**
  * Secondary adapter — Drizzle ORM repository for audit log persistence.

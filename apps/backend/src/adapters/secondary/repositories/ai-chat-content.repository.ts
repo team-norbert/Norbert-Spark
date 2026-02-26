@@ -1,16 +1,16 @@
 import { desc, eq, or } from 'drizzle-orm'
 import type { QueryResult } from 'pg'
 
+import type { ChatTypeInsertDto } from '../../../application/dtos/chat-type-insert.dto.js'
+import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
+import type { AIContentPort } from '../../../application/ports/ai-content.port.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { db } from '../../../infrastructure/database/index.js'
-import { chatTypes } from '../../../infrastructure/database/schema.js'
-import type { AIContentPort } from '../../../application/ports/ai-content.port.js'
 import type { DBChatType } from '../../../infrastructure/database/schema.js'
-import { Uuid7Util } from '../../../shared/utils/uuid7.util.js'
-import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
-import type { ChatTypeInsertDto } from '../../../application/dtos/chat-type-insert.dto.js'
-import { DatabaseUtil } from '../../../shared/utils/database.util.js'
+import { chatTypes } from '../../../infrastructure/database/schema.js'
 import { ConflictException } from '../../../shared/exceptions/conflict.exception.js'
+import { DatabaseUtil } from '../../../shared/utils/database.util.js'
+import { Uuid7Util } from '../../../shared/utils/uuid7.util.js'
 
 /**
  * Maximum allowed length for chat type parameter to prevent DoS attacks
@@ -22,8 +22,9 @@ const MAX_PARAM_LENGTH = 200
  * - Must be lowercase alphanumeric with hyphens
  * - Cannot start or end with hyphens
  * - Cannot have consecutive hyphens
+ * Note: written as ^[a-z0-9](?:[a-z0-9]|-[a-z0-9])*$ to avoid nested quantifiers.
  */
-const SEO_FRIENDLY_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const SEO_FRIENDLY_ID_PATTERN = /^[a-z0-9](?:[a-z0-9]|-[a-z0-9])*$/
 
 /**
  * Regex pattern for validating seoFriendlyBase64Id format

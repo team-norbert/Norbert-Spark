@@ -1,17 +1,16 @@
 // Load environment variables FIRST before any other imports
+import { google } from '@ai-sdk/google'
+import { pdfSchema } from '@norberts-spark/shared'
+import { generateText, Output, streamText } from 'ai'
 import dotenv from 'dotenv'
+import { evalite } from 'evalite'
+import { readFileSync } from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { readFileSync } from 'fs'
+import type { z } from 'zod'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: true })
-
-import { evalite } from 'evalite'
-import { streamText, generateText, Output } from 'ai'
-import { google } from '@ai-sdk/google'
-import { pdfSchema } from '@norberts-spark/shared'
-import type { z } from 'zod'
 
 type ExtractedData = z.infer<typeof pdfSchema>
 
@@ -249,7 +248,7 @@ evalite('Invoice Data Extraction', {
   scorers: [
     {
       name: 'Field Accuracy',
-      scorer: async ({ output, expected }) => {
+      scorer: async ({ expected, output }) => {
         if (!expected) return { score: 0, passed: false }
 
         const fieldScores = calculateFieldAccuracy(output, expected)
@@ -273,10 +272,10 @@ evalite('Invoice Data Extraction', {
 
     {
       name: 'LLM Judge',
-      scorer: async ({ output, expected }) => {
+      scorer: async ({ expected, output }) => {
         if (!expected) return { score: 0, passed: false }
 
-        const { score, reasoning } = await llmJudgeScorer(output, expected)
+        const { reasoning, score } = await llmJudgeScorer(output, expected)
 
         return {
           score,
@@ -292,7 +291,7 @@ evalite('Invoice Data Extraction', {
 
     {
       name: 'Critical Fields (Total, Currency, Invoice #)',
-      scorer: async ({ output, expected }) => {
+      scorer: async ({ expected, output }) => {
         if (!expected) return { score: 0, passed: false }
 
         const totalMatch = Math.abs(output.total - expected.total) < 0.01 ? 1 : 0

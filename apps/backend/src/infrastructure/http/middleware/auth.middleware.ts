@@ -1,8 +1,9 @@
-import type { FastifyRequest, FastifyReply } from 'fastify'
-import { JwtUtil } from '../../security/jwt.util.js'
-import { UnauthorizedException } from '../../../shared/exceptions/unauthorized.exception.js'
-import { ErrorCode } from '../../../shared/constants/error-codes.js'
+import type { FastifyReply, FastifyRequest } from 'fastify'
+
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
+import { ErrorCode } from '../../../shared/constants/error-codes.js'
+import { UnauthorizedException } from '../../../shared/exceptions/unauthorized.exception.js'
+import { JwtUtil } from '../../security/jwt.util.js'
 
 // Maximum allowed token length to prevent DOS attacks (typical JWT is 200-500 bytes)
 const MAX_TOKEN_LENGTH = 8192

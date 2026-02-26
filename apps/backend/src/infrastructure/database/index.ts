@@ -1,8 +1,9 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
 import { obscured } from 'obscured'
-import { EnvConfig } from '../config/env.config.js'
+import { Pool } from 'pg'
+
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
+import { EnvConfig } from '../config/env.config.js'
 
 const logger = {
   info: (...params: unknown[]) => console.info(...params),
