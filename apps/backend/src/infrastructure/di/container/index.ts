@@ -5,10 +5,21 @@ async function main() {
   await container.start()
 
   // Graceful shutdown
-  process.on('SIGINT', async () => {
-    await container.stop()
-    process.exit(0)
-  })
+  let isShuttingDown = false
+  const shutdown = async () => {
+    if (isShuttingDown) return
+    isShuttingDown = true
+    try {
+      await container.stop()
+      process.exit(0)
+    } catch (err) {
+      console.error('Error during shutdown:', err)
+      process.exit(1)
+    }
+  }
+
+  process.once('SIGINT', shutdown)
+  process.once('SIGTERM', shutdown)
 }
 
 main().catch(console.error)

@@ -1,3 +1,4 @@
+import { instrumentDrizzleClient } from '@kubiks/otel-drizzle'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { obscured } from 'obscured'
 import { Pool } from 'pg'
@@ -34,4 +35,14 @@ pool.on('error', (err) => {
   process.exit(-1)
 })
 
-export const db = drizzle(pool)
+const db = drizzle(pool)
+
+const shouldCaptureQueryText =
+  EnvConfig.NODE_ENV !== 'production' && EnvConfig.OTEL_CAPTURE_QUERY_TEXT === 'true'
+
+const instrumentedDb = instrumentDrizzleClient(db, {
+  captureQueryText: shouldCaptureQueryText,
+  maxQueryTextLength: 500,
+})
+
+export { instrumentedDb as db }

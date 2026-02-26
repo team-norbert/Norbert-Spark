@@ -6,6 +6,7 @@ import { ResendService } from '../../../src/adapters/secondary/services/email.se
 import { PinoLoggerService } from '../../../src/adapters/secondary/services/logger.service.js'
 import { RegisterUserUseCase } from '../../../src/application/use-cases/register-user.use-case.js'
 import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
+import { pool } from '../../../src/infrastructure/database/index.js'
 import { Container } from '../../../src/infrastructure/di/container.js'
 import { createFastifyApp } from '../../../src/infrastructure/http/fastify.config.js'
 
@@ -364,6 +365,16 @@ describe('Container', () => {
       expect(mockClose).toHaveBeenCalledTimes(1)
     })
 
+    it('should call pool.end() to close the database pool', async () => {
+      const container = Container.getInstance()
+      vi.mocked(container.app.close).mockResolvedValue(undefined as any)
+      vi.mocked(pool.end).mockResolvedValue(undefined as any)
+
+      await container.stop()
+
+      expect(pool.end).toHaveBeenCalledTimes(1)
+    })
+
     it('should log server shutdown', async () => {
       const container = Container.getInstance()
       vi.mocked(container.app.close).mockResolvedValue(undefined as any)
@@ -373,12 +384,56 @@ describe('Container', () => {
       expect(container.logger.info).toHaveBeenCalledWith('Server stopped')
     })
 
+    it('should call pool.end() even when app.close() rejects', async () => {
+      const container = Container.getInstance()
+      const mockError = new Error('Failed to close server')
+      vi.mocked(container.app.close).mockRejectedValue(mockError)
+      vi.mocked(pool.end).mockResolvedValue(undefined as any)
+
+      await container.stop()
+
+      expect(pool.end).toHaveBeenCalledTimes(1)
+    })
+
     it('should handle close errors gracefully', async () => {
       const container = Container.getInstance()
       const mockError = new Error('Failed to close server')
       vi.mocked(container.app.close).mockRejectedValue(mockError)
 
-      await expect(container.stop()).rejects.toThrow('Failed to close server')
+      // Clear logger mocks from container initialization
+      vi.mocked(container.logger.info).mockClear()
+      vi.mocked(container.logger.error).mockClear()
+      vi.mocked(container.logger.warn).mockClear()
+
+      // stop() catches the error, logs it, and resolves — it does not reject
+      await container.stop()
+
+      expect(container.logger.error).toHaveBeenCalledWith('Error while closing server', mockError)
+      expect(container.logger.warn).toHaveBeenCalledWith(
+        'Server stop completed with errors, see previous logs for details'
+      )
+    })
+
+    it('should handle pool.end() errors gracefully', async () => {
+      const container = Container.getInstance()
+      vi.mocked(container.app.close).mockResolvedValue(undefined as any)
+      const poolError = new Error('Failed to close database pool')
+      vi.mocked(pool.end).mockRejectedValue(poolError)
+
+      // Clear logger mocks from container initialization
+      vi.mocked(container.logger.info).mockClear()
+      vi.mocked(container.logger.error).mockClear()
+      vi.mocked(container.logger.warn).mockClear()
+
+      await container.stop()
+
+      expect(container.logger.error).toHaveBeenCalledWith(
+        'Error while closing database pool',
+        poolError
+      )
+      expect(container.logger.warn).toHaveBeenCalledWith(
+        'Server stop completed with errors, see previous logs for details'
+      )
     })
   })
 

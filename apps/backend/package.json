@@ -42,6 +42,7 @@
     "@fastify/swagger": "^9.7.0",
     "@fastify/swagger-ui": "^5.2.5",
     "@google/generative-ai": "^0.24.1",
+    "@kubiks/otel-drizzle": "^2.1.0",
     "@langchain/textsplitters": "^1.0.1",
     "@norberts-spark/shared": "workspace:*",
     "@sentry/node": "^10.40.0",
