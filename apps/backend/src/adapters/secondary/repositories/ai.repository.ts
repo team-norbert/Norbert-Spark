@@ -1,9 +1,8 @@
 import { isArray } from '@norberts-spark/shared'
 import type { UIMessage } from 'ai'
-import type { AIServicePort } from 'apps/backend/src/application/ports/ai.port.js'
 import { asc, desc, eq, sql } from 'drizzle-orm'
 
-import type { ChatWithType } from '../../../application/ports/ai.port.js'
+import type { AIServicePort, ChatWithType } from '../../../application/ports/ai.port.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import type { ChatIdType } from '../../../domain/value-objects/chatID.js'
 import type { UserIdType } from '../../../domain/value-objects/userID.js'
