@@ -37,9 +37,9 @@ pool.on('error', (err) => {
 
 const db = drizzle(pool)
 
-instrumentDrizzleClient(db, {
+const instrumentedDb = instrumentDrizzleClient(db, {
   captureQueryText: EnvConfig.NODE_ENV !== 'production',
   maxQueryTextLength: 500,
 })
 
-export { db }
+export { instrumentedDb as db }
