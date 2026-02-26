@@ -87,7 +87,6 @@ DROP INDEX IF EXISTS "data_retrieval_message_parts_text_json_idx";
 -- Drop ENUM types
 DROP TYPE IF EXISTS "contact_role" CASCADE;
 DROP TYPE IF EXISTS "customer_status" CASCADE;
-DROP TYPE IF EXISTS "embedding_dimension" CASCADE;
 
 -- Drop functions
 DROP FUNCTION IF EXISTS "touch_updated_at"() CASCADE;
