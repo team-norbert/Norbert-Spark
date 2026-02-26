@@ -1,4 +1,4 @@
-import { isNullOrUndefined,isString } from '@norberts-spark/shared'
+import { isNullOrUndefined, isString } from '@norberts-spark/shared'
 import jwt, { type SignOptions } from 'jsonwebtoken'
 
 import { ErrorCode } from '../../shared/constants/error-codes.js'

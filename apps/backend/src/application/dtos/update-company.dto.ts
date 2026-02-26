@@ -1,4 +1,4 @@
-import { isBoolean,isDefined, isNumber, isObject, isString } from '@norberts-spark/shared'
+import { isBoolean, isDefined, isNumber, isObject, isString } from '@norberts-spark/shared'
 import type { components } from '@norberts-spark/shared/openapi-types'
 
 import { Uuid } from '../../domain/value-objects/uuid.js'

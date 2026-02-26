@@ -1,4 +1,4 @@
-import { isDefined, isNullOrUndefined,isObject, isString } from '@norberts-spark/shared'
+import { isDefined, isNullOrUndefined, isObject, isString } from '@norberts-spark/shared'
 import type { components } from '@norberts-spark/shared/openapi-types'
 
 import { TypeException } from '../../shared/exceptions/type.exception.js'

@@ -1,4 +1,4 @@
-import { type InferToolInput, type InferToolOutput,tool } from 'ai'
+import { type InferToolInput, type InferToolOutput, tool } from 'ai'
 import { z } from 'zod'
 
 import type { LoggerPort } from '../../../application/ports/logger.port.js'

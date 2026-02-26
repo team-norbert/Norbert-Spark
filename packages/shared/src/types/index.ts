@@ -1,6 +1,6 @@
 import type { z } from 'zod'
 
-import { AuthResponseSchema,LoginSchema, RegisterSchema } from '../schemas/auth.js'
+import { AuthResponseSchema, LoginSchema, RegisterSchema } from '../schemas/auth.js'
 import { UserSchema } from '../schemas/user.js'
 
 export type LoginDTO = z.infer<typeof LoginSchema>

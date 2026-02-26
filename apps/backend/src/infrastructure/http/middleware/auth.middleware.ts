@@ -1,4 +1,4 @@
-import type { FastifyReply,FastifyRequest } from 'fastify'
+import type { FastifyReply, FastifyRequest } from 'fastify'
 
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
 import { ErrorCode } from '../../../shared/constants/error-codes.js'

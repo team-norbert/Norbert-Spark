@@ -1,6 +1,6 @@
 import type { components } from '@norberts-spark/shared/openapi-types'
 import { DrizzleQueryError } from 'drizzle-orm'
-import type { FastifyInstance, FastifyReply,FastifyRequest } from 'fastify'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
 import { LoginUserDto } from '../../../application/dtos/login-user.dto.js'
 import { OAuthSyncDto } from '../../../application/dtos/oauth-sync.dto.js'
