@@ -15,7 +15,7 @@ import {
 } from '@mui/material'
 import type { components } from '@norberts-spark/shared/openapi-types'
 import type React from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { AccordionComponent } from './AccordionComponent.js'
 
@@ -68,6 +68,17 @@ export function CreateVectorStoreForm({
       ? fileKeys.map((key) => ({ title: titleFromFileKey(key), source: key }))
       : [{ title: '', source: '' }]
   )
+
+  // Sync documents when fileKeys changes (e.g. parent renders before uploads finish),
+  // preserving any titles the user has already edited.
+  useEffect(() => {
+    setDocuments((prev) => {
+      if (fileKeys.length === 0) {
+        return [{ title: '', source: '' }]
+      }
+      return fileKeys.map((key) => prev.find((doc) => doc.source === key) ?? { title: titleFromFileKey(key), source: key })
+    })
+  }, [fileKeys])
 
   const handleDocumentChange = (index: number, field: keyof DocumentEntry, value: string) => {
     setDocuments((prev) => prev.map((doc, i) => (i === index ? { ...doc, [field]: value } : doc)))
