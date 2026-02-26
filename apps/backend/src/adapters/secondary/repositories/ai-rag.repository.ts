@@ -37,7 +37,9 @@ export class AIRAGRepository implements AiRagRepositoryPost {
    * @todo Implement the actual vector insertion logic using `_data`.
    */
   async createRagVectorEntry(_data: RagDto): Promise<void> {
-    // TODO: Implement vector entry creation using _data
+    const error = new Error('createRagVectorEntry is not implemented yet')
+    this.logger.error('createRagVectorEntry called before implementation', error)
+    throw error
   }
 
   /**
