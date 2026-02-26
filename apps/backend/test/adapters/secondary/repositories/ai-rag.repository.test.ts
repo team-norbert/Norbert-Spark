@@ -95,7 +95,7 @@ describe('AIRAGRepository', () => {
       const result = await repository.getAllEmbeddingModels()
 
       expect(result).toHaveLength(1)
-      expect(result![0]).toMatchObject({
+      expect(result[0]).toMatchObject({
         id: mockModel.id,
         name: mockModel.name,
         provider: mockModel.provider,
@@ -105,7 +105,7 @@ describe('AIRAGRepository', () => {
       })
     })
 
-    it('should return undefined and log an error when the database throws', async () => {
+    it('should throw and log an error when the database throws', async () => {
       const dbError = new Error('Connection refused')
 
       const mockFrom = vi.fn().mockReturnValue({
@@ -115,14 +115,12 @@ describe('AIRAGRepository', () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      const result = await repository.getAllEmbeddingModels()
-
-      expect(result).toBeUndefined()
+      await expect(repository.getAllEmbeddingModels()).rejects.toThrow('Connection refused')
       expect(mockLogger.error).toHaveBeenCalledTimes(1)
       expect(mockLogger.error).toHaveBeenCalledWith('Error in getAllEmbeddingModels', dbError)
     })
 
-    it('should wrap non-Error exceptions before passing to the logger', async () => {
+    it('should wrap non-Error exceptions before passing to the logger and rethrow', async () => {
       const mockFrom = vi.fn().mockReturnValue({
         orderBy: vi.fn().mockRejectedValue('string error'),
       })
@@ -130,9 +128,7 @@ describe('AIRAGRepository', () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-      const result = await repository.getAllEmbeddingModels()
-
-      expect(result).toBeUndefined()
+      await expect(repository.getAllEmbeddingModels()).rejects.toBe('string error')
       expect(mockLogger.error).toHaveBeenCalledTimes(1)
       const loggedError = vi.mocked(mockLogger.error).mock.calls[0]![1]
       expect(loggedError).toBeInstanceOf(Error)

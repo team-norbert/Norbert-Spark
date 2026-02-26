@@ -7,8 +7,8 @@ import type { LoggerPort } from '../ports/logger.port.js'
  * Application use case for retrieving all available embedding models.
  *
  * Orchestrates fetching the full list of embedding models from the data store
- * and returns them ordered by creation date descending. Falls back to an empty
- * array when the repository returns `undefined` (e.g. when no rows exist).
+ * and returns them ordered by creation date descending. Any database error
+ * propagates up so the HTTP layer can respond with an appropriate error status.
  *
  * This use case sits in the application layer and has no knowledge of HTTP
  * transport or UI concerns — it depends only on the domain types and the
@@ -30,14 +30,13 @@ export class GetEmbeddingModelUseCase {
    * Executes the use case.
    *
    * Fetches all embedding model records from the repository, ordered by
-   * `createdAt` descending. If the repository returns `undefined` (no rows),
-   * an empty array is returned instead.
+   * `createdAt` descending. Any database error propagates to the caller.
    *
    * @returns A promise that resolves to an array of `DBEmbeddingModelSelect`
-   *   records, or an empty array when none exist.
+   *   records.
    */
   public async execute(): Promise<DBEmbeddingModelSelect[]> {
     this.logger.info('GetEmbeddingModelUseCase.execute', {})
-    return (await this.aiRagRepository.getAllEmbeddingModels()) || []
+    return this.aiRagRepository.getAllEmbeddingModels()
   }
 }
