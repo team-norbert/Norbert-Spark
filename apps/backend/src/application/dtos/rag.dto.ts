@@ -64,6 +64,10 @@ export class RagDto {
     }
 
     for (const doc of data.documents) {
+      if (!isObject(doc)) {
+        throw new ValidationException('each document must be a valid object')
+      }
+
       if (!isString(doc.title)) {
         throw new ValidationException('documents.title is required and must be a string')
       }

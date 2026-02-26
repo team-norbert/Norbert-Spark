@@ -186,6 +186,30 @@ describe('RagDto', () => {
   // -------------------------------------------------------------------------
 
   describe('validate() — documents validation', () => {
+    it('should throw ValidationException when a document element is null', () => {
+      const data = { ...validInput(), documents: [null] }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow('each document must be a valid object')
+    })
+
+    it('should throw ValidationException when a document element is undefined', () => {
+      const data = { ...validInput(), documents: [undefined] }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow('each document must be a valid object')
+    })
+
+    it('should throw ValidationException when a document element is a string', () => {
+      const data = { ...validInput(), documents: ['not-an-object'] }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow('each document must be a valid object')
+    })
+
+    it('should throw ValidationException when a document element is a number', () => {
+      const data = { ...validInput(), documents: [42] }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow('each document must be a valid object')
+    })
+
     it('should throw ValidationException when documents.title is missing', () => {
       const data = { ...validInput(), documents: [{ source: 'src' }] }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
