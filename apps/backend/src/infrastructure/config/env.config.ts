@@ -59,6 +59,7 @@ export class EnvConfig {
   static readonly CLOUDFLARE_ENDPOINT = process.env.CLOUDFLARE_ENDPOINT || ''
   static readonly CLOUDFLARE_API = obscured.make(process.env.CLOUDFLARE_API) || ''
   static readonly BUCKET = process.env.BUCKET || ''
+  static readonly OTEL_CAPTURE_QUERY_TEXT = process.env.OTEL_CAPTURE_QUERY_TEXT || 'false'
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !Reflect.get(process.env, key))
