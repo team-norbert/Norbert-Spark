@@ -812,4 +812,4 @@ norberts-spark/
 
 This project is licensed under the [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
-For more details, see the [gpl-3.0.txt](./gpl-3.0.txt) file.
+For more details, see the [LICENSE](./LICENSE) file.
