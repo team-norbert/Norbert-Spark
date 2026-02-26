@@ -46,14 +46,15 @@ export class AIRAGRepository implements AiRagRepositoryPost {
    * Retrieves all embedding models from the `embedding_models` table, ordered
    * by `createdAt` descending (most recently added first).
    *
-   * Returns `undefined` instead of throwing when a database error occurs —
-   * the error is logged and callers should treat `undefined` as an empty
-   * result (the use case layer applies the `|| []` fallback).
+   * Logs and rethrows any database error so callers receive a rejected promise
+   * and the HTTP layer can respond with a 500 status instead of silently
+   * returning an empty list.
    *
    * @returns A promise that resolves to an array of `DBEmbeddingModelSelect`
-   *   records, or `undefined` if a database error occurred.
+   *   records.
+   * @throws The original database error after logging it.
    */
-  async getAllEmbeddingModels(): Promise<DBEmbeddingModelSelect[] | undefined> {
+  async getAllEmbeddingModels(): Promise<DBEmbeddingModelSelect[]> {
     try {
       const rows: DBEmbeddingModelSelect[] = await db
         .select()
@@ -65,6 +66,7 @@ export class AIRAGRepository implements AiRagRepositoryPost {
         'Error in getAllEmbeddingModels',
         error instanceof Error ? error : new Error(String(error))
       )
+      throw error
     }
   }
 }
