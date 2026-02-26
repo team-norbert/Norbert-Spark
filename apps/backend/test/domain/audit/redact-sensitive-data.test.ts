@@ -266,6 +266,33 @@ describe('redactSensitiveData', () => {
       expect(result.password).toBe('[REDACTED]')
       expect(result.token).toBe('[REDACTED]')
     })
+
+    it('should skip dangerous prototype-polluting keys', () => {
+      // Simulate an object that has been parsed from untrusted JSON and
+      // contains keys that could mutate the prototype chain.
+      const malicious = JSON.parse('{"__proto__": {"polluted": true}, "safe": "value"}')
+
+      const result = redactSensitiveData(malicious) as Record<string, unknown>
+
+      // The dangerous key must not appear in the result
+      expect(Object.prototype.hasOwnProperty.call(result, '__proto__')).toBe(false)
+      // Normal keys must still be preserved
+      expect(result.safe).toBe('value')
+      // The global Object prototype must NOT have been mutated
+      expect((Object.prototype as Record<string, unknown>).polluted).toBeUndefined()
+    })
+
+    it('should skip constructor and prototype dangerous keys', () => {
+      const malicious = JSON.parse(
+        '{"constructor": {"polluted": true}, "prototype": {"polluted": true}, "safe": "value"}'
+      )
+
+      const result = redactSensitiveData(malicious) as Record<string, unknown>
+
+      expect(Object.prototype.hasOwnProperty.call(result, 'constructor')).toBe(false)
+      expect(Object.prototype.hasOwnProperty.call(result, 'prototype')).toBe(false)
+      expect(result.safe).toBe('value')
+    })
   })
 })
 
