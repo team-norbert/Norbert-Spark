@@ -14,7 +14,7 @@ export class RagDto {
     public readonly embeddingModels: {
       modelName: string
       modelProvider: string
-      dimension: 1536 | 768 | 384
+      dimension: 1536 | 768 | 384 | 3072 | 1024
     },
     public readonly vectorEmbeddings: {
       distanceMetric: 'cosine' | 'euclidean' | 'dot_product'
@@ -81,12 +81,12 @@ export class RagDto {
       throw new ValidationException('embeddingModels.dimension is required and must be a number')
     }
 
-    if (
-      data.embeddingModels.dimension !== 1536 &&
-      data.embeddingModels.dimension !== 768 &&
-      data.embeddingModels.dimension !== 384
-    ) {
-      throw new ValidationException('embeddingModels.dimension must be either 1536, 768, or 384')
+    const VALID_DIMENSIONS = [1536, 768, 384, 3072, 1024] as const
+    type ValidDimension = (typeof VALID_DIMENSIONS)[number]
+    if (!VALID_DIMENSIONS.includes(data.embeddingModels.dimension as ValidDimension)) {
+      throw new ValidationException(
+        'embeddingModels.dimension must be either 1536, 768, 384, 3072, or 1024'
+      )
     }
 
     if (!isString(data.embeddingModels.modelProvider)) {

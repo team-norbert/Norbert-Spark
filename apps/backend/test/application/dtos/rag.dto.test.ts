@@ -267,12 +267,12 @@ describe('RagDto', () => {
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
-        'embeddingModels.dimension must be either 1536, 768, or 384'
+        'embeddingModels.dimension must be either 1536, 768, 384, 3072, or 1024'
       )
     })
 
     it('should accept all valid dimension values', () => {
-      for (const dimension of [1536, 768, 384] as const) {
+      for (const dimension of [1536, 768, 384, 3072, 1024] as const) {
         const data = {
           ...validInput(),
           embeddingModels: { ...validInput().embeddingModels, dimension },
