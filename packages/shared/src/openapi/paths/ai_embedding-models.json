@@ -20,32 +20,6 @@
           }
         }
       },
-      "400": {
-        "description": "Invalid request data",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "../components/schemas/Error.json"
-            },
-            "examples": {
-              "invalidUserId": {
-                "summary": "Invalid userId parameter",
-                "value": {
-                  "success": false,
-                  "error": "Invalid userId parameter"
-                }
-              },
-              "invalidFormat": {
-                "summary": "Invalid userId format",
-                "value": {
-                  "success": false,
-                  "error": "Invalid userId format"
-                }
-              }
-            }
-          }
-        }
-      },
       "401": {
         "description": "Unauthorized",
         "content": {

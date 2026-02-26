@@ -4,6 +4,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
 import { RagDto } from '../../../application/dtos/rag.dto.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { GetEmbeddingModelUseCase } from '../../../application/use-cases/get-embedding-model.use-case.js'
 import { PresignedUploadUrlUseCase } from '../../../application/use-cases/presigned-url-put.use-case.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
@@ -13,6 +14,7 @@ import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 export class AiRagController {
   constructor(
     private readonly logger: LoggerPort,
+    private readonly getEmbeddingModelUseCase: GetEmbeddingModelUseCase,
     private readonly presignedUploadUrlUseCase: PresignedUploadUrlUseCase,
     private readonly pdfUtils: PDFUtils
   ) {}
@@ -36,10 +38,10 @@ export class AiRagController {
 
   async getEmbeddingModels(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
-      // TODO: Implement fetching embedding models from the repository
-      reply.code(501).send({
-        success: false,
-        message: 'getEmbeddingModels is not implemented yet',
+      const results = await this.getEmbeddingModelUseCase.execute()
+      reply.code(200).send({
+        success: true,
+        data: results,
       })
     } catch (error) {
       this.logger.error(

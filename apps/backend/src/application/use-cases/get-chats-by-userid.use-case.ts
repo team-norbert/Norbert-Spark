@@ -4,7 +4,6 @@ import type {
 } from '../../domain/audit/audit-changes.types.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
-import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { AIServicePort, ChatWithType } from '../ports/ai.port.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'

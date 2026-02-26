@@ -1,19 +1,17 @@
-import type { components } from '@norberts-spark/shared/openapi-types'
-
+import { AIRAGRepository } from '../../adapters/secondary/repositories/ai-rag.repository.js'
+import type { DBEmbeddingModelSelect } from '../../infrastructure/database/schema.js'
 import type { AuditLogPort } from '../ports/audit-log.port.js'
-import type { CompanyDetailsPort } from '../ports/company.repository.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
-//components['schemas']['AIEmbeddingModels']['data']
+
 export class GetEmbeddingModelUseCase {
   constructor(
     private readonly logger: LoggerPort,
     private readonly auditLog: AuditLogPort,
-    private readonly companyDetailsRepo: CompanyDetailsPort
+    private readonly aiRagRepository: AIRAGRepository
   ) {}
 
-  public async execute(): Promise<components['schemas']['AIEmbeddingModels']['data']> {
+  public async execute(): Promise<DBEmbeddingModelSelect[]> {
     this.logger.info('GetEmbeddingModelUseCase.execute', {})
-    // TODO: Implement fetching a single embedding model
-    throw new Error('GetEmbeddingModelUseCase.execute is not implemented yet')
+    return (await this.aiRagRepository.getAllEmbeddingModels()) || []
   }
 }
