@@ -18,7 +18,7 @@ const makeMockModel = (
   id: uuidv7(),
   name: 'text-embedding-3-large',
   provider: 'openai',
-  dimension: '3072',
+  dimension: 3072,
   createdAt: new Date('2024-01-01T00:00:00Z'),
   updatedAt: new Date('2024-01-01T00:00:00Z'),
   ...overrides,
@@ -75,8 +75,8 @@ describe('AiRagController', () => {
   describe('getEmbeddingModels', () => {
     it('should return 200 with embedding models on success', async () => {
       const models = [
-        makeMockModel({ name: 'text-embedding-3-large', provider: 'openai', dimension: '3072' }),
-        makeMockModel({ name: 'text-embedding-3-small', provider: 'openai', dimension: '1536' }),
+        makeMockModel({ name: 'text-embedding-3-large', provider: 'openai', dimension: 3072 }),
+        makeMockModel({ name: 'text-embedding-3-small', provider: 'openai', dimension: 1536 }),
       ]
       vi.mocked(mockGetEmbeddingModelUseCase.execute).mockResolvedValue(models)
 
@@ -106,7 +106,7 @@ describe('AiRagController', () => {
       const model = makeMockModel({
         name: 'text-embedding-ada-002',
         provider: 'openai',
-        dimension: '1536',
+        dimension: 1536,
         createdAt: new Date('2023-06-01T12:00:00Z'),
         updatedAt: new Date('2023-06-15T08:00:00Z'),
       })
@@ -121,7 +121,7 @@ describe('AiRagController', () => {
             id: model.id,
             name: 'text-embedding-ada-002',
             provider: 'openai',
-            dimension: '1536',
+            dimension: 1536,
             createdAt: model.createdAt,
             updatedAt: model.updatedAt,
           }),

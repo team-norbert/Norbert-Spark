@@ -11,7 +11,6 @@ import {
   dataRetrievalMessageParts,
   dataRetrievalMessages,
   documents,
-  embeddingDimensionEnum,
   embeddingModels,
   keyPerson,
   messages,
@@ -911,11 +910,10 @@ describe('Database Schema', () => {
         expect(embeddingModels.provider.name).toBe('provider')
       })
 
-      it('should have dimension column as an enum with allowed values', () => {
+      it('should have dimension column as an integer', () => {
         expect(embeddingModels.dimension).toBeDefined()
         expect(embeddingModels.dimension.name).toBe('dimension')
-        // embeddingDimensionEnum exposes its enumValues on the config object
-        expect(embeddingDimensionEnum.enumValues).toEqual(['3072', '1536', '1024', '768', '384'])
+        expect(embeddingModels.dimension.columnType).toBe('PgInteger')
       })
 
       it('should have createdAt column', () => {
