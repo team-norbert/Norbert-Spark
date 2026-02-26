@@ -85,15 +85,24 @@ describe('ExtractedDataDisplay', () => {
     it('renders the total formatted with two decimal places', () => {
       render(<ExtractedDataDisplay data={baseData} />)
 
-      // toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})
-      // → "1,500.00" in en-US, but we just check the number part appears somewhere
-      expect(screen.getByText(/1[,.]?500[.,]00/)).toBeInTheDocument()
+      const expectedTotal = baseData.total.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+
+      expect(screen.getByText(expectedTotal)).toBeInTheDocument()
     })
 
     it('renders an integer total formatted with two decimal places', () => {
-      render(<ExtractedDataDisplay data={{ ...baseData, total: 42 }} />)
+      const total = 42
+      render(<ExtractedDataDisplay data={{ ...baseData, total }} />)
 
-      expect(screen.getByText(/42[.,]00/)).toBeInTheDocument()
+      const expectedTotal = total.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+
+      expect(screen.getByText(expectedTotal)).toBeInTheDocument()
     })
 
     it('renders the currency chip', () => {
