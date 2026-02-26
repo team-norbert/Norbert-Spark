@@ -477,8 +477,17 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
    * ```
    */
   async stop(): Promise<void> {
-    await this.app.close()
-    await pool.end()
-    this.logger.info('Server stopped')
+    try {
+      await this.app.close()
+    } catch (error) {
+      this.logger.error('Error while closing server', error as Error)
+    } finally {
+      try {
+        await pool.end()
+      } catch (error) {
+        this.logger.error('Error while closing database pool', error as Error)
+      }
+      this.logger.info('Server stopped')
+    }
   }
 }
