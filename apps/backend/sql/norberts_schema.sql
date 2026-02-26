@@ -114,13 +114,11 @@ CREATE TABLE IF NOT EXISTS documents (
 -- embedding model configurations (name, provider, dimension)
 -- ============================================================
 
-CREATE TYPE embedding_dimension AS ENUM ('3072', '1536', '1024', '768', '384');
-
 CREATE TABLE IF NOT EXISTS embedding_models (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     name TEXT NOT NULL,
     provider TEXT NOT NULL,
-    dimension embedding_dimension NOT NULL,
+    dimension INTEGER NOT NULL CHECK (dimension IN (384, 768, 1024, 1536, 3072)),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (name, provider, dimension)
