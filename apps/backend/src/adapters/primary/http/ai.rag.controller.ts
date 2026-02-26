@@ -92,15 +92,15 @@ export class AiRagController {
       })
     } catch (error) {
       this.logger.error(
-        'Error in createRagVectorStore',
+        'Error in getEmbeddingModels',
         error instanceof Error ? error : new Error(String(error))
       )
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
         error instanceof DrizzleQueryError
-          ? 'Failed to create vector store due to a database error'
-          : err?.message || 'Failed to create vector store due to a database error'
+          ? 'Failed to fetch embedding models due to a database error'
+          : err?.message || 'Failed to fetch embedding models due to a database error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
