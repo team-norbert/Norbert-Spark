@@ -400,11 +400,18 @@ describe('Container', () => {
       const mockError = new Error('Failed to close server')
       vi.mocked(container.app.close).mockRejectedValue(mockError)
 
+      // Clear logger mocks from container initialization
+      vi.mocked(container.logger.info).mockClear()
+      vi.mocked(container.logger.error).mockClear()
+      vi.mocked(container.logger.warn).mockClear()
+
       // stop() catches the error, logs it, and resolves — it does not reject
       await container.stop()
 
       expect(container.logger.error).toHaveBeenCalledWith('Error while closing server', mockError)
-      expect(container.logger.info).toHaveBeenCalledWith('Server stopped')
+      expect(container.logger.warn).toHaveBeenCalledWith(
+        'Server stop completed with errors, see previous logs for details'
+      )
     })
 
     it('should handle pool.end() errors gracefully', async () => {
@@ -413,13 +420,20 @@ describe('Container', () => {
       const poolError = new Error('Failed to close database pool')
       vi.mocked(pool.end).mockRejectedValue(poolError)
 
+      // Clear logger mocks from container initialization
+      vi.mocked(container.logger.info).mockClear()
+      vi.mocked(container.logger.error).mockClear()
+      vi.mocked(container.logger.warn).mockClear()
+
       await container.stop()
 
       expect(container.logger.error).toHaveBeenCalledWith(
         'Error while closing database pool',
         poolError
       )
-      expect(container.logger.info).toHaveBeenCalledWith('Server stopped')
+      expect(container.logger.warn).toHaveBeenCalledWith(
+        'Server stop completed with errors, see previous logs for details'
+      )
     })
   })
 
