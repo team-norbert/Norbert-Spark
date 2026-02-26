@@ -1,9 +1,10 @@
-import { tool, type InferToolInput, type InferToolOutput } from 'ai'
+import { type InferToolInput, type InferToolOutput,tool } from 'ai'
 import { z } from 'zod'
-import { GetTextUseCase } from '../../../application/use-cases/get-text.use-case.js'
+
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
-import { TextAnalysisService } from '../../../application/services/text-analysis.service.js'
 import { HEART_OF_DARKNESS_MAPPINGS } from '../../../application/services/domain-keyword-mapping.config.js'
+import { TextAnalysisService } from '../../../application/services/text-analysis.service.js'
+import { GetTextUseCase } from '../../../application/use-cases/get-text.use-case.js'
 
 /**
  * AI tool for answering questions about Joseph Conrad's "Heart of Darkness"

@@ -1,7 +1,8 @@
+import { isDefined, isNullOrUndefined,isObject, isString } from '@norberts-spark/shared'
+import type { components } from '@norberts-spark/shared/openapi-types'
+
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
-import { isString, isDefined, isObject, isNullOrUndefined } from '@norberts-spark/shared'
-import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * Helper function to check if a providerId value is valid (non-empty string)

@@ -1,14 +1,15 @@
-import { Redis } from '@upstash/redis'
+import { TransformStream } from 'node:stream/web'
+
 import {
   type LanguageModelV3,
   type LanguageModelV3Middleware,
   type LanguageModelV3StreamPart,
 } from '@ai-sdk/provider'
-import { obscured } from 'obscured'
-import { EnvConfig } from '../../config/env.config.js'
-
+import { Redis } from '@upstash/redis'
 import { simulateReadableStream } from 'ai'
-import { TransformStream } from 'node:stream/web'
+import { obscured } from 'obscured'
+
+import { EnvConfig } from '../../config/env.config.js'
 
 /**
  * Cache the evaluated Redis configuration to avoid repeated obscured.value() calls

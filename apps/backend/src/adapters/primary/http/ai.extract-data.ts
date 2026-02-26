@@ -1,26 +1,27 @@
-import type { LoggerPort } from '../../../application/ports/logger.port.js'
-import { UnprocessableEntityException } from '../../../shared/exceptions/unprocessable-entity.exception.js'
+import { google } from '@ai-sdk/google'
+import type { MultipartFile } from '@fastify/multipart'
+import { pdfSchema } from '@norberts-spark/shared'
+import type { components } from '@norberts-spark/shared/openapi-types'
+import { Output, streamText } from 'ai'
+import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+
+import { ExtractDataDto } from '../../../application/dtos/extract-data.dto.js'
+import { PresignedUrlDto } from '../../../application/dtos/presignedUrl.dto.js'
+import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
+import { PresignedUploadUrlUseCase } from '../../../application/use-cases/presigned-url-put.use-case.js'
+import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
-import { PresignedUploadUrlUseCase } from '../../../application/use-cases/presigned-url-put.use-case.js'
-import type { MultipartFile } from '@fastify/multipart'
-import { ExtractDataDto } from '../../../application/dtos/extract-data.dto.js'
-import { EnvConfig } from '../../../infrastructure/config/env.config.js'
+import { TypeException } from '../../../shared/exceptions/type.exception.js'
+import { UnprocessableEntityException } from '../../../shared/exceptions/unprocessable-entity.exception.js'
+import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 import {
   sanitizeFilename,
   validateFileExtension,
   validateMimeType,
 } from '../../../shared/utils/security-validation.util.js'
-import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
-import { Output, streamText } from 'ai'
-import { google } from '@ai-sdk/google'
-import { pdfSchema } from '@norberts-spark/shared'
-import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
-import { DrizzleQueryError } from 'drizzle-orm'
-import type { components } from '@norberts-spark/shared/openapi-types'
-import { PresignedUrlDto } from '../../../application/dtos/presignedUrl.dto.js'
-import { TypeException } from '../../../shared/exceptions/type.exception.js'
 /**
  * Allowed file extensions for upload
  */
@@ -196,7 +197,7 @@ export class AIExtractDataController {
                   ],
                 },
               ],
-              onFinish: ({ text, finishReason, usage, response, totalUsage, sources }) => {
+              onFinish: ({ finishReason, response, sources, text, totalUsage, usage }) => {
                 // Called once when the full output is complete
                 // The reason the model finished generating the text.
                 // "stop" | "length" | "content-filter" | "tool-calls" | "error" | "other" | "unknown"
@@ -283,7 +284,7 @@ export class AIExtractDataController {
                 ],
               },
             ],
-            onFinish: ({ text, finishReason, usage, response, totalUsage, sources }) => {
+            onFinish: ({ finishReason, response, sources, text, totalUsage, usage }) => {
               // Called once when the full output is complete
               // The reason the model finished generating the text.
               // "stop" | "length" | "content-filter" | "tool-calls" | "error" | "other" | "unknown"

@@ -1,12 +1,13 @@
-import type { AIServicePort } from '../ports/ai.port.js'
-import type { LoggerPort } from '../ports/logger.port.js'
-import type { ChatResponseResult } from '../../adapters/secondary/repositories/ai.repository.js'
 import type { MessageSchemaType } from '@norberts-spark/shared'
-import type { ChatIdType } from '../../domain/value-objects/chatID.js'
+
+import type { ChatResponseResult } from '../../adapters/secondary/repositories/ai.repository.js'
+import type { FetchChatChanges } from '../../domain/audit/audit-changes.types.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
+import type { ChatIdType } from '../../domain/value-objects/chatID.js'
+import type { AIServicePort } from '../ports/ai.port.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
-import type { FetchChatChanges } from '../../domain/audit/audit-changes.types.js'
+import type { LoggerPort } from '../ports/logger.port.js'
 /**
  * Use case for retrieving chat messages for a specific user
  *

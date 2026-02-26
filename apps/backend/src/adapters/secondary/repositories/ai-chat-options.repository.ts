@@ -1,9 +1,10 @@
 import { eq } from 'drizzle-orm'
+
 import type { AIChatOptionsPort } from '../../../application/ports/ai-chat-options.port.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
-import type { DBChatAiOptions } from '../../../infrastructure/database/schema.js'
 import type { ChatIdType } from '../../../domain/value-objects/chatID.js'
 import { db } from '../../../infrastructure/database/index.js'
+import type { DBChatAiOptions } from '../../../infrastructure/database/schema.js'
 import { chatAiOptions } from '../../../infrastructure/database/schema.js'
 
 /**

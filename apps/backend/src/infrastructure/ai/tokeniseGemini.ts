@@ -1,8 +1,10 @@
-import { GoogleGenerativeAI, type GenerativeModel } from '@google/generative-ai'
-import { EnvConfig } from '../config/env.config.js'
-import { obscured } from 'obscured'
-import path from 'node:path'
 import { readFileSync } from 'node:fs'
+import path from 'node:path'
+
+import { type GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai'
+import { obscured } from 'obscured'
+
+import { EnvConfig } from '../config/env.config.js'
 
 // Because Gemini does not publish the tokenizer model,
 // offline tokenization isn't possible today

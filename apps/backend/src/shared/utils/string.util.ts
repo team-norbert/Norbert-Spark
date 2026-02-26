@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+
 import { ValidationException } from '../exceptions/validation.exception.js'
 
 /**
@@ -134,7 +135,7 @@ export class StringUtil {
       const bytesNeeded = length - result.length
       const bytes = crypto.randomBytes(bytesNeeded)
       for (let i = 0; i < bytes.length && result.length < length; i++) {
-        const byte = bytes[i]!
+        const byte = bytes.at(i)!
         if (byte >= maxByte) {
           // Discard this byte to avoid introducing bias
           continue

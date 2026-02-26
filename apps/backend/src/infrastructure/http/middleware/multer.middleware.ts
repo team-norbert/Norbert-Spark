@@ -1,6 +1,7 @@
-import multer from 'multer'
-import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+import multer from 'multer'
 
 /**
  * Multer is a node.js middleware for handling multipart/form-data, which is primarily used for uploading files.

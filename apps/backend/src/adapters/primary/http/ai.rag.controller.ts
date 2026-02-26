@@ -1,13 +1,14 @@
-import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import type { components } from '@norberts-spark/shared/openapi-types'
+import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+
+import { RagDto } from '../../../application/dtos/rag.dto.js'
+import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { PresignedUploadUrlUseCase } from '../../../application/use-cases/presigned-url-put.use-case.js'
-import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
-import { DrizzleQueryError } from 'drizzle-orm'
-import type { components } from '@norberts-spark/shared/openapi-types'
-import { RagDto } from '../../../application/dtos/rag.dto.js'
+import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 
 export class AiRagController {
   constructor(

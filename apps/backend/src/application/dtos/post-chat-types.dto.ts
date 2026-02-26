@@ -1,7 +1,8 @@
-import { isString, isDefined, isObject, isBoolean, isNullOrUndefined } from '@norberts-spark/shared'
+import { isBoolean, isDefined, isNullOrUndefined,isObject, isString } from '@norberts-spark/shared'
+import type { components } from '@norberts-spark/shared/openapi-types'
+
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
-import type { components } from '@norberts-spark/shared/openapi-types'
 
 /**
  * Data Transfer Object for creating a new chat type (POST requests).

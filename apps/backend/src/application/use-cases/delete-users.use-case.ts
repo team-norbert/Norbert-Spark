@@ -1,10 +1,10 @@
-import type { LoggerPort } from '../ports/logger.port.js'
-import type { UserRepositoryPort } from '../ports/user.repository.port.js'
+import type { DeleteChanges } from '../../domain/audit/audit-changes.types.js'
+import type { AuditContext } from '../../domain/audit/audit-context.js'
+import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
-import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
-import type { AuditContext } from '../../domain/audit/audit-context.js'
-import type { DeleteChanges } from '../../domain/audit/audit-changes.types.js'
+import type { LoggerPort } from '../ports/logger.port.js'
+import type { UserRepositoryPort } from '../ports/user.repository.port.js'
 
 /**
  * Use case for deleting multiple users in a single batch operation.

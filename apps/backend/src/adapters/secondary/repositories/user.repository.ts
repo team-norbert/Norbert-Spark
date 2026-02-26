@@ -1,20 +1,21 @@
-import { eq, count, inArray } from 'drizzle-orm'
-import { db } from '../../../infrastructure/database/index.js'
-import { user } from '../../../infrastructure/database/schema.js'
-import type { DBUserSelect } from '../../../infrastructure/database/schema.js'
+import { count, eq, inArray } from 'drizzle-orm'
+
+import type {
+  PaginatedResult,
+  PaginationParams,
+  UserRepositoryPort,
+} from '../../../application/ports/user.repository.port.js'
 import { User } from '../../../domain/entities/user.js'
 import { Email } from '../../../domain/value-objects/email.js'
 import { Password } from '../../../domain/value-objects/password.js'
 import { Role } from '../../../domain/value-objects/role.js'
-import type {
-  UserRepositoryPort,
-  PaginationParams,
-  PaginatedResult,
-} from '../../../application/ports/user.repository.port.js'
-import { DatabaseException } from '../../../shared/exceptions/database.exception.js'
-import { ConflictException } from '../../../shared/exceptions/conflict.exception.js'
-import { DatabaseUtil } from '../../../shared/utils/database.util.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
+import { db } from '../../../infrastructure/database/index.js'
+import type { DBUserSelect } from '../../../infrastructure/database/schema.js'
+import { user } from '../../../infrastructure/database/schema.js'
+import { ConflictException } from '../../../shared/exceptions/conflict.exception.js'
+import { DatabaseException } from '../../../shared/exceptions/database.exception.js'
+import { DatabaseUtil } from '../../../shared/utils/database.util.js'
 
 /**
  * PostgreSQL implementation of the User Repository

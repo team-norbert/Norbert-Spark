@@ -1,6 +1,6 @@
 import type { AiRagRepositoryPost } from '../ports/ai.rag.repository.js'
-import type { LoggerPort } from '../ports/logger.port.js'
 import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { LoggerPort } from '../ports/logger.port.js'
 
 export class PostVectorRagUseCase {
   constructor(

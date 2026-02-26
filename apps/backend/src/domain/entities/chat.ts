@@ -1,5 +1,5 @@
-import type { UserIdType } from '../value-objects/userID.js'
 import type { ChatIdType } from '../value-objects/chatID.js'
+import type { UserIdType } from '../value-objects/userID.js'
 
 /**
  * The CHAT ID, a uuuidv7 string, is generated in the 'frontend' code

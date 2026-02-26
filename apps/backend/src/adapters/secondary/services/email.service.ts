@@ -1,10 +1,11 @@
+import type { Obscured } from 'obscured'
+import { obscured } from 'obscured'
+import { Resend } from 'resend'
+
 import type { EmailServicePort } from '../../../application/ports/email.service.port.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
-import { Resend } from 'resend'
-import { obscured } from 'obscured'
-import type { Obscured } from 'obscured'
-import { ExternalServiceException } from '../../../shared/exceptions/external-service.exception.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
+import { ExternalServiceException } from '../../../shared/exceptions/external-service.exception.js'
 
 /**
  * Adapter for sending emails using the Resend API.

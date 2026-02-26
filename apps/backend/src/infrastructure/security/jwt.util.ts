@@ -1,9 +1,10 @@
+import { isNullOrUndefined,isString } from '@norberts-spark/shared'
 import jwt, { type SignOptions } from 'jsonwebtoken'
-import { EnvConfig } from '../config/env.config.js'
-import { isString, isNullOrUndefined } from '@norberts-spark/shared'
-import type { JwtUserClaims } from '../../shared/types/index.js'
-import { UnauthorizedException } from '../../shared/exceptions/unauthorized.exception.js'
+
 import { ErrorCode } from '../../shared/constants/error-codes.js'
+import { UnauthorizedException } from '../../shared/exceptions/unauthorized.exception.js'
+import type { JwtUserClaims } from '../../shared/types/index.js'
+import { EnvConfig } from '../config/env.config.js'
 
 /**
  * Utility class for JSON Web Token (JWT) operations
@@ -170,7 +171,7 @@ export class JwtUtil {
         throw new UnauthorizedException('Invalid token payload', ErrorCode.UNAUTHORIZED)
       }
 
-      const { sub, email, roles } = decoded as Partial<JwtUserClaims>
+      const { email, roles, sub } = decoded as Partial<JwtUserClaims>
       if (!sub || !email) {
         throw new UnauthorizedException('Token missing required claims', ErrorCode.UNAUTHORIZED)
       }

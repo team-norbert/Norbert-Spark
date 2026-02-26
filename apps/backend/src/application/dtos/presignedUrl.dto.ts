@@ -1,6 +1,7 @@
-import { isObject, isDefined, isString, isArray } from '@norberts-spark/shared'
-import { TypeException } from '../../shared/exceptions/type.exception.js'
+import { isArray,isDefined, isObject, isString } from '@norberts-spark/shared'
 import type { components } from '@norberts-spark/shared/openapi-types'
+
+import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { UnprocessableEntityException } from '../../shared/exceptions/unprocessable-entity.exception.js'
 
 /**

@@ -1,5 +1,5 @@
-import type { AiRagRepositoryPost } from '../../../application/ports/ai.rag.repository.js'
 import { RagDto } from '../../../application/dtos/rag.dto.js'
+import type { AiRagRepositoryPost } from '../../../application/ports/ai.rag.repository.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 
 export class AIRAGRepository implements AiRagRepositoryPost {

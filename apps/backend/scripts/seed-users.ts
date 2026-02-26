@@ -26,9 +26,9 @@
  * the script will throw an error to prevent duplicate email generation.
  */
 // TODO: convert to using the test configuration DB instead of the live DB
+import { Password } from '../src/domain/value-objects/password.js'
 import { db } from '../src/infrastructure/database/index.js'
 import { user } from '../src/infrastructure/database/schema.js'
-import { Password } from '../src/domain/value-objects/password.js'
 
 // Get the number of users to create from:
 // 1. Command line argument (highest priority)

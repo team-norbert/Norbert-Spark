@@ -1,14 +1,15 @@
 import '../security/instrument.js'
-import type { FastifyInstance, FastifyServerOptions } from 'fastify'
-import Fastify from 'fastify'
-import cors from '@fastify/cors'
-import multipart from '@fastify/multipart'
-import * as Sentry from '@sentry/node'
-import helmet from '@fastify/helmet'
 
+import cors from '@fastify/cors'
+import helmet from '@fastify/helmet'
+import multipart from '@fastify/multipart'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
 import { OpenAPI } from '@norberts-spark/shared'
+import * as Sentry from '@sentry/node'
+import type { FastifyInstance, FastifyServerOptions } from 'fastify'
+import Fastify from 'fastify'
+
 import { EnvConfig } from '../config/env.config.js'
 /**
  * Creates and configures a Fastify server instance with CORS, Swagger, and OpenAPI support.

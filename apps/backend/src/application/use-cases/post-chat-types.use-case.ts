@@ -1,13 +1,14 @@
-import type { LoggerPort } from '../ports/logger.port.js'
-import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
-import type { AIContentPort } from '../ports/ai-content.port.js'
+import { isString } from '@norberts-spark/shared'
+
 import type { AuditContext } from '../../domain/audit/audit-context.js'
+import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { DBChatType } from '../../infrastructure/database/schema.js'
-import type { ChatTypeInsertDto } from '../dtos/chat-type-insert.dto.js'
 import { SEO } from '../../shared/utils/SEO.util.js'
 import { Uuid7Util } from '../../shared/utils/uuid7.util.js'
-import { isString } from '@norberts-spark/shared'
-import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
+import type { ChatTypeInsertDto } from '../dtos/chat-type-insert.dto.js'
+import type { AIContentPort } from '../ports/ai-content.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
+import type { LoggerPort } from '../ports/logger.port.js'
 
 /**
  * Shape of the input data required to create a new chat type.

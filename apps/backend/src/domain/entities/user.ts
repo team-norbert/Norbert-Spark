@@ -1,8 +1,8 @@
+import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 import type { EmailType } from '../value-objects/email.js'
 import type { PasswordType } from '../value-objects/password.js'
 import type { RoleType } from '../value-objects/role.js'
 import type { UserIdType } from '../value-objects/userID.js'
-import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 
 /**
  * User entity representing a registered user in the system

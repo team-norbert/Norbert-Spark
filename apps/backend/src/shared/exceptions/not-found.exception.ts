@@ -1,6 +1,6 @@
-import { BaseException } from './base.exception.js'
 import { ErrorCode } from '../constants/error-codes.js'
 import { HttpStatus } from '../constants/http-status.js'
+import { BaseException } from './base.exception.js'
 
 export class NotFoundException extends BaseException {
   constructor(resource: string, identifier?: string) {

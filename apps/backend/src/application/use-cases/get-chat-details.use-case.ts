@@ -1,10 +1,10 @@
-import type { LoggerPort } from '../ports/logger.port.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
-import type { AIContentPort } from '../ports/ai-content.port.js'
+import type { DBChatType } from '../../infrastructure/database/schema.js'
 import { SEO } from '../../shared/utils/SEO.util.js'
 import { Uuid7Util } from '../../shared/utils/uuid7.util.js'
-import type { DBChatType } from '../../infrastructure/database/schema.js'
+import type { AIContentPort } from '../ports/ai-content.port.js'
+import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { LoggerPort } from '../ports/logger.port.js'
 
 /**
  * Use case for retrieving and enriching chat type details.

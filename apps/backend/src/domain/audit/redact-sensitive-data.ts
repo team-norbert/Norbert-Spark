@@ -138,13 +138,13 @@ export function redactSensitiveData(
 
     if (isFieldSensitive) {
       // Redact the entire field
-      redacted[key] = REDACTED_PLACEHOLDER
+      Reflect.set(redacted, key, REDACTED_PLACEHOLDER)
     } else if (typeof value === 'object' && value !== null) {
       // Recursively redact nested objects
-      redacted[key] = redactSensitiveData(value, depth + 1, maxDepth)
+      Reflect.set(redacted, key, redactSensitiveData(value, depth + 1, maxDepth))
     } else {
       // Keep non-sensitive primitive values
-      redacted[key] = value
+      Reflect.set(redacted, key, value)
     }
   }
 

@@ -1,6 +1,5 @@
-import type { LoggerPort } from '../../../application/ports/logger.port.js'
-import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
+import { google } from '@ai-sdk/google'
+import type { components, operations } from '@norberts-spark/shared/openapi-types'
 import {
   convertToModelMessages,
   stepCountIs,
@@ -8,28 +7,30 @@ import {
   type UIMessage,
   validateUIMessages,
 } from 'ai'
-import { google } from '@ai-sdk/google'
+import { DrizzleQueryError } from 'drizzle-orm'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+
+import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
+import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
+import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { AppendedChatUseCase } from '../../../application/use-cases/append-chat.use-case.js'
-import { EnvConfig } from '../../../infrastructure/config/env.config.js'
-import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
-import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
-import { GetChatDetailsUseCase } from '../../../application/use-cases/get-chat-details.use-case.js'
+import { GetChatAiOptionsUseCase } from '../../../application/use-cases/get-chat-ai-options.use-case.js'
 import { GetChatContentByChatIdUseCase } from '../../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
+import { GetChatDetailsUseCase } from '../../../application/use-cases/get-chat-details.use-case.js'
+import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
+import { PostChatTypesUseCase } from '../../../application/use-cases/post-chat-types.use-case.js'
+import { PutChatDetailsUseCase } from '../../../application/use-cases/put-chat-details.use-case.js'
+import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-chat-type.use-case.js'
+import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
-import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
-import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
+import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
+import { EnvConfig } from '../../../infrastructure/config/env.config.js'
+import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
-import { DrizzleQueryError } from 'drizzle-orm'
-import { GetChatAiOptionsUseCase } from '../../../application/use-cases/get-chat-ai-options.use-case.js'
-import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-chat-type.use-case.js'
-import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
-import { PutChatDetailsUseCase } from '../../../application/use-cases/put-chat-details.use-case.js'
-import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
-import { PostChatTypesUseCase } from '../../../application/use-cases/post-chat-types.use-case.js'
-import type { components, operations } from '@norberts-spark/shared/openapi-types'
+import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -331,7 +332,7 @@ export class AIController {
         }
         // you can also inspect chunk.reasoning / chunk.sources / etc.
       },
-      onFinish: ({ text, finishReason, usage, response, totalUsage }) => {
+      onFinish: ({ finishReason, response, text, totalUsage, usage }) => {
         // Called once when the full output is complete
         // The reason the model finished generating the text.
         // "stop" | "length" | "content-filter" | "tool-calls" | "error" | "other" | "unknown"

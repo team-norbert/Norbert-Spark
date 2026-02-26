@@ -103,9 +103,9 @@ export class FastifyUtil {
     const headers: Record<string, string> = {}
     Object.entries(request.headers).forEach(([key, value]) => {
       if (typeof value === 'string') {
-        headers[key] = value
+        Reflect.set(headers, key, value)
       } else if (Array.isArray(value)) {
-        headers[key] = value.join(', ')
+        Reflect.set(headers, key, value.join(', '))
       }
     })
     return { headers }

@@ -1,4 +1,4 @@
-import type { FastifyRequest, FastifyReply, preHandlerAsyncHookHandler } from 'fastify'
+import type { FastifyReply, FastifyRequest, preHandlerAsyncHookHandler } from 'fastify'
 /**
  * Creates a Fastify middleware that requires the authenticated user to have one of the specified roles.
  *

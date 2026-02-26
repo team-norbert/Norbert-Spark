@@ -1,9 +1,9 @@
-import type { MyUIMessagePart } from '../types/index.js'
+import type { LoggerPort } from '../../application/ports/logger.port.js'
 import type {
   MyDBUIMessagePart,
   MyDBUIMessagePartSelect,
 } from '../../infrastructure/database/schema.js'
-import type { LoggerPort } from '../../application/ports/logger.port.js'
+import type { MyUIMessagePart } from '../types/index.js'
 
 export const mapUIMessagePartsToDBParts = (
   messageParts: MyUIMessagePart[],

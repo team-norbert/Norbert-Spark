@@ -1,8 +1,8 @@
-import type { LoggerPort } from '../ports/logger.port.js'
-import type { AuditLogPort } from '../ports/audit-log.port.js'
-import type { CompanyDetailsPort } from '../ports/company.repository.port.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import type { DBCompanySelect, DBKeyPersonSelect } from '../../infrastructure/database/schema.js'
+import type { AuditLogPort } from '../ports/audit-log.port.js'
+import type { CompanyDetailsPort } from '../ports/company.repository.port.js'
+import type { LoggerPort } from '../ports/logger.port.js'
 
 /**
  * Use case for retrieving company and key person details.

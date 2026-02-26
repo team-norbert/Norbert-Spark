@@ -1,11 +1,12 @@
-import type { LoggerPort } from '../ports/logger.port.js'
-import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
-import type { AIContentPort } from '../ports/ai-content.port.js'
-import type { AuditContext } from '../../domain/audit/audit-context.js'
-import type { PutChatTypeDto } from '../dtos/put-chat-type.dto.js'
-import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
-import type { UpdateChanges } from '../../domain/audit/audit-changes.types.js'
 import type { QueryResult } from 'pg'
+
+import type { UpdateChanges } from '../../domain/audit/audit-changes.types.js'
+import type { AuditContext } from '../../domain/audit/audit-context.js'
+import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
+import type { PutChatTypeDto } from '../dtos/put-chat-type.dto.js'
+import type { AIContentPort } from '../ports/ai-content.port.js'
+import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
+import type { LoggerPort } from '../ports/logger.port.js'
 
 /**
  * Use case for updating chat type details in the system.

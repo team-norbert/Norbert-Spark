@@ -1,22 +1,22 @@
 // Load environment variables FIRST before any other imports
+import { google } from '@ai-sdk/google'
+import type { ModelMessage } from 'ai'
+import { generateText, stepCountIs } from 'ai'
 import dotenv from 'dotenv'
+import { eq } from 'drizzle-orm'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { evalite } from 'evalite'
 import path from 'path'
+import { Pool } from 'pg'
 import { fileURLToPath } from 'url'
+
+import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
+import { ChatId } from '../../../src/domain/value-objects/chatID.js'
+import { HeartOfDarknessTool } from '../../../src/infrastructure/ai/tools/heart-of-darkness.tool.js'
+import { chatAiOptions } from '../../../src/infrastructure/database/schema.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../../../.env'), override: true })
-
-import { evalite } from 'evalite'
-import { generateText, stepCountIs } from 'ai'
-import type { ModelMessage } from 'ai'
-import { google } from '@ai-sdk/google'
-import { HeartOfDarknessTool } from '../../../src/infrastructure/ai/tools/heart-of-darkness.tool.js'
-import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
-import { ChatId } from '../../../src/domain/value-objects/chatID.js'
-import { Pool } from 'pg'
-import { drizzle } from 'drizzle-orm/node-postgres'
-import { chatAiOptions } from '../../../src/infrastructure/database/schema.js'
-import { eq } from 'drizzle-orm'
 
 /**
  * Simple console logger for eval tests
@@ -402,7 +402,7 @@ evalite('Heart of Darkness Agent Accuracy', {
   scorers: [
     {
       name: 'LLM Judge Accuracy',
-      scorer: async ({ input, output, expected }) => {
+      scorer: async ({ expected, input, output }) => {
         if (!expected) return { score: 0, passed: false }
         const score = await llmJudgeScorer(input, output, expected)
         return {
@@ -413,7 +413,7 @@ evalite('Heart of Darkness Agent Accuracy', {
     },
     {
       name: 'Keyword Match',
-      scorer: ({ input, output, expected }) => {
+      scorer: ({ expected, input, output }) => {
         if (!expected) return { score: 0, passed: false }
 
         const keyTerms = extractKeywords(expected)

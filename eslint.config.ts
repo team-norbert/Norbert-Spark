@@ -14,6 +14,7 @@ import sortDestructureKeys from 'eslint-plugin-sort-destructure-keys'
 const config: Linter.Config[] = [
   js.configs.recommended,
   {
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     plugins: {
       '@typescript-eslint': tseslint as any,
       codegen: codegen as any,
@@ -45,6 +46,8 @@ const config: Linter.Config[] = [
       'import/named': 'off',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'off',
+      'no-redeclare': 'off', // TypeScript compiler handles redeclaration errors; const+type same-name is valid TS
+      '@typescript-eslint/no-redeclare': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
@@ -70,6 +73,13 @@ const config: Linter.Config[] = [
       'jsdoc/check-types': 'warn',
       'jsdoc/require-param-description': 'warn',
       'jsdoc/require-returns-description': 'warn',
+      'max-lines': ['error', { max: 600, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
+    files: ['**/*.test.ts', '**/*.spec.ts', '**/*.test.tsx', '**/*.spec.tsx'],
+    rules: {
+      'max-lines': 'off',
     },
   },
   {

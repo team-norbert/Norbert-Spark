@@ -1,5 +1,5 @@
-import { isValidUUID } from 'uuidv7-utilities'
 import type { IsValidUUID } from 'uuidv7-utilities'
+import { isValidUUID } from 'uuidv7-utilities'
 
 /**
  * Utility class for common validation operations.
