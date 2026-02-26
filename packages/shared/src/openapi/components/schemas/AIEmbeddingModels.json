@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "description": "Response returned when fetching a chat",
+  "description": "Response containing information about an AI embedding model",
   "required": ["success", "data"],
   "properties": {
     "success": {
