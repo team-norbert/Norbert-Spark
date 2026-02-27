@@ -40,6 +40,7 @@ function fillRequiredFields({
   chatTypeId = 'aabbccdd-1234-1234-1234-aabbccddee01',
   chunkOverlap = '50',
   chunkSize = '512',
+  dimension = '1536',
   distanceMetric = 'cosine',
   id = 'test-id-0000-0000-0000-000000000001',
   modelName = 'text-embedding-ada-002',
@@ -54,6 +55,7 @@ function fillRequiredFields({
   fireEvent.change(screen.getByLabelText(/^model provider/i), {
     target: { value: modelProvider },
   })
+  selectDimension(dimension)
   // distanceMetric is a Select; only interact if a non-default value is needed
   if (distanceMetric !== 'cosine') {
     selectDistanceMetric(distanceMetric)
@@ -66,6 +68,16 @@ function fillRequiredFields({
 /** Submit the form via the submit button. */
 function submitForm() {
   fireEvent.click(screen.getByRole('button', { name: /create vector store/i }))
+}
+
+/** Open the Dimension Select dropdown and click the given option. */
+function selectDimension(value: string) {
+  const selectRoot = document.querySelector(
+    '[data-test-id="embedding-models-dimension-select"]'
+  ) as HTMLElement
+  const trigger = (selectRoot.querySelector('[role="combobox"]') ?? selectRoot) as HTMLElement
+  fireEvent.mouseDown(trigger)
+  fireEvent.click(screen.getByRole('option', { name: value }))
 }
 
 /** Open the Distance Metric Select dropdown and click the given option. */
@@ -248,11 +260,11 @@ describe('CreateVectorStoreForm', () => {
       expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe(initialId)
     })
 
-    it('dimension defaults to 1536', () => {
+    it('dimension shows "— choose a dimension —" placeholder by default', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      // The MUI Select shows the current value as visible text
-      expect(screen.getByText('1536')).toBeInTheDocument()
+      // The MUI Select shows the placeholder when no dimension has been chosen
+      expect(screen.getByText('— choose a dimension —')).toBeInTheDocument()
     })
   })
 
@@ -518,10 +530,10 @@ describe('CreateVectorStoreForm', () => {
   // ── Dimension Select ─────────────────────────────────────────────────────────
 
   describe('Dimension Select', () => {
-    it('dimension defaults to 1536 in the submitted data', () => {
+    it('submits dimension 1536 when 1536 is selected', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      fillRequiredFields()
+      fillRequiredFields({ dimension: '1536' })
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(1536)
@@ -531,13 +543,7 @@ describe('CreateVectorStoreForm', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields()
-
-      const selectButton = screen
-        .getByText('1536')
-        .closest('[role="combobox"], [role="button"]') as HTMLElement
-      fireEvent.mouseDown(selectButton)
-      fireEvent.click(screen.getByRole('option', { name: '3072' }))
-
+      selectDimension('3072')
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(3072)
@@ -547,13 +553,7 @@ describe('CreateVectorStoreForm', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields()
-
-      const selectButton = screen
-        .getByText('1536')
-        .closest('[role="combobox"], [role="button"]') as HTMLElement
-      fireEvent.mouseDown(selectButton)
-      fireEvent.click(screen.getByRole('option', { name: '1024' }))
-
+      selectDimension('1024')
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(1024)
@@ -563,14 +563,7 @@ describe('CreateVectorStoreForm', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields()
-
-      // Open the MUI Select dropdown then click the 768 option
-      const selectButton = screen
-        .getByText('1536')
-        .closest('[role="combobox"], [role="button"]') as HTMLElement
-      fireEvent.mouseDown(selectButton)
-      fireEvent.click(screen.getByRole('option', { name: '768' }))
-
+      selectDimension('768')
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(768)
@@ -580,13 +573,7 @@ describe('CreateVectorStoreForm', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields()
-
-      const selectButton = screen
-        .getByText('1536')
-        .closest('[role="combobox"], [role="button"]') as HTMLElement
-      fireEvent.mouseDown(selectButton)
-      fireEvent.click(screen.getByRole('option', { name: '384' }))
-
+      selectDimension('384')
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(384)

@@ -92,7 +92,7 @@ export function CreateVectorStoreForm({
   const [selectedModelId, setSelectedModelId] = useState('')
   const [modelName, setModelName] = useState('')
   const [modelProvider, setModelProvider] = useState('')
-  const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384>(1536)
+  const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384 | ''>(``)
   // true when the user has typed directly into the name/provider fields
   const [isManualEntry, setIsManualEntry] = useState(false)
 
@@ -139,7 +139,7 @@ export function CreateVectorStoreForm({
       embeddingModels: {
         modelName,
         modelProvider,
-        dimension,
+        dimension: dimension as 3072 | 1536 | 1024 | 768 | 384,
       },
       vectorEmbeddings: {
         distanceMetric,
@@ -315,11 +315,13 @@ export function CreateVectorStoreForm({
               labelId="dimension-label"
               label="Dimension"
               value={dimension}
+              displayEmpty
               data-test-id="embedding-models-dimension-select"
-              onChange={(e) =>
-                setDimension(Number(e.target.value) as 3072 | 1536 | 1024 | 768 | 384)
-              }
+              onChange={(e) => setDimension(e.target.value as 3072 | 1536 | 1024 | 768 | 384 | '')}
             >
+              <MenuItem value="">
+                <em>— choose a dimension —</em>
+              </MenuItem>
               <MenuItem value={3072}>3072</MenuItem>
               <MenuItem value={1536}>1536</MenuItem>
               <MenuItem value={1024}>1024</MenuItem>
