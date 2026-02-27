@@ -410,7 +410,6 @@ export function CreateVectorStoreForm({
           <TextField
             label="Chat Type ID"
             value={chatTypeId}
-            onChange={(e) => setChatTypeId(e.target.value)}
             fullWidth
             required
             inputProps={{ readOnly: true }}
