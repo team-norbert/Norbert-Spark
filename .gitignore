@@ -192,3 +192,4 @@ apps/frontend/e2e/.test-db-config.json
 # Turborepo
 .turbo
 packages/shared/src/openapi.json
+apps/frontend/src/assets/embedding_models.json

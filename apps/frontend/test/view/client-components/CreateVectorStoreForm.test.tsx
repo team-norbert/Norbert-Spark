@@ -3,6 +3,28 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CreateVectorStoreForm } from '@/view/client-components/CreateVectorStoreForm.js'
 
+// Mock the embedding models hook so tests don't require a QueryClientProvider
+vi.mock('@/view/hooks/queries/useEmbeddingModels.js', () => ({
+  useEmbeddingModels: () => ({
+    embeddingModels: [
+      {
+        id: 'aaaaaaaa-0000-0000-0000-000000000001',
+        name: 'text-embedding-ada-002',
+        provider: 'openai',
+        dimension: 1536,
+        status: 'legacy',
+        release_year: 2022,
+        recommended_usage: 'Only for backward compatibility with existing vector databases',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+    ],
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+}))
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**

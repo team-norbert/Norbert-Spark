@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   CardContent,
+  CircularProgress,
   Divider,
   FormControl,
   InputLabel,
@@ -16,6 +17,8 @@ import {
 import type { components } from '@norberts-spark/shared/openapi-types'
 import type React from 'react'
 import { useMemo, useState } from 'react'
+
+import { useEmbeddingModels } from '@/view/hooks/queries/useEmbeddingModels.js'
 
 import { AccordionComponent } from './AccordionComponent.js'
 
@@ -59,6 +62,8 @@ export function CreateVectorStoreForm({
   initialChatTypeId,
   onSubmit,
 }: CreateVectorStoreFormProps) {
+  const { embeddingModels, isLoading: embeddingModelsLoading } = useEmbeddingModels()
+
   // top-level id
   const [id, setId] = useState(initialChatTypeId ?? '')
 
@@ -84,9 +89,20 @@ export function CreateVectorStoreForm({
   }
 
   // embeddingModels
+  const [selectedModelId, setSelectedModelId] = useState('')
   const [modelName, setModelName] = useState('')
   const [modelProvider, setModelProvider] = useState('')
   const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384>(1536)
+
+  const handleModelSelect = (modelId: string) => {
+    setSelectedModelId(modelId)
+    const model = embeddingModels.find((m) => m.id === modelId)
+    if (model) {
+      setModelName(model.name)
+      setModelProvider(model.provider)
+      setDimension(model.dimension)
+    }
+  }
   // vectorEmbeddings
   const [distanceMetric, setDistanceMetric] =
     useState<CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']>('cosine')
@@ -198,6 +214,56 @@ export function CreateVectorStoreForm({
           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
             Embedding Models
           </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            The embedding model you want to use for vectorizing your documents. You can choose from
+            the pre-seeded models in the dropdown or add your own custom model by providing the
+            name, provider, and dimension.
+          </Typography>
+          {/* Embedding Models dropdown */}
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel id="embedding-model-select-label" className="visuallyhidden">
+              Select a pre-seeded model
+            </InputLabel>
+            <Select
+              labelId="embedding-model-select-label"
+              label="Select a pre-seeded model"
+              value={selectedModelId}
+              data-test-id="embedding-models-select"
+              displayEmpty
+              disabled={embeddingModelsLoading}
+              onChange={(e) => handleModelSelect(e.target.value)}
+              startAdornment={
+                embeddingModelsLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null
+              }
+            >
+              <MenuItem value="">
+                <em>— choose a model —</em>
+              </MenuItem>
+              {embeddingModels.map((model) => (
+                <MenuItem key={model.id} value={model.id}>
+                  <Box>
+                    <Typography variant="body2" fontWeight={600}>
+                      {model.name} &mdash; {model.provider} ({model.dimension}d)
+                    </Typography>
+                    {model.status !== undefined && (
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Status: {model.status}
+                        {model.release_year !== undefined
+                          ? ` · Released: ${model.release_year}`
+                          : ''}
+                      </Typography>
+                    )}
+                    {model.recommended_usage !== undefined && (
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        {model.recommended_usage}
+                      </Typography>
+                    )}
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Divider sx={{ my: 2 }} />
           <TextField
             label="Model Name"
             value={modelName}

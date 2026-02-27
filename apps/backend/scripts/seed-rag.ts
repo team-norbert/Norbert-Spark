@@ -69,20 +69,20 @@ if (skipped > 0) {
   console.log(`⏭️  Skipped ${skipped} model(s) that already existed.`)
 }
 
-// Copy embedding_models.json to apps/backend/src/shared/data
+// Copy embedding_models.json to apps/frontend/src/assets
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const sourceFile = join(__dirname, 'embedding_models.json')
-const targetDir = join(__dirname, '..', 'src', 'shared', 'data')
+const targetDir = join(__dirname, '..', '..', 'frontend', 'src', 'assets')
 const targetFile = join(targetDir, 'embedding_models.json')
 
 if (!existsSync(targetDir)) {
   mkdirSync(targetDir, { recursive: true })
-  console.log(`📁 Created directory: src/shared/data`)
+  console.log(`📁 Created directory: apps/frontend/src/assets`)
 }
 
 await copyFile(sourceFile, targetFile)
-console.log(`📋 Copied embedding_models.json to src/shared/data/`)
+console.log(`📋 Copied embedding_models.json to apps/frontend/src/assets/`)
 
 const total = await db.$count(embeddingModels)
 console.log(`📊 Total embedding_models rows: ${total}`)
