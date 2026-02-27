@@ -15,6 +15,11 @@
  * Each dimension corresponds to a dedicated vector_embeddings_<dim> table for RAG queries.
  */
 
+import { existsSync, mkdirSync } from 'node:fs'
+import { copyFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import { db } from '../src/infrastructure/database/index.js'
 import { embeddingModels } from '../src/infrastructure/database/schema.js'
 import rawData from './embedding_models.json' with { type: 'json' }
@@ -63,6 +68,21 @@ const skipped = rows.length - inserted.length
 if (skipped > 0) {
   console.log(`⏭️  Skipped ${skipped} model(s) that already existed.`)
 }
+
+// Copy embedding_models.json to apps/backend/src/shared/data
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const sourceFile = join(__dirname, 'embedding_models.json')
+const targetDir = join(__dirname, '..', 'src', 'shared', 'data')
+const targetFile = join(targetDir, 'embedding_models.json')
+
+if (!existsSync(targetDir)) {
+  mkdirSync(targetDir, { recursive: true })
+  console.log(`📁 Created directory: src/shared/data`)
+}
+
+await copyFile(sourceFile, targetFile)
+console.log(`📋 Copied embedding_models.json to src/shared/data/`)
 
 const total = await db.$count(embeddingModels)
 console.log(`📊 Total embedding_models rows: ${total}`)
