@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import embeddingModelsAsset from '@/assets/embedding_models.json' with { type: 'json' }
-import type { EmbeddingModelMeta,EnrichedEmbeddingModel } from '@/domain/ai/embedding-models.js'
+import type { EmbeddingModelMeta, EnrichedEmbeddingModel } from '@/domain/ai/embedding-models.js'
 import { getEmbeddingModels } from '@/infrastructure/serverActions/getEmbeddingModels.server.js'
 
 interface UseEmbeddingModelsReturn {
