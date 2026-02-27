@@ -246,6 +246,7 @@ export function CreateVectorStoreForm({
               data-test-id="embedding-models-select"
               displayEmpty
               disabled={embeddingModelsLoading}
+              onClose={() => setIsManualEntry(false)}
               onChange={(e) => handleModelSelect(e.target.value)}
               startAdornment={
                 embeddingModelsLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null
