@@ -324,6 +324,36 @@ describe('RagDto', () => {
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
     })
+
+    it('should accept existingModelId alone (branch 1 of anyOf)', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001' },
+      }
+      const dto = RagDto.validate(data as any)
+      expect(dto.embeddingModels.existingModelId).toBe('aaaaaaaa-0000-0000-0000-000000000001')
+    })
+
+    it('should not require modelName, modelProvider or dimension when existingModelId is provided', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001' },
+      }
+      expect(() => RagDto.validate(data as any)).not.toThrow()
+    })
+
+    it('should throw ValidationException when neither existingModelId nor custom fields are provided', () => {
+      const data = { ...validInput(), embeddingModels: {} }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+    })
+
+    it('should throw ValidationException when existingModelId is not a string', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { existingModelId: 42 },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+    })
   })
 
   // -------------------------------------------------------------------------

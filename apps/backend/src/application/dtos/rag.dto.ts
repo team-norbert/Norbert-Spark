@@ -11,11 +11,19 @@ export class RagDto {
       title: string
       source: string
     }>,
-    public readonly embeddingModels: {
-      modelName: string
-      modelProvider: string
-      dimension: 1536 | 768 | 384 | 3072 | 1024
-    },
+    public readonly embeddingModels:
+      | {
+          existingModelId: string
+          modelName?: string
+          modelProvider?: string
+          dimension?: 1536 | 768 | 384 | 3072 | 1024
+        }
+      | {
+          existingModelId?: string
+          modelName: string
+          modelProvider: string
+          dimension: 1536 | 768 | 384 | 3072 | 1024
+        },
     public readonly vectorEmbeddings: {
       distanceMetric: 'cosine' | 'euclidean' | 'dot_product'
       chunkSize: number
@@ -77,26 +85,30 @@ export class RagDto {
       }
     }
 
-    if (!isString(data.embeddingModels.modelName)) {
-      throw new ValidationException('embeddingModels.modelName is required and must be a string')
-    }
+    const hasExistingModel = isString(data.embeddingModels.existingModelId)
 
-    if (!isNumber(data.embeddingModels.dimension)) {
-      throw new ValidationException('embeddingModels.dimension is required and must be a number')
-    }
+    if (!hasExistingModel) {
+      if (!isString(data.embeddingModels.modelName)) {
+        throw new ValidationException('embeddingModels.modelName is required and must be a string')
+      }
 
-    const VALID_DIMENSIONS = [1536, 768, 384, 3072, 1024] as const
-    type ValidDimension = (typeof VALID_DIMENSIONS)[number]
-    if (!VALID_DIMENSIONS.includes(data.embeddingModels.dimension as ValidDimension)) {
-      throw new ValidationException(
-        'embeddingModels.dimension must be either 1536, 768, 384, 3072, or 1024'
-      )
-    }
+      if (!isNumber(data.embeddingModels.dimension)) {
+        throw new ValidationException('embeddingModels.dimension is required and must be a number')
+      }
 
-    if (!isString(data.embeddingModels.modelProvider)) {
-      throw new ValidationException(
-        'embeddingModels.modelProvider is required and must be a string'
-      )
+      const VALID_DIMENSIONS = [1536, 768, 384, 3072, 1024] as const
+      type ValidDimension = (typeof VALID_DIMENSIONS)[number]
+      if (!VALID_DIMENSIONS.includes(data.embeddingModels.dimension as ValidDimension)) {
+        throw new ValidationException(
+          'embeddingModels.dimension must be either 1536, 768, 384, 3072, or 1024'
+        )
+      }
+
+      if (!isString(data.embeddingModels.modelProvider)) {
+        throw new ValidationException(
+          'embeddingModels.modelProvider is required and must be a string'
+        )
+      }
     }
 
     if (!isString(data.vectorEmbeddings.distanceMetric)) {
@@ -186,10 +198,11 @@ export class RagDto {
       data.id,
       data.documents.map((doc) => ({ title: doc.title, source: doc.source })),
       {
-        modelName: data.embeddingModels.modelName,
-        modelProvider: data.embeddingModels.modelProvider,
-        dimension: data.embeddingModels.dimension,
-      },
+        existingModelId: data.embeddingModels.existingModelId as string | undefined,
+        modelName: data.embeddingModels.modelName as string | undefined,
+        modelProvider: data.embeddingModels.modelProvider as string | undefined,
+        dimension: data.embeddingModels.dimension as 1536 | 768 | 384 | 3072 | 1024 | undefined,
+      } as RagDto['embeddingModels'],
       {
         distanceMetric: data.vectorEmbeddings.distanceMetric,
         chunkSize: data.vectorEmbeddings.chunkSize,

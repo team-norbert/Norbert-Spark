@@ -30,9 +30,17 @@
     },
     "embeddingModels": {
       "type": "object",
-      "description": "Vector store embedding models configuration",
-      "required": ["modelName", "modelProvider", "dimension"],
+      "description": "Vector store embedding models configuration. Either provide existingModelId to reference a pre-seeded model, or provide modelName, modelProvider and dimension to define a new one.",
+      "anyOf": [
+        { "required": ["existingModelId"] },
+        { "required": ["modelName", "modelProvider", "dimension"] }
+      ],
       "properties": {
+        "existingModelId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for an existing embedding model to use. Mutually exclusive with modelName, modelProvider and dimension."
+        },
         "modelName": {
           "type": "string",
           "description": "Name of the embedding model to use"

@@ -298,7 +298,6 @@ export function CreateVectorStoreForm({
               setIsManualEntry(true)
             }}
             fullWidth
-            required
             sx={{ mb: 2 }}
             data-test-id="embedding-models-model-name-input"
           />
@@ -310,7 +309,6 @@ export function CreateVectorStoreForm({
               setIsManualEntry(true)
             }}
             fullWidth
-            required
             sx={{ mb: 2 }}
             data-test-id="embedding-models-model-provider-input"
           />
@@ -343,12 +341,7 @@ export function CreateVectorStoreForm({
           <Divider sx={{ my: 2 }} />
 
           {/* Vector Embeddings */}
-          <Typography
-            variant="subtitle2"
-            color="text.secondary"
-            sx={{ mb: 1.5 }}
-            className="visuallyhidden"
-          >
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
             Vector Embeddings
           </Typography>
           <FormControl fullWidth required sx={{ mb: 2 }}>
