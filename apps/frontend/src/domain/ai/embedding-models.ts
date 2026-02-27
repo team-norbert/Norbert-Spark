@@ -5,7 +5,7 @@ import { z } from 'zod'
  * Matches the backend AIEmbeddingModels OpenAPI schema
  */
 export const EmbeddingModelSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   provider: z.string(),
   dimension: z.union([

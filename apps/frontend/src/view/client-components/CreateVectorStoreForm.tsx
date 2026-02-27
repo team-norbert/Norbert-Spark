@@ -93,6 +93,8 @@ export function CreateVectorStoreForm({
   const [modelName, setModelName] = useState('')
   const [modelProvider, setModelProvider] = useState('')
   const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384>(1536)
+  // true when the user has typed directly into the name/provider fields
+  const [isManualEntry, setIsManualEntry] = useState(false)
 
   const handleModelSelect = (modelId: string) => {
     setSelectedModelId(modelId)
@@ -101,8 +103,14 @@ export function CreateVectorStoreForm({
       setModelName(model.name)
       setModelProvider(model.provider)
       setDimension(model.dimension)
+      setIsManualEntry(false)
     }
   }
+
+  // True when the user has BOTH selected from the dropdown AND typed into a manual field.
+  // The two entry modes are mutually exclusive — choosing both is invalid.
+  const embeddingModelConflict = selectedModelId !== '' && isManualEntry
+
   // vectorEmbeddings
   const [distanceMetric, setDistanceMetric] =
     useState<CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']>('cosine')
@@ -122,6 +130,8 @@ export function CreateVectorStoreForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (embeddingModelConflict) return
 
     const formData: CreateVectorStoreFormData = {
       id,
@@ -231,6 +241,7 @@ export function CreateVectorStoreForm({
               data-test-id="embedding-models-select"
               displayEmpty
               disabled={embeddingModelsLoading}
+              onOpen={() => setIsManualEntry(false)}
               onChange={(e) => handleModelSelect(e.target.value)}
               startAdornment={
                 embeddingModelsLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null
@@ -263,11 +274,24 @@ export function CreateVectorStoreForm({
               ))}
             </Select>
           </FormControl>
+          {embeddingModelConflict && (
+            <Typography
+              variant="body2"
+              color="error"
+              sx={{ mb: 2 }}
+              data-test-id="embedding-model-conflict-error"
+            >
+              Please use either the dropdown or manual entry, not both.
+            </Typography>
+          )}
           <Divider sx={{ my: 2 }} />
           <TextField
             label="Model Name"
             value={modelName}
-            onChange={(e) => setModelName(e.target.value)}
+            onChange={(e) => {
+              setModelName(e.target.value)
+              setIsManualEntry(true)
+            }}
             fullWidth
             required
             sx={{ mb: 2 }}
@@ -276,7 +300,10 @@ export function CreateVectorStoreForm({
           <TextField
             label="Model Provider"
             value={modelProvider}
-            onChange={(e) => setModelProvider(e.target.value)}
+            onChange={(e) => {
+              setModelProvider(e.target.value)
+              setIsManualEntry(true)
+            }}
             fullWidth
             required
             sx={{ mb: 2 }}

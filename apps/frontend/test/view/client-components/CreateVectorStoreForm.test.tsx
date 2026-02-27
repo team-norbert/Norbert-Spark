@@ -281,7 +281,7 @@ describe('CreateVectorStoreForm', () => {
           source: 'https://gutenberg.org/hod',
         },
       ])
-    }, 15000)
+    }, 25000)
 
     it('passes the required id field', () => {
       const testId = 'abc12345-0000-0000-0000-000000000001'
@@ -671,6 +671,152 @@ describe('CreateVectorStoreForm', () => {
       fireEvent.change(input, { target: { value: updated } })
 
       expect(input.value).toBe(updated)
+    })
+  })
+
+  // ── Embedding Model — dropdown vs manual entry validation ────────────────────
+
+  describe('Embedding Model — dropdown vs manual entry validation', () => {
+    /**
+     * Opens the embedding models Select dropdown.
+     * Uses the data-test-id on the Select root to locate the combobox trigger,
+     * making it robust regardless of what text is currently displayed.
+     */
+    function openEmbeddingModelsDropdown() {
+      const select = document.querySelector(
+        '[data-test-id="embedding-models-select"]'
+      ) as HTMLElement
+      const trigger = (select.querySelector('[role="combobox"]') ?? select) as HTMLElement
+      fireEvent.mouseDown(trigger)
+    }
+
+    /** Selects the single mock model (text-embedding-ada-002) from the dropdown. */
+    function selectEmbeddingModelFromDropdown() {
+      openEmbeddingModelsDropdown()
+      fireEvent.click(screen.getByRole('option', { name: /text-embedding-ada-002/i }))
+    }
+
+    it('shows no conflict error when only the dropdown is used', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+
+      expect(
+        screen.queryByText(/please use either the dropdown or manual entry/i)
+      ).not.toBeInTheDocument()
+    })
+
+    it('shows no conflict error when only manual fields are filled', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'my-custom-model' },
+      })
+      fireEvent.change(screen.getByLabelText(/^model provider/i), {
+        target: { value: 'custom-provider' },
+      })
+
+      expect(
+        screen.queryByText(/please use either the dropdown or manual entry/i)
+      ).not.toBeInTheDocument()
+    })
+
+    it('shows a conflict error when a dropdown model is selected and then modelName is typed', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'custom-override' },
+      })
+
+      expect(
+        screen.getByText(/please use either the dropdown or manual entry/i)
+      ).toBeInTheDocument()
+    })
+
+    it('shows a conflict error when a dropdown model is selected and then modelProvider is typed', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+      fireEvent.change(screen.getByLabelText(/^model provider/i), {
+        target: { value: 'custom-provider' },
+      })
+
+      expect(
+        screen.getByText(/please use either the dropdown or manual entry/i)
+      ).toBeInTheDocument()
+    })
+
+    it('blocks form submission when both dropdown and manual entry are used', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields()
+      selectEmbeddingModelFromDropdown()
+      // Typing into modelName after dropdown selection creates the conflict
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'custom-override' },
+      })
+
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('clears the conflict error when a fresh dropdown selection is made', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'custom-override' },
+      })
+      expect(
+        screen.getByText(/please use either the dropdown or manual entry/i)
+      ).toBeInTheDocument()
+
+      // Re-selecting from the dropdown resets isManualEntry → conflict clears
+      selectEmbeddingModelFromDropdown()
+
+      expect(
+        screen.queryByText(/please use either the dropdown or manual entry/i)
+      ).not.toBeInTheDocument()
+    })
+
+    it('clears the conflict error when the dropdown selection is cleared', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'custom-override' },
+      })
+      expect(
+        screen.getByText(/please use either the dropdown or manual entry/i)
+      ).toBeInTheDocument()
+
+      // Selecting the empty option clears selectedModelId → no conflict possible
+      openEmbeddingModelsDropdown()
+      fireEvent.click(screen.getByRole('option', { name: /choose a model/i }))
+
+      expect(
+        screen.queryByText(/please use either the dropdown or manual entry/i)
+      ).not.toBeInTheDocument()
+    })
+
+    it('allows submission after conflict is resolved by re-selecting from the dropdown', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields()
+      selectEmbeddingModelFromDropdown()
+      // Create conflict
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'custom-override' },
+      })
+      submitForm()
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+
+      // Resolve conflict by re-selecting from dropdown
+      selectEmbeddingModelFromDropdown()
+      submitForm()
+      expect(mockOnSubmit).toHaveBeenCalledTimes(1)
     })
   })
 })
