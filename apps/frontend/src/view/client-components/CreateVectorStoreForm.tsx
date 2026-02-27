@@ -411,9 +411,9 @@ export function CreateVectorStoreForm({
           <TextField
             label="Chat Type ID"
             value={chatTypeId}
+            onChange={(e) => setChatTypeId(e.target.value)}
             fullWidth
             required
-            inputProps={{ readOnly: true }}
             data-test-id="chat-ai-options-chat-type-id-input"
             sx={{ mb: 2 }}
           />
