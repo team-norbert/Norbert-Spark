@@ -356,10 +356,10 @@ export function CreateVectorStoreForm({
             These settings control how your documents will be vectorised and stored in the vector
             store. The distance metric determines how similarity is calculated between vectors,
             while chunk size and overlap control how documents are split into smaller pieces for
-            embedding. The recommended distance metric is usually &#34;cosine&#34;, but it depends on your
-            specific use case and the embedding model you choose. If you&#39;re unsure, check the
-            documentation for your embedding model or experiment with different metrics to see which
-            gives better results for your data.
+            embedding. The recommended distance metric is usually &#34;cosine&#34;, but it depends
+            on your specific use case and the embedding model you choose. If you&#39;re unsure,
+            check the documentation for your embedding model or experiment with different metrics to
+            see which gives better results for your data.
           </Typography>
           <Divider sx={{ my: 2 }} />
           <FormControl fullWidth required sx={{ mb: 2 }}>
@@ -469,11 +469,11 @@ export function CreateVectorStoreForm({
             sx={{ mb: 2 }}
           />
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            <strong>max tokens</strong> limits the length of the AI&#39;s generated response. Setting a
-            lower value can help ensure concise answers, while a higher value allows for more
-            detailed responses. The optimal setting depends on your use case and the typical length
-            of responses you want to receive. The minimum allowed is 1 token, and the maximum is
-            100,000 tokens, but you should experiment with different values to find the right
+            <strong>max tokens</strong> limits the length of the AI&#39;s generated response.
+            Setting a lower value can help ensure concise answers, while a higher value allows for
+            more detailed responses. The optimal setting depends on your use case and the typical
+            length of responses you want to receive. The minimum allowed is 1 token, and the maximum
+            is 100,000 tokens, but you should experiment with different values to find the right
             balance for your application and to avoid excessively long or short responses from the
             AI.
           </Typography>
@@ -578,12 +578,12 @@ export function CreateVectorStoreForm({
             unwanted content beyond a certain point. You can enter multiple stop sequences separated
             by commas. For example, if you set a stop sequence of &#34;\n\n&#34;, the AI will stop
             generating text once it produces two consecutive newline characters. Adjust this setting
-            based on your specific use case and the desired format of the AI&#39;s responses. If nothing
-            is entered then it will default to an empty array, meaning the AI will not have any
-            specific stop sequences and will rely on other parameters (like max tokens) to determine
-            when to stop generating text. An example entry could be: &#34;END, STOP, \n\n&#34; which
-            would stop generation if the AI outputs &#34;END&#34;, &#34;STOP&#34;, or two newlines
-            in a row.
+            based on your specific use case and the desired format of the AI&#39;s responses. If
+            nothing is entered then it will default to an empty array, meaning the AI will not have
+            any specific stop sequences and will rely on other parameters (like max tokens) to
+            determine when to stop generating text. An example entry could be: &#34;END, STOP,
+            \n\n&#34; which would stop generation if the AI outputs &#34;END&#34;, &#34;STOP&#34;,
+            or two newlines in a row.
           </Typography>
           <TextField
             label="Stop Sequences (comma-separated)"
