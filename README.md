@@ -808,8 +808,10 @@ norberts-spark/
 
 ## License
 
-### GPLv2 or later
+### AGPLv3
 
-This project is licensed under the [GNU General Public License, version 2 or later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
+This project is licensed under the [Affero General Public License v3.0 (AGPLv3)](https://www.gnu.org/licenses/agpl-3.0.en.html). By using, modifying, or distributing this software, you agree to comply with the terms of the AGPLv3 license.
+
+The AGPLv3 is a copyleft license that requires anyone who distributes the software, or a derivative work, to make the source code available under the same license. This includes providing access to the source code of any modifications made to the original software.
 
 For more details, see the [LICENSE](./LICENSE) file.
