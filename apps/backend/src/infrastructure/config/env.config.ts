@@ -43,9 +43,6 @@ export class EnvConfig {
   static readonly API_VERSION = process.env.API_VERSION || 'v1'
   static readonly UPSTASH_REDIS_REST_URL = obscured.make(process.env.UPSTASH_REDIS_REST_URL)
   static readonly UPSTASH_REDIS_REST_TOKEN = obscured.make(process.env.UPSTASH_REDIS_REST_TOKEN)
-  static readonly REQUEST_TIMEOUT = process.env.REQUEST_TIMEOUT || '30000'
-  static readonly CONNECTION_TIMEOUT = process.env.CONNECTION_TIMEOUT || '10000'
-  static readonly KEEP_ALIVE_TIMEOUT = process.env.KEEP_ALIVE_TIMEOUT || '65000'
   static readonly OAUTH_SYNC_SECRET = obscured.make(process.env.OAUTH_SYNC_SECRET)
   static readonly SENTRY_DSN = obscured.make(process.env.SENTRY_DSN)
   static readonly SENTRY_ENABLED =
@@ -60,6 +57,7 @@ export class EnvConfig {
   static readonly CLOUDFLARE_API = obscured.make(process.env.CLOUDFLARE_API) || ''
   static readonly BUCKET = process.env.BUCKET || ''
   static readonly OTEL_CAPTURE_QUERY_TEXT = process.env.OTEL_CAPTURE_QUERY_TEXT || 'false'
+  static readonly ENCRYPTION_KEY = obscured.make(process.env.ENCRYPTION_KEY) || ''
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !Reflect.get(process.env, key))

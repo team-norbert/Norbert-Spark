@@ -1,3 +1,4 @@
+import { obscured } from 'obscured'
 /**
  * Global test setup for Vitest
  *
@@ -77,4 +78,8 @@ if (!process.env.OAUTH_SYNC_SECRET) {
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'test'
+}
+
+if (!process.env.ENCRYPTION_KEY) {
+  process.env.ENCRYPTION_KEY = obscured.make('test-encryption-key') as unknown as string
 }

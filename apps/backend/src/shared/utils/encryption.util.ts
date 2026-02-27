@@ -1,5 +1,9 @@
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto'
 
+import { obscured } from 'obscured'
+
+import { EnvConfig } from '../../infrastructure/config/env.config.js'
+
 /**
  * Encryption utility for sensitive data like 2FA secrets.
  * Uses AES-256-GCM encryption with key derivation from environment variable.
@@ -42,17 +46,17 @@ function deriveKey(masterKey: string, salt: Buffer): Buffer {
  * @returns Master encryption key
  * @throws {Error} If ENCRYPTION_KEY is not set in production
  */
-function getMasterKey(): string {
-  const key = process.env.ENCRYPTION_KEY
+function getMasterKey(): string | undefined {
+  const key = EnvConfig.ENCRYPTION_KEY
   if (!key) {
-    if (process.env.NODE_ENV === 'production') {
+    if (EnvConfig.NODE_ENV === 'production') {
       throw new Error('ENCRYPTION_KEY must be set in production environment')
     }
     // Development fallback - log warning
     console.warn('WARNING: ENCRYPTION_KEY not set. Using default key. DO NOT use in production!')
     return 'dev-key-change-in-production-please-use-secure-random-key'
   }
-  return key
+  return obscured.value(key)
 }
 
 /**
@@ -77,6 +81,9 @@ export function encryptTwoFactorSecret(plaintext: string): string {
   }
 
   const masterKey = getMasterKey()
+  if (!masterKey) {
+    throw new Error('Master key is required for encryption')
+  }
   const salt = randomBytes(SALT_LENGTH)
   const iv = randomBytes(IV_LENGTH)
   const key = deriveKey(masterKey, salt)
@@ -126,6 +133,9 @@ export function decryptTwoFactorSecret(encrypted: string): string {
   }
 
   const masterKey = getMasterKey()
+  if (!masterKey) {
+    throw new Error('Master key is required for decryption')
+  }
   const salt = Buffer.from(saltB64, 'base64')
   const iv = Buffer.from(ivB64, 'base64')
   const authTag = Buffer.from(authTagB64, 'base64')
