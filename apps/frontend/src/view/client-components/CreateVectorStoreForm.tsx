@@ -233,6 +233,7 @@ export function CreateVectorStoreForm({
             the pre-seeded models in the dropdown or add your own custom model by providing the
             name, provider, and dimension.
           </Typography>
+          <Divider sx={{ my: 2 }} />
           {/* Embedding Models dropdown */}
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel id="embedding-model-select-label" shrink>
