@@ -786,6 +786,24 @@ describe('CreateVectorStoreForm', () => {
       ).not.toBeInTheDocument()
     })
 
+    it('resets model fields to empty when the empty dropdown option is selected', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+
+      // Confirm fields were populated from the selected model
+      expect(screen.getByLabelText(/^model name/i)).toHaveValue('text-embedding-ada-002')
+      expect(screen.getByLabelText(/^model provider/i)).toHaveValue('openai')
+
+      // Select the empty option
+      openEmbeddingModelsDropdown()
+      fireEvent.click(screen.getByRole('option', { name: /choose a model/i }))
+
+      // Fields should be cleared
+      expect(screen.getByLabelText(/^model name/i)).toHaveValue('')
+      expect(screen.getByLabelText(/^model provider/i)).toHaveValue('')
+    })
+
     it('allows submission after conflict is resolved by re-selecting from the dropdown', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 

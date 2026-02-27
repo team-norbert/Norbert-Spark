@@ -98,6 +98,13 @@ export function CreateVectorStoreForm({
 
   const handleModelSelect = (modelId: string) => {
     setSelectedModelId(modelId)
+    if (modelId === '') {
+      setModelName('')
+      setModelProvider('')
+      setDimension('')
+      setIsManualEntry(false)
+      return
+    }
     const model = embeddingModels.find((m) => m.id === modelId)
     if (model) {
       setModelName(model.name)
