@@ -324,7 +324,10 @@ export function CreateVectorStoreForm({
               value={dimension}
               displayEmpty
               data-test-id="embedding-models-dimension-select"
-              onChange={(e) => setDimension(e.target.value as 3072 | 1536 | 1024 | 768 | 384 | '')}
+              onChange={(e) => {
+                setDimension(e.target.value as 3072 | 1536 | 1024 | 768 | 384 | '')
+                setIsManualEntry(true)
+              }}
             >
               <MenuItem value="">
                 <em>— choose a dimension —</em>
