@@ -56,10 +56,7 @@ function fillRequiredFields({
     target: { value: modelProvider },
   })
   selectDimension(dimension)
-  // distanceMetric is a Select; only interact if a non-default value is needed
-  if (distanceMetric !== 'cosine') {
-    selectDistanceMetric(distanceMetric)
-  }
+  selectDistanceMetric(distanceMetric)
   fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: chunkSize } })
   fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: chunkOverlap } })
   fireEvent.change(screen.getByLabelText(/^chat type id/i), { target: { value: chatTypeId } })
@@ -82,10 +79,11 @@ function selectDimension(value: string) {
 
 /** Open the Distance Metric Select dropdown and click the given option. */
 function selectDistanceMetric(value: string) {
-  const selectButton = screen
-    .getByText('cosine')
-    .closest('[role="combobox"], [role="button"]') as HTMLElement
-  fireEvent.mouseDown(selectButton)
+  const selectRoot = document.querySelector(
+    '[data-test-id="vector-embeddings-distance-metric-select"]'
+  ) as HTMLElement
+  const trigger = (selectRoot.querySelector('[role="combobox"]') ?? selectRoot) as HTMLElement
+  fireEvent.mouseDown(trigger)
   fireEvent.click(screen.getByRole('option', { name: value }))
 }
 
@@ -234,10 +232,10 @@ describe('CreateVectorStoreForm', () => {
       expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe('')
     })
 
-    it('distanceMetric Select defaults to "cosine"', () => {
+    it('distanceMetric Select shows "— choose a distance metric —" placeholder by default', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      expect(screen.getByText('cosine')).toBeInTheDocument()
+      expect(screen.getByText('— choose a distance metric —')).toBeInTheDocument()
     })
 
     it('chatTypeId is pre-populated when initialChatTypeId is provided', () => {
@@ -357,10 +355,10 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('euclidean')
     })
 
-    it('distanceMetric defaults to "cosine" in the submitted data', () => {
+    it('submits distanceMetric "cosine" when cosine is selected', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      fillRequiredFields() // uses default distanceMetric = 'cosine'
+      fillRequiredFields() // default distanceMetric param is 'cosine'
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('cosine')

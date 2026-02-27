@@ -112,8 +112,9 @@ export function CreateVectorStoreForm({
   const embeddingModelConflict = selectedModelId !== '' && isManualEntry
 
   // vectorEmbeddings
-  const [distanceMetric, setDistanceMetric] =
-    useState<CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']>('cosine')
+  const [distanceMetric, setDistanceMetric] = useState<
+    CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric'] | ''
+  >('')
   const [chunkSize, setChunkSize] = useState('')
   const [chunkOverlap, setChunkOverlap] = useState('')
 
@@ -132,6 +133,7 @@ export function CreateVectorStoreForm({
     e.preventDefault()
 
     if (embeddingModelConflict) return
+    if (distanceMetric === '') return
 
     const formData: CreateVectorStoreFormData = {
       id,
@@ -172,6 +174,8 @@ export function CreateVectorStoreForm({
         </Typography>
 
         <AccordionComponent header="Instructions" body="" />
+
+        <Divider sx={{ my: 2 }} />
 
         <Box component="form" onSubmit={handleSubmit}>
           {/* ID */}
@@ -231,7 +235,7 @@ export function CreateVectorStoreForm({
           </Typography>
           {/* Embedding Models dropdown */}
           <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel id="embedding-model-select-label" className="visuallyhidden">
+            <InputLabel id="embedding-model-select-label" shrink>
               Select a pre-seeded model
             </InputLabel>
             <Select
@@ -310,7 +314,9 @@ export function CreateVectorStoreForm({
             data-test-id="embedding-models-model-provider-input"
           />
           <FormControl fullWidth required sx={{ mb: 2 }}>
-            <InputLabel id="dimension-label">Dimension</InputLabel>
+            <InputLabel id="dimension-label" shrink>
+              Dimension
+            </InputLabel>
             <Select
               labelId="dimension-label"
               label="Dimension"
@@ -333,22 +339,35 @@ export function CreateVectorStoreForm({
           <Divider sx={{ my: 2 }} />
 
           {/* Vector Embeddings */}
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
+          <Typography
+            variant="subtitle2"
+            color="text.secondary"
+            sx={{ mb: 1.5 }}
+            className="visuallyhidden"
+          >
             Vector Embeddings
           </Typography>
           <FormControl fullWidth required sx={{ mb: 2 }}>
-            <InputLabel id="distance-metric-label">Distance Metric</InputLabel>
+            <InputLabel id="distance-metric-label" shrink>
+              Distance Metric
+            </InputLabel>
             <Select
               labelId="distance-metric-label"
               label="Distance Metric"
               value={distanceMetric}
+              displayEmpty
               data-test-id="vector-embeddings-distance-metric-select"
               onChange={(e) =>
                 setDistanceMetric(
-                  e.target.value as CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']
+                  e.target.value as
+                    | CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']
+                    | ''
                 )
               }
             >
+              <MenuItem value="">
+                <em>— choose a distance metric —</em>
+              </MenuItem>
               {DISTANCE_METRICS.map((metric) => (
                 <MenuItem key={metric} value={metric}>
                   {metric}
@@ -391,6 +410,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setChatTypeId(e.target.value)}
             fullWidth
             required
+            inputProps={{ readOnly: true }}
             data-test-id="chat-ai-options-chat-type-id-input"
             sx={{ mb: 2 }}
           />
