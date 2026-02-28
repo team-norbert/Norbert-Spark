@@ -104,7 +104,7 @@ describe('AIAdminController', () => {
         chatTypeId,
         expect.objectContaining({
           userId: mockRequest.user?.sub,
-          ipAddress: '127.0.0.1',
+          ipAddress: '127.0.0.xxx',
           userAgent: 'test-agent',
         })
       )
@@ -146,7 +146,7 @@ describe('AIAdminController', () => {
         chatTypeId,
         expect.objectContaining({
           userId: null,
-          ipAddress: '127.0.0.1',
+          ipAddress: '127.0.0.xxx',
           userAgent: null,
         })
       )
@@ -378,7 +378,7 @@ describe('AIAdminController', () => {
         }),
         expect.objectContaining({
           userId: mockRequest.user?.sub,
-          ipAddress: '127.0.0.1',
+          ipAddress: '127.0.0.xxx',
           userAgent: 'test-agent',
         })
       )
@@ -549,7 +549,7 @@ describe('AIAdminController', () => {
         expect.any(Object),
         expect.objectContaining({
           userId: null,
-          ipAddress: '127.0.0.1',
+          ipAddress: '127.0.0.xxx',
           userAgent: 'test-agent',
         })
       )
@@ -611,7 +611,7 @@ describe('AIAdminController', () => {
         }),
         expect.objectContaining({
           userId: mockRequest.user?.sub,
-          ipAddress: '127.0.0.1',
+          ipAddress: '127.0.0.xxx',
           userAgent: 'test-agent',
         })
       )
@@ -863,7 +863,7 @@ describe('AIAdminController', () => {
         expect.any(Object),
         expect.objectContaining({
           userId: mockRequest.user?.sub,
-          ipAddress: '127.0.0.1',
+          ipAddress: '127.0.0.xxx',
           userAgent: 'test-agent',
         })
       )
@@ -883,7 +883,7 @@ describe('AIAdminController', () => {
         expect.any(Object),
         expect.objectContaining({
           userId: null,
-          ipAddress: '127.0.0.1',
+          ipAddress: '127.0.0.xxx',
           userAgent: 'test-agent',
         })
       )

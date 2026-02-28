@@ -9,6 +9,7 @@ import { PresignedUploadUrlUseCase } from '../../../application/use-cases/presig
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
+import { maskIpAddress } from '../../../shared/utils/mask-ip.js'
 import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 
 /**
@@ -134,7 +135,7 @@ export class AiRagController {
       // Extract audit context from request
       const auditContext = {
         userId: request.user?.sub ?? null,
-        ipAddress: request.ip,
+        ipAddress: maskIpAddress(request.ip),
         userAgent: request.headers['user-agent'] ?? null,
       }
 

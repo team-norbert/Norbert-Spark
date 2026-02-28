@@ -31,6 +31,7 @@ import { authMiddleware } from '../../../infrastructure/http/middleware/auth.mid
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
+import { maskIpAddress } from '../../../shared/utils/mask-ip.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -121,7 +122,7 @@ export class AIController {
     // Extract audit context from request
     const auditContext = {
       userId: request.user?.sub ?? null,
-      ipAddress: request.ip,
+      ipAddress: maskIpAddress(request.ip),
       userAgent: request.headers['user-agent'] ?? null,
     }
 
@@ -408,7 +409,7 @@ export class AIController {
     // Extract audit context from request
     const auditContext = {
       userId: request.user?.sub ?? null,
-      ipAddress: request.ip,
+      ipAddress: maskIpAddress(request.ip),
       userAgent: request.headers['user-agent'] ?? null,
     }
 
@@ -533,7 +534,7 @@ export class AIController {
     // Extract audit context from request
     const auditContext = {
       userId: request.user?.sub ?? null,
-      ipAddress: request.ip,
+      ipAddress: maskIpAddress(request.ip),
       userAgent: request.headers['user-agent'] ?? null,
     }
 
@@ -596,7 +597,7 @@ export class AIController {
     // Extract audit context from request
     const auditContext = {
       userId: request.user?.sub ?? null,
-      ipAddress: request.ip,
+      ipAddress: maskIpAddress(request.ip),
       userAgent: request.headers['user-agent'] ?? null,
     }
 
@@ -684,7 +685,7 @@ export class AIController {
     // Extract audit context from request
     const auditContext = {
       userId: request.user?.sub ?? null,
-      ipAddress: request.ip,
+      ipAddress: maskIpAddress(request.ip),
       userAgent: request.headers['user-agent'] ?? null,
     }
 
@@ -746,7 +747,7 @@ export class AIController {
     // Extract audit context from request
     const auditContext = {
       userId: request.user?.sub ?? null,
-      ipAddress: request.ip,
+      ipAddress: maskIpAddress(request.ip),
       userAgent: request.headers['user-agent'] ?? null,
     }
 
