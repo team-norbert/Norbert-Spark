@@ -58,7 +58,8 @@ export class EnvConfig {
   static readonly BUCKET = process.env.BUCKET || ''
   static readonly OTEL_CAPTURE_QUERY_TEXT = process.env.OTEL_CAPTURE_QUERY_TEXT || 'false'
   static readonly ENCRYPTION_KEY = obscured.make(process.env.ENCRYPTION_KEY) || ''
-
+  static readonly REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION || '604800' // 7 days in seconds
+  static readonly ACCESS_TOKEN_BUFFER = process.env.ACCESS_TOKEN_BUFFER || '300' // 5 minutes in seconds
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !Reflect.get(process.env, key))
 
