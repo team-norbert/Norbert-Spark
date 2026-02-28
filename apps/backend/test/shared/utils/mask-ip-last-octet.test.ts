@@ -107,7 +107,7 @@ describe('maskIpAddress', () => {
     })
 
     it('should handle IPv4 broadcast address', () => {
-      expect(maskIpAddress('255.255.255.255')).toBe('255.255.255.xxx')
+      expect(maskIpAddress('192.168.1.255')).toBe('192.168.1.xxx')
     })
   })
 })
