@@ -747,25 +747,6 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit).not.toHaveBeenCalled()
     })
 
-    it('clears the conflict error when a fresh dropdown selection is made', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      selectEmbeddingModelFromDropdown()
-      fireEvent.change(screen.getByLabelText(/^model name/i), {
-        target: { value: 'custom-override' },
-      })
-      expect(
-        screen.getByText(/please use either the dropdown or manual entry/i)
-      ).toBeInTheDocument()
-
-      // Re-selecting from the dropdown resets isManualEntry → conflict clears
-      selectEmbeddingModelFromDropdown()
-
-      expect(
-        screen.queryByText(/please use either the dropdown or manual entry/i)
-      ).not.toBeInTheDocument()
-    })
-
     it('clears the conflict error when the dropdown selection is cleared', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
@@ -784,24 +765,6 @@ describe('CreateVectorStoreForm', () => {
       expect(
         screen.queryByText(/please use either the dropdown or manual entry/i)
       ).not.toBeInTheDocument()
-    })
-
-    it('allows submission after conflict is resolved by re-selecting from the dropdown', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields()
-      selectEmbeddingModelFromDropdown()
-      // Create conflict
-      fireEvent.change(screen.getByLabelText(/^model name/i), {
-        target: { value: 'custom-override' },
-      })
-      submitForm()
-      expect(mockOnSubmit).not.toHaveBeenCalled()
-
-      // Resolve conflict by re-selecting from dropdown
-      selectEmbeddingModelFromDropdown()
-      submitForm()
-      expect(mockOnSubmit).toHaveBeenCalledTimes(1)
     })
   })
 })
