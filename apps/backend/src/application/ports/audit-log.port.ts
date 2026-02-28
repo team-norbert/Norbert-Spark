@@ -38,6 +38,6 @@ export interface CreateAuditLogDTO {
   entityId: string | null | UUIDType
   action: AuditAction
   changes?: AuditChanges
-  ipAddress?: string
+  ipAddress?: string | null
   userAgent?: string
 }

@@ -1,3 +1,5 @@
+import { isIP } from 'net'
+
 /**
  * Masks an IP address (IPv4 or IPv6) to anonymize the last portion for GDPR compliance.
  *
@@ -17,34 +19,36 @@
  * maskIpAddress('2001:0db8:85a3::7334') // Returns '2001:0db8:85a3:xxxx:xxxx:xxxx:xxxx:xxxx'
  */
 export function maskIpAddress(ip: string): string {
-  if (isIPv4(ip)) {
+  const version = isIP(ip)
+
+  if (version === 4) {
     return maskIPv4(ip)
   }
 
-  if (isIPv6(ip)) {
+  if (version === 6) {
     return maskIPv6(ip)
   }
 
   throw new Error('Invalid IP address')
 }
 
-/* ---------------- IPv4 ---------------- */
-
 /**
- * Validates if a string is a valid IPv4 address.
+ * Safely masks an IP address, returning null if the IP is invalid or undefined.
+ * Use this in contexts where masking failures should not throw (e.g., HTTP controllers).
  *
- * @param ip - The string to validate
- * @returns True if the string is a valid IPv4 address, false otherwise
+ * @param ip - The IP address to mask, or undefined
+ * @returns The masked IP address, or null if masking fails
  */
-function isIPv4(ip: string): boolean {
-  const parts = ip.split('.')
-  if (parts.length !== 4) return false
-
-  return parts.every((p) => {
-    const n = Number(p)
-    return Number.isInteger(n) && n >= 0 && n <= 255
-  })
+export function safelyMaskIp(ip: string | undefined): string | null {
+  if (!ip) return null
+  try {
+    return maskIpAddress(ip)
+  } catch {
+    return null
+  }
 }
+
+/* ---------------- IPv4 ---------------- */
 
 /**
  * Masks an IPv4 address by replacing the last octet with 'xxx'.
@@ -63,17 +67,6 @@ function maskIPv4(ip: string): string {
 /* ---------------- IPv6 ---------------- */
 
 /**
- * Validates if a string is potentially an IPv6 address.
- * Note: This is a simple check that only verifies the presence of colons.
- *
- * @param ip - The string to validate
- * @returns True if the string contains colons (potential IPv6), false otherwise
- */
-function isIPv6(ip: string): boolean {
-  return ip.includes(':')
-}
-
-/**
  * Masks an IPv6 address by keeping the first 3 hextets (48 bits) and replacing the last 5 with 'xxxx'.
  *
  * @param ip - A valid IPv6 address (can be compressed with ::)
@@ -89,7 +82,7 @@ function maskIPv6(ip: string): string {
   const parts = expanded.split(':')
 
   if (parts.length !== 8) {
-    throw new Error('Invalid IPv6 address')
+    throw new Error('Invalid IP address')
   }
 
   // Keep first 3 hextets (48 bits), zero the rest

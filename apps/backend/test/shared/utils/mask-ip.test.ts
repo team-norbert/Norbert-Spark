@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { maskIpAddress } from '../../../src/shared/utils/mask-ip.js'
+import { maskIpAddress, safelyMaskIp } from '../../../src/shared/utils/mask-ip.js'
 
 describe('maskIpAddress', () => {
   describe('valid IPv4 addresses', () => {
@@ -95,6 +95,18 @@ describe('maskIpAddress', () => {
     it('should throw error for address with special characters', () => {
       expect(() => maskIpAddress('192.168.1.1#')).toThrow('Invalid IP address')
     })
+
+    it('should throw error for IPv4 with empty octet (trailing dot variant)', () => {
+      expect(() => maskIpAddress('192.168.1.')).toThrow('Invalid IP address')
+    })
+
+    it('should throw error for host:port string mistaken for IPv6', () => {
+      expect(() => maskIpAddress('127.0.0.1:8080')).toThrow('Invalid IP address')
+    })
+
+    it('should throw error for arbitrary colon-containing string', () => {
+      expect(() => maskIpAddress('foo:bar')).toThrow('Invalid IP address')
+    })
   })
 
   describe('edge cases', () => {
@@ -105,9 +117,27 @@ describe('maskIpAddress', () => {
     it('should handle IPv4 all max values', () => {
       expect(maskIpAddress('255.255.255.255')).toBe('255.255.255.xxx')
     })
+  })
+})
 
-    it('should handle IPv4 broadcast address', () => {
-      expect(maskIpAddress('192.168.1.255')).toBe('192.168.1.xxx')
-    })
+describe('safelyMaskIp', () => {
+  it('should return masked IP for a valid IPv4 address', () => {
+    expect(safelyMaskIp('192.168.1.1')).toBe('192.168.1.xxx')
+  })
+
+  it('should return masked IP for a valid IPv6 address', () => {
+    expect(safelyMaskIp('2001:db8::1')).toBe('2001:0db8:0000:xxxx:xxxx:xxxx:xxxx:xxxx')
+  })
+
+  it('should return null for an invalid IP address', () => {
+    expect(safelyMaskIp('not-an-ip')).toBeNull()
+  })
+
+  it('should return null for undefined', () => {
+    expect(safelyMaskIp(undefined)).toBeNull()
+  })
+
+  it('should return null for empty string', () => {
+    expect(safelyMaskIp('')).toBeNull()
   })
 })
