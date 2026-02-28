@@ -85,7 +85,9 @@ export class RagDto {
       }
     }
 
-    const hasExistingModel = isString(data.embeddingModels.existingModelId)
+    const hasExistingModel =
+      isString(data.embeddingModels.existingModelId) &&
+      data.embeddingModels.existingModelId.trim() !== ''
 
     if (!hasExistingModel) {
       if (!isString(data.embeddingModels.modelName)) {
