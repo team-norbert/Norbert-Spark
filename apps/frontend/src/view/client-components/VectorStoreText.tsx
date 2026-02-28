@@ -44,7 +44,7 @@ export const temperatureText = `Temperature controls the randomness and creativi
             responses. The best setting depends on your specific use case and whether you prefer
             more consistent answers or a wider range of outputs. The minimum is 0, which will make
             the AI more deterministic, and the maximum is 2, which will make it more random, with
-            step values of 0.1 inbetween. You should experiment with different values to find the
+            step values of 0.1 in between. You should experiment with different values to find the
             right balance for your specific use case and the behaviour you want from the AI.`
 
 export const topPText = `Top P is an alternative to temperature for controlling the randomness
@@ -53,7 +53,7 @@ export const topPText = `Top P is an alternative to temperature for controlling 
             means the AI will only consider the very top tokens, leading to more focused responses,
             while a higher top P (e.g., 0.9) allows for a wider range of tokens and more varied
             outputs. Experiment with different values to find the right balance for your use case.
-            The minimum is 0 and the maximum is 1, with step values of 0.1 inbetween, but you should
+            The minimum is 0 and the maximum is 1, with step values of 0.1 in between, but you should
             experiment with different values to find the right balance for your specific use case
             and the behaviour you want from the AI.`
 
@@ -63,7 +63,7 @@ export const frequencyPenaltyText = `Frequency Penalty reduces the likelihood of
             value of 0 means no penalty, while negative values can actually increase repetition.
             Adjust this setting if you find that the AI is being too repetitive or if you want to
             encourage more diversity in its responses. The minimum is -2, which can encourage
-            repetition, and the maximum is 2, with step values of 0.1 inbetween, which can
+            repetition, and the maximum is 2, with step values of 0.1 in between, which can
             discourage it. The optimal value depends on your specific use case and how much
             repetition you want to allow in the AI's responses.`
 
@@ -74,7 +74,7 @@ export const presencePenaltyText = `Presence Penalty is similar to frequency pen
             while a value of 0 means no penalty. Negative values can decrease the likelihood of
             introducing new topics. Use this setting if you want to encourage the AI to explore new
             ideas or if you find that it's sticking too closely to certain themes in its
-            responses. The minimum is -2 and the maximum is 2, with steps values of 0.1 inbetween,
+            responses. The minimum is -2 and the maximum is 2, with steps values of 0.1 in between,
             but you should experiment with different values to find the right balance for your
             specific use case and the behaviour you want from the AI.`
 
