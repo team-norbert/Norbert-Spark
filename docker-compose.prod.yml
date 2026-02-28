@@ -5,15 +5,10 @@ services:
     image: pgvector/pgvector:0.8.1-pg18-trixie
     container_name: norbertsSpark-postgres
     restart: unless-stopped
-    
-    # Network configuration for isolation
     networks:
       - norbertsSpark-network
-    
     ports:
       - '5432:5432'
-    
-    # Resource limits (Best Practice #2)
     deploy:
       resources:
         limits:
@@ -22,53 +17,37 @@ services:
         reservations:
           cpus: '0.5'
           memory: 512M
-    
-    # Shared memory size for PostgreSQL (prevents "out of shared memory" errors)
     shm_size: 256mb
-    
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-norbertsSpark}
-      # Additional PostgreSQL configuration
       POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_US.UTF-8}
-    
     volumes:
-      # Persistent data storage (PG18+ uses /var/lib/postgresql with versioned subdirs)
       - postgres_data:/var/lib/postgresql
-      # Initialization scripts (Best Practice #3)
-      - ./init-scripts:/docker-entrypoint-initdb.d:ro
-      # Custom PostgreSQL configuration (Best Practice #4)
-      - ./postgres-config/postgresql.conf:/etc/postgresql.conf:ro
-      # WAL archive directory (Best Practice #4)
+      - ./apps/backend/init-scripts:/docker-entrypoint-initdb.d:ro
+      - ./apps/backend/postgres-config/postgresql.conf:/etc/postgresql.conf:ro
       - postgres_wal:/var/lib/postgresql/wal_archive
-    
-    # Command to use custom config
     command: >
       postgres
       -c config_file=/etc/postgresql.conf
-    
-    # Enhanced health check (Best Practice #7)
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres -d norbertsSpark || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
   app:
-    # NOTE: Build this image first from the repository root with: pnpm run docker:build
-    image: norbertsSpark-backend:latest
+    image: norberts-spark-backend:latest
     container_name: norbertsSpark-backend
     restart: unless-stopped
-
-    # Network configuration for isolation
     networks:
       - norbertsSpark-network
-
     ports:
       - '3001:3001'
-
     environment:
+      NODE_ENV: production
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       DATABASE_USER: ${POSTGRES_USER:-postgres}
@@ -81,20 +60,14 @@ services:
       API_VERSION: ${API_VERSION}
       OAUTH_SYNC_SECRET: ${OAUTH_SYNC_SECRET}
       CLOUDFLARE_API: ${CLOUDFLARE_API}
-      # In Docker we must bind to all interfaces inside the container so the service is reachable
-      # from the host and other containers. This intentionally overrides the EnvConfig default
-      # of 127.0.0.1 used for local (non-Docker) development.
       HOST: 0.0.0.0
       PORT: 3001
-
-    # Health check using the backend's /health endpoint
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:3001/health || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,9 +75,6 @@ services:
 networks:
   norbertsSpark-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.28.0.0/16
 
 volumes:
   postgres_data:
