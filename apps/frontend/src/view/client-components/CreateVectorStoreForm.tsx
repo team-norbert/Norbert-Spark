@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   CardContent,
+  CircularProgress,
   Divider,
   FormControl,
   InputLabel,
@@ -17,7 +18,23 @@ import type { components } from '@norberts-spark/shared/openapi-types'
 import type React from 'react'
 import { useMemo, useState } from 'react'
 
+import { useEmbeddingModels } from '@/view/hooks/queries/useEmbeddingModels.js'
+
 import { AccordionComponent } from './AccordionComponent.js'
+import {
+  bodyText,
+  chunkOverlapText,
+  chunkSizeText,
+  frequencyPenaltyText,
+  maxRetriesText,
+  maxTokensText,
+  presencePenaltyText,
+  seedText,
+  stopSequencesText,
+  temperatureText,
+  topPText,
+  vectorEmbeddingsText,
+} from './VectorStoreText.js'
 
 export type CreateVectorStoreFormData = components['schemas']['CreateVectorStoreRequest']
 export type DocumentEntry = CreateVectorStoreFormData['documents'][number]
@@ -59,6 +76,8 @@ export function CreateVectorStoreForm({
   initialChatTypeId,
   onSubmit,
 }: CreateVectorStoreFormProps) {
+  const { embeddingModels, isLoading: embeddingModelsLoading } = useEmbeddingModels()
+
   // top-level id
   const [id, setId] = useState(initialChatTypeId ?? '')
 
@@ -84,12 +103,38 @@ export function CreateVectorStoreForm({
   }
 
   // embeddingModels
+  const [selectedModelId, setSelectedModelId] = useState('')
   const [modelName, setModelName] = useState('')
   const [modelProvider, setModelProvider] = useState('')
-  const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384>(1536)
+  const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384 | ''>(``)
+  // true when the user has typed directly into the name/provider fields
+  const [isManualEntry, setIsManualEntry] = useState(false)
+
+  const handleModelSelect = (modelId: string) => {
+    setSelectedModelId(modelId)
+    const model = embeddingModels.find((m) => m.id === modelId)
+    if (model) {
+      setModelName(model.name)
+      setModelProvider(model.provider)
+      setDimension(model.dimension)
+      setIsManualEntry(false)
+    } else {
+      // When the selection is cleared or does not match any model, reset fields
+      setModelName('')
+      setModelProvider('')
+      setDimension('')
+      setIsManualEntry(false)
+    }
+  }
+
+  // True when the user has BOTH selected from the dropdown AND typed into a manual field.
+  // The two entry modes are mutually exclusive — choosing both is invalid.
+  const embeddingModelConflict = selectedModelId !== '' && isManualEntry
+
   // vectorEmbeddings
-  const [distanceMetric, setDistanceMetric] =
-    useState<CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']>('cosine')
+  const [distanceMetric, setDistanceMetric] = useState<
+    CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric'] | ''
+  >('')
   const [chunkSize, setChunkSize] = useState('')
   const [chunkOverlap, setChunkOverlap] = useState('')
 
@@ -107,14 +152,19 @@ export function CreateVectorStoreForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (embeddingModelConflict) return
+    if (!selectedModelId && dimension === '') return
+    if (distanceMetric === '') return
+
+    const embeddingModels =
+      selectedModelId !== '' && !isManualEntry
+        ? { existingModelId: selectedModelId }
+        : { modelName, modelProvider, dimension: dimension as 3072 | 1536 | 1024 | 768 | 384 }
+
     const formData: CreateVectorStoreFormData = {
       id,
       documents,
-      embeddingModels: {
-        modelName,
-        modelProvider,
-        dimension,
-      },
+      embeddingModels,
       vectorEmbeddings: {
         distanceMetric,
         chunkSize: Number(chunkSize),
@@ -145,8 +195,9 @@ export function CreateVectorStoreForm({
           Create Vector Store
         </Typography>
 
-        <AccordionComponent header="Instructions" body="" />
+        <AccordionComponent header="Read instructions" body={bodyText} />
 
+        <Divider sx={{ my: 2 }} />
         <Box component="form" onSubmit={handleSubmit}>
           {/* ID */}
           <TextField
@@ -160,7 +211,6 @@ export function CreateVectorStoreForm({
             sx={{ mb: 2 }}
             data-test-id="vector-store-id-input"
           />
-
           {/* Documents */}
           <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1.5 }}>
             Documents
@@ -198,35 +248,117 @@ export function CreateVectorStoreForm({
           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
             Embedding Models
           </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            The embedding model you want to use for vectorising your documents. You can choose from
+            the pre-seeded models in the dropdown or add your own custom model by providing the
+            name, provider, and dimension.
+          </Typography>
+          <Divider sx={{ my: 2 }} />
+          {/* Embedding Models dropdown */}
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel id="embedding-model-select-label" shrink>
+              Select a pre-seeded model
+            </InputLabel>
+            <Select
+              labelId="embedding-model-select-label"
+              label="Select a pre-seeded model"
+              value={selectedModelId}
+              data-test-id="embedding-models-select"
+              displayEmpty
+              disabled={embeddingModelsLoading}
+              onChange={(e) => handleModelSelect(e.target.value)}
+              startAdornment={
+                embeddingModelsLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null
+              }
+            >
+              <MenuItem value="">
+                <em>— choose a model —</em>
+              </MenuItem>
+              {embeddingModels.map((model) => (
+                <MenuItem key={model.id} value={model.id}>
+                  <Box>
+                    <Typography variant="body2" fontWeight={600}>
+                      {model.name} &mdash; {model.provider} ({model.dimension}d)
+                    </Typography>
+                    {model.status !== undefined && (
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Status: {model.status}
+                        {model.release_year !== undefined
+                          ? ` · Released: ${model.release_year}`
+                          : ''}
+                      </Typography>
+                    )}
+                    {model.recommended_usage !== undefined && (
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        {model.recommended_usage}
+                      </Typography>
+                    )}
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {embeddingModelConflict && (
+            <Typography
+              variant="body2"
+              color="error"
+              sx={{ mb: 2 }}
+              data-test-id="embedding-model-conflict-error"
+            >
+              Please use either the dropdown or manual entry, not both.
+            </Typography>
+          )}
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>OR</strong> add new embedding model details manually:
+          </Typography>
+          <Divider sx={{ my: 2 }} />
           <TextField
             label="Model Name"
             value={modelName}
-            onChange={(e) => setModelName(e.target.value)}
+            onChange={(e) => {
+              setModelName(e.target.value)
+              setIsManualEntry(true)
+            }}
             fullWidth
-            required
             sx={{ mb: 2 }}
             data-test-id="embedding-models-model-name-input"
           />
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Examples:</strong> &#39;text-embedding-3-large&#39;,
+            &#39;embed-english-v3.0&#39;
+          </Typography>
+          <Divider sx={{ my: 2 }} />
           <TextField
             label="Model Provider"
             value={modelProvider}
-            onChange={(e) => setModelProvider(e.target.value)}
+            onChange={(e) => {
+              setModelProvider(e.target.value)
+              setIsManualEntry(true)
+            }}
             fullWidth
-            required
             sx={{ mb: 2 }}
             data-test-id="embedding-models-model-provider-input"
           />
+          <Divider sx={{ my: 2 }} />
           <FormControl fullWidth required sx={{ mb: 2 }}>
-            <InputLabel id="dimension-label">Dimension</InputLabel>
+            <InputLabel id="dimension-label" shrink>
+              Dimension
+            </InputLabel>
             <Select
               labelId="dimension-label"
               label="Dimension"
               value={dimension}
+              displayEmpty
               data-test-id="embedding-models-dimension-select"
-              onChange={(e) =>
-                setDimension(Number(e.target.value) as 3072 | 1536 | 1024 | 768 | 384)
-              }
+              onChange={(e) => {
+                setDimension(e.target.value as 3072 | 1536 | 1024 | 768 | 384 | '')
+                setIsManualEntry(true)
+              }}
             >
+              <MenuItem value="">
+                <em>— choose a dimension —</em>
+              </MenuItem>
               <MenuItem value={3072}>3072</MenuItem>
               <MenuItem value={1536}>1536</MenuItem>
               <MenuItem value={1024}>1024</MenuItem>
@@ -241,19 +373,32 @@ export function CreateVectorStoreForm({
           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
             Vector Embeddings
           </Typography>
+          <AccordionComponent
+            header="Read information on Vector Embeddings distance metrics"
+            body={vectorEmbeddingsText}
+          />
+          <Divider sx={{ my: 2 }} />
           <FormControl fullWidth required sx={{ mb: 2 }}>
-            <InputLabel id="distance-metric-label">Distance Metric</InputLabel>
+            <InputLabel id="distance-metric-label" shrink>
+              Distance Metric
+            </InputLabel>
             <Select
               labelId="distance-metric-label"
               label="Distance Metric"
               value={distanceMetric}
+              displayEmpty
               data-test-id="vector-embeddings-distance-metric-select"
               onChange={(e) =>
                 setDistanceMetric(
-                  e.target.value as CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']
+                  e.target.value as
+                    | CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']
+                    | ''
                 )
               }
             >
+              <MenuItem value="">
+                <em>— choose a distance metric —</em>
+              </MenuItem>
               {DISTANCE_METRICS.map((metric) => (
                 <MenuItem key={metric} value={metric}>
                   {metric}
@@ -261,6 +406,11 @@ export function CreateVectorStoreForm({
               ))}
             </Select>
           </FormControl>
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent header="Read Chunk Size" body={chunkSizeText} />
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Chunk Size"
             type="number"
@@ -272,6 +422,11 @@ export function CreateVectorStoreForm({
             data-test-id="vector-embeddings-chunk-size-input"
             sx={{ mb: 2 }}
           />
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent header="Read information on ChunkOverlap" body={chunkOverlapText} />
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Chunk Overlap"
             type="number"
@@ -290,6 +445,19 @@ export function CreateVectorStoreForm({
           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
             Chat AI Options
           </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            These options control the behaviour of the AI when generating responses based on the
+            vector store. The `chatTypeId` is a required field that identifies the type of chat or
+            conversation you want to enable. The other parameters are optional and can be used to
+            fine-tune the AI&#39;s responses. For example, `maxTokens` limits the length of the
+            generated response, while `temperature` and `topP` control the randomness and creativity
+            of the output. Penalties can be applied to reduce repetition or encourage new topics.
+            Stop sequences can be defined to indicate when the AI should stop generating text. The
+            seed can be set for reproducibility, and max retries can specify how many times the AI
+            should attempt to generate a response if it fails or produces undesirable output. Adjust
+            these settings based on your specific use case and desired behaviour of the AI.
+          </Typography>
+          <Divider sx={{ my: 2 }} />
           <TextField
             label="Chat Type ID"
             value={chatTypeId}
@@ -299,6 +467,11 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-chat-type-id-input"
             sx={{ mb: 2 }}
           />
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent header="Read information on Max Tokens" body={maxTokensText} />
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Max Tokens"
             type="number"
@@ -309,6 +482,14 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-max-tokens-input"
             sx={{ mb: 2 }}
           />
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent
+            header="Read information on Temperature settings"
+            body={temperatureText}
+          />
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Temperature"
             type="number"
@@ -319,6 +500,11 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-temperature-input"
             sx={{ mb: 2 }}
           />
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent header="Read information on Top P settings" body={topPText} />
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Top P"
             type="number"
@@ -329,6 +515,14 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-top-p-input"
             sx={{ mb: 2 }}
           />
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent
+            header="Read information on Frequency Penalty settings"
+            body={frequencyPenaltyText}
+          />
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Frequency Penalty"
             type="number"
@@ -339,6 +533,14 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-frequency-penalty-input"
             sx={{ mb: 2 }}
           />
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent
+            header="Read information on Presence Penalty settings"
+            body={presencePenaltyText}
+          />
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Presence Penalty"
             type="number"
@@ -349,6 +551,14 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-presence-penalty-input"
             sx={{ mb: 2 }}
           />
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent
+            header="Read information on Stop Sequences settings"
+            body={stopSequencesText}
+          />
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Stop Sequences (comma-separated)"
             value={stopSequences}
@@ -357,6 +567,11 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-stop-sequences-input"
             sx={{ mb: 2 }}
           />
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent header="Information on Seed settings" body={seedText} />
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Seed"
             type="number"
@@ -367,6 +582,14 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-seed-input"
             sx={{ mb: 2 }}
           />
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent
+            header="Read information on Max Retries settings"
+            body={maxRetriesText}
+          />
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Max Retries"
             type="number"
@@ -377,6 +600,8 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-max-retries-input"
             sx={{ mb: 2 }}
           />
+
+          <Divider sx={{ my: 2 }} />
 
           <Button
             variant="contained"

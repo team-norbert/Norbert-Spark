@@ -78,3 +78,7 @@ if (!process.env.OAUTH_SYNC_SECRET) {
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'test'
 }
+
+if (!process.env.ENCRYPTION_KEY) {
+  process.env.ENCRYPTION_KEY = 'test-encryption-key'
+}

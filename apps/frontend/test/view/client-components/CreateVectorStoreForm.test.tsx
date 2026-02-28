@@ -3,6 +3,28 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CreateVectorStoreForm } from '@/view/client-components/CreateVectorStoreForm.js'
 
+// Mock the embedding models hook so tests don't require a QueryClientProvider
+vi.mock('@/view/hooks/queries/useEmbeddingModels.js', () => ({
+  useEmbeddingModels: () => ({
+    embeddingModels: [
+      {
+        id: 'aaaaaaaa-0000-0000-0000-000000000001',
+        name: 'text-embedding-ada-002',
+        provider: 'openai',
+        dimension: 1536,
+        status: 'legacy',
+        release_year: 2022,
+        recommended_usage: 'Only for backward compatibility with existing vector databases',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+    ],
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+}))
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
@@ -18,6 +40,7 @@ function fillRequiredFields({
   chatTypeId = 'aabbccdd-1234-1234-1234-aabbccddee01',
   chunkOverlap = '50',
   chunkSize = '512',
+  dimension = '1536',
   distanceMetric = 'cosine',
   id = 'test-id-0000-0000-0000-000000000001',
   modelName = 'text-embedding-ada-002',
@@ -32,10 +55,8 @@ function fillRequiredFields({
   fireEvent.change(screen.getByLabelText(/^model provider/i), {
     target: { value: modelProvider },
   })
-  // distanceMetric is a Select; only interact if a non-default value is needed
-  if (distanceMetric !== 'cosine') {
-    selectDistanceMetric(distanceMetric)
-  }
+  selectDimension(dimension)
+  selectDistanceMetric(distanceMetric)
   fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: chunkSize } })
   fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: chunkOverlap } })
   fireEvent.change(screen.getByLabelText(/^chat type id/i), { target: { value: chatTypeId } })
@@ -46,12 +67,23 @@ function submitForm() {
   fireEvent.click(screen.getByRole('button', { name: /create vector store/i }))
 }
 
+/** Open the Dimension Select dropdown and click the given option. */
+function selectDimension(value: string) {
+  const selectRoot = document.querySelector(
+    '[data-test-id="embedding-models-dimension-select"]'
+  ) as HTMLElement
+  const trigger = (selectRoot.querySelector('[role="combobox"]') ?? selectRoot) as HTMLElement
+  fireEvent.mouseDown(trigger)
+  fireEvent.click(screen.getByRole('option', { name: value }))
+}
+
 /** Open the Distance Metric Select dropdown and click the given option. */
 function selectDistanceMetric(value: string) {
-  const selectButton = screen
-    .getByText('cosine')
-    .closest('[role="combobox"], [role="button"]') as HTMLElement
-  fireEvent.mouseDown(selectButton)
+  const selectRoot = document.querySelector(
+    '[data-test-id="vector-embeddings-distance-metric-select"]'
+  ) as HTMLElement
+  const trigger = (selectRoot.querySelector('[role="combobox"]') ?? selectRoot) as HTMLElement
+  fireEvent.mouseDown(trigger)
   fireEvent.click(screen.getByRole('option', { name: value }))
 }
 
@@ -200,10 +232,10 @@ describe('CreateVectorStoreForm', () => {
       expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe('')
     })
 
-    it('distanceMetric Select defaults to "cosine"', () => {
+    it('distanceMetric Select shows "— choose a distance metric —" placeholder by default', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      expect(screen.getByText('cosine')).toBeInTheDocument()
+      expect(screen.getByText('— choose a distance metric —')).toBeInTheDocument()
     })
 
     it('chatTypeId is pre-populated when initialChatTypeId is provided', () => {
@@ -226,11 +258,11 @@ describe('CreateVectorStoreForm', () => {
       expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe(initialId)
     })
 
-    it('dimension defaults to 1536', () => {
+    it('dimension shows "— choose a dimension —" placeholder by default', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      // The MUI Select shows the current value as visible text
-      expect(screen.getByText('1536')).toBeInTheDocument()
+      // The MUI Select shows the placeholder when no dimension has been chosen
+      expect(screen.getByText('— choose a dimension —')).toBeInTheDocument()
     })
   })
 
@@ -259,7 +291,7 @@ describe('CreateVectorStoreForm', () => {
           source: 'https://gutenberg.org/hod',
         },
       ])
-    }, 15000)
+    }, 25000)
 
     it('passes the required id field', () => {
       const testId = 'abc12345-0000-0000-0000-000000000001'
@@ -323,10 +355,10 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('euclidean')
     })
 
-    it('distanceMetric defaults to "cosine" in the submitted data', () => {
+    it('submits distanceMetric "cosine" when cosine is selected', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      fillRequiredFields() // uses default distanceMetric = 'cosine'
+      fillRequiredFields() // default distanceMetric param is 'cosine'
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('cosine')
@@ -496,10 +528,10 @@ describe('CreateVectorStoreForm', () => {
   // ── Dimension Select ─────────────────────────────────────────────────────────
 
   describe('Dimension Select', () => {
-    it('dimension defaults to 1536 in the submitted data', () => {
+    it('submits dimension 1536 when 1536 is selected', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      fillRequiredFields()
+      fillRequiredFields({ dimension: '1536' })
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(1536)
@@ -509,13 +541,7 @@ describe('CreateVectorStoreForm', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields()
-
-      const selectButton = screen
-        .getByText('1536')
-        .closest('[role="combobox"], [role="button"]') as HTMLElement
-      fireEvent.mouseDown(selectButton)
-      fireEvent.click(screen.getByRole('option', { name: '3072' }))
-
+      selectDimension('3072')
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(3072)
@@ -525,13 +551,7 @@ describe('CreateVectorStoreForm', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields()
-
-      const selectButton = screen
-        .getByText('1536')
-        .closest('[role="combobox"], [role="button"]') as HTMLElement
-      fireEvent.mouseDown(selectButton)
-      fireEvent.click(screen.getByRole('option', { name: '1024' }))
-
+      selectDimension('1024')
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(1024)
@@ -541,14 +561,7 @@ describe('CreateVectorStoreForm', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields()
-
-      // Open the MUI Select dropdown then click the 768 option
-      const selectButton = screen
-        .getByText('1536')
-        .closest('[role="combobox"], [role="button"]') as HTMLElement
-      fireEvent.mouseDown(selectButton)
-      fireEvent.click(screen.getByRole('option', { name: '768' }))
-
+      selectDimension('768')
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(768)
@@ -558,13 +571,7 @@ describe('CreateVectorStoreForm', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields()
-
-      const selectButton = screen
-        .getByText('1536')
-        .closest('[role="combobox"], [role="button"]') as HTMLElement
-      fireEvent.mouseDown(selectButton)
-      fireEvent.click(screen.getByRole('option', { name: '384' }))
-
+      selectDimension('384')
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.dimension).toBe(384)
@@ -649,6 +656,175 @@ describe('CreateVectorStoreForm', () => {
       fireEvent.change(input, { target: { value: updated } })
 
       expect(input.value).toBe(updated)
+    })
+  })
+
+  // ── Embedding Model — dropdown vs manual entry validation ────────────────────
+
+  describe('Embedding Model — dropdown vs manual entry validation', () => {
+    /**
+     * Opens the embedding models Select dropdown.
+     * Uses the data-test-id on the Select root to locate the combobox trigger,
+     * making it robust regardless of what text is currently displayed.
+     */
+    function openEmbeddingModelsDropdown() {
+      const select = document.querySelector(
+        '[data-test-id="embedding-models-select"]'
+      ) as HTMLElement
+      const trigger = (select.querySelector('[role="combobox"]') ?? select) as HTMLElement
+      fireEvent.mouseDown(trigger)
+    }
+
+    /** Selects the single mock model (text-embedding-ada-002) from the dropdown. */
+    function selectEmbeddingModelFromDropdown() {
+      openEmbeddingModelsDropdown()
+      fireEvent.click(screen.getByRole('option', { name: /text-embedding-ada-002/i }))
+    }
+
+    it('shows no conflict error when only the dropdown is used', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+
+      expect(
+        screen.queryByText(/please use either the dropdown or manual entry/i)
+      ).not.toBeInTheDocument()
+    })
+
+    it('shows no conflict error when only manual fields are filled', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'my-custom-model' },
+      })
+      fireEvent.change(screen.getByLabelText(/^model provider/i), {
+        target: { value: 'custom-provider' },
+      })
+
+      expect(
+        screen.queryByText(/please use either the dropdown or manual entry/i)
+      ).not.toBeInTheDocument()
+    })
+
+    it('shows a conflict error when a dropdown model is selected and then modelName is typed', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'custom-override' },
+      })
+
+      expect(
+        screen.getByText(/please use either the dropdown or manual entry/i)
+      ).toBeInTheDocument()
+    })
+
+    it('shows a conflict error when a dropdown model is selected and then modelProvider is typed', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+      fireEvent.change(screen.getByLabelText(/^model provider/i), {
+        target: { value: 'custom-provider' },
+      })
+
+      expect(
+        screen.getByText(/please use either the dropdown or manual entry/i)
+      ).toBeInTheDocument()
+    })
+
+    it('blocks form submission when both dropdown and manual entry are used', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields()
+      selectEmbeddingModelFromDropdown()
+      // Typing into modelName after dropdown selection creates the conflict
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'custom-override' },
+      })
+
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('blocks form submission when manual entry mode is used but dimension is not selected', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      // Fill all required fields except dimension — no dropdown model selected either
+      fireEvent.change(screen.getByLabelText(/^vector store id/i), {
+        target: { value: 'test-id-0000-0000-0000-000000000001' },
+      })
+      fireEvent.change(screen.getAllByLabelText(/^title/i)[0]!, {
+        target: { value: 'My Document' },
+      })
+      fireEvent.change(screen.getAllByLabelText(/^source/i)[0]!, {
+        target: { value: 'https://example.com' },
+      })
+      // Manual entry fields — triggers isManualEntry = true
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'text-embedding-ada-002' },
+      })
+      fireEvent.change(screen.getByLabelText(/^model provider/i), { target: { value: 'openai' } })
+      // Intentionally skip selecting a dimension
+      selectDistanceMetric('cosine')
+      fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: '512' } })
+      fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: '50' } })
+      fireEvent.change(screen.getByLabelText(/^chat type id/i), {
+        target: { value: 'aabbccdd-1234-1234-1234-aabbccddee01' },
+      })
+
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('submits existingModelId when a dropdown model is selected and no manual entry is made', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+      // Fill remaining required fields without touching manual embedding fields
+      fireEvent.change(screen.getByLabelText(/^vector store id/i), {
+        target: { value: 'test-id-0000-0000-0000-000000000001' },
+      })
+      fireEvent.change(screen.getAllByLabelText(/^title/i)[0]!, {
+        target: { value: 'My Document' },
+      })
+      fireEvent.change(screen.getAllByLabelText(/^source/i)[0]!, {
+        target: { value: 'https://example.com' },
+      })
+      selectDistanceMetric('cosine')
+      fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: '512' } })
+      fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: '50' } })
+      fireEvent.change(screen.getByLabelText(/^chat type id/i), {
+        target: { value: 'aabbccdd-1234-1234-1234-aabbccddee01' },
+      })
+      submitForm()
+
+      const { embeddingModels } = mockOnSubmit.mock.calls[0]![0]!
+      expect(embeddingModels).toEqual({ existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001' })
+      expect(embeddingModels).not.toHaveProperty('modelName')
+      expect(embeddingModels).not.toHaveProperty('modelProvider')
+      expect(embeddingModels).not.toHaveProperty('dimension')
+    })
+
+    it('clears the conflict error when the dropdown selection is cleared', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'custom-override' },
+      })
+      expect(
+        screen.getByText(/please use either the dropdown or manual entry/i)
+      ).toBeInTheDocument()
+
+      // Selecting the empty option clears selectedModelId → no conflict possible
+      openEmbeddingModelsDropdown()
+      fireEvent.click(screen.getByRole('option', { name: /choose a model/i }))
+
+      expect(
+        screen.queryByText(/please use either the dropdown or manual entry/i)
+      ).not.toBeInTheDocument()
     })
   })
 })

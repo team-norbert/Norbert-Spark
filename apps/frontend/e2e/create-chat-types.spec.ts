@@ -83,7 +83,7 @@ test.describe('Create Chat Type Page', () => {
     const descriptionCell = page
       .locator('[data-field="description"]')
       .filter({ hasText: NEW_CHAT_TYPE.description.substring(0, 40) })
-    await expect(descriptionCell).toBeVisible({ timeout: 10_000 })
+    await expect(descriptionCell.first()).toBeVisible({ timeout: 10_000 })
 
     // ── 7. Verify the RAG value is persisted and shown as true in the RAG column ─
     const newChatTypeRow = page

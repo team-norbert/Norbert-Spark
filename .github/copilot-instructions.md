@@ -1,20 +1,35 @@
-# Level 2 Gym - AI Agent Instructions
+# Norbert's Spark - AI Agent Instructions
 
 ## Architecture Overview
 
 This is a **Turborepo monorepo** with PNPM workspaces containing:
 
-- **frontend/**: Next.js 16 with React 19, Material UI 7, Drizzle ORM, AI SDK v5 integration, **Domain-Driven Design (DDD) architecture**
-- **backend/**: Fastify TypeScript API server (port 3000)
-- **PostgreSQL**: Docker-based PostgreSQL 18.1 database (port 5432)
+- **apps/frontend/**: Next.js 16 with React 19, Material UI 7, Drizzle ORM, AI SDK v5 integration, **Domain-Driven Design (DDD) architecture**
+- **apps/backend/**: Fastify TypeScript API server (port 3001)
+- **packages/shared/**: Shared types, schemas and OpenAPI definitions
+- **PostgreSQL**: Docker-based PostgreSQL database (port 5432)
 
 Key architectural decisions:
 
 - Next.js 16 App Router with Server/Client Components
 - **Domain-Driven Design** with clear separation of concerns across 4 layers
 - React components use `'use client'` directive for client-side interactivity
-- Database logic in `frontend/src/infrastructure/` following DDD principles
+- Database logic in `apps/frontend/src/infrastructure/` following DDD principles
 - PostgreSQL accessed via Drizzle ORM with `postgres` driver
+
+## Monorepo Structure
+
+```
+Norbert-Spark/
+├── apps/
+│   ├── frontend/          # @norberts-spark/frontend (Next.js 16)
+│   └── backend/           # @norberts-spark/backend (Fastify, port 3001)
+├── packages/
+│   └── shared/            # @norberts-spark/shared (types, schemas, OpenAPI)
+├── pnpm-workspace.yaml    # packages: [apps/*, packages/*]
+├── turbo.json
+└── tsconfig.json
+```
 
 ## Domain-Driven Design Architecture
 
@@ -56,14 +71,6 @@ src/domain/
 - **Use Cases**: Specific operations (e.g., createUser, getAllUsers)
 - **Services**: Business logic that doesn't belong to a single entity
 
-**Example structure**:
-
-```
-src/application/
-  ├── userService.ts       # prepareUser(), domain logic
-  └── createUser.ts        # createUser(), getAllUsers()
-```
-
 **Rules**:
 
 - Coordinates domain and infrastructure layers
@@ -81,17 +88,6 @@ src/application/
 - **Repositories**: Data access abstractions
 - **Database**: Drizzle schema and client configuration
 
-**Example structure**:
-
-```
-src/infrastructure/
-  ├── axiosInstance.ts     # Axios config
-  ├── userApi.ts           # API repository (create, getAll)
-  └── db/
-      ├── schema.ts        # Drizzle table definitions
-      └── index.ts         # Database client export
-```
-
 **Rules**:
 
 - No business logic, only I/O operations
@@ -107,18 +103,6 @@ src/infrastructure/
 - **Components** (`components/`): "Dumb" presentational components
 - **Hooks** (`hooks/`): Custom React hooks for UI logic
 - **Pages** (`app/`): Next.js App Router pages (orchestration only)
-
-**Example structure**:
-
-```
-src/view/
-  ├── components/
-  │   ├── UserForm.tsx     # Renders form, uses hook
-  │   └── UserList.tsx     # Renders list, uses hook
-  └── hooks/
-      ├── useUserForm.ts   # Form logic, mutations
-      └── useUserList.ts   # Data fetching with React Query
-```
 
 **Rules**:
 
@@ -136,18 +120,11 @@ Domain ← Application ← Infrastructure
    └─────────┴──── View
 ```
 
-- **Domain** has no dependencies (pure business logic)
-- **Application** depends on Domain only
-- **Infrastructure** implements contracts from Application
-- **View** can use Application and Domain (via hooks)
-
 ## Development Workflows
 
 ### Package Manager
 
-**Always use `pnpm`**, never npm/yarn. This is enforced by `"packageManager": "pnpm@8.15.0"`.
-
-**Root package.json uses `"type": "module"`** - All `.js` files are treated as ESM, including config files.
+**Always use `pnpm`**, never npm/yarn. This is enforced by `"packageManager": "pnpm@10.29.3"`.
 
 ### Running Commands
 
@@ -160,121 +137,112 @@ pnpm test         # Run all tests
 pnpm typecheck    # TypeScript type checking (no emit)
 pnpm format       # Format code with Prettier
 
-# Frontend-specific (cd frontend first)
-pnpm dev          # Next.js dev server on :4321
-pnpm test         # Vitest unit tests
-pnpm test:e2e     # Playwright E2E tests (auto-starts dev server)
-pnpm build        # Next.js production build
-pnpm start        # Start production server on :4321
-pnpm typecheck    # TypeScript type checking (no emit)
+# Frontend-specific
+pnpm --filter @norberts-spark/frontend dev      # Next.js dev server
+pnpm --filter @norberts-spark/frontend build    # Next.js production build
+pnpm --filter @norberts-spark/frontend test     # Vitest unit tests
 
-# Backend-specific (cd backend first)
-pnpm dev          # Fastify server with tsx watch on :3000
-pnpm build        # Compile TypeScript to dist/
-pnpm start        # Run compiled server from dist/
-pnpm test         # Vitest unit tests
-pnpm typecheck    # TypeScript type checking (no emit)
+# Backend-specific
+pnpm --filter @norberts-spark/backend dev       # Fastify server with tsx watch on :3001
+pnpm --filter @norberts-spark/backend build     # Compile TypeScript to dist/
+pnpm --filter @norberts-spark/backend start     # Run compiled server from dist/
+pnpm --filter @norberts-spark/backend test:unit # Vitest unit tests
+
+# Shared package
+pnpm --filter @norberts-spark/shared build      # Build shared types/schemas
 ```
+
+### Docker
+
+The Dockerfile is **for production use only**. In development, use `pnpm dev` instead.
+
+```bash
+# Build production Docker image
+pnpm run docker:build
+
+# Run production Docker image
+docker run --rm -p 3001:3001 --env-file apps/backend/.env norberts-spark-backend
+```
+
+The Dockerfile is located at `apps/backend/Dockerfile` and is built from the monorepo root for workspace context.
 
 ### Git Hooks (Husky)
 
 **Commit-msg hook** (validates commit message format):
 
-- Enforces Conventional Commits specification (https://www.conventionalcommits.org/)
+- Enforces Conventional Commits specification
 - Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 - Format: `type(scope): subject` or `type: subject`
-- Example: `feat(auth): add login functionality` or `fix: resolve navigation bug`
 
-**Pre-commit hook** (runs before each commit):
-
-- `pnpm run format` - Format code with Prettier
-- `pnpm run lint` - Lint all workspaces
-- `pnpm run typecheck` - TypeScript type checking
-
-**Pre-push hook** (runs before pushing to remote):
+**Pre-commit hook**:
 
 - `pnpm run format` - Format code with Prettier
 - `pnpm run lint` - Lint all workspaces
 - `pnpm run typecheck` - TypeScript type checking
-- `pnpm run test` - Run all unit tests
-- `pnpm run test:e2e` - Run E2E tests (skipped if `SKIP_E2E=1` is set)
 
-To skip E2E tests during pre-push (useful for CI or automated environments), set `SKIP_E2E=1`:
+**Pre-push hook**:
 
-```bash
-SKIP_E2E=1 git push
-```
-
-Hooks are managed by Husky and located in `.husky/` directory.
+- `pnpm run format`, `pnpm run lint`, `pnpm run typecheck`, `pnpm run test`
 
 ### Testing Strategy
 
-- **Frontend Unit tests (Vitest)**: Located in `frontend/src/test/`, use `@testing-library/jest-dom`
-- **Frontend E2E tests (Playwright)**: Located in `frontend/e2e/`, run against dev server on port 4321
-- **Backend Unit tests (Vitest)**: Located in `backend/test/`, test Fastify routes using `app.inject()`
-- \*\*Backend AI evals testing(evalite): Located in `backend/evals/`, use Vitest for evaluation scripts
-- Tests excluded from coverage: `node_modules`, `dist`, `e2e` directories
-- Playwright config runs chromium/firefox/webkit with retry logic in CI
-- Backend uses Fastify's built-in testing utilities for route testing
+- **Frontend Unit tests (Vitest)**: Located in `apps/frontend/src/test/`
+- **Frontend E2E tests (Playwright)**: Located in `apps/frontend/e2e/`
+- **Backend Unit tests (Vitest)**: Located in `apps/backend/test/`
+- **Backend AI evals (evalite)**: Located in `apps/backend/evals/`
 
 ### Database Workflows
 
-Drizzle ORM uses environment variables from `frontend/.env`:
-
 ```bash
 # Generate migration from schema changes
-cd frontend && pnpm drizzle-kit generate:pg
+pnpm --filter @norberts-spark/frontend drizzle-kit generate:pg
 
 # Apply migrations
-cd frontend && pnpm drizzle-kit push:pg
+pnpm --filter @norberts-spark/frontend drizzle-kit push:pg
 
 # Open Drizzle Studio GUI
-cd frontend && pnpm drizzle-kit studio
+pnpm --filter @norberts-spark/backend db:studio
 ```
-
-Schema defined in `frontend/src/db/schema.ts` using `drizzle-orm/pg-core`.  
-Client configured in `frontend/src/db/index.ts` using `import.meta.env.DATABASE_URL`.
 
 ## Project-Specific Conventions
 
-### File Organization
+### File Organisation
 
 **Frontend (DDD Architecture):**
 
-- **Domain**: `frontend/src/domain/` - Entities, value objects, Zod schemas
-- **Application**: `frontend/src/application/` - Use cases, services
-- **Infrastructure**: `frontend/src/infrastructure/` - API clients, database
-  - Database: `frontend/src/infrastructure/db/schema.ts` for tables, `index.ts` for client
+- **Domain**: `apps/frontend/src/domain/`
+- **Application**: `apps/frontend/src/application/`
+- **Infrastructure**: `apps/frontend/src/infrastructure/`
 - **View**:
-  - Components: `frontend/src/view/components/*.tsx` - Presentational React components
-  - Hooks: `frontend/src/view/hooks/*.ts` - Custom React hooks with UI logic
-  - Pages: `frontend/src/app/` - Next.js App Router pages (minimal orchestration)
-- **Database**: `frontend/src/infrastructure/db/schema.ts` for tables, `index.ts` for client export
+  - Components: `apps/frontend/src/view/components/*.tsx`
+  - Hooks: `apps/frontend/src/view/hooks/*.ts`
+  - Pages: `apps/frontend/src/app/`
 
 **Backend:**
 
-- **Server**: `backend/src/index.ts` - Fastify server entry point
-- **App**: `backend/src/app.ts` - Fastify app factory (exported for testing)
-- **Tests**: `backend/test/*.test.ts` - Vitest unit tests
+- **Entry point**: `apps/backend/src/infrastructure/di/container/index.ts`
+- **Source**: `apps/backend/src/`
+- **Tests**: `apps/backend/test/`
+- **Compiled output**: `apps/backend/dist/`
+
+**Shared:**
+
+- **Source**: `packages/shared/src/`
+- **Entry point**: `packages/shared/src/index.ts`
+- **Compiled output**: `packages/shared/dist/`
+
+### ESLint & Prettier
+
 - **Prettier**: 100 char line length, single quotes, 2 space tabs, trailing commas (ES5), LF endings, **no semicolons**
-- **ESLint 9**: Unified flat config at root `eslint.config.ts` (TypeScript) extended by frontend and backend
-  - Frontend: TypeScript, React, Next.js, accessibility plugins (see `frontend/eslint.config.ts`)
-  - Backend: Basic ESLint rules for Node.js (see `backend/eslint.config.ts`)
-  - Uses new flat config format (not legacy `.eslintrc.*`)
-- React imports not required (`'react/react-in-jsx-scope': 'off'`)
-- Unused vars prefixed with `_` allowed (`argsIgnorePattern: '^_'`)
-- Next.js-specific rules enabled via `@next/eslint-plugin-next`
-- Console statements warn at root level, but allowed in backendt.config.js`)
-  - Uses new flat config format (not legacy `.eslintrc.*`)
+- **ESLint 9**: Unified flat config at root `eslint.config.ts` extended by frontend and backend
+- Uses new flat config format (not legacy `.eslintrc.*`)
 - React imports not required (`'react/react-in-jsx-scope': 'off'`)
 
 ### Environment Variables
 
-**Frontend uses Next.js `process.env` pattern:**
-
+- Backend env vars in `apps/backend/.env`
+- Frontend env vars in `apps/frontend/.env`
 - Public vars: `NEXT_PUBLIC_*` (exposed to browser)
-- Private vars: `DATABASE_URL`, `GOOGLE_API_KEY`, `DB_HOST`, etc. (server-only)
-- Example file: `frontend/.env.example` - copy to `.env.local` before development
 
 ### AI SDK Integration
 
@@ -290,21 +258,13 @@ const { text } = await generateText({
 })
 ```
 
-### Database Connection
-
-- **Driver**: `postgres` driver via Drizzle ORM
-- **Connection string**: Reads from `process.env.DATABASE_URL` or defaults to `postgresql://postgres:postgres@localhost:5432/norbertsSpark`
-- **Docker setup**: PostgreSQL 18.1 runs in Docker (see `DOCKER_POSTGRES.md`), exposed on port 5432
-- **Location**: Database client in `frontend/src/infrastructure/db/index.ts` following DDD architecture
-
 ### Next.js + React Integration
 
 - Next.js 16 App Router with TypeScript
 - Use `'use client'` directive for components with state, hooks, or event handlers
 - Server Components are default (no directive needed)
-- Material UI components require `'use client'` (use in view layer only)
+- Material UI components require `'use client'`
 - React Query (`@tanstack/react-query`) for data fetching in hooks
-- Material UI theme configured in `src/app/ThemeRegistry.tsx`
 
 ### Turborepo Task Pipeline
 
@@ -315,30 +275,32 @@ Defined in `turbo.json`:
 
 ## Common Pitfalls
 
-1. **Don't use npm/yarn** - PNPM workspace required for monorepo
-2. **Backend uses tsx for dev** - Backend runs TypeScript directly via `tsx watch` in development, compiles to `dist/` for production
-3. **Follow DDD layers strictly** - Don't mix concerns across domain/application/infrastructure/view
-4. **Next.js env vars** - Use `process.env`, not `import.meta.env`
-5. **Client components** - Must add `'use client'` directive for hooks, state, or event handlers
-6. **Playwright needs dev server** - Config auto-starts it, but tests fail if port 4321 is blocked
-7. **ESLint 9 flat config** - Root `eslint.config.ts` (TypeScript) is base, frontend/backend extend it
-8. **TypeScript ESLint rules** - Frontend uses TypeScript ESLint; disable base `no-unused-vars` to avoid conflicts
+1. **Don't use npm/yarn** - PNPM `10.29.3` workspace required for monorepo
+2. **Paths use `apps/`** - All apps are under `apps/backend/` and `apps/frontend/`, not at root
+3. **Backend port is 3001** - Not 3000
+4. **Backend uses tsx for dev** - Runs TypeScript directly via `tsx watch`, compiles to `dist/` for production only
+5. **Follow DDD layers strictly** - Don't mix concerns across domain/application/infrastructure/view
+6. **Next.js env vars** - Use `process.env`, not `import.meta.env`
+7. **Client components** - Must add `'use client'` directive for hooks, state, or event handlers
+8. **ESLint 9 flat config** - Root `eslint.config.ts` is base, frontend/backend extend it
 9. **ESM configs** - All config files use ESM exports (`export default`) since root has `"type": "module"`
-10. **No .eslintignore** - ESLint 9 uses `ignores` property in config file, not `.eslintignore`
+10. **No .eslintignore** - ESLint 9 uses `ignores` property in config file
 11. **Zod for validation** - Always use Zod schemas in domain layer, infer types with `z.infer<>`
+12. **Docker is production only** - Never use Docker for local development
+13. **NODE_ENV in Docker** - Always set `NODE_ENV=production` in Dockerfile for production builds
+14. **pino-pretty is dev only** - Logger automatically uses plain JSON in production when `NODE_ENV=production`
 
 ## Key Files Reference
 
 - `turbo.json` - Build orchestration and caching config
-- `pnpm-workspace.yaml` - Workspace packages definition
-- `frontend/next.config.ts` - Next.js framework configuration
-- `frontend/drizzle.config.ts` - Database migration settings
+- `pnpm-workspace.yaml` - Workspace packages definition (`apps/*`, `packages/*`)
+- `tsconfig.json` - Root TypeScript config
 - `eslint.config.ts` - Root ESLint 9 flat config (base rules)
-- `frontend/eslint.config.ts` - Frontend linting (TypeScript, React, Next.js, accessibility)
-- `backend/eslint.config.ts` - Backend linting (extends root)
-- `backend/tsconfig.json` - TypeScript config (ESNext, bundler resolution)
-- `backend/src/index.ts` - Fastify server with routes (/, /health)
+- `apps/frontend/next.config.ts` - Next.js framework configuration
+- `apps/frontend/eslint.config.ts` - Frontend linting
+- `apps/backend/eslint.config.ts` - Backend linting
+- `apps/backend/tsconfig.json` - Backend TypeScript config
+- `apps/backend/Dockerfile` - Production Docker image (build from monorepo root)
+- `apps/backend/src/infrastructure/di/container/index.ts` - Backend entry point
+- `packages/shared/src/index.ts` - Shared package entry point
 - `.prettierrc` - Code formatting rules (no semicolons)
-- `DEVELOPMENT.md` - Detailed developer workflows and troubleshooting
-- `frontend/src/domain/*/readme.txt` - DDD layer documentation
-- `frontend/src/app/ThemeRegistry.tsx` - Material UI theme provider

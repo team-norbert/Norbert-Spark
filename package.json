@@ -19,9 +19,10 @@
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepare": "husky",
     "docker:build": "docker build -t norberts-spark-backend -f apps/backend/Dockerfile .",
-    "docker:run": "docker run -p 3001:3001 -e PORT=3001 --env-file apps/backend/.env --name norbertsSpark-backend norberts-spark-backend",
-    "docker:remove": "docker rm norbertsSpark-backend",
-    "docker:stop": "docker stop norbertsSpark-backend"
+    "docker:db": "docker-compose up -d postgres",
+    "docker:db:stop": "docker-compose down",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:prod:stop": "docker-compose -f docker-compose.prod.yml down"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.1",

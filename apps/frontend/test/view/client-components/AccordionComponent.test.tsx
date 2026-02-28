@@ -114,8 +114,8 @@ describe('AccordionComponent', () => {
     it('should render long body text correctly', () => {
       const longBody = 'This is a very long body text '.repeat(10)
       const { container } = render(<AccordionComponent header="Header" body={longBody} />)
-      const paragraph = container.querySelector('.MuiAccordionDetails-root p')
-      expect(paragraph?.textContent).toBe(longBody)
+      const typographyEl = container.querySelector('.MuiAccordionDetails-root .MuiTypography-root')
+      expect(typographyEl?.textContent).toBe(longBody)
     })
 
     it('should render special characters in header', () => {
