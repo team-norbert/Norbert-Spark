@@ -339,7 +339,7 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
 
     user_id UUID NOT NULL
-    REFERENCES "user"(user_id) ON DELETE CASCADE,
+    REFERENCES "users"(user_id) ON DELETE CASCADE,
 
     token_hash TEXT NOT NULL UNIQUE,
     token_family UUID NOT NULL,
