@@ -478,7 +478,7 @@ export function CreateVectorStoreForm({
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
             header="Read information on Temperature settings"
-            body={chunkOverlapText}
+            body={temperatureText}
           />
           <Divider sx={{ my: 2 }} />
 
