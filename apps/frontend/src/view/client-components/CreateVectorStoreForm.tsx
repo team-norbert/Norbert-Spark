@@ -461,7 +461,7 @@ export function CreateVectorStoreForm({
           />
 
           <Divider sx={{ my: 2 }} />
-          <AccordionComponent header="Read information on Chunk Overlap" body={maxTokensText} />
+          <AccordionComponent header="Read information on Max Tokens" body={maxTokensText} />
           <Divider sx={{ my: 2 }} />
 
           <TextField
