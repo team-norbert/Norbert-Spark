@@ -118,6 +118,12 @@ export function CreateVectorStoreForm({
       setModelProvider(model.provider)
       setDimension(model.dimension)
       setIsManualEntry(false)
+    } else {
+      // When the selection is cleared or does not match any model, reset fields
+      setModelName('')
+      setModelProvider('')
+      setDimension('')
+      setIsManualEntry(false)
     }
   }
 
