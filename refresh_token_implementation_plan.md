@@ -25,25 +25,25 @@ There are **two independent JWTs** in the system — a "token-in-a-token" patter
 
 ### What exists today
 
-| Component | File | Current state |
-|-----------|------|---------------|
-| Token generation | `apps/backend/src/infrastructure/security/jwt.util.ts` | Single `generateToken()` using `jsonwebtoken`, signed with `JWT_SECRET`, expiry from `JWT_EXPIRATION` (default 3600s) |
-| Token port | `apps/backend/src/application/ports/token-generator.port.ts` | `generateToken(claims: JwtUserClaims): string` — single method |
-| Token adapter | `apps/backend/src/adapters/secondary/services/jwt-token-generator.service.ts` | Thin wrapper around `JwtUtil.generateToken()` |
-| Auth middleware | `apps/backend/src/infrastructure/http/middleware/auth.middleware.ts` | Validates `Authorization: Bearer <token>`, checks format + signature + expiry + claims |
-| Login use case | `apps/backend/src/application/use-cases/login-user.use-case.ts` | Returns `{ userId, email, accessToken, roles }` — no refresh token |
-| OAuth sync use case | `apps/backend/src/application/use-cases/register-user-with-provider.use-case.ts` | Returns `{ userId, access_token, token_type, expires_in }` — no refresh token |
-| Auth controller | `apps/backend/src/adapters/primary/http/auth.controller.ts` | Routes: `POST /auth/login`, `POST /auth/oauth-sync` — no refresh endpoint |
-| DI container | `apps/backend/src/infrastructure/di/container/index.ts` | Wires `JwtTokenGeneratorService` → use cases → controller |
-| DB schema | `apps/backend/src/infrastructure/database/schema.ts` | No refresh token table, no session table |
-| Frontend NextAuth config | `apps/frontend/src/lib/auth/auth-config.ts` | Stores backend `accessToken` inside NextAuth JWT; 30-day session/JWT maxAge |
-| Frontend middleware | `apps/frontend/src/middleware.ts` | `getToken()` from NextAuth JWT cookie; no backend call |
-| Frontend auth utilities | `apps/frontend/src/lib/auth/auth.ts` | `getAuthToken()` reads `session.accessToken`; `withAuth()`/`withRole()` HOFs |
-| Frontend base server action | `apps/frontend/src/infrastructure/serverActions/baseServerAction.ts` | On 401 → `redirect('/signin?error=session_expired')` |
-| Frontend client-side auth | `apps/frontend/src/view/hooks/useAIChat.ts` | Reads `session.accessToken` from `useSession()` and attaches `Authorization` header |
-| Next-Auth types | `apps/frontend/src/shared/types/next-auth.d.ts` | Augments `Session`, `User`, `JWT` with `accessToken`, `id`, `roles` |
-| Error codes | `apps/backend/src/shared/constants/error-codes.ts` | `TOKEN_EXPIRED` error code exists |
-| Env vars | `apps/backend/.env.example` | `JWT_SECRET`, `JWT_EXPIRATION=3600`, `JWT_ISSUER` |
+| Component                   | File                                                                             | Current state                                                                                                         |
+| --------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Token generation            | `apps/backend/src/infrastructure/security/jwt.util.ts`                           | Single `generateToken()` using `jsonwebtoken`, signed with `JWT_SECRET`, expiry from `JWT_EXPIRATION` (default 3600s) |
+| Token port                  | `apps/backend/src/application/ports/token-generator.port.ts`                     | `generateToken(claims: JwtUserClaims): string` — single method                                                        |
+| Token adapter               | `apps/backend/src/adapters/secondary/services/jwt-token-generator.service.ts`    | Thin wrapper around `JwtUtil.generateToken()`                                                                         |
+| Auth middleware             | `apps/backend/src/infrastructure/http/middleware/auth.middleware.ts`             | Validates `Authorization: Bearer <token>`, checks format + signature + expiry + claims                                |
+| Login use case              | `apps/backend/src/application/use-cases/login-user.use-case.ts`                  | Returns `{ userId, email, accessToken, roles }` — no refresh token                                                    |
+| OAuth sync use case         | `apps/backend/src/application/use-cases/register-user-with-provider.use-case.ts` | Returns `{ userId, access_token, token_type, expires_in }` — no refresh token                                         |
+| Auth controller             | `apps/backend/src/adapters/primary/http/auth.controller.ts`                      | Routes: `POST /auth/login`, `POST /auth/oauth-sync` — no refresh endpoint                                             |
+| DI container                | `apps/backend/src/infrastructure/di/container/index.ts`                          | Wires `JwtTokenGeneratorService` → use cases → controller                                                             |
+| DB schema                   | `apps/backend/src/infrastructure/database/schema.ts`                             | No refresh token table, no session table                                                                              |
+| Frontend NextAuth config    | `apps/frontend/src/lib/auth/auth-config.ts`                                      | Stores backend `accessToken` inside NextAuth JWT; 30-day session/JWT maxAge                                           |
+| Frontend middleware         | `apps/frontend/src/middleware.ts`                                                | `getToken()` from NextAuth JWT cookie; no backend call                                                                |
+| Frontend auth utilities     | `apps/frontend/src/lib/auth/auth.ts`                                             | `getAuthToken()` reads `session.accessToken`; `withAuth()`/`withRole()` HOFs                                          |
+| Frontend base server action | `apps/frontend/src/infrastructure/serverActions/baseServerAction.ts`             | On 401 → `redirect('/signin?error=session_expired')`                                                                  |
+| Frontend client-side auth   | `apps/frontend/src/view/hooks/useAIChat.ts`                                      | Reads `session.accessToken` from `useSession()` and attaches `Authorization` header                                   |
+| Next-Auth types             | `apps/frontend/src/shared/types/next-auth.d.ts`                                  | Augments `Session`, `User`, `JWT` with `accessToken`, `id`, `roles`                                                   |
+| Error codes                 | `apps/backend/src/shared/constants/error-codes.ts`                               | `TOKEN_EXPIRED` error code exists                                                                                     |
+| Env vars                    | `apps/backend/.env.example`                                                      | `JWT_SECRET`, `JWT_EXPIRATION=3600`, `JWT_ISSUER`                                                                     |
 
 ### What does NOT exist
 
@@ -103,18 +103,18 @@ Add a new table to `apps/backend/src/infrastructure/database/schema.ts`.
 
 **Columns:**
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | `uuid` (PK) | UUIDv7 |
-| `user_id` | `uuid` (FK → users) | NOT NULL |
-| `token_hash` | `text` | SHA-256 hash of the refresh token — never store the raw token |
-| `token_family` | `uuid` | Rotation family ID — all tokens in a rotation chain share this. Used for replay detection |
-| `expires_at` | `timestamp with time zone` | NOT NULL |
-| `revoked_at` | `timestamp with time zone` | NULL until explicitly revoked |
-| `created_at` | `timestamp with time zone` | NOT NULL, default `now()` |
-| `last_used_at` | `timestamp with time zone` | Updated on each use |
-| `ip_address` | `text` | Optional — IP at creation time for auditing |
-| `user_agent` | `text` | Optional — user-agent at creation time for auditing |
+| Column         | Type                       | Notes                                                                                     |
+| -------------- | -------------------------- | ----------------------------------------------------------------------------------------- |
+| `id`           | `uuid` (PK)                | UUIDv7                                                                                    |
+| `user_id`      | `uuid` (FK → users)        | NOT NULL                                                                                  |
+| `token_hash`   | `text`                     | SHA-256 hash of the refresh token — never store the raw token                             |
+| `token_family` | `uuid`                     | Rotation family ID — all tokens in a rotation chain share this. Used for replay detection |
+| `expires_at`   | `timestamp with time zone` | NOT NULL                                                                                  |
+| `revoked_at`   | `timestamp with time zone` | NULL until explicitly revoked                                                             |
+| `created_at`   | `timestamp with time zone` | NOT NULL, default `now()`                                                                 |
+| `last_used_at` | `timestamp with time zone` | Updated on each use                                                                       |
+| `ip_address`   | `text`                     | Optional — IP at creation time for auditing                                               |
+| `user_agent`   | `text`                     | Optional — user-agent at creation time for auditing                                       |
 
 **Why hash the token?** If the database is compromised, raw refresh tokens would let attackers impersonate users. Storing only the SHA-256 hash means a breach exposes nothing usable.
 
@@ -133,7 +133,9 @@ Add a new table to `apps/backend/src/infrastructure/database/schema.ts`.
 export const refreshTokens = pgTable(
   'refresh_tokens',
   {
-    id: uuid('id').primaryKey().default(sql`uuidv7()`),
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
     userId: uuid('user_id')
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),
@@ -159,18 +161,18 @@ export const refreshTokens = pgTable(
 
 Add to `EnvConfig` in `apps/backend/src/infrastructure/config/env.config.ts`:
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `REFRESH_TOKEN_EXPIRATION` | `604800` (7 days) | Refresh token lifetime in seconds |
-| `REFRESH_TOKEN_SECRET` | (required) | Separate signing secret for refresh tokens — or use a random opaque token with DB-only validation |
-| `ACCESS_TOKEN_BUFFER` | `300` (5 minutes) | Frontend should refresh this many seconds before actual expiry |
+| Variable                   | Default           | Purpose                                                                                           |
+| -------------------------- | ----------------- | ------------------------------------------------------------------------------------------------- |
+| `REFRESH_TOKEN_EXPIRATION` | `604800` (7 days) | Refresh token lifetime in seconds                                                                 |
+| `REFRESH_TOKEN_SECRET`     | (required)        | Separate signing secret for refresh tokens — or use a random opaque token with DB-only validation |
+| `ACCESS_TOKEN_BUFFER`      | `300` (5 minutes) | Frontend should refresh this many seconds before actual expiry                                    |
 
 **Design decision: Opaque vs JWT refresh tokens**
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **Opaque token** (random bytes, stored hashed in DB) | Simpler, inherently revocable, no crypto verification needed — DB is the source of truth | Every refresh requires a DB lookup (but this is infrequent) |
-| **JWT refresh token** (signed, with DB record for revocation) | Self-contained claims reduce DB reads; can carry metadata | Requires a second secret; revocation still needs DB; more complex |
+| Approach                                                      | Pros                                                                                     | Cons                                                              |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Opaque token** (random bytes, stored hashed in DB)          | Simpler, inherently revocable, no crypto verification needed — DB is the source of truth | Every refresh requires a DB lookup (but this is infrequent)       |
+| **JWT refresh token** (signed, with DB record for revocation) | Self-contained claims reduce DB reads; can carry metadata                                | Requires a second secret; revocation still needs DB; more complex |
 
 **Recommendation: Opaque tokens.** Refresh operations happen infrequently (every ~55 minutes), so the DB lookup cost is negligible. Opaque tokens are simpler and inherently immune to signature-bypass vulnerabilities.
 
@@ -183,6 +185,7 @@ Add to `EnvConfig` in `apps/backend/src/infrastructure/config/env.config.ts`:
 Location: `apps/backend/src/domain/value-objects/refresh-token.ts`
 
 Responsibilities:
+
 - Generate a cryptographically random opaque token (`crypto.randomBytes(32).toString('hex')`)
 - Compute the SHA-256 hash for storage
 - Validate token format (64 hex characters)
@@ -205,8 +208,8 @@ class RefreshToken {
     // Validate format, compute hash
   }
 
-  getRawToken(): string   // Only exposed at creation time — sent to client
-  getHash(): string        // Stored in database
+  getRawToken(): string // Only exposed at creation time — sent to client
+  getHash(): string // Stored in database
 }
 ```
 
@@ -217,6 +220,7 @@ Location: `apps/backend/src/domain/entities/refresh-token-record.ts`
 Represents a stored refresh token row: `id`, `userId`, `tokenHash`, `tokenFamily`, `expiresAt`, `revokedAt`, `createdAt`, `lastUsedAt`.
 
 Methods:
+
 - `isExpired(): boolean`
 - `isRevoked(): boolean`
 - `isValid(): boolean` (not expired AND not revoked)
@@ -312,6 +316,7 @@ Current return: `{ userId, email, accessToken, roles }`
 New return: `{ userId, email, accessToken, refreshToken, expiresIn, roles }`
 
 After generating the access token, also:
+
 1. Generate a new `RefreshToken`
 2. Create a new `tokenFamily` (new UUIDv7 — this is the start of a new rotation chain)
 3. Store via `RefreshTokenRepositoryPort.create()`
@@ -383,6 +388,7 @@ Headers: Authorization: Bearer <accessToken>
 #### 6d. Update `login()` response
 
 Current:
+
 ```json
 {
   "success": true,
@@ -396,6 +402,7 @@ Current:
 ```
 
 New:
+
 ```json
 {
   "success": true,
@@ -424,7 +431,7 @@ Update `apps/frontend/src/shared/types/next-auth.d.ts`:
 declare module 'next-auth' {
   interface Session extends DefaultSession {
     accessToken: string
-    error?: string            // NEW — 'RefreshTokenExpired' when refresh fails
+    error?: string // NEW — 'RefreshTokenExpired' when refresh fails
     user: {
       id: string
       email: string
@@ -438,8 +445,8 @@ declare module 'next-auth' {
     id: string
     email: string
     accessToken: string
-    refreshToken: string      // NEW
-    expiresIn: number         // NEW — seconds until access token expires
+    refreshToken: string // NEW
+    expiresIn: number // NEW — seconds until access token expires
     roles: string[]
   }
 }
@@ -447,9 +454,9 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
     accessToken: string
-    refreshToken: string      // NEW
-    accessTokenExp: number    // NEW — epoch ms when access token expires
-    error?: string            // NEW
+    refreshToken: string // NEW
+    accessTokenExp: number // NEW — epoch ms when access token expires
+    error?: string // NEW
     id: string
     roles: string[]
   }
@@ -475,8 +482,8 @@ return {
   id: data.userId,
   email: data.email,
   accessToken: data.accessToken,
-  refreshToken: data.refreshToken,    // NEW
-  expiresIn: data.expiresIn,          // NEW
+  refreshToken: data.refreshToken, // NEW
+  expiresIn: data.expiresIn, // NEW
   roles: data.roles || [],
 }
 ```
@@ -606,7 +613,11 @@ if (res.status === 401 && redirectOn401 && !isRetry) {
   const refreshedSession = await getServerSession(authOptions)
   if (refreshedSession?.accessToken && !refreshedSession?.error) {
     // Retry the request with the new token
-    return backendRequest({ ...options, headers: { Authorization: `Bearer ${refreshedSession.accessToken}` }, _isRetry: true })
+    return backendRequest({
+      ...options,
+      headers: { Authorization: `Bearer ${refreshedSession.accessToken}` },
+      _isRetry: true,
+    })
   }
   // Refresh failed — force re-login
   redirect('/signin?error=session_expired')
@@ -618,6 +629,7 @@ if (res.status === 401 && redirectOn401 && !isRetry) {
 The AI chat hook in `apps/frontend/src/view/hooks/useAIChat.ts` attaches `session.accessToken` from `useSession()`. NextAuth's client-side `useSession()` does not automatically re-fetch on token refresh — the session is cached.
 
 Options:
+
 - **Option A:** Set `refetchInterval` on the `<SessionProvider>` (e.g. every 4 minutes) so the client polls for session updates and picks up the refreshed access token automatically.
 - **Option B:** On a 401 response in the custom `fetch` wrapper, call `getSession()` to force a client-side session refresh, then retry.
 
@@ -652,7 +664,7 @@ export async function logoutAction() {
       method: 'POST',
       endpoint: '/auth/logout',
       headers: { Authorization: `Bearer ${token}` },
-      redirectOn401: false,  // Don't redirect during logout
+      redirectOn401: false, // Don't redirect during logout
     })
   }
 }
@@ -664,8 +676,8 @@ Wherever sign-out is triggered, call `logoutAction()` before `signOut()`:
 
 ```typescript
 async function handleSignOut() {
-  await logoutAction()       // Revoke backend refresh tokens
-  await signOut()            // Clear NextAuth session
+  await logoutAction() // Revoke backend refresh tokens
+  await signOut() // Clear NextAuth session
 }
 ```
 
@@ -675,12 +687,12 @@ async function handleSignOut() {
 
 Update the following OpenAPI specs to reflect the new response shapes and endpoints:
 
-| File | Change |
-|------|--------|
-| `packages/shared/src/openapi/paths/auth_login.json` | Add `refreshToken` and `expiresIn` to response schema |
-| `packages/shared/src/openapi/paths/auth_oauth_sync.json` | Add `refreshToken` and `expiresIn` to response schema |
+| File                                                       | Change                                                                                                          |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `packages/shared/src/openapi/paths/auth_login.json`        | Add `refreshToken` and `expiresIn` to response schema                                                           |
+| `packages/shared/src/openapi/paths/auth_oauth_sync.json`   | Add `refreshToken` and `expiresIn` to response schema                                                           |
 | NEW: `packages/shared/src/openapi/paths/auth_refresh.json` | Define `POST /auth/refresh` — request: `{ refreshToken }`, response: `{ accessToken, refreshToken, expiresIn }` |
-| NEW: `packages/shared/src/openapi/paths/auth_logout.json` | Define `POST /auth/logout` — no body, requires `Authorization` header |
+| NEW: `packages/shared/src/openapi/paths/auth_logout.json`  | Define `POST /auth/logout` — no body, requires `Authorization` header                                           |
 
 ---
 
@@ -702,22 +714,24 @@ This means OAuth users will get real backend JWTs and participate in the same si
 
 ### Refresh Token Storage
 
-| Location | Security | Applicability |
-|----------|----------|---------------|
-| **Inside NextAuth JWT cookie** | HTTP-only, Secure, SameSite=Lax — cannot be read by client-side JavaScript | ✅ **Best option for this architecture** — refresh token stays server-side |
-| HTTP-only cookie (separate) | Same security, but requires backend cookie handling | ❌ Backend is stateless/cookie-free |
-| `localStorage`/`sessionStorage` | Vulnerable to XSS | ❌ Never store refresh tokens here |
+| Location                        | Security                                                                   | Applicability                                                              |
+| ------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **Inside NextAuth JWT cookie**  | HTTP-only, Secure, SameSite=Lax — cannot be read by client-side JavaScript | ✅ **Best option for this architecture** — refresh token stays server-side |
+| HTTP-only cookie (separate)     | Same security, but requires backend cookie handling                        | ❌ Backend is stateless/cookie-free                                        |
+| `localStorage`/`sessionStorage` | Vulnerable to XSS                                                          | ❌ Never store refresh tokens here                                         |
 
 **The refresh token never leaves the server.** It's stored in the NextAuth JWT cookie (which is HTTP-only) and only read in the `jwt` callback (which runs server-side). The client-side JavaScript only ever sees `session.accessToken` — never the refresh token.
 
 ### Refresh Token Rotation
 
 Every time `POST /auth/refresh` is called:
+
 1. The old refresh token is revoked in the database
 2. A new refresh token is issued with the same `token_family`
 3. The new token is stored in the NextAuth JWT cookie
 
 If an attacker steals an old refresh token and tries to use it after the legitimate user has already refreshed:
+
 - The old token is marked as revoked
 - The backend detects this as a **replay attack**
 - **The entire token family is revoked** — both the attacker's stolen token and the legitimate user's current token
@@ -725,12 +739,12 @@ If an attacker steals an old refresh token and tries to use it after the legitim
 
 ### Timing Considerations
 
-| Parameter | Value | Rationale |
-|-----------|-------|-----------|
-| Access token lifetime | 15–60 minutes (current: 60m via `JWT_EXPIRATION=3600`) | Short-lived; limits exposure window |
-| Refresh token lifetime | 7 days (`REFRESH_TOKEN_EXPIRATION=604800`) | Long enough for "remember me" UX; short enough to limit risk |
-| Frontend refresh buffer | 5 minutes (`ACCESS_TOKEN_BUFFER=300`) | Refresh before expiry to prevent failed requests |
-| Session polling interval | 4 minutes (`refetchInterval={4 * 60}`) | Client-side: pick up refreshed tokens before expiry |
+| Parameter                | Value                                                  | Rationale                                                    |
+| ------------------------ | ------------------------------------------------------ | ------------------------------------------------------------ |
+| Access token lifetime    | 15–60 minutes (current: 60m via `JWT_EXPIRATION=3600`) | Short-lived; limits exposure window                          |
+| Refresh token lifetime   | 7 days (`REFRESH_TOKEN_EXPIRATION=604800`)             | Long enough for "remember me" UX; short enough to limit risk |
+| Frontend refresh buffer  | 5 minutes (`ACCESS_TOKEN_BUFFER=300`)                  | Refresh before expiry to prevent failed requests             |
+| Session polling interval | 4 minutes (`refetchInterval={4 * 60}`)                 | Client-side: pick up refreshed tokens before expiry          |
 
 **The buffer matters:** If the access token expires at T, the `jwt` callback will start attempting refresh at T - 5min. This ensures that by the time the old token expires, a new one is already in the cookie.
 
@@ -740,14 +754,14 @@ If an attacker steals an old refresh token and tries to use it after the legitim
 
 All token lifecycle events should be logged to the existing audit system:
 
-| Action | When |
-|--------|------|
-| `TOKEN_ISSUED` | Login or OAuth sync (initial issuance) |
-| `TOKEN_REFRESHED` | Successful token refresh |
-| `REFRESH_TOKEN_REPLAY_DETECTED` | Revoked token presented — potential attack |
-| `REFRESH_FAMILY_REVOKED` | Entire token family revoked due to replay |
-| `USER_LOGOUT` | User explicitly logged out |
-| `REFRESH_TOKENS_EXPIRED_CLEANUP` | Periodic cleanup of expired tokens |
+| Action                           | When                                       |
+| -------------------------------- | ------------------------------------------ |
+| `TOKEN_ISSUED`                   | Login or OAuth sync (initial issuance)     |
+| `TOKEN_REFRESHED`                | Successful token refresh                   |
+| `REFRESH_TOKEN_REPLAY_DETECTED`  | Revoked token presented — potential attack |
+| `REFRESH_FAMILY_REVOKED`         | Entire token family revoked due to replay  |
+| `USER_LOGOUT`                    | User explicitly logged out                 |
+| `REFRESH_TOKENS_EXPIRED_CLEANUP` | Periodic cleanup of expired tokens         |
 
 These can use the existing `AuditLogPort` and `AuditAction` enum.
 
@@ -755,27 +769,27 @@ These can use the existing `AuditLogPort` and `AuditAction` enum.
 
 ## Files Changed (Summary)
 
-| # | File | Action |
-|---|------|--------|
-| 1 | `apps/backend/src/infrastructure/database/schema.ts` | Add `refresh_tokens` table |
-| 2 | `apps/backend/src/infrastructure/config/env.config.ts` | Add `REFRESH_TOKEN_EXPIRATION` env var |
-| 3 | `apps/backend/src/domain/value-objects/refresh-token.ts` | New — opaque token generation + hashing |
-| 4 | `apps/backend/src/domain/entities/refresh-token-record.ts` | New — refresh token record entity |
-| 5 | `apps/backend/src/application/ports/refresh-token.repository.port.ts` | New — repository port interface |
-| 6 | `apps/backend/src/adapters/secondary/repositories/refresh-token.repository.ts` | New — Drizzle implementation |
-| 7 | `apps/backend/src/application/use-cases/refresh-access-token.use-case.ts` | New — refresh + rotate logic |
-| 8 | `apps/backend/src/application/use-cases/logout.use-case.ts` | New — revoke all tokens for user |
-| 9 | `apps/backend/src/application/use-cases/login-user.use-case.ts` | Add refresh token generation to return |
-| 10 | `apps/backend/src/application/use-cases/register-user-with-provider.use-case.ts` | Add refresh token generation to return |
-| 11 | `apps/backend/src/adapters/primary/http/auth.controller.ts` | Add `/auth/refresh`, `/auth/logout` routes; update login/oauthSync responses |
-| 12 | `apps/backend/src/infrastructure/di/container/index.ts` | Wire new repository, use cases |
-| 13 | `apps/backend/src/domain/audit/entity-type.enum.ts` | Add new audit actions |
-| 14 | `apps/frontend/src/shared/types/next-auth.d.ts` | Add `refreshToken`, `accessTokenExp`, `error` |
-| 15 | `apps/frontend/src/lib/auth/auth-config.ts` | Silent renewal in `jwt` callback; update `authorize`, `signIn`, `session` |
-| 16 | `apps/frontend/src/view/client-components/SessionGuard.tsx` | New — client-side refresh failure handler |
-| 17 | `apps/frontend/src/infrastructure/serverActions/baseServerAction.ts` | Add 401 retry logic |
-| 18 | `apps/frontend/src/infrastructure/serverActions/logout.server.ts` | New — backend logout server action |
-| 19 | Various OpenAPI specs | New/updated path definitions |
+| #   | File                                                                             | Action                                                                       |
+| --- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 1   | `apps/backend/src/infrastructure/database/schema.ts`                             | Add `refresh_tokens` table                                                   |
+| 2   | `apps/backend/src/infrastructure/config/env.config.ts`                           | Add `REFRESH_TOKEN_EXPIRATION` env var                                       |
+| 3   | `apps/backend/src/domain/value-objects/refresh-token.ts`                         | New — opaque token generation + hashing                                      |
+| 4   | `apps/backend/src/domain/entities/refresh-token-record.ts`                       | New — refresh token record entity                                            |
+| 5   | `apps/backend/src/application/ports/refresh-token.repository.port.ts`            | New — repository port interface                                              |
+| 6   | `apps/backend/src/adapters/secondary/repositories/refresh-token.repository.ts`   | New — Drizzle implementation                                                 |
+| 7   | `apps/backend/src/application/use-cases/refresh-access-token.use-case.ts`        | New — refresh + rotate logic                                                 |
+| 8   | `apps/backend/src/application/use-cases/logout.use-case.ts`                      | New — revoke all tokens for user                                             |
+| 9   | `apps/backend/src/application/use-cases/login-user.use-case.ts`                  | Add refresh token generation to return                                       |
+| 10  | `apps/backend/src/application/use-cases/register-user-with-provider.use-case.ts` | Add refresh token generation to return                                       |
+| 11  | `apps/backend/src/adapters/primary/http/auth.controller.ts`                      | Add `/auth/refresh`, `/auth/logout` routes; update login/oauthSync responses |
+| 12  | `apps/backend/src/infrastructure/di/container/index.ts`                          | Wire new repository, use cases                                               |
+| 13  | `apps/backend/src/domain/audit/entity-type.enum.ts`                              | Add new audit actions                                                        |
+| 14  | `apps/frontend/src/shared/types/next-auth.d.ts`                                  | Add `refreshToken`, `accessTokenExp`, `error`                                |
+| 15  | `apps/frontend/src/lib/auth/auth-config.ts`                                      | Silent renewal in `jwt` callback; update `authorize`, `signIn`, `session`    |
+| 16  | `apps/frontend/src/view/client-components/SessionGuard.tsx`                      | New — client-side refresh failure handler                                    |
+| 17  | `apps/frontend/src/infrastructure/serverActions/baseServerAction.ts`             | Add 401 retry logic                                                          |
+| 18  | `apps/frontend/src/infrastructure/serverActions/logout.server.ts`                | New — backend logout server action                                           |
+| 19  | Various OpenAPI specs                                                            | New/updated path definitions                                                 |
 
 ---
 
@@ -783,24 +797,24 @@ These can use the existing `AuditLogPort` and `AuditAction` enum.
 
 ### Backend
 
-| Test file | Changes needed |
-|-----------|----------------|
-| `test/adapters/secondary/repositories/refresh-token.repository.test.ts` | New — CRUD, revocation, family revocation, expiry |
-| `test/application/use-cases/refresh-access-token.use-case.test.ts` | New — happy path, expired token, revoked token, replay detection |
-| `test/application/use-cases/logout.use-case.test.ts` | New — revokes all tokens |
-| `test/application/use-cases/login-user.use-case.test.ts` | Update — verify refresh token is returned alongside access token |
-| `test/application/use-cases/register-user-with-provider.use-case.test.ts` | Update — verify refresh token is returned |
-| `test/adapters/primary/http/auth.controller.test.ts` | Update — new endpoints, updated response shapes |
-| `test/schema.test.ts` | Add — `refresh_tokens` table constraints |
+| Test file                                                                 | Changes needed                                                   |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `test/adapters/secondary/repositories/refresh-token.repository.test.ts`   | New — CRUD, revocation, family revocation, expiry                |
+| `test/application/use-cases/refresh-access-token.use-case.test.ts`        | New — happy path, expired token, revoked token, replay detection |
+| `test/application/use-cases/logout.use-case.test.ts`                      | New — revokes all tokens                                         |
+| `test/application/use-cases/login-user.use-case.test.ts`                  | Update — verify refresh token is returned alongside access token |
+| `test/application/use-cases/register-user-with-provider.use-case.test.ts` | Update — verify refresh token is returned                        |
+| `test/adapters/primary/http/auth.controller.test.ts`                      | Update — new endpoints, updated response shapes                  |
+| `test/schema.test.ts`                                                     | Add — `refresh_tokens` table constraints                         |
 
 ### Frontend
 
-| Test file | Changes needed |
-|-----------|----------------|
-| `test/lib/auth/auth-config.test.ts` | Update/new — test `jwt` callback refresh logic, `session` callback error propagation |
-| `test/middleware.test.ts` | Likely unchanged — middleware only checks `getToken()` presence |
-| `test/infrastructure/serverActions/baseServerAction.test.ts` | Update — test 401 retry logic |
-| `test/view/client-components/SessionGuard.test.ts` | New — test `signOut` on `RefreshTokenExpired` |
+| Test file                                                    | Changes needed                                                                       |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `test/lib/auth/auth-config.test.ts`                          | Update/new — test `jwt` callback refresh logic, `session` callback error propagation |
+| `test/middleware.test.ts`                                    | Likely unchanged — middleware only checks `getToken()` presence                      |
+| `test/infrastructure/serverActions/baseServerAction.test.ts` | Update — test 401 retry logic                                                        |
+| `test/view/client-components/SessionGuard.test.ts`           | New — test `signOut` on `RefreshTokenExpired`                                        |
 
 ---
 
