@@ -350,7 +350,7 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     last_used_at TIMESTAMPTZ,
 
-    ip_address TEXT,
+    ip_address INET,
     user_agent TEXT
     );
 
