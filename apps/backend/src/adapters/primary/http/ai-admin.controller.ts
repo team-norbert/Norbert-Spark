@@ -13,7 +13,7 @@ import { Uuid } from '../../../domain/value-objects/uuid.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
-import { maskIpAddress } from '../../../shared/utils/mask-ip.js'
+import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 
 /**
  * HTTP controller for AI admin configuration endpoints.
@@ -95,7 +95,7 @@ export class AIAdminController {
       // Extract audit context from request
       const auditContext = {
         userId: request.user?.sub ?? null,
-        ipAddress: maskIpAddress(request.ip),
+        ipAddress: safelyMaskIp(request.ip),
         userAgent: request.headers['user-agent'] ?? null,
       }
       const params = request.params as any
@@ -180,7 +180,7 @@ export class AIAdminController {
       // Extract audit context from request
       const auditContext = {
         userId: request.user?.sub ?? null,
-        ipAddress: maskIpAddress(request.ip),
+        ipAddress: safelyMaskIp(request.ip),
         userAgent: request.headers['user-agent'] ?? null,
       }
       const params = request.params as Record<string, unknown>
@@ -272,7 +272,7 @@ export class AIAdminController {
       // Extract audit context from request
       const auditContext = {
         userId: request.user?.sub ?? null,
-        ipAddress: maskIpAddress(request.ip),
+        ipAddress: safelyMaskIp(request.ip),
         userAgent: request.headers['user-agent'] ?? null,
       }
 

@@ -29,9 +29,11 @@ import type { UserIdType } from '../value-objects/userID.js'
  *   - **UserIdType**: For authenticated actions (profile updates, data deletion, admin operations)
  *   This represents the *actor* performing the action, not necessarily the target of the action.
  *
- * @property {string} ipAddress - Source IP address of the request.
+ * @property {string | null} ipAddress - Source IP address of the request, masked for privacy compliance.
  *   Used for security monitoring, rate limiting, and fraud detection.
  *   Should be extracted from request headers (X-Forwarded-For, X-Real-IP) or connection IP.
+ *   - **null**: When the IP address is unavailable or cannot be masked
+ *   - **string**: The masked IP address (last octet/hextets replaced with 'xxx'/'xxxx')
  *
  * @property {string | null} userAgent - Browser/client identifier from User-Agent header.
  *   - **null**: When User-Agent header is not provided (API clients, automated requests)
@@ -43,6 +45,6 @@ import type { UserIdType } from '../value-objects/userID.js'
  */
 export type AuditContext = {
   readonly userId: UserIdType | null
-  readonly ipAddress: string
+  readonly ipAddress: string | null
   readonly userAgent: string | null
 }
