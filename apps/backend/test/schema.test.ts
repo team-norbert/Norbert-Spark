@@ -15,6 +15,7 @@ import {
   keyPerson,
   messages,
   parts,
+  refreshTokens,
   user,
   vectorEmbeddings384,
   vectorEmbeddings768,
@@ -28,6 +29,11 @@ describe('Database Schema', () => {
     it('should export user table constant', () => {
       expect(user).toBeDefined()
       expect(typeof user).toBe('object')
+    })
+
+    it('should export refreshTokens table constant', () => {
+      expect(refreshTokens).toBeDefined()
+      expect(typeof refreshTokens).toBe('object')
     })
 
     it('should export chats table constant', () => {
@@ -193,6 +199,10 @@ describe('Database Schema', () => {
     it('should have correct table name for embedding_models', () => {
       expect(getTableName(embeddingModels)).toBe('embedding_models')
     })
+
+    it('should have correct table name for refresh_tokens', () => {
+      expect(getTableName(refreshTokens)).toBe('refresh_tokens')
+    })
   })
 
   describe('Table columns', () => {
@@ -240,6 +250,58 @@ describe('Database Schema', () => {
       it('should have updatedAt column', () => {
         expect(user.updatedAt).toBeDefined()
         expect(user.updatedAt.name).toBe('updated_at')
+      })
+    })
+
+    describe('refreshTokens table columns', () => {
+      it('should have id column', () => {
+        expect(refreshTokens.id).toBeDefined()
+        expect(refreshTokens.id.name).toBe('id')
+      })
+
+      it('should have userId column', () => {
+        expect(refreshTokens.userId).toBeDefined()
+        expect(refreshTokens.userId.name).toBe('user_id')
+      })
+
+      it('should have tokenHash column', () => {
+        expect(refreshTokens.tokenHash).toBeDefined()
+        expect(refreshTokens.tokenHash.name).toBe('token_hash')
+      })
+
+      it('should have tokenFamily column', () => {
+        expect(refreshTokens.tokenFamily).toBeDefined()
+        expect(refreshTokens.tokenFamily.name).toBe('token_family')
+      })
+
+      it('should have expiresAt column', () => {
+        expect(refreshTokens.expiresAt).toBeDefined()
+        expect(refreshTokens.expiresAt.name).toBe('expires_at')
+      })
+
+      it('should have revokedAt column', () => {
+        expect(refreshTokens.revokedAt).toBeDefined()
+        expect(refreshTokens.revokedAt.name).toBe('revoked_at')
+      })
+
+      it('should have createdAt column', () => {
+        expect(refreshTokens.createdAt).toBeDefined()
+        expect(refreshTokens.createdAt.name).toBe('created_at')
+      })
+
+      it('should have lastUsedAt column', () => {
+        expect(refreshTokens.lastUsedAt).toBeDefined()
+        expect(refreshTokens.lastUsedAt.name).toBe('last_used_at')
+      })
+
+      it('should have ipAddress column', () => {
+        expect(refreshTokens.ipAddress).toBeDefined()
+        expect(refreshTokens.ipAddress.name).toBe('ip_address')
+      })
+
+      it('should have userAgent column', () => {
+        expect(refreshTokens.userAgent).toBeDefined()
+        expect(refreshTokens.userAgent.name).toBe('user_agent')
       })
     })
 

@@ -322,6 +322,44 @@ ALTER TABLE vector_embeddings_384
     ADD CONSTRAINT vector_embeddings_384_content_length_check
     CHECK (length(content) >= 1 AND length(content) <= 50000);
 
+
+-- ============================================================
+-- refresh_tokens
+-- (Converted from Drizzle schema)
+-- ============================================================
+
+-- Prereqs (pick what you actually use in your project):
+-- If you already have uuidv7() available, keep it.
+-- Otherwise you can swap default uuidv7() for gen_random_uuid()
+-- and enable pgcrypto.
+--
+-- CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+
+    user_id UUID NOT NULL
+    REFERENCES "user"(user_id) ON DELETE CASCADE,
+
+    token_hash TEXT NOT NULL UNIQUE,
+    token_family UUID NOT NULL,
+
+    expires_at TIMESTAMPTZ NOT NULL,
+    revoked_at TIMESTAMPTZ,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    last_used_at TIMESTAMPTZ,
+
+    ip_address TEXT,
+    user_agent TEXT
+    );
+
+CREATE INDEX IF NOT EXISTS refresh_tokens_user_id_idx
+    ON refresh_tokens (user_id);
+
+CREATE INDEX IF NOT EXISTS refresh_tokens_token_family_idx
+    ON refresh_tokens (token_family);
+
 -- ============================================================
 -- CRM / COMPANY MANAGEMENT
 -- ============================================================
