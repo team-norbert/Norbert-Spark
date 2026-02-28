@@ -9,6 +9,7 @@ import { LoginUserUseCase } from '../../../application/use-cases/login-user.use-
 import { RegisterUserWithProviderUseCase } from '../../../application/use-cases/register-user-with-provider.use-case.js'
 import { oauthSyncAuthMiddleware } from '../../../infrastructure/http/middleware/auth-sync-auth.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
+import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 /**
  * HTTP controller for authentication endpoints
  *
@@ -184,7 +185,7 @@ export class AuthController {
       // Extract audit context from request
       const auditContext = {
         userId: request.user?.sub ?? null,
-        ipAddress: request.ip,
+        ipAddress: safelyMaskIp(request.ip),
         userAgent: request.headers['user-agent'] ?? null,
       }
 
@@ -268,7 +269,7 @@ export class AuthController {
       // Extract audit context from request
       const auditContext = {
         userId: request.user?.sub ?? null,
-        ipAddress: request.ip,
+        ipAddress: safelyMaskIp(request.ip),
         userAgent: request.headers['user-agent'] ?? null,
       }
 

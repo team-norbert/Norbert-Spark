@@ -16,12 +16,14 @@ import { authMiddleware } from '../../../infrastructure/http/middleware/auth.mid
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { TypeException } from '../../../shared/exceptions/type.exception.js'
 import { UnprocessableEntityException } from '../../../shared/exceptions/unprocessable-entity.exception.js'
+import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 import {
   sanitizeFilename,
   validateFileExtension,
   validateMimeType,
 } from '../../../shared/utils/security-validation.util.js'
+
 /**
  * Allowed file extensions for upload
  */
@@ -154,7 +156,7 @@ export class AIExtractDataController {
       // Extract audit context from request
       const auditContext = {
         userId: request.user?.sub ?? null,
-        ipAddress: request.ip,
+        ipAddress: safelyMaskIp(request.ip),
         userAgent: request.headers['user-agent'] ?? null,
       }
 
@@ -465,7 +467,7 @@ export class AIExtractDataController {
       // Extract audit context from request
       const auditContext = {
         userId: request.user?.sub ?? null,
-        ipAddress: request.ip,
+        ipAddress: safelyMaskIp(request.ip),
         userAgent: request.headers['user-agent'] ?? null,
       }
 

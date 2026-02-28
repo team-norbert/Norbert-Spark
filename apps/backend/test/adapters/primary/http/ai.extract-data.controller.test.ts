@@ -380,7 +380,7 @@ describe('AIExtractDataController', () => {
           expect.any(Array),
           expect.objectContaining({
             userId: userId,
-            ipAddress: '192.168.1.1',
+            ipAddress: '192.168.1.xxx',
             userAgent: 'TestAgent/1.0',
           }),
           expect.any(String)

@@ -593,7 +593,7 @@ describe('AIController', () => {
           ]),
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -604,7 +604,7 @@ describe('AIController', () => {
           ]),
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -636,7 +636,7 @@ describe('AIController', () => {
           ]),
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -861,7 +861,7 @@ describe('AIController', () => {
           userId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -892,7 +892,7 @@ describe('AIController', () => {
           userId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -925,7 +925,7 @@ describe('AIController', () => {
           userId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1015,7 +1015,7 @@ describe('AIController', () => {
           userId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1046,7 +1046,7 @@ describe('AIController', () => {
           userId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1101,7 +1101,7 @@ describe('AIController', () => {
           userId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1138,7 +1138,7 @@ describe('AIController', () => {
           targetUserId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1175,7 +1175,7 @@ describe('AIController', () => {
           targetUserId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1257,7 +1257,7 @@ describe('AIController', () => {
           targetUserId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1309,7 +1309,7 @@ describe('AIController', () => {
         expect(mockGetChatDetailsUseCase.execute).toHaveBeenCalledWith(
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1337,7 +1337,7 @@ describe('AIController', () => {
         expect(mockGetChatDetailsUseCase.execute).toHaveBeenCalledWith(
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1370,7 +1370,7 @@ describe('AIController', () => {
         expect(mockGetChatDetailsUseCase.execute).toHaveBeenCalledWith(
           expect.objectContaining({
             userId: null,
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1404,7 +1404,7 @@ describe('AIController', () => {
         expect(mockGetChatDetailsUseCase.execute).toHaveBeenCalledWith(
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: null,
           })
         )
@@ -1445,7 +1445,7 @@ describe('AIController', () => {
 
         expect(mockGetChatDetailsUseCase.execute).toHaveBeenCalledWith({
           userId,
-          ipAddress: '192.168.1.1',
+          ipAddress: '192.168.1.xxx',
           userAgent: 'Mozilla/5.0',
         })
       })
@@ -1672,7 +1672,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1780,7 +1780,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1835,7 +1835,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1936,7 +1936,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1965,7 +1965,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -1999,7 +1999,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -2031,7 +2031,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -2115,7 +2115,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -2173,7 +2173,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -2231,7 +2231,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -2287,7 +2287,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -2342,7 +2342,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -2398,7 +2398,7 @@ describe('AIController', () => {
           chatId,
           expect.objectContaining({
             userId: expect.any(String),
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           })
         )
@@ -2435,7 +2435,7 @@ describe('AIController', () => {
         expect(mockPutChatDetailsUseCase.execute).toHaveBeenCalledWith(
           expect.objectContaining({
             userId,
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           }),
           expect.objectContaining({
@@ -2471,7 +2471,7 @@ describe('AIController', () => {
         expect(mockPutChatDetailsUseCase.execute).toHaveBeenCalledWith(
           expect.objectContaining({
             userId,
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           }),
           expect.objectContaining({
@@ -2504,7 +2504,7 @@ describe('AIController', () => {
         expect(mockPutChatDetailsUseCase.execute).toHaveBeenCalledWith(
           expect.objectContaining({
             userId,
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-user-agent',
           }),
           expect.objectContaining({
@@ -2538,7 +2538,7 @@ describe('AIController', () => {
         expect(mockPutChatDetailsUseCase.execute).toHaveBeenCalledWith(
           expect.objectContaining({
             userId,
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: null,
           }),
           expect.any(Object)
@@ -2575,7 +2575,7 @@ describe('AIController', () => {
         expect(mockPutChatDetailsUseCase.execute).toHaveBeenCalledWith(
           {
             userId,
-            ipAddress: '192.168.1.100',
+            ipAddress: '192.168.1.xxx',
             userAgent: 'Mozilla/5.0',
           },
           expect.any(Object)
@@ -3025,7 +3025,7 @@ describe('AIController', () => {
         await controller.createAIChatType(customRequest, mockReply)
 
         expect(mockPostChatTypesUseCase.execute).toHaveBeenCalledWith(
-          { userId, ipAddress: '10.0.0.1', userAgent: 'Mozilla/5.0 (Test)' },
+          { userId, ipAddress: '10.0.0.xxx', userAgent: 'Mozilla/5.0 (Test)' },
           expect.objectContaining({ name: 'Audit Test', description: 'Testing audit context' })
         )
       })

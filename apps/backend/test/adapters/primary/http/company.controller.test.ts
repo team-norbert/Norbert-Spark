@@ -164,7 +164,7 @@ describe('CompanyController', () => {
         expect(mockLogger.info).toHaveBeenCalledWith('Received company GET request')
         expect(mockGetCompanyDetailsUseCase.execute).toHaveBeenCalledWith({
           userId: mockRequest.user?.sub,
-          ipAddress: '127.0.0.1',
+          ipAddress: '127.0.0.xxx',
           userAgent: 'test-agent',
         })
         expect(mockReply.code).toHaveBeenCalledWith(200)
@@ -203,7 +203,7 @@ describe('CompanyController', () => {
 
         expect(mockGetCompanyDetailsUseCase.execute).toHaveBeenCalledWith({
           userId: mockRequest.user?.sub,
-          ipAddress: '127.0.0.1',
+          ipAddress: '127.0.0.xxx',
           userAgent: 'test-agent',
         })
       })
@@ -235,7 +235,7 @@ describe('CompanyController', () => {
 
         expect(mockGetCompanyDetailsUseCase.execute).toHaveBeenCalledWith({
           userId: mockRequest.user?.sub,
-          ipAddress: '127.0.0.1',
+          ipAddress: '127.0.0.xxx',
           userAgent: null,
         })
       })
@@ -414,7 +414,7 @@ describe('CompanyController', () => {
         expect(mockPutCompanyDetailsUseCase.execute).toHaveBeenCalledWith(
           {
             userId: mockRequest.user?.sub,
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-agent',
           },
           expect.objectContaining({
@@ -692,7 +692,7 @@ describe('CompanyController', () => {
         expect(mockPutCompanyDetailsUseCase.execute).toHaveBeenCalledWith(
           {
             userId: mockRequest.user?.sub,
-            ipAddress: '192.168.1.100',
+            ipAddress: '192.168.1.xxx',
             userAgent: 'CustomAgent/1.0',
           },
           expect.any(Object)

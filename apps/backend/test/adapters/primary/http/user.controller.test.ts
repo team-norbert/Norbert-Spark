@@ -1148,7 +1148,7 @@ describe('UserController', () => {
           expect.any(Array),
           expect.objectContaining({
             userId: null,
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-agent',
           })
         )
@@ -1222,7 +1222,7 @@ describe('UserController', () => {
           expect.any(Array),
           expect.objectContaining({
             userId: null,
-            ipAddress: '192.168.1.100',
+            ipAddress: '192.168.1.xxx',
           })
         )
       })
@@ -1267,7 +1267,7 @@ describe('UserController', () => {
 
         expect(mockDeleteUsersUseCase.execute).toHaveBeenCalledWith(expect.any(Array), {
           userId: null,
-          ipAddress: '10.0.0.1',
+          ipAddress: '10.0.0.xxx',
           userAgent: 'Chrome/100',
         })
       })
@@ -1456,7 +1456,7 @@ describe('UserController', () => {
           expect.any(Array),
           expect.objectContaining({
             userId: null,
-            ipAddress: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
+            ipAddress: '2001:0db8:85a3:xxxx:xxxx:xxxx:xxxx:xxxx',
           })
         )
       })
@@ -1529,7 +1529,7 @@ describe('UserController', () => {
           expect.any(Array),
           expect.objectContaining({
             userId: null,
-            ipAddress: '192.168.1.1',
+            ipAddress: '192.168.1.xxx',
             userAgent: 'Integration Test',
           })
         )
@@ -1599,7 +1599,7 @@ describe('UserController', () => {
           userId,
           expect.objectContaining({
             userId: userId,
-            ipAddress: '127.0.0.1',
+            ipAddress: '127.0.0.xxx',
             userAgent: 'test-agent',
           })
         )
@@ -1959,7 +1959,7 @@ describe('UserController', () => {
           userId,
           expect.objectContaining({
             userId: userId,
-            ipAddress: '192.168.1.100',
+            ipAddress: '192.168.1.xxx',
             userAgent: 'Mozilla/5.0',
           })
         )
@@ -2022,7 +2022,7 @@ describe('UserController', () => {
         expect(mockGetUserByIdUseCase.execute).toHaveBeenCalledWith(
           userId,
           expect.objectContaining({
-            ipAddress: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
+            ipAddress: '2001:0db8:85a3:xxxx:xxxx:xxxx:xxxx:xxxx',
           })
         )
       })
