@@ -39,7 +39,7 @@ Evalite uses `better-sqlite3` which requires native bindings. After installing e
 
 ```bash
 cd apps/backend
-pnpm rebuild better-sqlite3
+npm rebuild better-sqlite3
 ```
 
 **Why npm and not pnpm?** pnpm ignores build scripts for security reasons. Using `npm rebuild` forces compilation of the native bindings for your platform (macOS ARM64, Linux x64, etc.).
@@ -177,14 +177,14 @@ Average Scores:
 - **Solution:** Use npm to force rebuild the native module:
   ```bash
   cd apps/backend
-  pnpm rebuild better-sqlite3
+  npm rebuild better-sqlite3
   ```
 - This compiles the native bindings for your specific platform (e.g., darwin/arm64 on Mac M1/M2)
 - After rebuilding, `pnpm eval` should work without errors
 
 **Alternative approaches that DON'T work:**
 
-- `pnpm rebuild better-sqlite3` - pnpm still ignores build scripts
+- `npm rebuild better-sqlite3` - pnpm still ignores build scripts
 - `pnpm approve-builds better-sqlite3` - reports "no packages awaiting approval"
 - Manual build in node_modules - gets wiped on next install
 
