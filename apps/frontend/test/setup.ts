@@ -11,6 +11,22 @@ process.env.GOOGLE_ID = 'test-google-id'
 process.env.GOOGLE_SECRET = 'test-google-secret'
 process.env.NEXTAUTH_SECRET = 'test-nextauth-secret'
 
+// Suppress MUI Popover/Select `anchorEl` layout warning in JSDOM.
+// MUI's Select uses a Popover internally and warns when its anchor element has
+// no layout dimensions — which is always the case in JSDOM since it has no
+// rendering engine. This is a test-environment limitation, not a real bug.
+const originalConsoleError = console.error
+console.error = (...args: unknown[]) => {
+  if (
+    typeof args[0] === 'string' &&
+    args[0].includes('MUI') &&
+    args[0].includes('anchorEl')
+  ) {
+    return
+  }
+  originalConsoleError(...args)
+}
+
 // Mock CSS imports
 vi.mock('@mui/x-data-grid/esm/index.css', () => ({}))
 
