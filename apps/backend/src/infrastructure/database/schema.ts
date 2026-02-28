@@ -404,6 +404,68 @@ export type DBUser = typeof user.$inferInsert
 export type DBUserSelect = typeof user.$inferSelect
 
 /**
+ * Refresh Tokens table: Stores refresh tokens for JWT authentication
+ *
+ * Security features:
+ * - Token hashing: Only SHA-256 hash is stored, never the raw token
+ * - Token families: All tokens in a rotation chain share the same family ID for replay detection
+ * - Revocation: Tokens can be explicitly revoked (logout, compromise detection)
+ * - Auditing: IP address and user agent are captured at creation time
+ */
+export const refreshTokens = pgTable(
+  'refresh_tokens',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    /**
+     * SHA-256 hash of the refresh token.
+     * Never store the raw token - if the database is compromised, hashes are useless to attackers.
+     */
+    tokenHash: text('token_hash').notNull().unique(),
+    /**
+     * Token family ID for rotation tracking.
+     * When a refresh token is used, it's revoked and a new one is issued with the same family.
+     * If a revoked token is reused (replay attack), all tokens in the family are revoked.
+     */
+    tokenFamily: uuid('token_family').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    /**
+     * Updated each time the token is used to refresh an access token.
+     * Useful for detecting suspicious patterns (e.g., token used from multiple locations).
+     */
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    /**
+     * IP address at token creation time (optional, for security auditing).
+     */
+    ipAddress: inet('ip_address'),
+    /**
+     * User agent at token creation time (optional, for security auditing).
+     */
+    userAgent: text('user_agent'),
+  },
+  (table) => ({
+    userIdIdx: index('refresh_tokens_user_id_idx').on(table.userId),
+    tokenFamilyIdx: index('refresh_tokens_token_family_idx').on(table.tokenFamily),
+    /**
+     * Partial index for efficient cleanup of expired, non-revoked tokens.
+     * Only indexes rows where revoked_at IS NULL to reduce index size.
+     */
+    expiresAtIdx: index('refresh_tokens_expires_at_idx')
+      .on(table.expiresAt)
+      .where(sql`${table.revokedAt} IS NULL`),
+  })
+)
+
+export type DBRefreshToken = typeof refreshTokens.$inferInsert
+export type DBRefreshTokenSelect = typeof refreshTokens.$inferSelect
+
+/**
  * Vector Embeddings table: Stores vector embeddings for RAG (Retrieval-Augmented Generation)
  */
 export const vectorEmbeddings1536 = pgTable(
