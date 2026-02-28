@@ -149,14 +149,15 @@ export function CreateVectorStoreForm({
     if (embeddingModelConflict) return
     if (distanceMetric === '') return
 
+    const embeddingModels =
+      selectedModelId !== '' && !isManualEntry
+        ? { existingModelId: selectedModelId }
+        : { modelName, modelProvider, dimension: dimension as 3072 | 1536 | 1024 | 768 | 384 }
+
     const formData: CreateVectorStoreFormData = {
       id,
       documents,
-      embeddingModels: {
-        modelName,
-        modelProvider,
-        dimension: dimension as 3072 | 1536 | 1024 | 768 | 384,
-      },
+      embeddingModels,
       vectorEmbeddings: {
         distanceMetric,
         chunkSize: Number(chunkSize),

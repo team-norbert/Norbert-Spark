@@ -747,6 +747,35 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit).not.toHaveBeenCalled()
     })
 
+    it('submits existingModelId when a dropdown model is selected and no manual entry is made', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectEmbeddingModelFromDropdown()
+      // Fill remaining required fields without touching manual embedding fields
+      fireEvent.change(screen.getByLabelText(/^vector store id/i), {
+        target: { value: 'test-id-0000-0000-0000-000000000001' },
+      })
+      fireEvent.change(screen.getAllByLabelText(/^title/i)[0]!, {
+        target: { value: 'My Document' },
+      })
+      fireEvent.change(screen.getAllByLabelText(/^source/i)[0]!, {
+        target: { value: 'https://example.com' },
+      })
+      selectDistanceMetric('cosine')
+      fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: '512' } })
+      fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: '50' } })
+      fireEvent.change(screen.getByLabelText(/^chat type id/i), {
+        target: { value: 'aabbccdd-1234-1234-1234-aabbccddee01' },
+      })
+      submitForm()
+
+      const { embeddingModels } = mockOnSubmit.mock.calls[0]![0]!
+      expect(embeddingModels).toEqual({ existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001' })
+      expect(embeddingModels).not.toHaveProperty('modelName')
+      expect(embeddingModels).not.toHaveProperty('modelProvider')
+      expect(embeddingModels).not.toHaveProperty('dimension')
+    })
+
     it('clears the conflict error when the dropdown selection is cleared', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
