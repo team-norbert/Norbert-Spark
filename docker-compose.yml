@@ -24,7 +24,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-norbertsSpark}
       POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_US.UTF-8}
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data
       - ./apps/backend/init-scripts:/docker-entrypoint-initdb.d:ro
       - ./apps/backend/postgres-config/postgresql.conf:/etc/postgresql.conf:ro
       - postgres_wal:/var/lib/postgresql/wal_archive
