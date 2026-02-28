@@ -3,6 +3,22 @@ import crypto from 'node:crypto'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 
 /**
+ * Expected flow:
+ * // 1. Login - generate new token
+ * const token = RefreshToken.generate()
+ * await db.insert({ tokenHash: token.getHash() })
+ * res.json({ refreshToken: token.getRawToken() }) // Send to client
+ *
+ * // 2. Later - client wants to refresh access token
+ * const rawTokenFromClient = req.body.refreshToken
+ * const token = RefreshToken.fromRaw(rawTokenFromClient) // Recreate from raw
+ * const dbToken = await db.findByHash(token.getHash()) // Look up in DB
+ * if (dbToken && !dbToken.revoked) {
+ *   // Issue new access token
+ * }
+ */
+
+/**
  * RefreshToken value object
  *
  * Represents an opaque refresh token for authentication.
