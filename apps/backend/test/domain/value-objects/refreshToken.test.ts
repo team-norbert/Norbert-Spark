@@ -2,7 +2,7 @@ import crypto from 'node:crypto'
 
 import { describe, expect, it } from 'vitest'
 
-import { RefreshToken } from '../../../src/domain/value-objects/refresh-token..js'
+import { RefreshToken } from '../../../src/domain/value-objects/refreshToken.js'
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 
 describe('RefreshToken', () => {
