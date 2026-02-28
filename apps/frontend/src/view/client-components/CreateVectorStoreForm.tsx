@@ -318,7 +318,8 @@ export function CreateVectorStoreForm({
             data-test-id="embedding-models-model-name-input"
           />
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            <strong>Examples:</strong> &#39;text-embedding-3-large&#39;, &#39;embed-english-v3.0&#39;
+            <strong>Examples:</strong> &#39;text-embedding-3-large&#39;,
+            &#39;embed-english-v3.0&#39;
           </Typography>
           <Divider sx={{ my: 2 }} />
           <TextField
