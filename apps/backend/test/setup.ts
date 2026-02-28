@@ -1,4 +1,3 @@
-import { obscured } from 'obscured'
 /**
  * Global test setup for Vitest
  *
@@ -81,5 +80,5 @@ if (!process.env.NODE_ENV) {
 }
 
 if (!process.env.ENCRYPTION_KEY) {
-  process.env.ENCRYPTION_KEY = obscured.make('test-encryption-key') as unknown as string
+  process.env.ENCRYPTION_KEY = 'test-encryption-key'
 }
