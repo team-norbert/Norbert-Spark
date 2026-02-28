@@ -15,16 +15,19 @@ process.env.NEXTAUTH_SECRET = 'test-nextauth-secret'
 // MUI's Select uses a Popover internally and warns when its anchor element has
 // no layout dimensions — which is always the case in JSDOM since it has no
 // rendering engine. This is a test-environment limitation, not a real bug.
+const isMuiAnchorElWarning = (args: unknown[]): boolean =>
+  typeof args[0] === 'string' && args[0].includes('MUI') && args[0].includes('anchorEl')
+
 const originalConsoleError = console.error
 console.error = (...args: unknown[]) => {
-  if (
-    typeof args[0] === 'string' &&
-    args[0].includes('MUI') &&
-    args[0].includes('anchorEl')
-  ) {
-    return
-  }
+  if (isMuiAnchorElWarning(args)) return
   originalConsoleError(...args)
+}
+
+const originalConsoleWarn = console.warn
+console.warn = (...args: unknown[]) => {
+  if (isMuiAnchorElWarning(args)) return
+  originalConsoleWarn(...args)
 }
 
 // Mock CSS imports
