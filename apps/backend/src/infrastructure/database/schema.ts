@@ -443,7 +443,7 @@ export const refreshTokens = pgTable(
     /**
      * IP address at token creation time (optional, for security auditing).
      */
-    ipAddress: text('ip_address'),
+    ipAddress: inet('ip_address'),
     /**
      * User agent at token creation time (optional, for security auditing).
      */
