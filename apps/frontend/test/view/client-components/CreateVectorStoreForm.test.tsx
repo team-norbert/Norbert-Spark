@@ -747,6 +747,37 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit).not.toHaveBeenCalled()
     })
 
+    it('blocks form submission when manual entry mode is used but dimension is not selected', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      // Fill all required fields except dimension — no dropdown model selected either
+      fireEvent.change(screen.getByLabelText(/^vector store id/i), {
+        target: { value: 'test-id-0000-0000-0000-000000000001' },
+      })
+      fireEvent.change(screen.getAllByLabelText(/^title/i)[0]!, {
+        target: { value: 'My Document' },
+      })
+      fireEvent.change(screen.getAllByLabelText(/^source/i)[0]!, {
+        target: { value: 'https://example.com' },
+      })
+      // Manual entry fields — triggers isManualEntry = true
+      fireEvent.change(screen.getByLabelText(/^model name/i), {
+        target: { value: 'text-embedding-ada-002' },
+      })
+      fireEvent.change(screen.getByLabelText(/^model provider/i), { target: { value: 'openai' } })
+      // Intentionally skip selecting a dimension
+      selectDistanceMetric('cosine')
+      fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: '512' } })
+      fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: '50' } })
+      fireEvent.change(screen.getByLabelText(/^chat type id/i), {
+        target: { value: 'aabbccdd-1234-1234-1234-aabbccddee01' },
+      })
+
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
     it('submits existingModelId when a dropdown model is selected and no manual entry is made', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
