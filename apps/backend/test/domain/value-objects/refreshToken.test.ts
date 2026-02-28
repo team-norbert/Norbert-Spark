@@ -1,11 +1,15 @@
 import crypto from 'node:crypto'
 
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { RefreshToken } from '../../../src/domain/value-objects/refreshToken.js'
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 
 describe('RefreshToken', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   describe('generate', () => {
     it('should generate a new refresh token', () => {
       const token = RefreshToken.generate()
@@ -50,15 +54,19 @@ describe('RefreshToken', () => {
       expect(token1.getHash()).not.toBe(token2.getHash())
     })
 
-    it('should generate cryptographically random tokens', () => {
-      const tokens = new Set<string>()
+    it('should generate token from crypto.randomBytes output', () => {
+      const fixedBytes = Buffer.alloc(32, 0xab)
+      const spy = vi.spyOn(crypto, 'randomBytes').mockReturnValue(fixedBytes)
 
-      // Generate 100 tokens - collision probability should be negligible
-      for (let i = 0; i < 100; i++) {
-        tokens.add(RefreshToken.generate().getRawToken())
-      }
+      const token = RefreshToken.generate()
+      const expectedRaw = fixedBytes.toString('hex')
+      const expectedHash = crypto.createHash('sha256').update(expectedRaw).digest('hex')
 
-      expect(tokens.size).toBe(100)
+      expect(token.getRawToken()).toBe(expectedRaw)
+      expect(token.getRawToken()).toHaveLength(64)
+      expect(token.getHash()).toBe(expectedHash)
+
+      spy.mockRestore()
     })
 
     it('should generate hash using SHA-256', () => {
