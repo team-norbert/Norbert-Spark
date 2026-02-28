@@ -153,6 +153,7 @@ export function CreateVectorStoreForm({
     e.preventDefault()
 
     if (embeddingModelConflict) return
+    if (!selectedModelId && dimension === '') return
     if (distanceMetric === '') return
 
     const embeddingModels =
