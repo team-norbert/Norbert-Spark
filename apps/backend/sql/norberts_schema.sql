@@ -360,6 +360,9 @@ CREATE INDEX IF NOT EXISTS refresh_tokens_user_id_idx
 CREATE INDEX IF NOT EXISTS refresh_tokens_token_family_idx
     ON refresh_tokens (token_family);
 
+CREATE INDEX IF NOT EXISTS refresh_tokens_expires_at_idx
+    ON refresh_tokens (expires_at)
+    WHERE revoked_at IS NULL;
 -- ============================================================
 -- CRM / COMPANY MANAGEMENT
 -- ============================================================
