@@ -1472,4 +1472,166 @@ describe('EnvConfig', () => {
       expect(EnvConfig.BUCKET).toBe('')
     })
   })
+
+  describe('REFRESH_TOKEN_EXPIRATION', () => {
+    it('should be a static readonly property', async () => {
+      process.env.REFRESH_TOKEN_EXPIRATION = '604800'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'REFRESH_TOKEN_EXPIRATION')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use REFRESH_TOKEN_EXPIRATION from environment when set', async () => {
+      process.env.REFRESH_TOKEN_EXPIRATION = '1209600'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('1209600')
+    })
+
+    it('should default to "604800" (7 days) when REFRESH_TOKEN_EXPIRATION is not set', async () => {
+      delete process.env.REFRESH_TOKEN_EXPIRATION
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+
+      vi.doMock('dotenv', () => ({
+        default: {
+          config: vi.fn(() => ({ parsed: {} })),
+        },
+      }))
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('604800')
+
+      vi.doUnmock('dotenv')
+    })
+
+    it('should have type string', async () => {
+      process.env.REFRESH_TOKEN_EXPIRATION = '86400'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('string')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('86400')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.REFRESH_TOKEN_EXPIRATION = '604800'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('string')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('604800')
+      expect(String(EnvConfig.REFRESH_TOKEN_EXPIRATION)).toBe('604800')
+    })
+
+    it('should accept numeric string values', async () => {
+      process.env.REFRESH_TOKEN_EXPIRATION = '2592000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('2592000')
+    })
+  })
+
+  describe('ACCESS_TOKEN_BUFFER', () => {
+    it('should be a static readonly property', async () => {
+      process.env.ACCESS_TOKEN_BUFFER = '300'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'ACCESS_TOKEN_BUFFER')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use ACCESS_TOKEN_BUFFER from environment when set', async () => {
+      process.env.ACCESS_TOKEN_BUFFER = '600'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.ACCESS_TOKEN_BUFFER).toBe('600')
+    })
+
+    it('should default to "300" (5 minutes) when ACCESS_TOKEN_BUFFER is not set', async () => {
+      delete process.env.ACCESS_TOKEN_BUFFER
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+
+      vi.doMock('dotenv', () => ({
+        default: {
+          config: vi.fn(() => ({ parsed: {} })),
+        },
+      }))
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.ACCESS_TOKEN_BUFFER).toBe('300')
+
+      vi.doUnmock('dotenv')
+    })
+
+    it('should have type string', async () => {
+      process.env.ACCESS_TOKEN_BUFFER = '180'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.ACCESS_TOKEN_BUFFER).toBe('string')
+      expect(EnvConfig.ACCESS_TOKEN_BUFFER).toBe('180')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.ACCESS_TOKEN_BUFFER = '300'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.ACCESS_TOKEN_BUFFER).toBe('string')
+      expect(EnvConfig.ACCESS_TOKEN_BUFFER).toBe('300')
+      expect(String(EnvConfig.ACCESS_TOKEN_BUFFER)).toBe('300')
+    })
+
+    it('should accept numeric string values', async () => {
+      process.env.ACCESS_TOKEN_BUFFER = '120'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.ACCESS_TOKEN_BUFFER).toBe('120')
+    })
+
+    it('should accept zero value', async () => {
+      process.env.ACCESS_TOKEN_BUFFER = '0'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.ACCESS_TOKEN_BUFFER).toBe('0')
+    })
+  })
 })
