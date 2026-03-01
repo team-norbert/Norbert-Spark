@@ -319,7 +319,7 @@ describe('RefreshAccessTokenUseCase', () => {
         await useCase.execute(rawToken, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('Executing RefreshAccessTokenUseCase', {
-          rawRefreshToken: rawToken,
+          tokenHash: mockToken.getHash(),
         })
       })
     })
@@ -362,7 +362,7 @@ describe('RefreshAccessTokenUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Failed to refresh access token',
           expect.any(Error),
-          { rawRefreshToken: rawToken }
+          { tokenHash: mockToken.getHash() }
         )
       })
     })
@@ -599,7 +599,7 @@ describe('RefreshAccessTokenUseCase', () => {
           'Database connection failed'
         )
         expect(mockLogger.error).toHaveBeenCalledWith('Failed to refresh access token', dbError, {
-          rawRefreshToken: rawToken,
+          tokenHash: mockToken.getHash(),
         })
       })
 
