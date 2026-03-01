@@ -150,7 +150,7 @@ export class LoginUserUseCase {
     email: string
     accessToken: string
     refreshToken: string
-    expiresIn: number
+    expiresInSeconds: number
     roles: string[]
   }> {
     this.logger.info('User login attempt', { email: dto.email })
@@ -257,7 +257,7 @@ export class LoginUserUseCase {
       email: user.getEmail(),
       accessToken: accessToken,
       refreshToken: newRefreshToken.getRawToken(),
-      expiresIn: expiresInSeconds, // 7 days in seconds
+      expiresInSeconds,
       roles: [user.getRole()],
     }
   }

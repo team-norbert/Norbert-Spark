@@ -118,7 +118,7 @@ describe('LoginUserUseCase', () => {
         expect(result.roles).toEqual(['user'])
         expect(result.refreshToken).toBeDefined()
         expect(typeof result.refreshToken).toBe('string')
-        expect(result.expiresIn).toBe(604800) // 7 days in seconds
+        expect(result.expiresInSeconds).toBe(604800) // 7 days in seconds
       })
 
       it('should find user by email', async () => {
@@ -474,7 +474,7 @@ describe('LoginUserUseCase', () => {
         expect(Object.keys(result).sort()).toEqual([
           'accessToken',
           'email',
-          'expiresIn',
+          'expiresInSeconds',
           'refreshToken',
           'roles',
           'userId',
@@ -609,7 +609,7 @@ describe('LoginUserUseCase', () => {
         expect(result.refreshToken).toMatch(/^[0-9a-f]+$/)
       })
 
-      it('should return correct expiresIn value (7 days in seconds)', async () => {
+      it('should return correct expiresInSeconds value (7 days in seconds)', async () => {
         const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
         const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
 
@@ -617,8 +617,8 @@ describe('LoginUserUseCase', () => {
 
         const result = await useCase.execute(dto, auditContext)
 
-        expect(result.expiresIn).toBe(604800) // 7 * 24 * 60 * 60 seconds
-        expect(typeof result.expiresIn).toBe('number')
+        expect(result.expiresInSeconds).toBe(604800) // 7 * 24 * 60 * 60 seconds
+        expect(typeof result.expiresInSeconds).toBe('number')
       })
 
       it('should generate unique tokenFamily for each login', async () => {
