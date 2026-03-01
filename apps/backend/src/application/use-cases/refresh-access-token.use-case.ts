@@ -173,7 +173,10 @@ export class RefreshAccessTokenUseCase {
       const newRefreshToken = RefreshToken.generate()
 
       // e. Store new refresh token with SAME tokenFamily
-      const expiresInSeconds = parseInt(EnvConfig.REFRESH_TOKEN_EXPIRATION, 10)
+      const parsedExpiration = Number.parseInt(EnvConfig.REFRESH_TOKEN_EXPIRATION, 10)
+      const expiresInSeconds = Number.isNaN(parsedExpiration)
+        ? 7 * 24 * 60 * 60 // default 7 days in seconds
+        : parsedExpiration
       const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
 
       await this.refreshTokenRepo.create({
