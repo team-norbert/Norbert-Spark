@@ -139,6 +139,7 @@ export class RefreshTokenRepoRepository implements RefreshTokenRepositoryPort {
   async revokeAllForUser(userId: string): Promise<void> {
     this.logger.info('Revoking all refresh tokens for user', { userId })
     try {
+      // placeholder implementation - in a real implementation, this would update the database to set revokedAt for all tokens belonging to the user
       return Promise.resolve()
     } catch (error) {
       this.logger.error(
@@ -154,6 +155,7 @@ export class RefreshTokenRepoRepository implements RefreshTokenRepositoryPort {
   async deleteExpiredBefore(date: Date): Promise<number> {
     this.logger.info('Deleting expired refresh tokens before date', { date })
     try {
+      // placeholder implementation - in a real implementation, this would delete rows from the database where expiresAt < date and return the number of rows deleted
       return Promise.resolve(0)
     } catch (error) {
       this.logger.error(
