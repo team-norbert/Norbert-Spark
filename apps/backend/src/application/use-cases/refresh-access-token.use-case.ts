@@ -188,7 +188,7 @@ export class RefreshAccessTokenUseCase {
       const auditEntry: CreateAuditLogDTO = {
         userId: record.getUserId(),
         entityType: EntityType.TOKEN,
-        entityId: new Uuid(record.getUserId()).getValue(),
+        entityId: new Uuid(record.getTokenFamily()).getValue(),
         action: AuditAction.UPDATE,
         changes: {
           reason: 'token_refreshed',
