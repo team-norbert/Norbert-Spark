@@ -13,7 +13,7 @@ export interface RefreshTokenRepositoryPort {
     userAgent?: string
   }): Promise<void>
 
-  /** Find a valid (non-expired, non-revoked) token by its hash */
+  /** Find token record by its hash */
   findByHash(tokenHash: string): Promise<RefreshTokenRecord | null>
 
   /** Revoke a single token by its hash */
