@@ -482,14 +482,36 @@ describe('RefreshTokenRepoRepository', () => {
   })
 
   describe('revokeAllForUser()', () => {
-    it('should resolve successfully (placeholder implementation)', async () => {
+    it('should revoke all tokens for a user', async () => {
       const userId = createUserId()
+      const mockResult = { rowCount: 5 }
 
-      await expect(repository.revokeAllForUser(userId)).resolves.toBeUndefined()
+      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+      vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
+
+      await repository.revokeAllForUser(userId)
+
+      expect(db.update).toHaveBeenCalledTimes(1)
+      expect(mockSet).toHaveBeenCalledWith({ revokedAt: expect.any(Date) })
+      expect(mockLogger.info).toHaveBeenCalledWith('Revoking all refresh tokens for user', {
+        userId,
+      })
+      expect(mockLogger.info).toHaveBeenCalledWith('Revoked all refresh tokens for user', {
+        userId,
+        rowsAffected: 5,
+      })
     })
 
     it('should log info when revoking all tokens for user', async () => {
       const userId = createUserId()
+      const mockResult = { rowCount: 2 }
+
+      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+      vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
 
       await repository.revokeAllForUser(userId)
 
@@ -500,26 +522,20 @@ describe('RefreshTokenRepoRepository', () => {
 
     it('should handle errors and log appropriately', async () => {
       const userId = createUserId()
+      const dbError = new Error('User revocation failed')
 
-      // Force an error by making the mock implementation throw
-      const originalImplementation = repository.revokeAllForUser
-      repository.revokeAllForUser = vi.fn().mockImplementation(async () => {
-        mockLogger.info('Revoking all refresh tokens for user', { userId })
-        const error = new Error('User revocation failed')
-        mockLogger.error('Failed to revoke all refresh tokens for user', error, { userId })
-        throw error
-      })
+      const mockWhere = vi.fn().mockRejectedValue(dbError)
+      const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
+      const mockUpdate = vi.fn().mockReturnValue({ set: mockSet })
+      vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
 
       await expect(repository.revokeAllForUser(userId)).rejects.toThrow('User revocation failed')
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Failed to revoke all refresh tokens for user',
-        expect.any(Error),
+        dbError,
         { userId }
       )
-
-      // Restore
-      repository.revokeAllForUser = originalImplementation
     })
   })
 
