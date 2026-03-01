@@ -6,10 +6,6 @@ import { RefreshTokenRecord } from '../../../domain/entities/refresh-token-recor
 import { UserId } from '../../../domain/value-objects/userID.js'
 import { Uuid } from '../../../domain/value-objects/uuid.js'
 import { db } from '../../../infrastructure/database/index.js'
-import type {
-  DBRefreshToken,
-  DBRefreshTokenSelect,
-} from '../../../infrastructure/database/schema.js'
 import { refreshTokens } from '../../../infrastructure/database/schema.js'
 
 export class RefreshTokenRepoRepository implements RefreshTokenRepositoryPort {
@@ -25,7 +21,18 @@ export class RefreshTokenRepoRepository implements RefreshTokenRepositoryPort {
   }): Promise<void> {
     this.logger.info('Creating refresh token record', { record })
     try {
-      return Promise.resolve()
+      await db.insert(refreshTokens).values({
+        userId: record.userId,
+        tokenHash: record.tokenHash,
+        tokenFamily: record.tokenFamily,
+        expiresAt: record.expiresAt,
+        ipAddress: record.ipAddress ?? null,
+        userAgent: record.userAgent ?? null,
+      })
+      this.logger.debug('Successfully created refresh token record', {
+        tokenFamily: record.tokenFamily,
+        userId: record.userId,
+      })
     } catch (error) {
       this.logger.error(
         'Failed to create refresh token record',
