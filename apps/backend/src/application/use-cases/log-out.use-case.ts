@@ -80,7 +80,7 @@ export class LogOutUseCase {
    * - Audit log is created regardless of success or failure
    * - On success: audit reason is 'user_logout'
    * - On error: audit reason is 'user_logout_error'
-   * - Errors during audit logging can propagate (audit log may throw)
+   * - Audit logging never throws per {@link AuditLogPort} contract
    *
    * Audit log entry includes:
    * - userId from audit context (who performed the action)
@@ -99,7 +99,6 @@ export class LogOutUseCase {
    * @returns Promise that resolves when logout completes successfully
    *
    * @throws Re-throws any error thrown by {@link RefreshTokenRepositoryPort.revokeAllForUser}.
-   * @throws May throw if audit log fails (audit log can reject promises)
    *
    * @example
    * ```typescript
@@ -118,7 +117,7 @@ export class LogOutUseCase {
    *   await logOutUseCase.execute(userId, auditContext)
    *   return { success: true, message: 'Logged out from all devices' }
    * } catch (error) {
-   *   // Audit log failure or other error
+   *   // Token revocation failure
    *   logger.error('Logout failed', error)
    *   return { success: false, message: 'Logout failed' }
    * }
@@ -129,20 +128,6 @@ export class LogOutUseCase {
 
     try {
       await this.refreshTokenRepo.revokeAllForUser(userId)
-
-      const auditEntry: CreateAuditLogDTO = {
-        userId: auditContext.userId,
-        entityType: EntityType.USER,
-        entityId: userId,
-        action: AuditAction.USER_LOGOUT,
-        changes: {
-          reason: 'user_logout',
-        },
-        ipAddress: auditContext.ipAddress,
-        userAgent: auditContext.userAgent ?? undefined,
-      }
-      // AuditLogPort.log() never throws per contract
-      await this.auditLog.log(auditEntry)
     } catch (error) {
       this.logger.error(
         `Error executing LogOutUseCase for user ID: ${userId}`,
@@ -165,5 +150,19 @@ export class LogOutUseCase {
 
       throw error
     }
+
+    const auditEntry: CreateAuditLogDTO = {
+      userId: auditContext.userId,
+      entityType: EntityType.USER,
+      entityId: userId,
+      action: AuditAction.USER_LOGOUT,
+      changes: {
+        reason: 'user_logout',
+      },
+      ipAddress: auditContext.ipAddress,
+      userAgent: auditContext.userAgent ?? undefined,
+    }
+    // AuditLogPort.log() never throws per contract
+    await this.auditLog.log(auditEntry)
   }
 }
