@@ -161,7 +161,8 @@ describe('EntityType Enum', () => {
       expect(values).toContain('data_extraction')
       expect(values).toContain('company')
       expect(values).toContain('key_person')
-      expect(values).toHaveLength(9)
+      expect(values).toContain('token')
+      expect(values).toHaveLength(10)
     })
 
     it('should allow iteration for validation', () => {

@@ -165,4 +165,12 @@ export class RefreshTokenRecord {
       this.revokedAt = new Date()
     }
   }
+
+  public getTokenFamily(): UUIDType {
+    return this.tokenFamily
+  }
+
+  public getUserId(): UserIdType {
+    return this.userId
+  }
 }
