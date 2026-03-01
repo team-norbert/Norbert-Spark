@@ -15,6 +15,18 @@ import { Role } from '../../../src/domain/value-objects/role.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
 import { UnauthorizedException } from '../../../src/shared/exceptions/unauthorized.exception.js'
 
+// Explicit TTL used throughout this suite – keeps assertions independent of the
+// REFRESH_TOKEN_EXPIRATION environment variable that may differ across environments.
+const TEST_REFRESH_TOKEN_EXPIRATION_SECONDS = 604800 // 7 days
+
+// vi.mock() is hoisted by Vitest so the mocked value is applied before any imports are executed.
+vi.mock('../../../src/infrastructure/config/env.config.js', () => ({
+  EnvConfig: {
+    // Pin REFRESH_TOKEN_EXPIRATION to the value of TEST_REFRESH_TOKEN_EXPIRATION_SECONDS (604800)
+    REFRESH_TOKEN_EXPIRATION: '604800',
+  },
+}))
+
 describe('LoginUserUseCase', () => {
   let useCase: LoginUserUseCase
   let mockUserRepository: UserRepositoryPort
@@ -118,7 +130,7 @@ describe('LoginUserUseCase', () => {
         expect(result.roles).toEqual(['user'])
         expect(result.refreshToken).toBeDefined()
         expect(typeof result.refreshToken).toBe('string')
-        expect(result.expiresInSeconds).toBe(604800) // 7 days in seconds
+        expect(result.expiresInSeconds).toBe(TEST_REFRESH_TOKEN_EXPIRATION_SECONDS) // 7 days in seconds
       })
 
       it('should find user by email', async () => {
@@ -617,7 +629,7 @@ describe('LoginUserUseCase', () => {
 
         const result = await useCase.execute(dto, auditContext)
 
-        expect(result.expiresInSeconds).toBe(604800) // 7 * 24 * 60 * 60 seconds
+        expect(result.expiresInSeconds).toBe(TEST_REFRESH_TOKEN_EXPIRATION_SECONDS) // 7 * 24 * 60 * 60 seconds
         expect(typeof result.expiresInSeconds).toBe('number')
       })
 
@@ -673,7 +685,8 @@ describe('LoginUserUseCase', () => {
           const createCall = vi.mocked(mockRefreshTokenRepository.create).mock.calls[0][0]
           const expiresAt = createCall.expiresAt.getTime()
 
-          const expectedExpiresAt = fixedNow.getTime() + 7 * 24 * 60 * 60 * 1000
+          const expectedExpiresAt =
+            fixedNow.getTime() + TEST_REFRESH_TOKEN_EXPIRATION_SECONDS * 1000
 
           expect(expiresAt).toBe(expectedExpiresAt)
         } finally {
