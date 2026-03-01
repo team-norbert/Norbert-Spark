@@ -18,7 +18,7 @@ import type { RefreshTokenRepositoryPort } from '../ports/refresh-token.reposito
  * - Revokes ALL refresh tokens for the user (not just current session)
  * - Creates audit log entry for security tracking
  * - Distinguishes between successful logout and error scenarios in audit log
- * - Handles errors gracefully while still logging the logout attempt
+ * - Re-throws errors after logging/auditing so callers can return an error status
  *
  * Security implications:
  * - Immediately terminates all user sessions across all devices
@@ -97,8 +97,9 @@ export class LogOutUseCase {
    * @param auditContext.ipAddress - IP address where logout was initiated
    * @param auditContext.userAgent - User agent string of the client
    *
-   * @returns Promise that resolves when logout completes (success or error handled)
+   * @returns Promise that resolves when logout completes successfully
    *
+   * @throws Re-throws any error thrown by {@link RefreshTokenRepositoryPort.revokeAllForUser}.
    * @throws May throw if audit log fails (audit log can reject promises)
    *
    * @example
@@ -162,6 +163,8 @@ export class LogOutUseCase {
       }
       // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
+
+      throw error
     }
   }
 }

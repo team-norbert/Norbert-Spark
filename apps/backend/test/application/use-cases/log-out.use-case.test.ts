@@ -191,7 +191,7 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(error)
 
-        await useCase.execute(userId, contextWithUser)
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(error)
 
         expect(mockLogger.error).toHaveBeenCalledWith(
           `Error executing LogOutUseCase for user ID: ${userId}`,
@@ -207,7 +207,7 @@ describe('LogOutUseCase', () => {
           new Error('Database error')
         )
 
-        await useCase.execute(userId, contextWithUser)
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow()
 
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -228,7 +228,7 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(error)
 
-        await useCase.execute(userId, contextWithUser)
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(error)
 
         expect(mockLogger.error).toHaveBeenCalledWith(
           expect.any(String),
@@ -244,7 +244,7 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue('string error')
 
-        await useCase.execute(userId, contextWithUser)
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toBe('string error')
 
         expect(mockLogger.error).toHaveBeenCalledWith(
           expect.any(String),
@@ -260,7 +260,7 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(null)
 
-        await useCase.execute(userId, contextWithUser)
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toBeNull()
 
         expect(mockLogger.error).toHaveBeenCalledWith(
           expect.any(String),
@@ -276,7 +276,7 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(undefined)
 
-        await useCase.execute(userId, contextWithUser)
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toBeUndefined()
 
         expect(mockLogger.error).toHaveBeenCalledWith(
           expect.any(String),
@@ -292,20 +292,19 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(new Error('Test error'))
 
-        await useCase.execute(userId, contextWithUser)
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow('Test error')
 
         expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
       })
 
-      it('should complete without throwing even when revoke fails', async () => {
+      it('should re-throw error when revoke fails', async () => {
         const userId = createUserId()
         const contextWithUser = { ...auditContext, userId }
+        const error = new Error('Revoke failed')
 
-        vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(
-          new Error('Revoke failed')
-        )
+        vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(error)
 
-        await expect(useCase.execute(userId, contextWithUser)).resolves.toBeUndefined()
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow('Revoke failed')
       })
     })
 
