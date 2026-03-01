@@ -1,5 +1,3 @@
-import { uuidv7 } from 'uuidv7'
-
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
@@ -86,7 +84,8 @@ export class LogOutUseCase {
    *
    * Audit log entry includes:
    * - userId from audit context (who performed the action)
-   * - entityType: TOKEN (logout affects tokens)
+   * - entityType: USER (the entity being logged out)
+   * - entityId: userId (stable identifier for querying audit logs per user)
    * - action: USER_LOGOUT
    * - changes.reason: 'user_logout' or 'user_logout_error'
    * - ipAddress and userAgent from audit context
@@ -133,8 +132,8 @@ export class LogOutUseCase {
 
       const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
-        entityType: EntityType.TOKEN,
-        entityId: uuidv7(), // No specific token ID, so we generate a random UUID for logging
+        entityType: EntityType.USER,
+        entityId: userId,
         action: AuditAction.USER_LOGOUT,
         changes: {
           reason: 'user_logout',
@@ -152,8 +151,8 @@ export class LogOutUseCase {
 
       const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
-        entityType: EntityType.TOKEN,
-        entityId: uuidv7(), // No specific token ID, so we generate a random UUID for logging
+        entityType: EntityType.USER,
+        entityId: userId,
         action: AuditAction.USER_LOGOUT,
         changes: {
           reason: 'user_logout_error',
