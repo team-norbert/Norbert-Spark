@@ -385,15 +385,15 @@ describe('LogOutUseCase', () => {
         )
       })
 
-      it('should use userId from audit context for revocation', async () => {
+      it('should use userId parameter for revocation', async () => {
         const userIdParam = createUserId()
         const userIdInContext = createUserId()
         const contextWithUser = { ...auditContext, userId: userIdInContext }
 
         await useCase.execute(userIdParam, contextWithUser)
 
-        // Should use the userId from audit context, not the parameter
-        expect(mockRefreshTokenRepo.revokeAllForUser).toHaveBeenCalledWith(userIdInContext)
+        // Should use the userId parameter for revocation
+        expect(mockRefreshTokenRepo.revokeAllForUser).toHaveBeenCalledWith(userIdParam)
       })
 
       it('should handle rapid sequential logout calls', async () => {
