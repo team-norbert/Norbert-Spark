@@ -138,8 +138,8 @@ export class RefreshTokenRecord {
    * Revokes the token by setting the revokedAt timestamp to the current time.
    *
    * Once revoked, the token becomes invalid and cannot be used for authentication.
-   * Calling this method multiple times keeps the token revoked and updates the
-   * revokedAt timestamp to the time of the most recent call.
+   * This operation is idempotent - calling it multiple times has no additional effect;
+   * the original revokedAt timestamp is preserved on subsequent calls.
    *
    * Common scenarios for revocation:
    * - User logs out
@@ -161,6 +161,8 @@ export class RefreshTokenRecord {
    * await db.saveAll(tokens)
    */
   public revoke(): void {
-    this.revokedAt = new Date()
+    if (this.revokedAt === null) {
+      this.revokedAt = new Date()
+    }
   }
 }

@@ -207,7 +207,7 @@ describe('RefreshTokenRecord', () => {
       expect(record.isRevoked()).toBe(true)
     })
 
-    it('should update revokedAt when revoking already revoked token', () => {
+    it('should preserve original revokedAt when revoking an already revoked token', () => {
       vi.setSystemTime(new Date('2026-03-02T10:00:00Z'))
       const record = createRecord({ revokedAt: new Date('2026-03-02T10:00:00Z') })
       // Advance time
