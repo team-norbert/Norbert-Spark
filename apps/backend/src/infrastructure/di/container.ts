@@ -42,6 +42,7 @@ import { GetChatsByUserIdUseCase } from '../../application/use-cases/get-chats-b
 import { GetCompanyDetailsUseCase } from '../../application/use-cases/get-company-details.use-case.js'
 import { GetEmbeddingModelUseCase } from '../../application/use-cases/get-embedding-model.use-case.js'
 import { GetUserByIdUseCase } from '../../application/use-cases/get-user-by-id.use-case.js'
+import { LogOutUseCase } from '../../application/use-cases/log-out.use-case.js'
 import { LoginUserUseCase } from '../../application/use-cases/login-user.use-case.js'
 import { PostAIAdminUseCase } from '../../application/use-cases/post-ai-admin.use-case.js'
 import { PostChatTypesUseCase } from '../../application/use-cases/post-chat-types.use-case.js'
@@ -54,6 +55,7 @@ import { RegisterUserUseCase } from '../../application/use-cases/register-user.u
 import { RegisterUserWithProviderUseCase } from '../../application/use-cases/register-user-with-provider.use-case.js'
 import { ResolveChatTypeUseCase } from '../../application/use-cases/resolve-chat-type.use-case.js'
 import { SaveChatUseCase } from '../../application/use-cases/save-chat.use-case.js'
+// Utils
 import { PDFUtils } from '../../shared/utils/pdf.utils.js'
 import { EnvConfig } from '../config/env.config.js'
 import { pool } from '../database/index.js'
@@ -132,6 +134,7 @@ export class Container {
   private readonly postAIAdminUseCase: PostAIAdminUseCase
   private readonly getEmbeddingModelUseCase: GetEmbeddingModelUseCase
   private readonly refreshAccessTokenUseCase: RefreshAccessTokenUseCase
+  private readonly logOutUseCase: LogOutUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -344,6 +347,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.userRepository,
       this.tokenGenerator
     )
+    this.logOutUseCase = new LogOutUseCase(this.logger, this.auditLog, this.refreshTokenRepo)
 
     // Initialize controllers (primary adapters)
     this.userController = new UserController(

@@ -23,6 +23,7 @@ export const AuditAction = {
   PASSWORD_CHANGE: 'password_change',
   EMAIL_CHANGE: 'email_change',
   REGISTRATION_FAILED: 'registration_failed',
+  USER_LOGOUT: 'user_logout',
 } as const
 
 export type EntityType = (typeof EntityType)[keyof typeof EntityType]

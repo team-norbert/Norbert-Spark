@@ -378,7 +378,8 @@ describe('AuditAction Enum', () => {
       expect(values).toContain('password_change')
       expect(values).toContain('email_change')
       expect(values).toContain('registration_failed')
-      expect(values).toHaveLength(11)
+      expect(values).toContain('user_logout')
+      expect(values).toHaveLength(12)
     })
 
     it('should allow iteration for validation', () => {
