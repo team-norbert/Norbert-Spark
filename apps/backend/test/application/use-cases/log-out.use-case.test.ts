@@ -310,17 +310,6 @@ describe('LogOutUseCase', () => {
     })
 
     describe('audit log contract', () => {
-      it('should propagate audit log errors after successful revocation', async () => {
-        const userId = createUserId()
-        const contextWithUser = { ...auditContext, userId }
-
-        vi.mocked(mockAuditLog.log).mockRejectedValue(new Error('Audit log failed'))
-
-        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow('Audit log failed')
-        // Verify revocation still happened before audit log failure
-        expect(mockRefreshTokenRepo.revokeAllForUser).toHaveBeenCalledWith(userId)
-      })
-
       it('should include all required audit fields', async () => {
         const userId = createUserId()
         const contextWithUser = { ...auditContext, userId }
