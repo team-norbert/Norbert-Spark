@@ -663,18 +663,22 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        const beforeLogin = Date.now()
-        await useCase.execute(dto, auditContext)
-        const afterLogin = Date.now()
+        vi.useFakeTimers()
+        try {
+          const fixedNow = new Date('2024-01-01T00:00:00.000Z')
+          vi.setSystemTime(fixedNow)
 
-        const createCall = vi.mocked(mockRefreshTokenRepository.create).mock.calls[0][0]
-        const expiresAt = createCall.expiresAt.getTime()
+          await useCase.execute(dto, auditContext)
 
-        const expectedMin = beforeLogin + 7 * 24 * 60 * 60 * 1000 - 1000 // Allow 1s tolerance
-        const expectedMax = afterLogin + 7 * 24 * 60 * 60 * 1000 + 1000
+          const createCall = vi.mocked(mockRefreshTokenRepository.create).mock.calls[0][0]
+          const expiresAt = createCall.expiresAt.getTime()
 
-        expect(expiresAt).toBeGreaterThanOrEqual(expectedMin)
-        expect(expiresAt).toBeLessThanOrEqual(expectedMax)
+          const expectedExpiresAt = fixedNow.getTime() + 7 * 24 * 60 * 60 * 1000
+
+          expect(expiresAt).toBe(expectedExpiresAt)
+        } finally {
+          vi.useRealTimers()
+        }
       })
 
       it('should pass audit context to refresh token repository', async () => {
