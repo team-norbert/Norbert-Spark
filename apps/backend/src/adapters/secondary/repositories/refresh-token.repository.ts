@@ -328,17 +328,20 @@ export class RefreshTokenRepository implements RefreshTokenRepositoryPort {
    *   action: 'LOGOUT_ALL_DEVICES',
    *   reason: 'user_requested'
    * })
-   * ```
-   *
-   * @remarks
-   * Currently a placeholder implementation that returns immediately.
-   * TODO: Implement database UPDATE query to revoke all tokens for user.
+   * ````
    */
   async revokeAllForUser(userId: string): Promise<void> {
     this.logger.info('Revoking all refresh tokens for user', { userId })
     try {
-      // placeholder implementation - in a real implementation, this would update the database to set revokedAt for all tokens belonging to the user
-      return Promise.resolve()
+      const result = await db
+        .update(refreshTokens)
+        .set({ revokedAt: new Date() })
+        .where(eq(refreshTokens.userId, userId))
+
+      this.logger.info('Revoked all refresh tokens for user', {
+        userId,
+        rowsAffected: result.rowCount,
+      })
     } catch (error) {
       this.logger.error(
         'Failed to revoke all refresh tokens for user',
