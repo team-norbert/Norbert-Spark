@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 
+// Primary Controllers
 import { AIController } from '../../adapters/primary/http/ai.controller.js'
 import { AIExtractDataController } from '../../adapters/primary/http/ai.extract-data.js'
 import { AiRagController } from '../../adapters/primary/http/ai.rag.controller.js'
@@ -11,7 +12,9 @@ import { AIAdminController } from '../../adapters/primary/http/ai-admin.controll
 import { AuthController } from '../../adapters/primary/http/auth.controller.js'
 import { CompanyController } from '../../adapters/primary/http/company.controller.js'
 import { UserController } from '../../adapters/primary/http/user.controller.js'
+// Secondary Adapters
 import { BucketService } from '../../adapters/secondary/external/bucket.service.js'
+// Repositories
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
 import { AIAdminRepository } from '../../adapters/secondary/repositories/ai-admin.repository.js'
 import { AIChatContentRepository } from '../../adapters/secondary/repositories/ai-chat-content.repository.js'
@@ -19,10 +22,13 @@ import { AIChatOptionsRepository } from '../../adapters/secondary/repositories/a
 import { AIRAGRepository } from '../../adapters/secondary/repositories/ai-rag.repository.js'
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
 import { CompanyRepository } from '../../adapters/secondary/repositories/company.repository.js'
+import { RefreshTokenRepoRepository } from '../../adapters/secondary/repositories/refreshTokenRepo.repository.js'
 import { UserRepository } from '../../adapters/secondary/repositories/user.repository.js'
+// Services
 import { ResendService } from '../../adapters/secondary/services/email.service.js'
 import { JwtTokenGeneratorService } from '../../adapters/secondary/services/jwt-token-generator.service.js'
 import { PinoLoggerService } from '../../adapters/secondary/services/logger.service.js'
+// Use Cases
 import { AppendedChatUseCase } from '../../application/use-cases/append-chat.use-case.js'
 import { DeleteUsersUseCase } from '../../application/use-cases/delete-users.use-case.js'
 import { ExtractDataUseCase } from '../../application/use-cases/extract-data.use-case.js'
@@ -43,6 +49,7 @@ import { PresignedUploadUrlUseCase } from '../../application/use-cases/presigned
 import { PutAIAdminUseCase } from '../../application/use-cases/put-ai-admin.use-case.js'
 import { PutChatDetailsUseCase } from '../../application/use-cases/put-chat-details.use-case.js'
 import { PutCompanyDetailsUseCase } from '../../application/use-cases/put-company-details.use-case.js'
+import { RefreshAccessTokenUseCase } from '../../application/use-cases/refresh-access-token.use-case.js'
 import { RegisterUserUseCase } from '../../application/use-cases/register-user.use-case.js'
 import { RegisterUserWithProviderUseCase } from '../../application/use-cases/register-user-with-provider.use-case.js'
 import { ResolveChatTypeUseCase } from '../../application/use-cases/resolve-chat-type.use-case.js'
@@ -97,6 +104,7 @@ export class Container {
   public readonly aiChatOptionsRepository: AIChatOptionsRepository
   public readonly companyRepository: CompanyRepository
   public readonly aiRagRepository: AIRAGRepository
+  public readonly refreshTokenRepo: RefreshTokenRepoRepository
 
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
@@ -123,6 +131,7 @@ export class Container {
   private readonly postChatTypesUseCase: PostChatTypesUseCase
   private readonly postAIAdminUseCase: PostAIAdminUseCase
   private readonly getEmbeddingModelUseCase: GetEmbeddingModelUseCase
+  private readonly refreshAccessTokenUseCase: RefreshAccessTokenUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -221,6 +230,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.companyRepository = new CompanyRepository(this.logger)
     this.bucketService = new BucketService(this.logger)
     this.aiRagRepository = new AIRAGRepository(this.logger)
+    this.refreshTokenRepo = new RefreshTokenRepoRepository(this.logger)
     // Initialize use cases
     this.registerUserUseCase = new RegisterUserUseCase(
       this.userRepository,
@@ -326,6 +336,13 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.logger,
       this.auditLog,
       this.aiRagRepository
+    )
+    this.refreshAccessTokenUseCase = new RefreshAccessTokenUseCase(
+      this.logger,
+      this.auditLog,
+      this.refreshTokenRepo,
+      this.userRepository,
+      this.tokenGenerator
     )
 
     // Initialize controllers (primary adapters)

@@ -14,10 +14,10 @@ export interface RefreshTokenRepositoryPort {
   }): Promise<void>
 
   /** Find a valid (non-expired, non-revoked) token by its hash */
-  findByHash(tokenHash: UUIDType): Promise<RefreshTokenRecord | null>
+  findByHash(tokenHash: string): Promise<RefreshTokenRecord | null>
 
   /** Revoke a single token by its hash */
-  revokeByHash(tokenHash: UUIDType): Promise<void>
+  revokeByHash(tokenHash: string): Promise<void>
 
   /** Revoke ALL tokens in a token family (replay attack response) */
   revokeFamily(tokenFamily: string): Promise<void>

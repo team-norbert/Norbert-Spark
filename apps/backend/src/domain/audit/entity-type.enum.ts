@@ -8,6 +8,7 @@ export const EntityType = {
   DATA_EXTRACTION: 'data_extraction',
   COMPANY: 'company',
   KEY_PERSON: 'key_person',
+  TOKEN: 'token',
 } as const
 
 export const AuditAction = {
