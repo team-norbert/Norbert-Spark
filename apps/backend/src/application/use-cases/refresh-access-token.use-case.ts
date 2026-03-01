@@ -1,3 +1,5 @@
+import crypto from 'node:crypto'
+
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { User } from '../../domain/entities/user.js'
@@ -114,7 +116,9 @@ export class RefreshAccessTokenUseCase {
     rawRefreshToken: string,
     auditContext: AuditContext
   ): Promise<{ accessToken: string; refreshToken: string; expiresIn: Date }> {
-    this.logger.info('Executing RefreshAccessTokenUseCase', { rawRefreshToken })
+    this.logger.info('Executing RefreshAccessTokenUseCase', {
+      tokenHash: crypto.createHash('sha256').update(rawRefreshToken).digest('hex'),
+    })
     try {
       const token = RefreshToken.fromRaw(rawRefreshToken)
       const record = await this.refreshTokenRepo.findByHash(token.getHash())
@@ -210,7 +214,8 @@ export class RefreshAccessTokenUseCase {
     } catch (error) {
       this.logger.error(
         'Failed to refresh access token',
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
+        { tokenHash: crypto.createHash('sha256').update(rawRefreshToken).digest('hex') }
       )
       throw error
     }
