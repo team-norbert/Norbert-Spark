@@ -25,7 +25,7 @@ import { refreshTokens } from '../../../infrastructure/database/schema.js'
  *
  * @implements {RefreshTokenRepositoryPort}
  */
-export class RefreshTokenRepoRepository implements RefreshTokenRepositoryPort {
+export class RefreshTokenRepository implements RefreshTokenRepositoryPort {
   /**
    * Creates a new RefreshTokenRepoRepository.
    *

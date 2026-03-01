@@ -22,7 +22,7 @@ import { AIChatOptionsRepository } from '../../adapters/secondary/repositories/a
 import { AIRAGRepository } from '../../adapters/secondary/repositories/ai-rag.repository.js'
 import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
 import { CompanyRepository } from '../../adapters/secondary/repositories/company.repository.js'
-import { RefreshTokenRepoRepository } from '../../adapters/secondary/repositories/refreshTokenRepo.repository.js'
+import { RefreshTokenRepository } from '../../adapters/secondary/repositories/refresh-token.repository.js'
 import { UserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 // Services
 import { ResendService } from '../../adapters/secondary/services/email.service.js'
@@ -104,7 +104,7 @@ export class Container {
   public readonly aiChatOptionsRepository: AIChatOptionsRepository
   public readonly companyRepository: CompanyRepository
   public readonly aiRagRepository: AIRAGRepository
-  public readonly refreshTokenRepo: RefreshTokenRepoRepository
+  public readonly refreshTokenRepo: RefreshTokenRepository
 
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
@@ -230,7 +230,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.companyRepository = new CompanyRepository(this.logger)
     this.bucketService = new BucketService(this.logger)
     this.aiRagRepository = new AIRAGRepository(this.logger)
-    this.refreshTokenRepo = new RefreshTokenRepoRepository(this.logger)
+    this.refreshTokenRepo = new RefreshTokenRepository(this.logger)
     // Initialize use cases
     this.registerUserUseCase = new RegisterUserUseCase(
       this.userRepository,

@@ -1,7 +1,7 @@
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { RefreshTokenRepoRepository } from '../../../../src/adapters/secondary/repositories/refreshTokenRepo.repository.js'
+import { RefreshTokenRepository } from '../../../../src/adapters/secondary/repositories/refresh-token.repository'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import { RefreshTokenRecord } from '../../../../src/domain/entities/refresh-token-record.js'
 import { UserId, type UserIdType } from '../../../../src/domain/value-objects/userID.js'
@@ -19,7 +19,7 @@ vi.mock('../../../../src/infrastructure/database/index.js', () => ({
 }))
 
 describe('RefreshTokenRepoRepository', () => {
-  let repository: RefreshTokenRepoRepository
+  let repository: RefreshTokenRepository
   let mockLogger: LoggerPort
 
   // Helper function to create a branded UUID
@@ -42,7 +42,7 @@ describe('RefreshTokenRepoRepository', () => {
       debug: vi.fn(),
     }
 
-    repository = new RefreshTokenRepoRepository(mockLogger)
+    repository = new RefreshTokenRepository(mockLogger)
   })
 
   describe('create()', () => {
