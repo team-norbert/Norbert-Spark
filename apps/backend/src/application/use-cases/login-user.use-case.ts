@@ -1,6 +1,8 @@
 import type { LoginChanges, LoginFailedChanges } from '../../domain/audit/audit-changes.types.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
+import type { RefreshTokenRecord } from '../../domain/entities/refresh-token-record.js'
+import { RefreshToken } from '../../domain/value-objects/refreshToken.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 import { UnauthorizedException } from '../../shared/exceptions/unauthorized.exception.js'
@@ -59,6 +61,7 @@ export class LoginUserUseCase {
    * @param {AuditLogPort} auditLog - Service for recording audit trail of login attempts,
    *        failures, and security events. Tracks user actions for compliance and security monitoring.
    *
+   * @param refreshTokenRecord
    * @example
    * ```typescript
    * const loginUseCase = new LoginUserUseCase(
@@ -140,6 +143,8 @@ export class LoginUserUseCase {
     userId: UserIdType
     email: string
     accessToken: string
+    refreshToken: string
+    expiresIn: Date
     roles: string[]
   }> {
     this.logger.info('User login attempt', { email: dto.email })
@@ -221,10 +226,14 @@ export class LoginUserUseCase {
       roles: [user.getRole()],
     })
 
+    const newRefreshToken = RefreshToken.generate()
+
     return {
       userId: user.id,
       email: user.getEmail(),
       accessToken: accessToken,
+      refreshToken: 'string',
+      expiresIn: new Date(),
       roles: [user.getRole()],
     }
   }
