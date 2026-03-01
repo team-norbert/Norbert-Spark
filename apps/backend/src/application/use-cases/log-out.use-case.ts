@@ -128,7 +128,7 @@ export class LogOutUseCase {
     this.logger.info(`Executing LogOutUseCase for user ID: ${userId}`)
 
     try {
-      await this.refreshTokenRepo.revokeAllForUser(auditContext.userId as UserIdType)
+      await this.refreshTokenRepo.revokeAllForUser(userId)
 
       const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
