@@ -40,7 +40,7 @@ export class RefreshTokenRecord {
     private readonly expiresAt: Date,
     private revokedAt: Date | null = null,
     private readonly createdAt: Date = new Date(),
-    private readonly lastUsedAt: Date
+    private readonly lastUsedAt: Date | null = null
   ) {}
 
   public isExpired(): boolean {
