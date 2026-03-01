@@ -138,8 +138,8 @@ export class RefreshTokenRecord {
    * Revokes the token by setting the revokedAt timestamp to the current time.
    *
    * Once revoked, the token becomes invalid and cannot be used for authentication.
-   * This operation is idempotent - calling it multiple times will update the
-   * revokedAt timestamp to the current time on each call.
+   * Calling this method multiple times keeps the token revoked and updates the
+   * revokedAt timestamp to the time of the most recent call.
    *
    * Common scenarios for revocation:
    * - User logs out
