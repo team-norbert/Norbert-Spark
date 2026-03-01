@@ -210,8 +210,7 @@ export class RefreshAccessTokenUseCase {
     } catch (error) {
       this.logger.error(
         'Failed to refresh access token',
-        error instanceof Error ? error : new Error(String(error)),
-        { rawRefreshToken }
+        error instanceof Error ? error : new Error(String(error))
       )
       throw error
     }
