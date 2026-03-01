@@ -93,7 +93,7 @@ describe('LogOutUseCase', () => {
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
             userId: userId,
-            entityType: EntityType.TOKEN,
+            entityType: EntityType.USER,
             action: AuditAction.USER_LOGOUT,
             changes: {
               reason: 'user_logout',
@@ -147,7 +147,7 @@ describe('LogOutUseCase', () => {
         )
       })
 
-      it('should generate a UUID for entityId in audit log', async () => {
+      it('should use userId as entityId in audit log', async () => {
         const userId = createUserId()
         const contextWithUser = { ...auditContext, userId }
 
@@ -155,14 +155,8 @@ describe('LogOutUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
-            entityId: expect.any(String),
+            entityId: userId,
           })
-        )
-
-        const auditCall = vi.mocked(mockAuditLog.log).mock.calls[0][0]
-        // Verify it's a valid UUIDv7 format
-        expect(auditCall.entityId).toMatch(
-          /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
         )
       })
 
@@ -212,7 +206,7 @@ describe('LogOutUseCase', () => {
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
             userId: userId,
-            entityType: EntityType.TOKEN,
+            entityType: EntityType.USER,
             action: AuditAction.USER_LOGOUT,
             changes: {
               reason: 'user_logout_error',
@@ -324,7 +318,7 @@ describe('LogOutUseCase', () => {
         expect(auditCall).toHaveProperty('ipAddress')
       })
 
-      it('should use EntityType.TOKEN for entity type', async () => {
+      it('should use EntityType.USER for entity type', async () => {
         const userId = createUserId()
         const contextWithUser = { ...auditContext, userId }
 
@@ -332,7 +326,7 @@ describe('LogOutUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
-            entityType: EntityType.TOKEN,
+            entityType: EntityType.USER,
           })
         )
       })
