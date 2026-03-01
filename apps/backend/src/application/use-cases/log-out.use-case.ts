@@ -26,7 +26,7 @@ export class LogOutUseCase {
         entityId: uuidv7(), // No specific token ID, so we generate a random UUID for logging
         action: AuditAction.USER_LOGOUT,
         changes: {
-          reason: 'refresh_token_replay_detected',
+          reason: 'user_logout',
         },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
@@ -45,7 +45,7 @@ export class LogOutUseCase {
         entityId: uuidv7(), // No specific token ID, so we generate a random UUID for logging
         action: AuditAction.USER_LOGOUT,
         changes: {
-          reason: 'refresh_token_replay_detected',
+          reason: 'user_logout_error',
         },
         ipAddress: auditContext.ipAddress,
         userAgent: auditContext.userAgent ?? undefined,
