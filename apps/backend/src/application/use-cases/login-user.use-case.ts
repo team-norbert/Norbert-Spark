@@ -1,12 +1,18 @@
+import { uuidv7 } from 'uuidv7'
+
 import type { LoginChanges, LoginFailedChanges } from '../../domain/audit/audit-changes.types.js'
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
+import { RefreshToken } from '../../domain/value-objects/refreshToken.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
+import { Uuid } from '../../domain/value-objects/uuid.js'
+import { EnvConfig } from '../../infrastructure/config/env.config.js'
 import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 import { UnauthorizedException } from '../../shared/exceptions/unauthorized.exception.js'
 import { LoginUserDto } from '../dtos/login-user.dto.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
+import type { RefreshTokenRepositoryPort } from '../ports/refresh-token.repository.port.js'
 import type { TokenGeneratorPort } from '../ports/token-generator.port.js'
 import type { UserRepositoryPort } from '../ports/user.repository.port.js'
 
@@ -58,6 +64,7 @@ export class LoginUserUseCase {
    * @param {TokenGeneratorPort} tokenGenerator - Service for generating JWT tokens
    * @param {AuditLogPort} auditLog - Service for recording audit trail of login attempts,
    *        failures, and security events. Tracks user actions for compliance and security monitoring.
+   * @param {RefreshTokenRepositoryPort} refreshTokenRepo - Repository for storing refresh tokens
    *
    * @example
    * ```typescript
@@ -65,7 +72,8 @@ export class LoginUserUseCase {
    *   new PostgresUserRepository(),
    *   new WinstonLogger(),
    *   new JwtTokenGenerator(),
-   *   new PostgresAuditLog()
+   *   new PostgresAuditLog(),
+   *   new RefreshTokenRepository(logger)
    * )
    * ```
    */
@@ -73,7 +81,8 @@ export class LoginUserUseCase {
     private readonly userRepository: UserRepositoryPort,
     private readonly logger: LoggerPort,
     private readonly tokenGenerator: TokenGeneratorPort,
-    private readonly auditLog: AuditLogPort
+    private readonly auditLog: AuditLogPort,
+    private readonly refreshTokenRepo: RefreshTokenRepositoryPort
   ) {}
 
   /**
@@ -140,6 +149,8 @@ export class LoginUserUseCase {
     userId: UserIdType
     email: string
     accessToken: string
+    refreshToken: string
+    expiresInSeconds: number
     roles: string[]
   }> {
     this.logger.info('User login attempt', { email: dto.email })
@@ -221,10 +232,32 @@ export class LoginUserUseCase {
       roles: [user.getRole()],
     })
 
+    const newRefreshToken = RefreshToken.generate()
+    const tokenFamily = uuidv7() // New token family for this rotation chain
+
+    // Calculate expiration date
+    const parsedExpiration = Number.parseInt(EnvConfig.REFRESH_TOKEN_EXPIRATION, 10)
+    const expiresInSeconds = Number.isNaN(parsedExpiration)
+      ? 7 * 24 * 60 * 60 // default 7 days in seconds
+      : parsedExpiration
+    const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
+
+    // Store the refresh token in the database
+    await this.refreshTokenRepo.create({
+      userId: user.id,
+      tokenHash: newRefreshToken.getHash(),
+      tokenFamily: new Uuid(tokenFamily).getValue(),
+      expiresAt: expiresAt,
+      ipAddress: auditContext.ipAddress ?? undefined,
+      userAgent: auditContext.userAgent ?? undefined,
+    })
+
     return {
       userId: user.id,
       email: user.getEmail(),
       accessToken: accessToken,
+      refreshToken: newRefreshToken.getRawToken(),
+      expiresInSeconds, // 7 days in seconds
       roles: [user.getRole()],
     }
   }

@@ -247,7 +247,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.userRepository,
       this.logger,
       this.tokenGenerator,
-      this.auditLog
+      this.auditLog,
+      this.refreshTokenRepo
     )
     this.getChatUseCase = new GetChatUseCase(this.aiRepository, this.logger, this.auditLog)
     this.appendChatUseCase = new AppendedChatUseCase(this.aiRepository, this.logger, this.auditLog)

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LoginUserDto } from '../../../src/application/dtos/login-user.dto.js'
 import type { AuditLogPort } from '../../../src/application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
+import type { RefreshTokenRepositoryPort } from '../../../src/application/ports/refresh-token.repository.port.js'
 import type { TokenGeneratorPort } from '../../../src/application/ports/token-generator.port.js'
 import type { UserRepositoryPort } from '../../../src/application/ports/user.repository.port.js'
 import { LoginUserUseCase } from '../../../src/application/use-cases/login-user.use-case.js'
@@ -14,12 +15,25 @@ import { Role } from '../../../src/domain/value-objects/role.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
 import { UnauthorizedException } from '../../../src/shared/exceptions/unauthorized.exception.js'
 
+// Explicit TTL used throughout this suite – keeps assertions independent of the
+// REFRESH_TOKEN_EXPIRATION environment variable that may differ across environments.
+const TEST_REFRESH_TOKEN_EXPIRATION_SECONDS = 604800 // 7 days
+
+// vi.mock() is hoisted by Vitest so the mocked value is applied before any imports are executed.
+vi.mock('../../../src/infrastructure/config/env.config.js', () => ({
+  EnvConfig: {
+    // Pin REFRESH_TOKEN_EXPIRATION to the value of TEST_REFRESH_TOKEN_EXPIRATION_SECONDS (604800)
+    REFRESH_TOKEN_EXPIRATION: '604800',
+  },
+}))
+
 describe('LoginUserUseCase', () => {
   let useCase: LoginUserUseCase
   let mockUserRepository: UserRepositoryPort
   let mockLogger: LoggerPort
   let mockTokenGenerator: TokenGeneratorPort
   let mockAuditLog: AuditLogPort
+  let mockRefreshTokenRepository: RefreshTokenRepositoryPort
 
   // Standard audit context for tests
   const auditContext = {
@@ -80,8 +94,23 @@ describe('LoginUserUseCase', () => {
       getByAction: vi.fn(),
     }
 
+    mockRefreshTokenRepository = {
+      create: vi.fn().mockResolvedValue(undefined),
+      findByHash: vi.fn(),
+      revokeByHash: vi.fn(),
+      revokeFamily: vi.fn(),
+      revokeAllForUser: vi.fn(),
+      deleteExpiredBefore: vi.fn(),
+    }
+
     // Create use case instance with mocks
-    useCase = new LoginUserUseCase(mockUserRepository, mockLogger, mockTokenGenerator, mockAuditLog)
+    useCase = new LoginUserUseCase(
+      mockUserRepository,
+      mockLogger,
+      mockTokenGenerator,
+      mockAuditLog,
+      mockRefreshTokenRepository
+    )
   })
 
   describe('execute()', () => {
@@ -99,6 +128,9 @@ describe('LoginUserUseCase', () => {
         expect(result.email).toBe('john@example.com')
         expect(result.accessToken).toBe('mock-jwt-token')
         expect(result.roles).toEqual(['user'])
+        expect(result.refreshToken).toBeDefined()
+        expect(typeof result.refreshToken).toBe('string')
+        expect(result.expiresInSeconds).toBe(TEST_REFRESH_TOKEN_EXPIRATION_SECONDS) // 7 days in seconds
       })
 
       it('should find user by email', async () => {
@@ -451,7 +483,14 @@ describe('LoginUserUseCase', () => {
         expect(result).not.toHaveProperty('passwordHash')
 
         // Should only expose necessary fields
-        expect(Object.keys(result).sort()).toEqual(['accessToken', 'email', 'roles', 'userId'])
+        expect(Object.keys(result).sort()).toEqual([
+          'accessToken',
+          'email',
+          'expiresInSeconds',
+          'refreshToken',
+          'roles',
+          'userId',
+        ])
       })
 
       it('should log sensitive operations for security audit', async () => {
@@ -542,6 +581,219 @@ describe('LoginUserUseCase', () => {
         })
 
         await expect(useCase.execute(dto, auditContext)).rejects.toThrow('Token generation failed')
+      })
+    })
+
+    describe('refresh token generation', () => {
+      it('should generate and store refresh token on successful login', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        await useCase.execute(dto, auditContext)
+
+        expect(mockRefreshTokenRepository.create).toHaveBeenCalledTimes(1)
+        expect(mockRefreshTokenRepository.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId: mockUser.id,
+            tokenHash: expect.any(String),
+            tokenFamily: expect.any(String),
+            expiresAt: expect.any(Date),
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
+      })
+
+      it('should return raw refresh token in response', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        const result = await useCase.execute(dto, auditContext)
+
+        expect(result.refreshToken).toBeDefined()
+        expect(typeof result.refreshToken).toBe('string')
+        expect(result.refreshToken.length).toBeGreaterThan(0)
+        // Refresh token should be a hex string
+        expect(result.refreshToken).toMatch(/^[0-9a-f]+$/)
+      })
+
+      it('should return correct expiresInSeconds value (7 days in seconds)', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        const result = await useCase.execute(dto, auditContext)
+
+        expect(result.expiresInSeconds).toBe(TEST_REFRESH_TOKEN_EXPIRATION_SECONDS) // 7 * 24 * 60 * 60 seconds
+        expect(typeof result.expiresInSeconds).toBe('number')
+      })
+
+      it('should generate unique tokenFamily for each login', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        // First login
+        await useCase.execute(dto, auditContext)
+        const firstCall = vi.mocked(mockRefreshTokenRepository.create).mock.calls[0][0]
+        const firstTokenFamily = firstCall.tokenFamily
+
+        // Second login (same user)
+        await useCase.execute(dto, auditContext)
+        const secondCall = vi.mocked(mockRefreshTokenRepository.create).mock.calls[1][0]
+        const secondTokenFamily = secondCall.tokenFamily
+
+        // Token families should be different (new rotation chain)
+        expect(firstTokenFamily).not.toBe(secondTokenFamily)
+      })
+
+      it('should store SHA-256 hash, not raw refresh token', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        const result = await useCase.execute(dto, auditContext)
+
+        const createCall = vi.mocked(mockRefreshTokenRepository.create).mock.calls[0][0]
+
+        // Token hash should be hex string (SHA-256 produces 64 hex chars)
+        expect(createCall.tokenHash).toMatch(/^[0-9a-f]{64}$/)
+        // Raw token and hash should be different
+        expect(createCall.tokenHash).not.toBe(result.refreshToken)
+      })
+
+      it('should set correct expiration date (7 days from now)', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        vi.useFakeTimers()
+        try {
+          const fixedNow = new Date('2024-01-01T00:00:00.000Z')
+          vi.setSystemTime(fixedNow)
+
+          await useCase.execute(dto, auditContext)
+
+          const createCall = vi.mocked(mockRefreshTokenRepository.create).mock.calls[0][0]
+          const expiresAt = createCall.expiresAt.getTime()
+
+          const expectedExpiresAt =
+            fixedNow.getTime() + TEST_REFRESH_TOKEN_EXPIRATION_SECONDS * 1000
+
+          expect(expiresAt).toBe(expectedExpiresAt)
+        } finally {
+          vi.useRealTimers()
+        }
+      })
+
+      it('should pass audit context to refresh token repository', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        const customAuditContext = {
+          userId: null,
+          ipAddress: '192.168.1.100',
+          userAgent: 'Mozilla/5.0 Custom Browser',
+        }
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        await useCase.execute(dto, customAuditContext)
+
+        expect(mockRefreshTokenRepository.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            ipAddress: '192.168.1.100',
+            userAgent: 'Mozilla/5.0 Custom Browser',
+          })
+        )
+      })
+
+      it('should handle undefined userAgent in audit context', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        const auditContextNoUserAgent = {
+          userId: null,
+          ipAddress: '127.0.0.1',
+          userAgent: null,
+        }
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        await useCase.execute(dto, auditContextNoUserAgent)
+
+        expect(mockRefreshTokenRepository.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userAgent: undefined,
+          })
+        )
+      })
+
+      it('should not create refresh token if password is incorrect', async () => {
+        const dto = new LoginUserDto('john@example.com', 'WrongPassword!')
+        const mockUser = await createMockUser('john@example.com', 'CorrectPassword123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
+
+        expect(mockRefreshTokenRepository.create).not.toHaveBeenCalled()
+      })
+
+      it('should not create refresh token if user is not found', async () => {
+        const dto = new LoginUserDto('nonexistent@example.com', 'Password123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
+
+        expect(mockRefreshTokenRepository.create).not.toHaveBeenCalled()
+      })
+
+      it('should propagate error if refresh token storage fails', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+        vi.mocked(mockRefreshTokenRepository.create).mockRejectedValue(
+          new Error('Database error: Unable to store refresh token')
+        )
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Database error: Unable to store refresh token'
+        )
+      })
+
+      it('should generate different refresh tokens for same user on different logins', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        const result1 = await useCase.execute(dto, auditContext)
+        const result2 = await useCase.execute(dto, auditContext)
+
+        expect(result1.refreshToken).not.toBe(result2.refreshToken)
+      })
+
+      it('should store userId from authenticated user', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        await useCase.execute(dto, auditContext)
+
+        const createCall = vi.mocked(mockRefreshTokenRepository.create).mock.calls[0][0]
+        expect(createCall.userId).toBe(mockUser.id)
       })
     })
   })
