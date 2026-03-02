@@ -424,7 +424,17 @@ describe('authOptions Configuration', () => {
 
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ success: true }),
+        json: async () => ({
+          success: true,
+          data: {
+            userId: 'user-123',
+            email: 'google@example.com',
+            accessToken: 'oauth-access-token',
+            refreshToken: 'a'.repeat(64),
+            expiresInSeconds: 3600,
+            roles: ['user'],
+          },
+        }),
       })
 
       const result = await authOptions.callbacks!.signIn!({
@@ -717,7 +727,17 @@ describe('authOptions Configuration', () => {
 
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ success: true }),
+        json: async () => ({
+          success: true,
+          data: {
+            userId: 'user-123',
+            email: 'google@example.com',
+            accessToken: 'oauth-access-token',
+            refreshToken: 'c'.repeat(64),
+            expiresInSeconds: 3600,
+            roles: ['user'],
+          },
+        }),
       })
 
       await authOptions.callbacks!.signIn!({
@@ -759,7 +779,17 @@ describe('authOptions Configuration', () => {
 
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ success: true }),
+        json: async () => ({
+          success: true,
+          data: {
+            userId: 'user-123',
+            email: 'google@example.com',
+            accessToken: 'oauth-access-token',
+            refreshToken: 'b'.repeat(64),
+            expiresInSeconds: 3600,
+            roles: ['user'],
+          },
+        }),
       })
 
       const result = await authOptions.callbacks!.signIn!({
