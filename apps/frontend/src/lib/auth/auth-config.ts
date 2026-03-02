@@ -202,15 +202,19 @@ export const authOptions: NextAuthOptions = {
 
           // Store OAuth sync tokens so the jwt callback can pick them up
           const syncResult = (await response.json()) as BackendOAuthSyncResponse
-          if (syncResult.data) {
-            oauthSyncCache.set(profile.email, {
-              accessToken: syncResult.data.accessToken,
-              refreshToken: syncResult.data.refreshToken,
-              expiresInSeconds: syncResult.data.expiresInSeconds,
-              userId: syncResult.data.userId,
-              roles: syncResult.data.roles,
-            })
+          if (!syncResult?.success || !syncResult.data) {
+            let errorMessage = syncResult?.error || 'OAuth authentication sync failed. Please try again.'
+            logger.error('OAuth user sync failed with unsuccessful response:', syncResult)
+            return `/error?code=500&message=${encodeURIComponent(errorMessage)}`
           }
+
+          oauthSyncCache.set(profile.email, {
+            accessToken: syncResult.data.accessToken,
+            refreshToken: syncResult.data.refreshToken,
+            expiresInSeconds: syncResult.data.expiresInSeconds,
+            userId: syncResult.data.userId,
+            roles: syncResult.data.roles,
+          })
         } catch (error) {
           logger.error('OAuth sync error:', error)
           // Redirect to error page for sync failures
