@@ -15,6 +15,8 @@ interface BackendLoginResponse {
     email: string
     accessToken: string
     roles: string[]
+    refreshToken: string
+    expiresInSeconds: number
   }
   error?: string
 }
@@ -103,6 +105,8 @@ export const authOptions: NextAuthOptions = {
               id: data.userId,
               email: data.email,
               accessToken: data.accessToken,
+              refreshToken: data.refreshToken,
+              expiresInSeconds: data.expiresInSeconds,
               roles: data.roles || [],
             } as User
           }
