@@ -21,6 +21,41 @@ interface BackendLoginResponse {
   error?: string
 }
 
+interface BackendOAuthSyncResponse {
+  success: boolean
+  data?: {
+    userId: string
+    email: string
+    accessToken: string
+    refreshToken: string
+    expiresInSeconds: number
+    roles: string[]
+  }
+  error?: string
+}
+
+/**
+ * Cached OAuth sync result, keyed by email.
+ *
+ * The `signIn` callback cannot modify the `user` object that flows into `jwt`,
+ * so we stash the backend response here and read it once in the `jwt` callback.
+ */
+interface OAuthSyncResult {
+  accessToken: string
+  refreshToken: string
+  expiresInSeconds: number
+  userId: string
+  roles: string[]
+}
+
+/**
+ * Module-scoped cache that bridges the `signIn` → `jwt` callback gap for OAuth users.
+ *
+ * Entries are written in `signIn` and consumed (then deleted) in `jwt` on the same
+ * request cycle, so the map never grows unbounded.
+ */
+const oauthSyncCache = new Map<string, OAuthSyncResult>()
+
 interface CredentialsInput {
   email: string
   password: string
@@ -164,6 +199,18 @@ export const authOptions: NextAuthOptions = {
             // Redirect to error page with backend error message
             return `/error?code=${response.status}&message=${encodeURIComponent(errorMessage)}`
           }
+
+          // Store OAuth sync tokens so the jwt callback can pick them up
+          const syncResult = (await response.json()) as BackendOAuthSyncResponse
+          if (syncResult.data) {
+            oauthSyncCache.set(profile.email, {
+              accessToken: syncResult.data.accessToken,
+              refreshToken: syncResult.data.refreshToken,
+              expiresInSeconds: syncResult.data.expiresInSeconds,
+              userId: syncResult.data.userId,
+              roles: syncResult.data.roles,
+            })
+          }
         } catch (error) {
           logger.error('OAuth sync error:', error)
           // Redirect to error page for sync failures
@@ -181,11 +228,27 @@ export const authOptions: NextAuthOptions = {
           token.id = user.id
           token.roles = user.roles
         }
-        // OAuth providers (Google, GitHub, etc.): assign default user role
+        // OAuth providers (Google, GitHub, etc.): read tokens from the sync cache
         else {
-          token.id = user.id
-          token.roles = ['user'] // Default role for OAuth users
-          token.accessToken = 'oauth-provider' // Mark as OAuth authentication
+          const email = user.email ?? token.email
+          const cached = email ? oauthSyncCache.get(email) : undefined
+
+          if (cached) {
+            token.id = cached.userId
+            token.accessToken = cached.accessToken
+            token.refreshToken = cached.refreshToken
+            token.accessTokenExp = Date.now() + cached.expiresInSeconds * 1000
+            token.roles = cached.roles
+            oauthSyncCache.delete(email!)
+          } else {
+            // Fallback if cache miss — should not happen in normal flow
+            logger.warn('OAuth sync cache miss for user', { email })
+            token.id = user.id
+            token.roles = ['user']
+            token.accessToken = ''
+            token.refreshToken = ''
+            token.accessTokenExp = 0
+          }
         }
       }
 

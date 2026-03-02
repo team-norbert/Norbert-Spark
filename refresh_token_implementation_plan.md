@@ -493,6 +493,7 @@ return {
 The OAuth sync response now also includes `refreshToken` and `expiresIn`. These need to be captured and threaded into the user object. Since NextAuth's `signIn` callback cannot directly modify the `user` object that flows to `jwt`, you have two options:
 
 - **Option A (recommended):** In `signIn`, store the OAuth sync response in a module-scoped `Map<string, OAuthSyncResult>` keyed by email, then read from it in the `jwt` callback. Clear the entry after reading.
+-
 - **Option B:** Have the `jwt` callback make its own call to a backend endpoint to fetch the tokens for OAuth users (heavier, but cleaner separation).
 
 #### 8c. Update `jwt()` callback — the core of silent renewal
