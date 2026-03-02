@@ -404,6 +404,8 @@ describe('authOptions Configuration', () => {
         email: 'google@example.com',
         emailVerified: null,
         accessToken: '',
+        refreshToken: '',
+        expiresInSeconds: 0,
         roles: [],
       }
 
@@ -462,6 +464,8 @@ describe('authOptions Configuration', () => {
         email: 'test@example.com',
         emailVerified: null,
         accessToken: '',
+        refreshToken: '',
+        expiresInSeconds: 0,
         roles: [],
       }
 
@@ -494,6 +498,8 @@ describe('authOptions Configuration', () => {
         email: 'google@example.com',
         emailVerified: null,
         accessToken: '',
+        refreshToken: '',
+        expiresInSeconds: 0,
         roles: [],
       }
 
@@ -533,6 +539,8 @@ describe('authOptions Configuration', () => {
         email: 'google@example.com',
         emailVerified: null,
         accessToken: '',
+        refreshToken: '',
+        expiresInSeconds: 0,
         roles: [],
       }
 
@@ -565,6 +573,8 @@ describe('authOptions Configuration', () => {
         email: 'google@example.com',
         emailVerified: null,
         accessToken: '',
+        refreshToken: '',
+        expiresInSeconds: 0,
         roles: [],
       }
 
@@ -605,6 +615,8 @@ describe('authOptions Configuration', () => {
         email: 'existing@example.com',
         emailVerified: null,
         accessToken: '',
+        refreshToken: '',
+        expiresInSeconds: 0,
         roles: [],
       }
 
@@ -645,6 +657,8 @@ describe('authOptions Configuration', () => {
         email: 'google@example.com',
         emailVerified: null,
         accessToken: '',
+        refreshToken: '',
+        expiresInSeconds: 0,
         roles: [],
       }
 
@@ -683,6 +697,8 @@ describe('authOptions Configuration', () => {
         email: 'google@example.com',
         emailVerified: null,
         accessToken: '',
+        refreshToken: '',
+        expiresInSeconds: 0,
         roles: [],
       }
 
@@ -723,6 +739,8 @@ describe('authOptions Configuration', () => {
         email: 'google@example.com',
         emailVerified: null,
         accessToken: '',
+        refreshToken: '',
+        expiresInSeconds: 0,
         roles: [],
       }
 
@@ -770,7 +788,13 @@ describe('authOptions Configuration', () => {
         roles: ['user'],
       }
 
-      const mockToken = { accessToken: '', id: '', roles: [] } as JWT
+      const mockToken = {
+        accessToken: '',
+        id: '',
+        roles: [],
+        refreshToken: '',
+        accessTokenExp: 0,
+      } as JWT
 
       const result = await authOptions.callbacks!.jwt!({
         token: mockToken,
@@ -789,6 +813,8 @@ describe('authOptions Configuration', () => {
         accessToken: 'mock-token',
         id: 'user-123',
         roles: ['user'],
+        refreshToken: '',
+        accessTokenExp: 0,
       })
     })
 
@@ -799,6 +825,8 @@ describe('authOptions Configuration', () => {
         accessToken: 'existing-token',
         id: 'user-456',
         roles: ['admin'],
+        refreshToken: 'b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2',
+        accessTokenExp: 1735689600000,
       }
 
       const result = await authOptions.callbacks!.jwt!({
@@ -819,6 +847,8 @@ describe('authOptions Configuration', () => {
         accessToken: 'token',
         id: 'user-789',
         roles: ['user'],
+        refreshToken: 'c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3',
+        accessTokenExp: 1735689600000,
         sub: 'user-789',
         iat: 1234567890,
         exp: 1234567890 + 30 * 24 * 60 * 60,
@@ -845,7 +875,13 @@ describe('authOptions Configuration', () => {
         roles: ['user', 'admin', 'superuser'],
       }
 
-      const mockToken = { accessToken: '', id: '', roles: [] } as JWT
+      const mockToken = {
+        accessToken: '',
+        id: '',
+        roles: [],
+        refreshToken: '',
+        accessTokenExp: 0,
+      } as JWT
 
       const result = await authOptions.callbacks!.jwt!({
         token: mockToken,
@@ -1055,7 +1091,7 @@ describe('authOptions Configuration', () => {
 
       // Step 2: JWT callback adds user data to token
       const token = await authOptions.callbacks!.jwt!({
-        token: { accessToken: '', id: '', roles: [] } as JWT,
+        token: { accessToken: '', id: '', roles: [], refreshToken: '', accessTokenExp: 0 } as JWT,
         user: user as NextAuthUser,
         trigger: 'signIn',
         session: undefined,
