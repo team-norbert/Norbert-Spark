@@ -39,14 +39,16 @@ import type { UserRepositoryPort } from '../ports/user.repository.port.js'
  *   userRepository,
  *   emailService,
  *   logger,
- *   tokenGenerator
+ *   tokenGenerator,
+ *   auditLog,
+ *   refreshTokenRepo
  * )
  * const result = await useCase.execute({
  *   email: 'user@example.com',
  *   name: 'John Doe',
  *   role: 'member',
  *   provider: 'google'
- * })
+ * }, auditContext)
  * ```
  */
 export class RegisterUserWithProviderUseCase {
@@ -81,7 +83,8 @@ export class RegisterUserWithProviderUseCase {
    *
    * @param {RegisterUserDto} dto - User registration data (email, name, role, provider)
    * @param auditContext
-   * @returns {Promise<{ userId: string, access_token: string, token_type: string, expires_in: number }>}   *          Registration result with user ID and authentication token
+   * @returns {Promise<{ userId: UserIdType, email: string, accessToken: string, refreshToken: string, expiresInSeconds: number, roles: string[] }>}
+   *          Registration result with user ID, authentication tokens and roles
    * @throws {ConflictException} If a user with the same email already exists
    * @throws {Error} If email validation, database operation, or token generation fails.
    *                 Note: Email service failures are logged but do not throw errors or prevent registration.
@@ -227,7 +230,7 @@ export class RegisterUserWithProviderUseCase {
       email: user.getEmail(),
       accessToken: accessToken,
       refreshToken: newRefreshToken.getRawToken(),
-      expiresInSeconds, // 7 days in seconds
+      expiresInSeconds, // refresh token expiration in seconds
       roles: [user.getRole()],
     }
   }

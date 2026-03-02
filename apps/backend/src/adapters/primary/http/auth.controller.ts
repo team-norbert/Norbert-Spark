@@ -248,7 +248,14 @@ export class AuthController {
    * ```json
    * {
    *   "success": true,
-   *   "message": "OAuth user sync completed"
+   *   "data": {
+   *     "userId": "...",
+   *     "email": "user@example.com",
+   *     "accessToken": "...",
+   *     "refreshToken": "...",
+   *     "expiresInSeconds": 604800,
+   *     "roles": ["user"]
+   *   }
    * }
    * ```
    *
