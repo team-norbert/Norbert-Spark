@@ -17,6 +17,8 @@ function createMockAuthResult(email: string, token: string, roles: string[], use
     userId: new UserId(userId || uuidv7()).getValue(),
     email,
     accessToken: token,
+    refreshToken: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2',
+    expiresInSeconds: 604800,
     roles,
   }
 }
@@ -298,7 +300,13 @@ describe('AuthController', () => {
         expect(sentData.data).toHaveProperty('userId')
         expect(sentData.data).toHaveProperty('email')
         expect(sentData.data).toHaveProperty('accessToken')
+        expect(sentData.data).toHaveProperty('refreshToken')
+        expect(sentData.data).toHaveProperty('expiresInSeconds')
         expect(sentData.data).toHaveProperty('roles')
+        expect(sentData.data.refreshToken).toEqual(expect.any(String))
+        expect(sentData.data.refreshToken).toHaveLength(64)
+        expect(sentData.data.expiresInSeconds).toEqual(expect.any(Number))
+        expect(sentData.data.expiresInSeconds).toBeGreaterThan(0)
       })
 
       it('should include success property set to true', async () => {
@@ -340,6 +348,8 @@ describe('AuthController', () => {
         }
         expect(sentData).toHaveProperty('data')
         expect(sentData.data).toBeDefined()
+        expect(sentData.data).toHaveProperty('refreshToken', mockResult.refreshToken)
+        expect(sentData.data).toHaveProperty('expiresInSeconds', mockResult.expiresInSeconds)
         expect(sentData).not.toHaveProperty('error')
       })
     })

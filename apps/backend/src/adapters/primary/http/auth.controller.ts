@@ -394,6 +394,8 @@ export class AuthController {
           userId: result.userId,
           email: result.email,
           accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
+          expiresInSeconds: result.expiresInSeconds,
           roles: result.roles,
         },
       })
