@@ -966,6 +966,93 @@ describe('authOptions Configuration', () => {
       expect(result.error).toBe('OAuthSyncCacheMiss')
     })
 
+    it('should read OAuth tokens from oauthSyncCache and clear the entry after consumption', async () => {
+      vi.resetModules()
+      const { authOptions } = await import('@/lib/auth/auth-config.js')
+
+      const mockUser = {
+        id: 'google-123',
+        email: 'oauth@example.com',
+        name: 'OAuth User',
+        emailVerified: null,
+        accessToken: '',
+        refreshToken: '',
+        expiresInSeconds: 0,
+        roles: [],
+      }
+
+      const mockAccount = {
+        provider: 'google',
+        providerAccountId: 'google-123',
+        type: 'oauth' as const,
+        access_token: 'google-token',
+      }
+
+      const mockProfile = {
+        email: 'oauth@example.com',
+        name: 'OAuth User',
+        sub: 'google-123',
+      }
+
+      const syncData = {
+        userId: 'backend-user-456',
+        email: 'oauth@example.com',
+        accessToken: 'backend-access-token',
+        refreshToken: 'r'.repeat(64),
+        expiresInSeconds: 3600,
+        roles: ['user'],
+      }
+
+      global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, data: syncData }),
+      })
+
+      // Step 1: signIn populates the oauthSyncCache
+      await authOptions.callbacks!.signIn!({
+        user: mockUser as unknown as NextAuthUser,
+        account: mockAccount,
+        profile: mockProfile,
+      })
+
+      const mockToken = {
+        accessToken: '',
+        id: '',
+        roles: [],
+        refreshToken: '',
+        accessTokenExp: 0,
+      } as JWT
+
+      // Step 2: jwt reads from cache and populates the token
+      const result = await authOptions.callbacks!.jwt!({
+        token: mockToken,
+        user: mockUser as unknown as NextAuthUser,
+        trigger: 'signIn',
+        session: undefined,
+        account: mockAccount,
+        profile: undefined,
+      })
+
+      expect(result.accessToken).toBe('backend-access-token')
+      expect(result.refreshToken).toBe('r'.repeat(64))
+      expect(result.id).toBe('backend-user-456')
+      expect(result.roles).toEqual(['user'])
+      expect(result.accessTokenExp).toBeGreaterThan(Date.now())
+      expect(result.error).toBeUndefined()
+
+      // Step 3: Verify cache is cleared — a second jwt call for the same user is a cache miss
+      const result2 = await authOptions.callbacks!.jwt!({
+        token: { accessToken: '', id: '', roles: [], refreshToken: '', accessTokenExp: 0 } as JWT,
+        user: mockUser as unknown as NextAuthUser,
+        trigger: 'signIn',
+        session: undefined,
+        account: mockAccount,
+        profile: undefined,
+      })
+
+      expect(result2.error).toBe('OAuthSyncCacheMiss')
+    })
+
     describe('Session Callback', () => {
       it('should add token data to session', async () => {
         const authOptions = await getAuthOptions()
