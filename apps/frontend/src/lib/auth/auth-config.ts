@@ -95,37 +95,6 @@ interface CredentialsInput {
  *
  * @see {@link https://next-auth.js.org/configuration/options|NextAuth Options}
  */
-
-const createOAuthSyncResponse = async (token: JWT) => {
-  // ③ Access token expired or about to expire — attempt silent refresh
-  try {
-    const response = await fetch(`${backendUrl}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken: token.refreshToken }),
-    })
-
-    if (!response.ok) {
-      throw new Error('Refresh failed')
-    }
-
-    const result = (await response.json()) as components['schemas']['RefreshTokenResponse']
-    const data = result.data
-
-    token.accessToken = data.accessToken
-    token.refreshToken = data.refreshToken // Rotated token
-    token.accessTokenExp = Date.now() + data.expiresInSeconds * 1000
-    delete token.error
-
-    return token
-  } catch (error) {
-    // Refresh failed — mark the session as errored
-    // The session callback will expose this, and the frontend can force sign-out
-    token.error = 'RefreshTokenExpired'
-    return token
-  }
-}
-
 export const authOptions: NextAuthOptions = {
   providers: [
     // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
