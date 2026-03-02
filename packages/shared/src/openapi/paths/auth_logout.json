@@ -27,9 +27,14 @@
                   "type": "boolean",
                   "example": true
                 },
-                "message": {
-                  "type": "string",
-                  "example": "Logged out"
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Logged out"
+                    }
+                  }
                 }
               }
             }
