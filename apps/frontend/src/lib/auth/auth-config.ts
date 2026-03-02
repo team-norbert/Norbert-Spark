@@ -266,6 +266,17 @@ export const authOptions: NextAuthOptions = {
         return token
       }
 
+      // Defensive defaults for legacy tokens (handles sessions created before these fields existed)
+      if (!token.roles) {
+        token.roles = ['user']
+      }
+      if (token.accessTokenExp === undefined) {
+        token.accessTokenExp = 0
+      }
+      if (token.refreshToken === undefined) {
+        token.refreshToken = ''
+      }
+
       // ② Access token still valid (with 5-minute buffer) — return as-is
       const BUFFER_MS = 5 * 60 * 1000
       if (Date.now() < token.accessTokenExp - BUFFER_MS) {
