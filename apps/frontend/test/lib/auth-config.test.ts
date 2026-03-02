@@ -815,6 +815,8 @@ describe('authOptions Configuration', () => {
         id: 'user-123',
         email: 'test@example.com',
         accessToken: 'mock-token',
+        refreshToken: 'a'.repeat(64),
+        expiresInSeconds: 3600,
         roles: ['user'],
       }
 
@@ -843,9 +845,10 @@ describe('authOptions Configuration', () => {
         accessToken: 'mock-token',
         id: 'user-123',
         roles: ['user'],
-        refreshToken: '',
-        accessTokenExp: 0,
+        refreshToken: 'a'.repeat(64),
+        accessTokenExp: expect.any(Number),
       })
+      expect(result.accessTokenExp).toBeGreaterThan(Date.now())
     })
 
     it('should return token unchanged when user is not provided', async () => {
@@ -902,6 +905,8 @@ describe('authOptions Configuration', () => {
         id: 'admin-123',
         email: 'admin@example.com',
         accessToken: 'admin-token',
+        refreshToken: 'b'.repeat(64),
+        expiresInSeconds: 3600,
         roles: ['user', 'admin', 'superuser'],
       }
 
@@ -1270,6 +1275,8 @@ describe('authOptions Configuration', () => {
               userId: 'user-123',
               email: 'test@example.com',
               accessToken: 'backend-jwt-token',
+              refreshToken: 'd'.repeat(64),
+              expiresInSeconds: 3600,
               roles: ['user'],
             },
           }

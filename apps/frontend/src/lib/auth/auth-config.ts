@@ -1,4 +1,6 @@
+import type { components } from '@norberts-spark/shared/openapi-types'
 import { type NextAuthOptions, type User } from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 
@@ -93,6 +95,37 @@ interface CredentialsInput {
  *
  * @see {@link https://next-auth.js.org/configuration/options|NextAuth Options}
  */
+
+const createOAuthSyncResponse = async (token: JWT) => {
+  // ③ Access token expired or about to expire — attempt silent refresh
+  try {
+    const response = await fetch(`${backendUrl}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: token.refreshToken }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Refresh failed')
+    }
+
+    const result = (await response.json()) as components['schemas']['RefreshTokenResponse']
+    const data = result.data
+
+    token.accessToken = data.accessToken
+    token.refreshToken = data.refreshToken // Rotated token
+    token.accessTokenExp = Date.now() + data.expiresInSeconds * 1000
+    delete token.error
+
+    return token
+  } catch (error) {
+    // Refresh failed — mark the session as errored
+    // The session callback will expose this, and the frontend can force sign-out
+    token.error = 'RefreshTokenExpired'
+    return token
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
@@ -202,20 +235,15 @@ export const authOptions: NextAuthOptions = {
 
           // Store OAuth sync tokens so the jwt callback can pick them up
           const syncResult = (await response.json()) as BackendOAuthSyncResponse
-          if (!syncResult?.success || !syncResult.data) {
-            let errorMessage =
-              syncResult?.error || 'OAuth authentication sync failed. Please try again.'
-            logger.error('OAuth user sync failed with unsuccessful response:', syncResult)
-            return `/error?code=500&message=${encodeURIComponent(errorMessage)}`
+          if (syncResult.data) {
+            oauthSyncCache.set(profile.email, {
+              accessToken: syncResult.data.accessToken,
+              refreshToken: syncResult.data.refreshToken,
+              expiresInSeconds: syncResult.data.expiresInSeconds,
+              userId: syncResult.data.userId,
+              roles: syncResult.data.roles,
+            })
           }
-
-          oauthSyncCache.set(profile.email, {
-            accessToken: syncResult.data.accessToken,
-            refreshToken: syncResult.data.refreshToken,
-            expiresInSeconds: syncResult.data.expiresInSeconds,
-            userId: syncResult.data.userId,
-            roles: syncResult.data.roles,
-          })
         } catch (error) {
           logger.error('OAuth sync error:', error)
           // Redirect to error page for sync failures
@@ -225,13 +253,15 @@ export const authOptions: NextAuthOptions = {
       return true
     },
     async jwt({ account, token, user }) {
-      // Initial sign in
+      // ① Initial sign-in — store tokens from the authentication result
       if (user) {
         // Credentials provider: user object has accessToken and roles from backend
         if (account?.provider === 'credentials') {
           token.accessToken = user.accessToken
+          token.refreshToken = user.refreshToken
+          token.accessTokenExp = Date.now() + user.expiresInSeconds * 1000
           token.id = user.id
-          token.roles = user.roles
+          token.roles = user.roles ?? ['user']
         }
         // OAuth providers (Google, GitHub, etc.): read tokens from the sync cache
         else {
@@ -246,21 +276,53 @@ export const authOptions: NextAuthOptions = {
             token.roles = cached.roles
             oauthSyncCache.delete(email!)
           } else {
-            // Cache miss — should not happen in normal flow.
-            // Mark the token as errored so the session callback and middleware
-            // can force the user to re-authenticate with a clean state.
+            // Fallback if cache miss — should not happen in normal flow
             logger.warn('OAuth sync cache miss for user', { email })
+            token.id = user.id
+            token.roles = ['user']
+            token.accessToken = ''
+            token.refreshToken = ''
+            token.accessTokenExp = 0
             token.error = 'OAuthSyncCacheMiss'
           }
         }
+
+        return token
       }
 
-      // Defensive: ensure roles exist on all tokens (handles old sessions)
-      if (!token.roles) {
-        token.roles = ['user']
+      // ② Access token still valid (with 5-minute buffer) — return as-is
+      const BUFFER_MS = 5 * 60 * 1000
+      if (Date.now() < token.accessTokenExp - BUFFER_MS) {
+        return token
       }
 
-      return token
+      // ③ Access token expired or about to expire — attempt silent refresh
+      try {
+        const response = await fetch(`${backendUrl}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: token.refreshToken }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Refresh failed')
+        }
+
+        const result = (await response.json()) as components['schemas']['RefreshTokenResponse']
+        const data = result.data
+
+        token.accessToken = data.accessToken
+        token.refreshToken = data.refreshToken // Rotated token
+        token.accessTokenExp = Date.now() + data.expiresInSeconds * 1000
+        delete token.error
+
+        return token
+      } catch {
+        // Refresh failed — mark the session as errored
+        // The session callback will expose this, and the frontend can force sign-out
+        token.error = 'RefreshTokenExpired'
+        return token
+      }
     },
     async session({ session, token }) {
       // Send properties to the client
