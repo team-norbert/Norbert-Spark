@@ -11,7 +11,7 @@
     "data": {
       "type": "object",
       "description": "Object containing the new access token and refresh token",
-      "required": ["accessToken", "refreshToken"],
+      "required": ["accessToken", "refreshToken", "expiresIn"],
       "properties": {
         "accessToken": {
           "type": "string",
