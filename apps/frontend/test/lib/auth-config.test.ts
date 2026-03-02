@@ -1058,6 +1058,53 @@ describe('authOptions Configuration', () => {
       expect(result2.error).toBe('OAuthSyncCacheMiss')
     })
 
+    it('should preserve existing error and skip refresh when refreshToken is empty', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockToken = {
+        accessToken: '',
+        id: 'google-123',
+        roles: ['user'],
+        refreshToken: '',
+        accessTokenExp: 0,
+        error: 'OAuthSyncCacheMiss',
+      } as JWT
+
+      const result = await authOptions.callbacks!.jwt!({
+        token: mockToken,
+        // @ts-expect-error - Testing undefined user scenario
+        user: undefined,
+        trigger: 'update',
+        session: undefined,
+      })
+
+      expect(result.error).toBe('OAuthSyncCacheMiss')
+      expect(global.fetch).not.toHaveBeenCalled()
+    })
+
+    it('should set RefreshTokenMissing error when refreshToken is empty and no existing error', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockToken = {
+        accessToken: '',
+        id: 'user-123',
+        roles: ['user'],
+        refreshToken: '',
+        accessTokenExp: 0,
+      } as JWT
+
+      const result = await authOptions.callbacks!.jwt!({
+        token: mockToken,
+        // @ts-expect-error - Testing undefined user scenario
+        user: undefined,
+        trigger: 'update',
+        session: undefined,
+      })
+
+      expect(result.error).toBe('RefreshTokenMissing')
+      expect(global.fetch).not.toHaveBeenCalled()
+    })
+
     describe('Session Callback', () => {
       it('should add token data to session', async () => {
         const authOptions = await getAuthOptions()

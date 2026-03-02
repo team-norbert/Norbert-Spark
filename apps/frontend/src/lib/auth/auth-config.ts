@@ -265,7 +265,15 @@ export const authOptions: NextAuthOptions = {
         return token
       }
 
-      // ③ Access token expired or about to expire — attempt silent refresh
+      // ③ No refresh token available — cannot attempt refresh, preserve existing error
+      if (!token.refreshToken) {
+        if (!token.error) {
+          token.error = 'RefreshTokenMissing'
+        }
+        return token
+      }
+
+      // ④ Access token expired or about to expire — attempt silent refresh
       try {
         const response = await fetch(`${backendUrl}/auth/refresh`, {
           method: 'POST',
