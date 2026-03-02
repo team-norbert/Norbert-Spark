@@ -142,7 +142,6 @@ describe('backendRequest 401 transparent retry', () => {
     vi.mocked(getServerSession).mockResolvedValueOnce({
       accessToken: 'new-access-token',
       expires: '2099-01-01',
-       
     } as any)
 
     const result = await backendRequest({ method: 'GET', endpoint: '/api/data' })
@@ -171,7 +170,7 @@ describe('backendRequest 401 transparent retry', () => {
     const { backendRequest } = await import('@/infrastructure/serverActions/baseServerAction.js')
     const { getServerSession } = await import('next-auth')
     const mockGetServerSession = vi.mocked(getServerSession)
-     
+
     mockGetServerSession.mockResolvedValueOnce({
       accessToken: 'new-access-token',
       expires: '2099-01-01',
@@ -194,7 +193,7 @@ describe('backendRequest 401 transparent retry', () => {
 
     const { backendRequest } = await import('@/infrastructure/serverActions/baseServerAction.js')
     const { getServerSession } = await import('next-auth')
-     
+
     vi.mocked(getServerSession).mockResolvedValueOnce({
       accessToken: 'new-access-token',
       expires: '2099-01-01',
