@@ -37,6 +37,16 @@
             "enum": ["user", "admin", "moderator"]
           },
           "example": ["user"]
+        },
+        "refreshToken": {
+          "type": "string",
+          "description": "JWT refresh token for obtaining new access tokens",
+          "example": "dGhpc2lzYXJlZnJlc2h0b2tlbg=="
+        },
+        "expiresIn": {
+          "type": "integer",
+          "description": "Access token expiration time in seconds",
+          "example": 3600
         }
       }
     }

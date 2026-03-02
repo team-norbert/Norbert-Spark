@@ -109,6 +109,12 @@
     },
     "/company/details": {
       "$ref": "paths/company_details.json"
+    },
+    "/auth/refresh": {
+      "$ref": "paths/auth_refresh.json"
+    },
+    "/auth/logout": {
+      "$ref": "paths/auth_logout.json"
     }
   },
   "components": {
