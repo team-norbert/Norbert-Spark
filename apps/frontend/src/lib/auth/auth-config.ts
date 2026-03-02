@@ -34,7 +34,7 @@ interface CredentialsInput {
  *
  * @property {Array} providers - Authentication providers (Credentials)
  * @property {object} callbacks - Custom callbacks for JWT and session handling
- * @property {Function} callbacks.jwt - JWT callback to add custom properties (accessToken, id, roles)
+ * @property {Function} callbacks.jwt - JWT callback to add custom properties (accessToken, id, roles, refreshToken, accessTokenExp)
  * @property {Function} callbacks.session - Session callback to expose JWT properties to client
  * @property {object} pages - Custom authentication page routes
  * @property {string} pages.signIn - Sign-in page route (/login)
@@ -180,6 +180,8 @@ export const authOptions: NextAuthOptions = {
           token.accessToken = user.accessToken
           token.id = user.id
           token.roles = user.roles
+          token.refreshToken = user.refreshToken
+          token.accessTokenExp = Date.now() + user.expiresInSeconds * 1000
         }
         // OAuth providers (Google, GitHub, etc.): assign default user role
         else {
