@@ -130,11 +130,13 @@ export class AuthController {
    *
    * Error responses:
    * - `401` — JWT missing or invalid (rejected by `authMiddleware` before reaching this handler).
-   * - `500` — Token revocation failed (database error or unexpected exception).
+   * - `4xx` — Any `BaseException` thrown by the logout use case is returned with its own `statusCode`
+   *   (for example, `401`, `403`, `404`), along with an error message.
+   * - `500` — Token revocation failed due to an unexpected server error.
    *
    * Error response format:
    * ```json
-   * { "success": false, "error": "Failed to log out user due to a database error" }
+   * { "success": false, "error": "Failed to log out user" }
    * ```
    *
    * @example
