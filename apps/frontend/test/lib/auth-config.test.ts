@@ -112,6 +112,8 @@ describe('authOptions Configuration', () => {
           userId: 'user-123',
           email: 'test@example.com',
           accessToken: 'mock-jwt-token',
+          refreshToken: 'mock-refresh-token',
+          expiresInSeconds: 3600,
           roles: ['user'],
         },
       }
@@ -135,6 +137,8 @@ describe('authOptions Configuration', () => {
         id: 'user-123',
         email: 'test@example.com',
         accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token',
+        expiresInSeconds: 3600,
         roles: ['user'],
       })
 
@@ -329,6 +333,8 @@ describe('authOptions Configuration', () => {
           userId: 'user-123',
           email: 'admin@example.com',
           accessToken: 'admin-token',
+          refreshToken: 'admin-refresh-token',
+          expiresInSeconds: 3600,
           roles: ['user', 'admin', 'moderator'],
         },
       }
@@ -352,6 +358,8 @@ describe('authOptions Configuration', () => {
         id: 'user-123',
         email: 'admin@example.com',
         accessToken: 'admin-token',
+        refreshToken: 'admin-refresh-token',
+        expiresInSeconds: 3600,
         roles: ['user', 'admin', 'moderator'],
       })
     })
@@ -363,6 +371,8 @@ describe('authOptions Configuration', () => {
           userId: 'user-123',
           email: 'test@example.com',
           accessToken: 'token',
+          refreshToken: 'refresh-token',
+          expiresInSeconds: 3600,
           // roles missing
         },
       }
@@ -386,6 +396,8 @@ describe('authOptions Configuration', () => {
         id: 'user-123',
         email: 'test@example.com',
         accessToken: 'token',
+        refreshToken: 'refresh-token',
+        expiresInSeconds: 3600,
         roles: [],
       })
     })
@@ -779,43 +791,53 @@ describe('authOptions Configuration', () => {
 
   describe('JWT Callback', () => {
     it('should add user data to token on initial sign in', async () => {
-      const authOptions = await getAuthOptions()
+      const FIXED_NOW = 1700000000000
+      vi.useFakeTimers()
+      vi.setSystemTime(FIXED_NOW)
 
-      const mockUser = {
-        id: 'user-123',
-        email: 'test@example.com',
-        accessToken: 'mock-token',
-        roles: ['user'],
+      try {
+        const authOptions = await getAuthOptions()
+
+        const mockUser = {
+          id: 'user-123',
+          email: 'test@example.com',
+          accessToken: 'mock-token',
+          refreshToken: 'mock-refresh-token',
+          expiresInSeconds: 3600,
+          roles: ['user'],
+        }
+
+        const mockToken = {
+          accessToken: '',
+          id: '',
+          roles: [],
+          refreshToken: '',
+          accessTokenExp: 0,
+        } as JWT
+
+        const result = await authOptions.callbacks!.jwt!({
+          token: mockToken,
+          user: mockUser as NextAuthUser,
+          trigger: 'signIn',
+          session: undefined,
+          account: {
+            provider: 'credentials',
+            type: 'credentials',
+            providerAccountId: 'test-account-id',
+          },
+          profile: undefined,
+        })
+
+        expect(result).toEqual({
+          accessToken: 'mock-token',
+          id: 'user-123',
+          roles: ['user'],
+          refreshToken: 'mock-refresh-token',
+          accessTokenExp: FIXED_NOW + 3600 * 1000,
+        })
+      } finally {
+        vi.useRealTimers()
       }
-
-      const mockToken = {
-        accessToken: '',
-        id: '',
-        roles: [],
-        refreshToken: '',
-        accessTokenExp: 0,
-      } as JWT
-
-      const result = await authOptions.callbacks!.jwt!({
-        token: mockToken,
-        user: mockUser as NextAuthUser,
-        trigger: 'signIn',
-        session: undefined,
-        account: {
-          provider: 'credentials',
-          type: 'credentials',
-          providerAccountId: 'test-account-id',
-        },
-        profile: undefined,
-      })
-
-      expect(result).toEqual({
-        accessToken: 'mock-token',
-        id: 'user-123',
-        roles: ['user'],
-        refreshToken: '',
-        accessTokenExp: 0,
-      })
     })
 
     it('should return token unchanged when user is not provided', async () => {
@@ -872,6 +894,8 @@ describe('authOptions Configuration', () => {
         id: 'admin-123',
         email: 'admin@example.com',
         accessToken: 'admin-token',
+        refreshToken: 'admin-refresh-token',
+        expiresInSeconds: 3600,
         roles: ['user', 'admin', 'superuser'],
       }
 
@@ -1051,78 +1075,90 @@ describe('authOptions Configuration', () => {
 
   describe('Integration Tests', () => {
     it('should complete full authentication flow', async () => {
+      const FIXED_NOW = 1700000000000
+      vi.useFakeTimers()
+      vi.setSystemTime(FIXED_NOW)
       vi.resetModules()
-      const { authOptions } = await import('@/lib/auth/auth-config.js')
 
-      // Step 1: Authorize user
-      const mockBackendResponse = {
-        success: true,
-        data: {
-          userId: 'user-123',
-          email: 'test@example.com',
-          accessToken: 'backend-jwt-token',
-          roles: ['user'],
-        },
-      }
+      try {
+        const { authOptions } = await import('@/lib/auth/auth-config.js')
 
-      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockBackendResponse,
-      })
-
-      // Credentials provider is now at index 1 (Google is at 0)
-      const provider = authOptions.providers[1] as {
-        options: {
-          authorize: (
-            credentials: Record<string, string>,
-            req: unknown
-          ) => Promise<NextAuthUser | null>
+        // Step 1: Authorize user
+        const mockBackendResponse = {
+          success: true,
+          data: {
+            userId: 'user-123',
+            email: 'test@example.com',
+            accessToken: 'backend-jwt-token',
+            refreshToken: 'backend-refresh-token',
+            expiresInSeconds: 3600,
+            roles: ['user'],
+          },
         }
+
+        ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockBackendResponse,
+        })
+
+        // Credentials provider is now at index 1 (Google is at 0)
+        const provider = authOptions.providers[1] as {
+          options: {
+            authorize: (
+              credentials: Record<string, string>,
+              req: unknown
+            ) => Promise<NextAuthUser | null>
+          }
+        }
+        const user = await provider.options.authorize(
+          {
+            email: 'test@example.com',
+            password: 'password123',
+          },
+          {}
+        )
+
+        expect(user).toBeDefined()
+
+        // Step 2: JWT callback adds user data to token
+        const token = await authOptions.callbacks!.jwt!({
+          token: { accessToken: '', id: '', roles: [], refreshToken: '', accessTokenExp: 0 } as JWT,
+          user: user as NextAuthUser,
+          trigger: 'signIn',
+          session: undefined,
+          account: {
+            provider: 'credentials',
+            type: 'credentials',
+            providerAccountId: 'test-account-id',
+          },
+          profile: undefined,
+        })
+
+        expect(token.accessToken).toBe('backend-jwt-token')
+        expect(token.id).toBe('user-123')
+        expect(token.roles).toEqual(['user'])
+        expect(token.refreshToken).toBe('backend-refresh-token')
+        expect(token.accessTokenExp).toBe(FIXED_NOW + 3600 * 1000)
+
+        // Step 3: Session callback adds token data to session
+        const session = await authOptions.callbacks!.session!({
+          session: {
+            user: { email: 'test@example.com' },
+            expires: '2025-12-31',
+          } as Session,
+          token: token as JWT,
+          // @ts-expect-error - Testing with custom User type instead of AdapterUser
+          user: undefined as unknown as NextAuthUser,
+          trigger: 'update',
+          newSession: undefined,
+        })
+
+        expect((session.user as Session['user'])?.id).toBe('user-123')
+        expect((session.user as Session['user'])?.roles).toEqual(['user'])
+        expect((session as Session).accessToken).toBe('backend-jwt-token')
+      } finally {
+        vi.useRealTimers()
       }
-      const user = await provider.options.authorize(
-        {
-          email: 'test@example.com',
-          password: 'password123',
-        },
-        {}
-      )
-
-      expect(user).toBeDefined()
-
-      // Step 2: JWT callback adds user data to token
-      const token = await authOptions.callbacks!.jwt!({
-        token: { accessToken: '', id: '', roles: [], refreshToken: '', accessTokenExp: 0 } as JWT,
-        user: user as NextAuthUser,
-        trigger: 'signIn',
-        session: undefined,
-        account: {
-          provider: 'credentials',
-          type: 'credentials',
-          providerAccountId: 'test-account-id',
-        },
-        profile: undefined,
-      })
-
-      expect(token.accessToken).toBe('backend-jwt-token')
-      expect(token.id).toBe('user-123')
-      expect(token.roles).toEqual(['user'])
-
-      // Step 3: Session callback adds token data to session
-      const session = await authOptions.callbacks!.session!({
-        session: {
-          user: { email: 'test@example.com' },
-          expires: '2025-12-31',
-        } as Session,
-        token: token as JWT,
-        // @ts-expect-error - Testing with custom User type instead of AdapterUser
-        user: undefined as unknown as NextAuthUser,
-        trigger: 'update',
-        newSession: undefined,
-      })
-
-      expect((session.user as Session['user'])?.id).toBe('user-123')
-      expect((session.user as Session['user'])?.roles).toEqual(['user'])
-      expect((session as Session).accessToken).toBe('backend-jwt-token')
     })
   })
 })
