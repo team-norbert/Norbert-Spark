@@ -40,6 +40,20 @@
           }
         }
       },
+      "401": {
+        "description": "Refresh token is invalid, expired, or has been revoked",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Invalid or expired refresh token"
+            }
+          }
+        }
+      },
       "500": {
         "description": "Internal server error",
         "content": {

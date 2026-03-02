@@ -11,12 +11,19 @@ export class PostRefreshDTO {
     if (!isDefined(data) || !isObject(data)) {
       throw new TypeException('Expected an object')
     }
-    if (!is64CharHexString(data.refreshToken.trim())) {
+
+    if (!isDefined((data as any).refreshToken) || typeof (data as any).refreshToken !== 'string') {
+      throw new TypeException('Expected refreshToken to be a string')
+    }
+
+    const trimmedRefreshToken = (data as any).refreshToken.trim()
+
+    if (!is64CharHexString(trimmedRefreshToken)) {
       throw new ValidationException(
         'Invalid refreshToken: must be a 64-character hexadecimal string'
       )
     }
 
-    return new PostRefreshDTO(data.refreshToken.trim())
+    return new PostRefreshDTO(trimmedRefreshToken)
   }
 }
