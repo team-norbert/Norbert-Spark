@@ -9,6 +9,11 @@
         "bearerAuth": []
       }
     ],
+    "requestBody": {
+      "description": "No request body required for logout",
+      "required": false,
+      "content": {}
+    },
     "responses": {
       "200": {
         "description": "Successfully logged out",
