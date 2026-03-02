@@ -113,8 +113,14 @@ async function attemptRetry<T>(options: BackendRequestOptions): Promise<T> {
 }
 
 /**
- * Handles a caught 401 error: attempts a transparent retry on the first attempt,
- * or redirects to sign-in if this is already a retry or if `redirectOn401` is false.
+ * Handles a caught 401 error.
+ *
+ * - If `redirectOn401 !== false` and this is the first 401 (`_isRetry` is not set),
+ *   it attempts a transparent retry via `attemptRetry`.
+ * - If `redirectOn401 !== false` and this is already a retry (`_isRetry` is true),
+ *   it redirects to the sign-in page.
+ * - If `redirectOn401 === false`, it does not redirect and rethrows the 401 error,
+ *   allowing the caller to handle it (for example, with a custom flow).
  */
 async function handle401<T>(
   error: Error & { status?: number },
