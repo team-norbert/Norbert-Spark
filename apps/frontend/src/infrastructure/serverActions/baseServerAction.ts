@@ -1,8 +1,10 @@
 'use server'
 // Shared utilities (error handling, logging, SSL handling)
 import { redirect } from 'next/navigation.js'
+import { getServerSession } from 'next-auth'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
+import { authOptions } from '@/lib/auth/auth-config.js'
 
 const logger = createLogger({ prefix: 'backendRequest' })
 
@@ -25,6 +27,12 @@ export interface BackendRequestOptions {
    * When false, a 401 error will throw an Error with status 401 instead of redirecting.
    */
   redirectOn401?: boolean
+  /**
+   * Internal flag — set automatically by the retry logic on a 401.
+   * Prevents infinite retry loops. Do not set manually.
+   * @internal
+   */
+  _isRetry?: boolean
 }
 
 function normalizeUrl(apiUrl: string, endpoint: string) {
@@ -38,13 +46,13 @@ function normalizeUrl(apiUrl: string, endpoint: string) {
 }
 
 /**
- * Parse and handle response from fetch or node-fetch
- * Extracts JSON, handles errors, and throws with proper context
+ * Parse and handle response from fetch or node-fetch.
+ * Extracts JSON, handles errors, and throws with proper context.
+ * 401 errors are thrown (not redirected) so the caller can attempt a transparent retry.
  */
 async function handleResponse<T>(
   res: Response | Awaited<ReturnType<typeof import('node-fetch').default>>,
-  url: string,
-  redirectOn401 = true
+  url: string
 ): Promise<T> {
   const text = await res.text()
   let parsed: unknown
@@ -56,13 +64,6 @@ async function handleResponse<T>(
 
   if (!res.ok) {
     logger.error('[backendRequest] non-ok response', { url, status: res.status, body: parsed })
-
-    // Redirect to signin on 401 Unauthorized (JWT expired or invalid)
-    // Only redirect if redirectOn401 is true (default behavior)
-    if (res.status === 401 && redirectOn401) {
-      logger.info('[backendRequest] JWT expired or unauthorized - redirecting to signin')
-      redirect('/signin?error=session_expired')
-    }
 
     const extractedError = (() => {
       if (!parsed || typeof parsed !== 'object') return undefined
@@ -81,6 +82,57 @@ async function handleResponse<T>(
   }
 
   return parsed as T
+}
+
+/**
+ * Attempt a single transparent retry after a 401 by refreshing the session.
+ *
+ * Calls `getServerSession()` which triggers the NextAuth `jwt` callback,
+ * performing a silent token refresh if the access token has expired.
+ * If the refresh succeeds, the original request is retried once with the
+ * new access token. If the refresh fails, the user is redirected to sign in.
+ */
+async function attemptRetry<T>(options: BackendRequestOptions): Promise<T> {
+  logger.info('[backendRequest] 401 received — attempting silent token refresh')
+  const refreshedSession = await getServerSession(authOptions)
+
+  if (refreshedSession?.accessToken && !refreshedSession?.error) {
+    logger.info('[backendRequest] Token refreshed — retrying request')
+    return backendRequest<T>({
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${refreshedSession.accessToken}`,
+      },
+      _isRetry: true,
+    })
+  }
+
+  logger.warn('[backendRequest] Token refresh failed — redirecting to sign-in')
+  redirect('/signin?error=session_expired')
+}
+
+/**
+ * Handles a caught 401 error.
+ *
+ * - If `redirectOn401 !== false` and this is the first 401 (`_isRetry` is not set),
+ *   it attempts a transparent retry via `attemptRetry`.
+ * - If `redirectOn401 !== false` and this is already a retry (`_isRetry` is true),
+ *   it redirects to the sign-in page.
+ * - If `redirectOn401 === false`, it does not redirect and rethrows the 401 error,
+ *   allowing the caller to handle it (for example, with a custom flow).
+ */
+async function handle401<T>(
+  error: Error & { status?: number },
+  options: BackendRequestOptions
+): Promise<T> {
+  if (error.status === 401 && options.redirectOn401 !== false) {
+    if (!options._isRetry) {
+      return attemptRetry<T>(options)
+    }
+    redirect('/signin?error=session_expired')
+  }
+  throw error
 }
 
 export async function backendRequest<T>(options: BackendRequestOptions): Promise<T> {
@@ -140,7 +192,9 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
-      return await handleResponse<T>(res, url, options.redirectOn401)
+      return await handleResponse<T>(res, url)
+    } catch (err) {
+      return handle401<T>(err as Error & { status?: number }, options)
     } finally {
       clearTimeout(timeout)
     }
@@ -159,7 +213,9 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
-      return await handleResponse<T>(res, url, options.redirectOn401)
+      return await handleResponse<T>(res, url)
+    } catch (err) {
+      return handle401<T>(err as Error & { status?: number }, options)
     } finally {
       clearTimeout(timeout)
     }
