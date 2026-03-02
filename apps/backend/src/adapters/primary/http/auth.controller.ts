@@ -103,12 +103,13 @@ export class AuthController {
   async refresh(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       // TODO: placeholder -> 6b. New handler: `refresh()`
-      reply.code(500).send({
+      reply.code(501).send({
         success: false,
+        error: 'Token refresh endpoint is not implemented yet',
       })
     } catch (error) {
       this.logger.error(
-        'Error in login handler',
+        'Error in refresh handler',
         error instanceof Error ? error : new Error(String(error))
       )
       const err = error as Error
