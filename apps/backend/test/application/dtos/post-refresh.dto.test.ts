@@ -70,7 +70,7 @@ describe('PostRefreshDTO', () => {
         const dto = PostRefreshDTO.validate(data)
 
         expect(dto).toBeInstanceOf(PostRefreshDTO)
-        expect(dto.refreshToken).toBe(`  ${VALID_HASH}  `)
+        expect(dto.refreshToken).toBe(VALID_HASH)
       })
     })
 

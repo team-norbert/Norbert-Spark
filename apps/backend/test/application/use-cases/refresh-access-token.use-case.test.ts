@@ -168,7 +168,8 @@ describe('RefreshAccessTokenUseCase', () => {
         expect(result.accessToken).toBe('mock-access-token')
         expect(result.refreshToken).toBeDefined()
         expect(result.refreshToken).toHaveLength(64)
-        expect(result.expiresIn).toBeInstanceOf(Date)
+        expect(result.expiresInSeconds).toBeTypeOf('number')
+        expect(result.expiresInSeconds).toBeGreaterThan(0)
       })
 
       it('should hash incoming refresh token and look it up', async () => {
@@ -303,8 +304,8 @@ describe('RefreshAccessTokenUseCase', () => {
 
         expect(result.accessToken).toBe('mock-access-token')
         expect(result.refreshToken).toMatch(/^[0-9a-f]{64}$/i)
-        expect(result.expiresIn).toBeInstanceOf(Date)
-        expect(result.expiresIn.getTime()).toBeGreaterThan(Date.now())
+        expect(result.expiresInSeconds).toBeTypeOf('number')
+        expect(result.expiresInSeconds).toBeGreaterThan(0)
       })
 
       it('should log execution start with info level', async () => {

@@ -209,7 +209,7 @@ export class RefreshAccessTokenUseCase {
       return {
         accessToken: newlyGeneratedAccessToken,
         refreshToken: newRefreshToken.getRawToken(),
-        expiresInSeconds: expiresAt.getSeconds(),
+        expiresInSeconds,
       }
     } catch (error) {
       this.logger.error(

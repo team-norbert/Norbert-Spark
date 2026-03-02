@@ -205,7 +205,7 @@ describe('Type Guards', () => {
     })
 
     it('should return true for a valid 64-character mixed-case hex string', () => {
-      const hash = 'aB3dEf0123456789ABCDEFabcdef01234567890ABCDEF0123456789abcdef01'
+      const hash = 'aB3dEf0123456789ABCDEFabcdef01234567890ABCDEF0123456789abcdef01a'
       expect(is64CharHexString(hash)).toBe(true)
     })
 
