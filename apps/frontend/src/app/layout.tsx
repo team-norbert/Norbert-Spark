@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={robotoMono.variable}>
       <body>
-        <SessionProvider>
+        <SessionProvider refetchInterval={4 * 60} refetchOnWindowFocus={true}>
           <SessionGuard>
             <QueryProvider>
               <ThemeRegistry>{children}</ThemeRegistry>

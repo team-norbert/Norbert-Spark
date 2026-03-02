@@ -6,6 +6,10 @@ import { SessionProvider as NextAuthSessionProvider } from 'next-auth/react'
 interface SessionProviderProps {
   children: React.ReactNode
   session?: Session | null
+  /** Polling interval in seconds to re-fetch the session (triggers jwt callback for silent refresh) */
+  refetchInterval?: number
+  /** Whether to re-fetch the session when the window regains focus */
+  refetchOnWindowFocus?: boolean
 }
 
 /**
@@ -14,11 +18,24 @@ interface SessionProviderProps {
  *
  * @example
  * ```tsx
- * <SessionProvider>
+ * <SessionProvider refetchInterval={4 * 60} refetchOnWindowFocus>
  *   <YourApp />
  * </SessionProvider>
  * ```
  */
-export function SessionProvider({ children, session }: SessionProviderProps) {
-  return <NextAuthSessionProvider session={session}>{children}</NextAuthSessionProvider>
+export function SessionProvider({
+  children,
+  refetchInterval,
+  refetchOnWindowFocus,
+  session,
+}: SessionProviderProps) {
+  return (
+    <NextAuthSessionProvider
+      session={session}
+      refetchInterval={refetchInterval}
+      refetchOnWindowFocus={refetchOnWindowFocus}
+    >
+      {children}
+    </NextAuthSessionProvider>
+  )
 }
