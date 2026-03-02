@@ -241,13 +241,11 @@ export const authOptions: NextAuthOptions = {
             token.roles = cached.roles
             oauthSyncCache.delete(email!)
           } else {
-            // Fallback if cache miss — should not happen in normal flow
+            // Cache miss — should not happen in normal flow.
+            // Mark the token as errored so the session callback and middleware
+            // can force the user to re-authenticate with a clean state.
             logger.warn('OAuth sync cache miss for user', { email })
-            token.id = user.id
-            token.roles = ['user']
-            token.accessToken = ''
-            token.refreshToken = ''
-            token.accessTokenExp = 0
+            token.error = 'OAuthSyncCacheMiss'
           }
         }
       }
@@ -266,6 +264,9 @@ export const authOptions: NextAuthOptions = {
         session.user.roles = token.roles as string[]
       }
       session.accessToken = token.accessToken as string
+      if (token.error) {
+        session.error = token.error
+      }
       return session
     },
     async redirect({ baseUrl, url }) {

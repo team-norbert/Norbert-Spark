@@ -13,6 +13,7 @@ export interface MockTokenOptions {
   accessTokenExp?: number
   id?: string
   roles?: string[]
+  error?: string
 }
 
 /**
