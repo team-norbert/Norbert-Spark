@@ -44,7 +44,7 @@ import type { UserRepositoryPort } from '../ports/user.repository.port.js'
  *   'a1b2c3...', // 64-char hex refresh token from client
  *   { userId: null, ipAddress: '127.0.0.1', userAgent: 'Mozilla/5.0...' }
  * )
- * // Returns: { accessToken: 'jwt...', refreshToken: 'new64char...', expiresIn: Date }
+ * // Returns: { accessToken: 'jwt...', refreshToken: 'new64char...', expiresInSeconds: number }
  * ```
  */
 export class RefreshAccessTokenUseCase {
@@ -76,7 +76,7 @@ export class RefreshAccessTokenUseCase {
    * 5. If valid → revoke current token, load user, generate new tokens
    * 6. Store new refresh token with SAME tokenFamily (enables rotation tracking)
    * 7. Audit log successful refresh
-   * 8. Return new access token, new refresh token, and expiration date
+   * 8. Return new access token, new refresh token, and expiration time in seconds
    *
    * Security guarantees:
    * - Only valid (non-revoked, non-expired) tokens can be refreshed
@@ -86,7 +86,7 @@ export class RefreshAccessTokenUseCase {
    *
    * @param rawRefreshToken - 64-character hexadecimal refresh token from client (e.g., from cookie or Authorization header)
    * @param auditContext - Context containing IP address, user agent, and current user ID for audit trail
-   * @returns Promise resolving to object with new access token (JWT), new refresh token (64-char hex), and expiration date
+   * @returns Promise resolving to object with new access token (JWT), new refresh token (64-char hex), and expiration time in seconds
    *
    * @throws {ValidationException} If rawRefreshToken format is invalid (not 64-char hex)
    * @throws {UnauthorizedException} If token not found in database
@@ -103,7 +103,7 @@ export class RefreshAccessTokenUseCase {
    *   )
    *   // Set new tokens in response
    *   res.cookie('refreshToken', result.refreshToken, { httpOnly: true, secure: true })
-   *   res.json({ accessToken: result.accessToken, expiresIn: result.expiresIn })
+   *   res.json({ accessToken: result.accessToken, expiresInSeconds: result.expiresInSeconds })
    * } catch (error) {
    *   if (error instanceof UnauthorizedException) {
    *     // Handle invalid/expired token
@@ -115,7 +115,7 @@ export class RefreshAccessTokenUseCase {
   async execute(
     rawRefreshToken: string,
     auditContext: AuditContext
-  ): Promise<{ accessToken: string; refreshToken: string; expiresIn: Date }> {
+  ): Promise<{ accessToken: string; refreshToken: string; expiresInSeconds: number }> {
     this.logger.info('Executing RefreshAccessTokenUseCase', {
       tokenHash: crypto.createHash('sha256').update(rawRefreshToken).digest('hex'),
     })
@@ -155,7 +155,7 @@ export class RefreshAccessTokenUseCase {
        *    d. Generate new refresh token (RefreshToken.generate())
        *    e. Store new refresh token with SAME tokenFamily
        *    f. Audit log: 'TOKEN_REFRESHED'
-       *    g. Return { accessToken, refreshToken: newToken.getRawToken(), expiresIn }
+       *    g. Return { accessToken, refreshToken: newToken.getRawToken(), expiresInSeconds }
        */
 
       await this.refreshTokenRepo.revokeByHash(token.getHash())
@@ -209,7 +209,7 @@ export class RefreshAccessTokenUseCase {
       return {
         accessToken: newlyGeneratedAccessToken,
         refreshToken: newRefreshToken.getRawToken(),
-        expiresIn: expiresAt,
+        expiresInSeconds,
       }
     } catch (error) {
       this.logger.error(

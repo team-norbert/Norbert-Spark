@@ -10,7 +10,7 @@
     "data": {
       "type": "object",
       "description": "Authentication result data",
-      "required": ["userId", "email", "accessToken", "roles", "refreshToken", "expiresIn"],
+      "required": ["userId", "email", "accessToken", "roles"],
       "properties": {
         "userId": {
           "type": "string",
@@ -40,10 +40,13 @@
         },
         "refreshToken": {
           "type": "string",
-          "description": "JWT refresh token for obtaining new access tokens",
-          "example": "dGhpc2lzYXJlZnJlc2h0b2tlbg=="
+          "description": "A 64-character hexadecimal refresh token (lowercase or uppercase 0-9, a-f)",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "example": "4f8c2a9d7b6e5c3f1a0b9d8e7f6c5b4a3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a"
         },
-        "expiresIn": {
+        "expiresInSeconds": {
           "type": "integer",
           "description": "Access token expiration time in seconds",
           "example": 3600

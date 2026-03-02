@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AuthController } from '../../../../src/adapters/primary/http/auth.controller.js'
 import { LoginUserUseCase } from '../../../../src/application/use-cases/login-user.use-case.js'
+import { RefreshAccessTokenUseCase } from '../../../../src/application/use-cases/refresh-access-token.use-case.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { UnauthorizedException } from '../../../../src/shared/exceptions/unauthorized.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
@@ -22,6 +23,7 @@ function createMockAuthResult(email: string, token: string, roles: string[], use
 describe('AuthController', () => {
   let controller: AuthController
   let mockLoginUserUseCase: LoginUserUseCase
+  let mockRefreshAccessTokenUseCase: RefreshAccessTokenUseCase
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
   let mockLogger: {
@@ -44,6 +46,10 @@ describe('AuthController', () => {
       execute: vi.fn(),
     } as any
 
+    mockRefreshAccessTokenUseCase = {
+      execute: vi.fn(),
+    } as any
+
     mockLogger = {
       info: vi.fn(),
       error: vi.fn(),
@@ -55,7 +61,8 @@ describe('AuthController', () => {
     controller = new AuthController(
       mockLogger as any,
       mockLoginUserUseCase,
-      mockRegisterUserWithProviderUseCase
+      mockRegisterUserWithProviderUseCase,
+      mockRefreshAccessTokenUseCase
     )
 
     // Create mock Fastify reply with chainable methods
@@ -79,8 +86,14 @@ describe('AuthController', () => {
   describe('constructor', () => {
     it('should create instance with LoginUserUseCase dependency', () => {
       const mockRegisterUseCase = { execute: vi.fn() } as any
+      const mockRefreshUseCase = { execute: vi.fn() } as any
       const mockLogger = { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() } as any
-      const instance = new AuthController(mockLogger, mockLoginUserUseCase, mockRegisterUseCase)
+      const instance = new AuthController(
+        mockLogger,
+        mockLoginUserUseCase,
+        mockRegisterUseCase,
+        mockRefreshUseCase
+      )
 
       expect(instance).toBeInstanceOf(AuthController)
       expect(instance).toBeDefined()
@@ -88,8 +101,14 @@ describe('AuthController', () => {
 
     it('should accept LoginUserUseCase as dependency', () => {
       const mockRegisterUseCase = { execute: vi.fn() } as any
+      const mockRefreshUseCase = { execute: vi.fn() } as any
       const mockLogger = { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() } as any
-      const instance = new AuthController(mockLogger, mockLoginUserUseCase, mockRegisterUseCase)
+      const instance = new AuthController(
+        mockLogger,
+        mockLoginUserUseCase,
+        mockRegisterUseCase,
+        mockRefreshUseCase
+      )
 
       expect(instance).toBeDefined()
       expect(instance).toBeInstanceOf(AuthController)
@@ -831,6 +850,341 @@ describe('AuthController', () => {
 
         await controller.login(mockRequest, mockReply)
 
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+    })
+  })
+
+  describe('refresh()', () => {
+    const VALID_REFRESH_TOKEN = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+
+    const mockRefreshResult = {
+      accessToken: 'new-mock-access-token',
+      refreshToken: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2',
+      expiresInSeconds: 604800,
+    }
+
+    describe('successful refresh', () => {
+      it('should return 200 with new tokens for a valid refresh token', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockResolvedValue(mockRefreshResult)
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: {
+            accessToken: mockRefreshResult.accessToken,
+            refreshToken: mockRefreshResult.refreshToken,
+            expiresInSeconds: mockRefreshResult.expiresInSeconds,
+          },
+        })
+      })
+
+      it('should call use case with the refresh token and audit context', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockResolvedValue(mockRefreshResult)
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockRefreshAccessTokenUseCase.execute).toHaveBeenCalledTimes(1)
+        expect(mockRefreshAccessTokenUseCase.execute).toHaveBeenCalledWith(
+          VALID_REFRESH_TOKEN,
+          expect.objectContaining({
+            ipAddress: expect.any(String),
+            userAgent: 'test-user-agent',
+          })
+        )
+      })
+
+      it('should chain reply.code() before reply.send()', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockResolvedValue(mockRefreshResult)
+
+        await controller.refresh(mockRequest, mockReply)
+
+        const codeCall = vi.mocked(mockReply.code).mock.invocationCallOrder[0]
+        const sendCall = vi.mocked(mockReply.send).mock.invocationCallOrder[0]
+        expect(codeCall).toBeDefined()
+        expect(sendCall).toBeDefined()
+        expect(codeCall!).toBeLessThan(sendCall!)
+      })
+
+      it('should include success: true in response', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockResolvedValue(mockRefreshResult)
+
+        await controller.refresh(mockRequest, mockReply)
+
+        const sentData = vi.mocked(mockReply.send).mock.calls[0]?.[0] as Record<string, any>
+        expect(sentData.success).toBe(true)
+        expect(sentData).toHaveProperty('data')
+        expect(sentData).not.toHaveProperty('error')
+      })
+
+      it('should return data with accessToken, refreshToken, and expiresInSeconds', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockResolvedValue(mockRefreshResult)
+
+        await controller.refresh(mockRequest, mockReply)
+
+        const sentData = vi.mocked(mockReply.send).mock.calls[0]?.[0] as {
+          success: boolean
+          data: typeof mockRefreshResult
+        }
+        expect(sentData.data).toHaveProperty('accessToken')
+        expect(sentData.data).toHaveProperty('refreshToken')
+        expect(sentData.data).toHaveProperty('expiresInSeconds')
+        expect(sentData.data.accessToken).toBe(mockRefreshResult.accessToken)
+        expect(sentData.data.refreshToken).toBe(mockRefreshResult.refreshToken)
+        expect(sentData.data.expiresInSeconds).toBe(mockRefreshResult.expiresInSeconds)
+      })
+
+      it('should extract audit context with masked IP and user agent', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        mockRequest.ip = '192.168.1.100'
+        mockRequest.headers = { 'user-agent': 'Mozilla/5.0 Test Browser' }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockResolvedValue(mockRefreshResult)
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockRefreshAccessTokenUseCase.execute).toHaveBeenCalledWith(
+          VALID_REFRESH_TOKEN,
+          expect.objectContaining({
+            ipAddress: expect.any(String),
+            userAgent: 'Mozilla/5.0 Test Browser',
+          })
+        )
+      })
+
+      it('should handle missing user-agent header gracefully', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        mockRequest.headers = {}
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockResolvedValue(mockRefreshResult)
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockRefreshAccessTokenUseCase.execute).toHaveBeenCalledWith(
+          VALID_REFRESH_TOKEN,
+          expect.objectContaining({
+            userAgent: null,
+          })
+        )
+      })
+    })
+
+    describe('validation errors', () => {
+      it('should return 500 when refreshToken is missing', async () => {
+        // PostRefreshDTO.validate calls data.refreshToken.trim() without guarding
+        // against undefined, so a native TypeError is thrown (not a BaseException),
+        // which the catch block maps to status 500.
+        mockRequest.body = {}
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: expect.any(String),
+        })
+      })
+
+      it('should return 400 when refreshToken is not a valid 64-char hex string', async () => {
+        mockRequest.body = { refreshToken: 'too-short' }
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: expect.stringContaining('Invalid refreshToken'),
+        })
+      })
+
+      it('should return 500 when body is null', async () => {
+        mockRequest.body = null as any
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: expect.any(String),
+        })
+      })
+
+      it('should return error for refreshToken with non-hex characters', async () => {
+        mockRequest.body = {
+          refreshToken: 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz',
+        }
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: expect.stringContaining('Invalid refreshToken'),
+        })
+      })
+
+      it('should log errors from validation failures', async () => {
+        mockRequest.body = { refreshToken: 'invalid' }
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockLogger.error).toHaveBeenCalledWith('Error in refresh handler', expect.any(Error))
+      })
+    })
+
+    describe('authentication errors', () => {
+      it('should return 401 when refresh token is expired or revoked', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue(
+          new UnauthorizedException('Refresh token is expired or revoked')
+        )
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(401)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Refresh token is expired or revoked',
+        })
+      })
+
+      it('should return 401 when refresh token is not found', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue(
+          new UnauthorizedException('Invalid refresh token')
+        )
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(401)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid refresh token',
+        })
+      })
+    })
+
+    describe('error handling', () => {
+      it('should return 500 for unexpected errors', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue(
+          new Error('Database connection lost')
+        )
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Database connection lost',
+        })
+      })
+
+      it('should log errors to logger on failure', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue(
+          new Error('Something went wrong')
+        )
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockLogger.error).toHaveBeenCalledWith('Error in refresh handler', expect.any(Error))
+      })
+
+      it('should return safe error message for DrizzleQueryError', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        const drizzleError = new DrizzleQueryError(
+          'SELECT * FROM refresh_tokens WHERE token_hash = $1',
+          []
+        )
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue(drizzleError)
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to refresh authentication token due to a database error',
+        })
+      })
+
+      it('should handle errors without a message property', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue({})
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to refresh authentication token due to an internal server error',
+        })
+      })
+
+      it('should include success: false and error property on failure', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue(new Error('Test error'))
+
+        await controller.refresh(mockRequest, mockReply)
+
+        const sentData = vi.mocked(mockReply.send).mock.calls[0]?.[0] as Record<string, any>
+        expect(sentData.success).toBe(false)
+        expect(sentData).toHaveProperty('error')
+        expect(sentData).not.toHaveProperty('data')
+      })
+
+      it('should use BaseException statusCode when available', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue(
+          new UnauthorizedException('Token revoked')
+        )
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(401)
+      })
+    })
+
+    describe('route registration', () => {
+      it('should register POST /auth/refresh route', () => {
+        const mockApp = {
+          post: vi.fn(),
+        } as unknown as FastifyInstance
+
+        controller.registerRoutes(mockApp)
+
+        expect(mockApp.post).toHaveBeenCalledWith('/auth/refresh', expect.any(Function))
+      })
+
+      it('should invoke refresh handler when route is called', async () => {
+        const mockApp = {
+          post: vi.fn(),
+        } as unknown as FastifyInstance
+
+        controller.registerRoutes(mockApp)
+
+        // Find the /auth/refresh registration
+        const refreshCall = vi
+          .mocked(mockApp.post)
+          .mock.calls.find((call) => call[0] === '/auth/refresh')
+        expect(refreshCall).toBeDefined()
+
+        const refreshHandler = refreshCall![1] as unknown as (
+          req: FastifyRequest,
+          reply: FastifyReply
+        ) => Promise<void>
+
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockResolvedValue(mockRefreshResult)
+
+        await refreshHandler(mockRequest, mockReply)
+
+        expect(mockRefreshAccessTokenUseCase.execute).toHaveBeenCalled()
         expect(mockReply.code).toHaveBeenCalledWith(200)
       })
     })

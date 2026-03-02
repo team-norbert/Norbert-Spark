@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   hasProperty,
+  is64CharHexString,
   isArray,
   isBoolean,
   isDefined,
@@ -189,6 +190,66 @@ describe('Type Guards', () => {
       const instance = new Child()
       expect(hasProperty(instance, 'childProp')).toBe(true)
       expect(hasProperty(instance, 'parentProp')).toBe(true)
+    })
+  })
+
+  describe('is64CharHexString', () => {
+    it('should return true for a valid 64-character lowercase hex string', () => {
+      const hash = 'a'.repeat(64)
+      expect(is64CharHexString(hash)).toBe(true)
+    })
+
+    it('should return true for a valid 64-character uppercase hex string', () => {
+      const hash = 'F'.repeat(64)
+      expect(is64CharHexString(hash)).toBe(true)
+    })
+
+    it('should return true for a valid 64-character mixed-case hex string', () => {
+      const hash = 'aB3dEf0123456789ABCDEFabcdef01234567890ABCDEF0123456789abcdef01a'
+      expect(is64CharHexString(hash)).toBe(true)
+    })
+
+    it('should return true for a realistic SHA-256 hash', () => {
+      const sha256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+      expect(is64CharHexString(sha256)).toBe(true)
+    })
+
+    it('should return false for a string shorter than 64 characters', () => {
+      const short = 'a'.repeat(63)
+      expect(is64CharHexString(short)).toBe(false)
+    })
+
+    it('should return false for a string longer than 64 characters', () => {
+      const long = 'a'.repeat(65)
+      expect(is64CharHexString(long)).toBe(false)
+    })
+
+    it('should return false for an empty string', () => {
+      expect(is64CharHexString('')).toBe(false)
+    })
+
+    it('should return false for a 64-character string with non-hex characters', () => {
+      const invalid = 'g'.repeat(64)
+      expect(is64CharHexString(invalid)).toBe(false)
+    })
+
+    it('should return false for a 64-character string with special characters', () => {
+      const withSpecial = 'a'.repeat(63) + '!'
+      expect(is64CharHexString(withSpecial)).toBe(false)
+    })
+
+    it('should return false for a 64-character string with spaces', () => {
+      const withSpaces = 'a'.repeat(63) + ' '
+      expect(is64CharHexString(withSpaces)).toBe(false)
+    })
+
+    it('should return false for non-string types', () => {
+      expect(is64CharHexString(123)).toBe(false)
+      expect(is64CharHexString(null)).toBe(false)
+      expect(is64CharHexString(undefined)).toBe(false)
+      expect(is64CharHexString(true)).toBe(false)
+      expect(is64CharHexString({})).toBe(false)
+      expect(is64CharHexString([])).toBe(false)
     })
   })
 })

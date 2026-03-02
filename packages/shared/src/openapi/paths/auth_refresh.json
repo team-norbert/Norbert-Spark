@@ -41,7 +41,7 @@
         }
       },
       "401": {
-        "description": "Unauthorized - invalid or expired refresh token",
+        "description": "Refresh token is invalid, expired, or has been revoked",
         "content": {
           "application/json": {
             "schema": {

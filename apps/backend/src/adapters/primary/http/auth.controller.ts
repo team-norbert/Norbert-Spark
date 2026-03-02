@@ -4,8 +4,10 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
 import { LoginUserDto } from '../../../application/dtos/login-user.dto.js'
 import { OAuthSyncDto } from '../../../application/dtos/oauth-sync.dto.js'
+import { PostRefreshDTO } from '../../../application/dtos/post-refresh.dto.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { LoginUserUseCase } from '../../../application/use-cases/login-user.use-case.js'
+import { RefreshAccessTokenUseCase } from '../../../application/use-cases/refresh-access-token.use-case.js'
 import { RegisterUserWithProviderUseCase } from '../../../application/use-cases/register-user-with-provider.use-case.js'
 import { oauthSyncAuthMiddleware } from '../../../infrastructure/http/middleware/auth-sync-auth.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
@@ -68,7 +70,8 @@ export class AuthController {
   constructor(
     private readonly logger: LoggerPort,
     private readonly loginUserUseCase: LoginUserUseCase,
-    private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase
+    private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase,
+    private readonly refreshAccessTokenUseCase: RefreshAccessTokenUseCase
   ) {}
 
   /**
@@ -102,10 +105,26 @@ export class AuthController {
 
   async refresh(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
-      // TODO: placeholder -> 6b. New handler: `refresh()`
-      reply.code(501).send({
-        success: false,
-        error: 'Token refresh endpoint is not implemented yet',
+      // Extract audit context from request
+      const auditContext = {
+        userId: request.user?.sub ?? null,
+        ipAddress: safelyMaskIp(request.ip),
+        userAgent: request.headers['user-agent'] ?? null,
+      }
+
+      const body = request.body as components['schemas']['RefreshTokenRequest']
+
+      const dto = PostRefreshDTO.validate(body)
+
+      const result = await this.refreshAccessTokenUseCase.execute(dto.refreshToken, auditContext)
+
+      reply.code(200).send({
+        success: true,
+        data: {
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
+          expiresInSeconds: result.expiresInSeconds,
+        },
       })
     } catch (error) {
       this.logger.error(
