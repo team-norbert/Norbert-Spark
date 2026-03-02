@@ -134,7 +134,9 @@ describe('PostRefreshDTO', () => {
       })
 
       it('should throw ValidationException when refreshToken contains non-hex characters', () => {
-        const data = { refreshToken: 'g3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' }
+        const data = {
+          refreshToken: 'g3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+        }
 
         expect(() => PostRefreshDTO.validate(data as never)).toThrow(ValidationException)
         expect(() => PostRefreshDTO.validate(data as never)).toThrow(

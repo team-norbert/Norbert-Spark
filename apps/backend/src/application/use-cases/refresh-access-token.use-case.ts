@@ -115,7 +115,7 @@ export class RefreshAccessTokenUseCase {
   async execute(
     rawRefreshToken: string,
     auditContext: AuditContext
-  ): Promise<{ accessToken: string; refreshToken: string; expiresIn: Date }> {
+  ): Promise<{ accessToken: string; refreshToken: string; expiresInSeconds: number }> {
     this.logger.info('Executing RefreshAccessTokenUseCase', {
       tokenHash: crypto.createHash('sha256').update(rawRefreshToken).digest('hex'),
     })
@@ -209,7 +209,7 @@ export class RefreshAccessTokenUseCase {
       return {
         accessToken: newlyGeneratedAccessToken,
         refreshToken: newRefreshToken.getRawToken(),
-        expiresIn: expiresAt,
+        expiresInSeconds: expiresAt.getSeconds(),
       }
     } catch (error) {
       this.logger.error(

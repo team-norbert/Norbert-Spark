@@ -40,20 +40,6 @@
           }
         }
       },
-      "401": {
-        "description": "Unauthorized - invalid or expired refresh token",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "../components/schemas/Error.json"
-            },
-            "example": {
-              "success": false,
-              "error": "Invalid or expired refresh token"
-            }
-          }
-        }
-      },
       "500": {
         "description": "Internal server error",
         "content": {
