@@ -6,9 +6,11 @@ import { LoginUserDto } from '../../../application/dtos/login-user.dto.js'
 import { OAuthSyncDto } from '../../../application/dtos/oauth-sync.dto.js'
 import { PostRefreshDTO } from '../../../application/dtos/post-refresh.dto.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import type { LogOutUseCase } from '../../../application/use-cases/log-out.use-case.js'
 import { LoginUserUseCase } from '../../../application/use-cases/login-user.use-case.js'
 import { RefreshAccessTokenUseCase } from '../../../application/use-cases/refresh-access-token.use-case.js'
 import { RegisterUserWithProviderUseCase } from '../../../application/use-cases/register-user-with-provider.use-case.js'
+import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { oauthSyncAuthMiddleware } from '../../../infrastructure/http/middleware/auth-sync-auth.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
@@ -57,6 +59,8 @@ export class AuthController {
    * @param {LoginUserUseCase} loginUserUseCase - Use case for user authentication
    * @param {RegisterUserWithProviderUseCase} registerUserWithProviderUseCase - Use case for registering OAuth users
    *
+   * @param refreshAccessTokenUseCase
+   * @param logOutUseCase
    * @example
    * ```typescript
    * const loginUseCase = new LoginUserUseCase(
@@ -71,7 +75,8 @@ export class AuthController {
     private readonly logger: LoggerPort,
     private readonly loginUserUseCase: LoginUserUseCase,
     private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase,
-    private readonly refreshAccessTokenUseCase: RefreshAccessTokenUseCase
+    private readonly refreshAccessTokenUseCase: RefreshAccessTokenUseCase,
+    private readonly logOutUseCase: LogOutUseCase
   ) {}
 
   /**
@@ -98,9 +103,44 @@ export class AuthController {
   registerRoutes(app: FastifyInstance): void {
     app.post('/auth/login', this.login.bind(this))
     app.post('/auth/oauth-sync', { preHandler: oauthSyncAuthMiddleware }, this.oauthSync.bind(this))
-    app.post('/auth/refresh', this.refresh.bind(this)) // NEW
-    // TODO: create authMiddleware ->  6c. New handler: `logout()`
-    //app.post('/auth/logout', { preHandler: authMiddleware }, this.logout.bind(this))) // NEW
+    app.post('/auth/refresh', this.refresh.bind(this))
+    app.post('/auth/logout', { preHandler: authMiddleware }, this.logout.bind(this))
+  }
+
+  async logout(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      // Extract audit context from request
+      const auditContext = {
+        userId: request.user?.sub ?? null,
+        ipAddress: safelyMaskIp(request.ip),
+        userAgent: request.headers['user-agent'] ?? null,
+      }
+
+      const userId = request.user?.sub
+      await this.logOutUseCase.execute(userId!, auditContext)
+
+      reply.code(200).send({
+        success: true,
+        data: {
+          message: 'Logged out',
+        },
+      })
+    } catch (error) {
+      this.logger.error(
+        'Error in logout handler',
+        error instanceof Error ? error : new Error(String(error))
+      )
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to log out user due to a database error'
+          : err?.message || 'Failed to log out user due to a database error'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
   }
 
   async refresh(request: FastifyRequest, reply: FastifyReply): Promise<void> {

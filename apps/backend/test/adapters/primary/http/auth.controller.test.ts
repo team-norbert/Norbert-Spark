@@ -4,6 +4,7 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AuthController } from '../../../../src/adapters/primary/http/auth.controller.js'
+import { LogOutUseCase } from '../../../../src/application/use-cases/log-out.use-case.js'
 import { LoginUserUseCase } from '../../../../src/application/use-cases/login-user.use-case.js'
 import { RefreshAccessTokenUseCase } from '../../../../src/application/use-cases/refresh-access-token.use-case.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
@@ -24,6 +25,7 @@ describe('AuthController', () => {
   let controller: AuthController
   let mockLoginUserUseCase: LoginUserUseCase
   let mockRefreshAccessTokenUseCase: RefreshAccessTokenUseCase
+  let mockLogOutUseCase: LogOutUseCase
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
   let mockLogger: {
@@ -50,6 +52,10 @@ describe('AuthController', () => {
       execute: vi.fn(),
     } as any
 
+    mockLogOutUseCase = {
+      execute: vi.fn(),
+    } as any
+
     mockLogger = {
       info: vi.fn(),
       error: vi.fn(),
@@ -62,7 +68,8 @@ describe('AuthController', () => {
       mockLogger as any,
       mockLoginUserUseCase,
       mockRegisterUserWithProviderUseCase,
-      mockRefreshAccessTokenUseCase
+      mockRefreshAccessTokenUseCase,
+      mockLogOutUseCase
     )
 
     // Create mock Fastify reply with chainable methods
@@ -87,12 +94,14 @@ describe('AuthController', () => {
     it('should create instance with LoginUserUseCase dependency', () => {
       const mockRegisterUseCase = { execute: vi.fn() } as any
       const mockRefreshUseCase = { execute: vi.fn() } as any
+      const mockLogoutUseCase = { execute: vi.fn() } as any
       const mockLogger = { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() } as any
       const instance = new AuthController(
         mockLogger,
         mockLoginUserUseCase,
         mockRegisterUseCase,
-        mockRefreshUseCase
+        mockRefreshUseCase,
+        mockLogoutUseCase
       )
 
       expect(instance).toBeInstanceOf(AuthController)
@@ -102,12 +111,14 @@ describe('AuthController', () => {
     it('should accept LoginUserUseCase as dependency', () => {
       const mockRegisterUseCase = { execute: vi.fn() } as any
       const mockRefreshUseCase = { execute: vi.fn() } as any
+      const mockLogoutUseCase = { execute: vi.fn() } as any
       const mockLogger = { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() } as any
       const instance = new AuthController(
         mockLogger,
         mockLoginUserUseCase,
         mockRegisterUseCase,
-        mockRefreshUseCase
+        mockRefreshUseCase,
+        mockLogoutUseCase
       )
 
       expect(instance).toBeDefined()
@@ -123,10 +134,16 @@ describe('AuthController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.post).toHaveBeenCalledTimes(3)
+      expect(mockApp.post).toHaveBeenCalledTimes(4)
       expect(mockApp.post).toHaveBeenCalledWith('/auth/login', expect.any(Function))
       expect(mockApp.post).toHaveBeenCalledWith(
         '/auth/oauth-sync',
+        expect.objectContaining({ preHandler: expect.any(Function) }),
+        expect.any(Function)
+      )
+      expect(mockApp.post).toHaveBeenCalledWith('/auth/refresh', expect.any(Function))
+      expect(mockApp.post).toHaveBeenCalledWith(
+        '/auth/logout',
         expect.objectContaining({ preHandler: expect.any(Function) }),
         expect.any(Function)
       )
@@ -155,7 +172,7 @@ describe('AuthController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.post).toHaveBeenCalledTimes(3)
+      expect(mockApp.post).toHaveBeenCalledTimes(4)
       expect(mockApp.get).not.toHaveBeenCalled()
       expect(mockApp.put).not.toHaveBeenCalled()
       expect(mockApp.delete).not.toHaveBeenCalled()
@@ -1185,6 +1202,206 @@ describe('AuthController', () => {
         await refreshHandler(mockRequest, mockReply)
 
         expect(mockRefreshAccessTokenUseCase.execute).toHaveBeenCalled()
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+    })
+  })
+
+  describe('logout()', () => {
+    const LOGOUT_USER_ID = uuidv7()
+
+    beforeEach(() => {
+      mockRequest = {
+        ...mockRequest,
+        user: { sub: LOGOUT_USER_ID },
+        ip: '127.0.0.1',
+        headers: { 'user-agent': 'test-user-agent' },
+      } as any
+      vi.mocked(mockLogOutUseCase.execute).mockResolvedValue(undefined)
+    })
+
+    describe('successful logout', () => {
+      it('should return 200 with success message for authenticated user', async () => {
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: { message: 'Logged out' },
+        })
+      })
+
+      it('should call the use case with the user id from the JWT', async () => {
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockLogOutUseCase.execute).toHaveBeenCalledTimes(1)
+        expect(mockLogOutUseCase.execute).toHaveBeenCalledWith(
+          LOGOUT_USER_ID,
+          expect.objectContaining({ userId: LOGOUT_USER_ID })
+        )
+      })
+
+      it('should chain reply.code() before reply.send()', async () => {
+        const codeOrder: string[] = []
+        vi.mocked(mockReply.code).mockImplementation(() => {
+          codeOrder.push('code')
+          return mockReply
+        })
+        vi.mocked(mockReply.send).mockImplementation(() => {
+          codeOrder.push('send')
+          return mockReply
+        })
+
+        await controller.logout(mockRequest, mockReply)
+
+        expect(codeOrder).toEqual(['code', 'send'])
+      })
+
+      it('should include success: true in response', async () => {
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockReply.send).toHaveBeenCalledWith(expect.objectContaining({ success: true }))
+      })
+
+      it('should include data.message "Logged out" in response', async () => {
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockReply.send).toHaveBeenCalledWith(
+          expect.objectContaining({ data: { message: 'Logged out' } })
+        )
+      })
+
+      it('should pass audit context with masked IP and user agent to use case', async () => {
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockLogOutUseCase.execute).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            ipAddress: expect.any(String),
+            userAgent: 'test-user-agent',
+          })
+        )
+      })
+
+      it('should handle missing user-agent header gracefully', async () => {
+        mockRequest = {
+          ...mockRequest,
+          headers: {},
+        } as any
+
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockLogOutUseCase.execute).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({ userAgent: null })
+        )
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+    })
+
+    describe('error handling', () => {
+      it('should return 500 for unexpected errors', async () => {
+        vi.mocked(mockLogOutUseCase.execute).mockRejectedValue(new Error('Unexpected failure'))
+
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+      })
+
+      it('should log errors to logger on failure', async () => {
+        const error = new Error('Something went wrong')
+        vi.mocked(mockLogOutUseCase.execute).mockRejectedValue(error)
+
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockLogger.error).toHaveBeenCalledWith('Error in logout handler', expect.any(Error))
+      })
+
+      it('should return safe error message for DrizzleQueryError', async () => {
+        const dbError = new DrizzleQueryError('SELECT * FROM tokens', [], new Error('db error'))
+        vi.mocked(mockLogOutUseCase.execute).mockRejectedValue(dbError)
+
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to log out user due to a database error',
+        })
+      })
+
+      it('should handle errors without a message property', async () => {
+        vi.mocked(mockLogOutUseCase.execute).mockRejectedValue({ code: 'UNKNOWN' })
+
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to log out user due to a database error',
+        })
+      })
+
+      it('should include success: false and error property on failure', async () => {
+        vi.mocked(mockLogOutUseCase.execute).mockRejectedValue(new Error('Logout failed'))
+
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockReply.send).toHaveBeenCalledWith(
+          expect.objectContaining({ success: false, error: expect.any(String) })
+        )
+      })
+
+      it('should use BaseException statusCode when available', async () => {
+        const unauthorizedError = new UnauthorizedException('Session not found')
+        vi.mocked(mockLogOutUseCase.execute).mockRejectedValue(unauthorizedError)
+
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(unauthorizedError.statusCode)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Session not found',
+        })
+      })
+    })
+
+    describe('route registration', () => {
+      it('should register POST /auth/logout route', () => {
+        const mockApp = {
+          post: vi.fn(),
+        } as unknown as FastifyInstance
+
+        controller.registerRoutes(mockApp)
+
+        expect(mockApp.post).toHaveBeenCalledWith(
+          '/auth/logout',
+          expect.objectContaining({ preHandler: expect.any(Function) }),
+          expect.any(Function)
+        )
+      })
+
+      it('should invoke logout handler when route is called', async () => {
+        const mockApp = {
+          post: vi.fn(),
+        } as unknown as FastifyInstance
+
+        controller.registerRoutes(mockApp)
+
+        // Find the /auth/logout registration
+        const logoutCall = vi
+          .mocked(mockApp.post)
+          .mock.calls.find((call) => call[0] === '/auth/logout')
+        expect(logoutCall).toBeDefined()
+
+        const logoutHandler = logoutCall![2] as unknown as (
+          req: FastifyRequest,
+          reply: FastifyReply
+        ) => Promise<void>
+
+        await logoutHandler(mockRequest, mockReply)
+
+        expect(mockLogOutUseCase.execute).toHaveBeenCalled()
         expect(mockReply.code).toHaveBeenCalledWith(200)
       })
     })
