@@ -2,7 +2,7 @@
   "post": {
     "summary": "Refresh JWT access token",
     "description": "Refreshes a JWT access token using a valid refresh token. This endpoint allows clients to obtain a new access token without requiring the user to re-authenticate, as long as the refresh token is still valid.",
-    "operationId": "refreshToken",
+    "operationId": "refresh",
     "tags": ["auth"],
     "security": [],
     "requestBody": {

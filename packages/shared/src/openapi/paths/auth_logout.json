@@ -2,7 +2,7 @@
   "post": {
     "summary": "Logout and revoke refresh token",
     "description": "Logs out the current user by revoking their refresh token family. Requires a valid access token in the Authorization header. No request body is needed.",
-    "operationId": "logoutUser",
+    "operationId": "logout",
     "tags": ["auth"],
     "security": [
       {
