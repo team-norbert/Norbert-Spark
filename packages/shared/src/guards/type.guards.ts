@@ -29,3 +29,7 @@ export function isNullOrUndefined(value: unknown): value is null | undefined {
 export function hasProperty<K extends string>(obj: unknown, key: K): obj is Record<K, unknown> {
   return isObject(obj) && key in obj
 }
+
+export function is64CharHexString(value: unknown): value is string {
+  return isString(value) && /^[a-fA-F0-9]{64}$/.test(value)
+}

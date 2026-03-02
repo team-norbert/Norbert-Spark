@@ -1,4 +1,5 @@
 import type { AuditContext } from '../../domain/audit/audit-context.js'
+import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 import type { DBChatAiOptions } from '../../infrastructure/database/schema.js'
 import type { AIChatOptionsPort } from '../ports/ai-chat-options.port.js'
@@ -15,7 +16,9 @@ import type { LoggerPort } from '../ports/logger.port.js'
  *
  * **Responsibilities:**
  * - Fetch AI options (system prompts) from the repository
+ * - Log audit trail for all retrieval attempts (success and failure)
  * - Handle errors gracefully and return null on failure
+ * - Ensure audit logging failures don't break the main operation
  *
  * **Architecture Layer:** Application Layer (Use Case)
  *
@@ -47,12 +50,19 @@ export class GetChatAiOptionsUseCase {
    * Executes the use case to retrieve AI configuration options for a specific chat type.
    *
    * This method fetches the AI system prompt and related configuration from the database
-   * via the AI chat options repository.
+   * via the AI chat options repository. All retrieval attempts (both successful and failed)
+   * are logged to the audit trail for compliance and debugging purposes.
    *
    * **Error Handling:**
    * - If retrieval fails, the error is logged and null is returned
+   * - If audit logging fails, the error is logged but the main operation continues
+   * - Audit logging failures never cause the use case to fail
    *
-   * @param _auditContext - Unused, kept for interface compatibility and future audit logging
+   * **Audit Trail:**
+   * - Success: Logs FETCH action with reason 'chat_options_retrieved_successfully_for_internal'
+   * - Failure: Logs FETCH action with reason 'chat_options_failed_to_retrieve_for_internal'
+   *
+   * @param auditContext - Context information for audit logging (user ID, IP address, user agent)
    * @param chatTypeId - The unique identifier of the chat type to retrieve options for
    * @returns Promise resolving to an object containing the system prompt, or null if not found or on error
    *
@@ -73,14 +83,39 @@ export class GetChatAiOptionsUseCase {
    * ```
    */
   async execute(
-    _auditContext: AuditContext,
+    auditContext: AuditContext,
     chatTypeId: ChatIdType
   ): Promise<Pick<DBChatAiOptions, 'prompt'> | null> {
     try {
       const result = await this.aiChatOptions.getChatOptionsByChatTypeId(chatTypeId)
+
+      try {
+        await this.auditLog.log({
+          userId: auditContext.userId,
+          entityType: EntityType.AI_OPTIONS,
+          entityId: chatTypeId,
+          action: AuditAction.FETCH,
+          changes: { reason: 'chat_options_retrieved_successfully_for_internal' },
+          ipAddress: auditContext.ipAddress,
+          userAgent: auditContext.userAgent ?? undefined,
+        })
+      } catch (error) {
+        this.logger.error('Error logging audit for chat retrieval', error as Error, {
+          userId: auditContext.userId,
+        })
+      }
       return result ?? null
     } catch (error) {
       this.logger.error('Error in GetChatAiOptionsUseCase.execute', error as Error, { chatTypeId })
+      await this.auditLog.log({
+        userId: auditContext.userId,
+        entityType: EntityType.AI_OPTIONS,
+        entityId: chatTypeId,
+        action: AuditAction.FETCH,
+        changes: { reason: 'chat_options_failed_to_retrieve_for_internal' },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
+      })
       return null
     }
   }
