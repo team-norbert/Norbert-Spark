@@ -31,6 +31,12 @@ vi.mock('../../src/app/ThemeRegistry.js', () => ({
   ),
 }))
 
+vi.mock('../../src/view/client-components/SessionGuard.js', () => ({
+  SessionGuard: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="session-guard">{children}</div>
+  ),
+}))
+
 describe('RootLayout', () => {
   describe('HTML Structure', () => {
     it('should render html element with lang="en"', () => {

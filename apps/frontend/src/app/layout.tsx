@@ -7,6 +7,7 @@ import type { Metadata } from 'next'
 import { Roboto_Mono } from 'next/font/google'
 import React from 'react'
 
+import { SessionGuard } from '../view/client-components/SessionGuard.js'
 import { QueryProvider } from './providers/QueryProvider.js'
 import { SessionProvider } from './providers/SessionProvider.js'
 import ThemeRegistry from './ThemeRegistry.js'
@@ -32,9 +33,11 @@ export default function RootLayout({
     <html lang="en" className={robotoMono.variable}>
       <body>
         <SessionProvider>
-          <QueryProvider>
-            <ThemeRegistry>{children}</ThemeRegistry>
-          </QueryProvider>
+          <SessionGuard>
+            <QueryProvider>
+              <ThemeRegistry>{children}</ThemeRegistry>
+            </QueryProvider>
+          </SessionGuard>
         </SessionProvider>
       </body>
     </html>
