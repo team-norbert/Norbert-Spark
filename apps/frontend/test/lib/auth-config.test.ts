@@ -815,6 +815,8 @@ describe('authOptions Configuration', () => {
         id: 'user-123',
         email: 'test@example.com',
         accessToken: 'mock-token',
+        refreshToken: 'a'.repeat(64),
+        expiresInSeconds: 3600,
         roles: ['user'],
       }
 
@@ -843,9 +845,10 @@ describe('authOptions Configuration', () => {
         accessToken: 'mock-token',
         id: 'user-123',
         roles: ['user'],
-        refreshToken: '',
-        accessTokenExp: 0,
+        refreshToken: 'a'.repeat(64),
+        accessTokenExp: expect.any(Number),
       })
+      expect(result.accessTokenExp).toBeGreaterThan(Date.now())
     })
 
     it('should return token unchanged when user is not provided', async () => {
@@ -856,7 +859,7 @@ describe('authOptions Configuration', () => {
         id: 'user-456',
         roles: ['admin'],
         refreshToken: 'b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2',
-        accessTokenExp: 1735689600000,
+        accessTokenExp: Date.now() + 3600 * 1000,
       }
 
       const result = await authOptions.callbacks!.jwt!({
@@ -878,7 +881,7 @@ describe('authOptions Configuration', () => {
         id: 'user-789',
         roles: ['user'],
         refreshToken: 'c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3e4f5a6b1c2d3',
-        accessTokenExp: 1735689600000,
+        accessTokenExp: Date.now() + 3600 * 1000,
         sub: 'user-789',
         iat: 1234567890,
         exp: 1234567890 + 30 * 24 * 60 * 60,
@@ -902,6 +905,8 @@ describe('authOptions Configuration', () => {
         id: 'admin-123',
         email: 'admin@example.com',
         accessToken: 'admin-token',
+        refreshToken: 'b'.repeat(64),
+        expiresInSeconds: 3600,
         roles: ['user', 'admin', 'superuser'],
       }
 
@@ -1051,6 +1056,191 @@ describe('authOptions Configuration', () => {
       })
 
       expect(result2.error).toBe('OAuthSyncCacheMiss')
+    })
+
+    it('should preserve existing error and skip refresh when refreshToken is empty', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockToken = {
+        accessToken: '',
+        id: 'google-123',
+        roles: ['user'],
+        refreshToken: '',
+        accessTokenExp: 0,
+        error: 'OAuthSyncCacheMiss',
+      } as JWT
+
+      const result = await authOptions.callbacks!.jwt!({
+        token: mockToken,
+        // @ts-expect-error - Testing undefined user scenario
+        user: undefined,
+        trigger: 'update',
+        session: undefined,
+      })
+
+      expect(result.error).toBe('OAuthSyncCacheMiss')
+      expect(global.fetch).not.toHaveBeenCalled()
+    })
+
+    it('should set RefreshTokenMissing error when refreshToken is empty and no existing error', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockToken = {
+        accessToken: '',
+        id: 'user-123',
+        roles: ['user'],
+        refreshToken: '',
+        accessTokenExp: 0,
+      } as JWT
+
+      const result = await authOptions.callbacks!.jwt!({
+        token: mockToken,
+        // @ts-expect-error - Testing undefined user scenario
+        user: undefined,
+        trigger: 'update',
+        session: undefined,
+      })
+
+      expect(result.error).toBe('RefreshTokenMissing')
+      expect(global.fetch).not.toHaveBeenCalled()
+    })
+
+    it('should call POST /auth/refresh when accessToken is expired and refreshToken is present', async () => {
+      const authOptions = await getAuthOptions()
+
+      const refreshToken = 'r'.repeat(64)
+      const mockToken = {
+        accessToken: 'old-access-token',
+        id: 'user-123',
+        roles: ['user'],
+        refreshToken,
+        accessTokenExp: Date.now() - 1000, // already expired
+      } as JWT
+
+      const refreshResponse = {
+        success: true,
+        data: {
+          accessToken: 'new-access-token',
+          refreshToken: 's'.repeat(64),
+          expiresInSeconds: 3600,
+        },
+      }
+
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => refreshResponse,
+      })
+
+      const result = await authOptions.callbacks!.jwt!({
+        token: mockToken,
+        // @ts-expect-error - Testing undefined user scenario
+        user: undefined,
+        trigger: 'update',
+        session: undefined,
+      })
+
+      expect(global.fetch).toHaveBeenCalledOnce()
+      const [url, options] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!
+      expect(url).toBe(`${process.env.BACKEND_AI_CALLBACK_URL}/auth/refresh`)
+      expect(options.method).toBe('POST')
+      expect(JSON.parse(options.body)).toEqual({ refreshToken })
+
+      expect(result.accessToken).toBe('new-access-token')
+      expect(result.refreshToken).toBe('s'.repeat(64))
+      expect(result.accessTokenExp).toBeGreaterThan(Date.now())
+      expect(result.error).toBeUndefined()
+    })
+
+    it('should update token fields and clear error on successful silent refresh', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockToken = {
+        accessToken: 'stale-token',
+        id: 'user-456',
+        roles: ['admin'],
+        refreshToken: 't'.repeat(64),
+        accessTokenExp: Date.now() - 5000,
+        error: 'SomePreviousError',
+      } as JWT
+
+      const refreshResponse = {
+        success: true,
+        data: {
+          accessToken: 'refreshed-access-token',
+          refreshToken: 'u'.repeat(64),
+          expiresInSeconds: 1800,
+        },
+      }
+
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => refreshResponse,
+      })
+
+      const result = await authOptions.callbacks!.jwt!({
+        token: mockToken,
+        // @ts-expect-error - Testing undefined user scenario
+        user: undefined,
+        trigger: 'update',
+        session: undefined,
+      })
+
+      expect(result.accessToken).toBe('refreshed-access-token')
+      expect(result.refreshToken).toBe('u'.repeat(64))
+      expect(result.accessTokenExp).toBeGreaterThan(Date.now())
+      expect(result.error).toBeUndefined()
+    })
+
+    it('should set RefreshTokenExpired error when silent refresh request fails', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockToken = {
+        accessToken: 'expired-token',
+        id: 'user-789',
+        roles: ['user'],
+        refreshToken: 'v'.repeat(64),
+        accessTokenExp: Date.now() - 1000,
+      } as JWT
+
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({ error: 'Invalid refresh token' }),
+      })
+
+      const result = await authOptions.callbacks!.jwt!({
+        token: mockToken,
+        // @ts-expect-error - Testing undefined user scenario
+        user: undefined,
+        trigger: 'update',
+        session: undefined,
+      })
+
+      expect(result.error).toBe('RefreshTokenExpired')
+    })
+
+    it('should set RefreshTokenExpired error when silent refresh fetch throws', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockToken = {
+        accessToken: 'expired-token',
+        id: 'user-789',
+        roles: ['user'],
+        refreshToken: 'w'.repeat(64),
+        accessTokenExp: Date.now() - 1000,
+      } as JWT
+
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'))
+
+      const result = await authOptions.callbacks!.jwt!({
+        token: mockToken,
+        // @ts-expect-error - Testing undefined user scenario
+        user: undefined,
+        trigger: 'update',
+        session: undefined,
+      })
+
+      expect(result.error).toBe('RefreshTokenExpired')
     })
 
     describe('Session Callback', () => {
@@ -1270,6 +1460,8 @@ describe('authOptions Configuration', () => {
               userId: 'user-123',
               email: 'test@example.com',
               accessToken: 'backend-jwt-token',
+              refreshToken: 'd'.repeat(64),
+              expiresInSeconds: 3600,
               roles: ['user'],
             },
           }
