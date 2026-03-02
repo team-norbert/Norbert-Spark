@@ -368,7 +368,7 @@ Body: { refreshToken: string }
 1. Validate refreshToken is present and is a 64-char hex string
 2. Call RefreshAccessTokenUseCase.execute(refreshToken, auditContext)
 3. Return 200: { success: true, data: { accessToken, refreshToken, expiresIn } }
-4. On error: return 401: { success: false, error: message }
+4. On error: return 400: { success: false, error: message }
 ```
 
 **Important:** This endpoint has NO `authMiddleware` — the caller's access token is expired, so it cannot be validated. The refresh token itself is the authentication proof.
