@@ -116,8 +116,8 @@ export class AuthController {
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
         error instanceof DrizzleQueryError
-          ? 'Failed to authenticate user due to a database error'
-          : err?.message || 'Failed to authenticate user due to a database error'
+          ? 'Failed to refresh authentication token due to a database error'
+          : err?.message || 'Failed to refresh authentication token due to an internal server error'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
