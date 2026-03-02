@@ -248,7 +248,14 @@ export class AuthController {
    * ```json
    * {
    *   "success": true,
-   *   "message": "OAuth user sync completed"
+   *   "data": {
+   *     "userId": "...",
+   *     "email": "user@example.com",
+   *     "accessToken": "...",
+   *     "refreshToken": "...",
+   *     "expiresInSeconds": 604800,
+   *     "roles": ["user"]
+   *   }
    * }
    * ```
    *
@@ -283,9 +290,11 @@ export class AuthController {
         success: true,
         data: {
           userId: result.userId,
-          accessToken: result.access_token,
-          tokenType: result.token_type,
-          expiresIn: result.expires_in,
+          email: result.email,
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
+          expiresInSeconds: result.expiresInSeconds,
+          roles: result.roles,
         },
       })
     } catch (error) {

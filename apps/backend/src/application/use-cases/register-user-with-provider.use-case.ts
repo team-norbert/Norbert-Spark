@@ -1,9 +1,13 @@
+import { uuidv7 } from 'uuidv7'
+
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { User } from '../../domain/entities/user.js'
 import { Email } from '../../domain/value-objects/email.js'
+import { RefreshToken } from '../../domain/value-objects/refreshToken.js'
 import { Role } from '../../domain/value-objects/role.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
+import { Uuid } from '../../domain/value-objects/uuid.js'
 import { EnvConfig } from '../../infrastructure/config/env.config.js'
 import { ConflictException } from '../../shared/exceptions/conflict.exception.js'
 import { DatabaseUtil } from '../../shared/utils/database.util.js'
@@ -11,6 +15,7 @@ import { RegisterUserDto } from '../dtos/register-user.dto.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { EmailServicePort } from '../ports/email.service.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
+import type { RefreshTokenRepositoryPort } from '../ports/refresh-token.repository.port.js'
 import type { TokenGeneratorPort } from '../ports/token-generator.port.js'
 import type { UserRepositoryPort } from '../ports/user.repository.port.js'
 
@@ -34,14 +39,16 @@ import type { UserRepositoryPort } from '../ports/user.repository.port.js'
  *   userRepository,
  *   emailService,
  *   logger,
- *   tokenGenerator
+ *   tokenGenerator,
+ *   auditLog,
+ *   refreshTokenRepo
  * )
  * const result = await useCase.execute({
  *   email: 'user@example.com',
  *   name: 'John Doe',
  *   role: 'member',
  *   provider: 'google'
- * })
+ * }, auditContext)
  * ```
  */
 export class RegisterUserWithProviderUseCase {
@@ -52,13 +59,15 @@ export class RegisterUserWithProviderUseCase {
    * @param {LoggerPort} logger - Logger for tracking operations
    * @param {TokenGeneratorPort} tokenGenerator - Service for generating JWT tokens
    * @param {AuditLogPort} auditLog - Audit logging service for recording user registration events
+   * @param refreshTokenRepo - Repository for managing refresh tokens
    */
   constructor(
     private readonly userRepository: UserRepositoryPort,
     private readonly emailService: EmailServicePort,
     private readonly logger: LoggerPort,
     private readonly tokenGenerator: TokenGeneratorPort,
-    private readonly auditLog: AuditLogPort
+    private readonly auditLog: AuditLogPort,
+    private readonly refreshTokenRepo: RefreshTokenRepositoryPort
   ) {}
 
   /**
@@ -74,7 +83,8 @@ export class RegisterUserWithProviderUseCase {
    *
    * @param {RegisterUserDto} dto - User registration data (email, name, role, provider)
    * @param auditContext
-   * @returns {Promise<{ userId: string, access_token: string, token_type: string, expires_in: number }>}   *          Registration result with user ID and authentication token
+   * @returns {Promise<{ userId: UserIdType, email: string, accessToken: string, refreshToken: string, expiresInSeconds: number, roles: string[] }>}
+   *          Registration result with user ID, authentication tokens and roles
    * @throws {ConflictException} If a user with the same email already exists
    * @throws {Error} If email validation, database operation, or token generation fails.
    *                 Note: Email service failures are logged but do not throw errors or prevent registration.
@@ -98,7 +108,14 @@ export class RegisterUserWithProviderUseCase {
   async execute(
     dto: RegisterUserDto,
     auditContext: AuditContext
-  ): Promise<{ userId: string; access_token: string; token_type: string; expires_in: number }> {
+  ): Promise<{
+    userId: UserIdType
+    email: string
+    accessToken: string
+    refreshToken: string
+    expiresInSeconds: number
+    roles: string[]
+  }> {
     this.logger.info('Starting user registration', { email: dto.email })
 
     // Create domain objects
@@ -188,14 +205,33 @@ export class RegisterUserWithProviderUseCase {
       roles: [dto.role],
     })
 
-    const expiresIn = Number.parseInt(EnvConfig.JWT_EXPIRATION, 10)
-    const safeExpiresIn = Number.isNaN(expiresIn) ? 3600 : expiresIn
+    const newRefreshToken = RefreshToken.generate()
+    const tokenFamily = uuidv7() // New token family for this rotation chain
+
+    // Calculate expiration date
+    const parsedExpiration = Number.parseInt(EnvConfig.REFRESH_TOKEN_EXPIRATION, 10)
+    const expiresInSeconds = Number.isNaN(parsedExpiration)
+      ? 7 * 24 * 60 * 60 // default 7 days in seconds
+      : parsedExpiration
+    const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
+
+    // Store the refresh token in the database
+    await this.refreshTokenRepo.create({
+      userId: userId,
+      tokenHash: newRefreshToken.getHash(),
+      tokenFamily: new Uuid(tokenFamily).getValue(),
+      expiresAt: expiresAt,
+      ipAddress: auditContext.ipAddress ?? undefined,
+      userAgent: auditContext.userAgent ?? undefined,
+    })
 
     return {
       userId: userId,
-      access_token: accessToken,
-      token_type: 'Bearer',
-      expires_in: safeExpiresIn,
+      email: user.getEmail(),
+      accessToken: accessToken,
+      refreshToken: newRefreshToken.getRawToken(),
+      expiresInSeconds, // refresh token expiration in seconds
+      roles: [user.getRole()],
     }
   }
 }
