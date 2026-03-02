@@ -475,7 +475,7 @@ This is where the silent renewal lives. NextAuth's `jwt` callback runs **on ever
 
 Current: returns `{ id, email, accessToken, roles }`
 
-New: return the `refreshToken` and `expiresIn` from the backend response too:
+New: return the `refreshToken` and `expiresInSeconds` from the backend response too:
 
 ```typescript
 return {
