@@ -273,7 +273,7 @@ export async function middleware(request: Request) {
     console.error('Failed to retrieve auth token in middleware:', error)
     token = null
   }
-  const isAuthenticated = !!token
+  const isAuthenticated = !!token && !token.error
 
   const pathMatchesRoute = (route: string) => pathname === route || pathname.startsWith(`${route}/`)
   const isProtectedRoute = PROTECTED_ROUTES.some(pathMatchesRoute)
