@@ -9,6 +9,8 @@ export interface MockTokenOptions {
   iat?: number
   exp?: number
   accessToken?: string
+  refreshToken?: string
+  accessTokenExp?: number
   id?: string
   roles?: string[]
 }
@@ -28,6 +30,8 @@ export function createMockToken(overrides: MockTokenOptions = {}) {
     iat: now,
     exp: now + 86400, // 24 hours from now
     accessToken: 'mock-access-token',
+    refreshToken: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2',
+    accessTokenExp: (now + 3600) * 1000, // 1 hour from now in epoch ms
     id: '123',
     roles: ['user'],
     ...overrides,
