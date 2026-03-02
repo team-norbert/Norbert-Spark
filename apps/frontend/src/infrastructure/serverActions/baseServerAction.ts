@@ -46,13 +46,13 @@ function normalizeUrl(apiUrl: string, endpoint: string) {
 }
 
 /**
- * Parse and handle response from fetch or node-fetch
- * Extracts JSON, handles errors, and throws with proper context
+ * Parse and handle response from fetch or node-fetch.
+ * Extracts JSON, handles errors, and throws with proper context.
+ * 401 errors are thrown (not redirected) so the caller can attempt a transparent retry.
  */
 async function handleResponse<T>(
   res: Response | Awaited<ReturnType<typeof import('node-fetch').default>>,
-  url: string,
-  redirectOn401 = true
+  url: string
 ): Promise<T> {
   const text = await res.text()
   let parsed: unknown
@@ -64,10 +64,6 @@ async function handleResponse<T>(
 
   if (!res.ok) {
     logger.error('[backendRequest] non-ok response', { url, status: res.status, body: parsed })
-
-    if (res.status === 401 && redirectOn401) {
-      redirect('/signin?error=session_expired')
-    }
 
     const extractedError = (() => {
       if (!parsed || typeof parsed !== 'object') return undefined
@@ -114,6 +110,29 @@ async function attemptRetry<T>(options: BackendRequestOptions): Promise<T> {
 
   logger.warn('[backendRequest] Token refresh failed — redirecting to sign-in')
   redirect('/signin?error=session_expired')
+}
+
+/**
+ * Handles a caught 401 error.
+ *
+ * - If `redirectOn401 !== false` and this is the first 401 (`_isRetry` is not set),
+ *   it attempts a transparent retry via `attemptRetry`.
+ * - If `redirectOn401 !== false` and this is already a retry (`_isRetry` is true),
+ *   it redirects to the sign-in page.
+ * - If `redirectOn401 === false`, it does not redirect and rethrows the 401 error,
+ *   allowing the caller to handle it (for example, with a custom flow).
+ */
+async function handle401<T>(
+  error: Error & { status?: number },
+  options: BackendRequestOptions
+): Promise<T> {
+  if (error.status === 401 && options.redirectOn401 !== false) {
+    if (!options._isRetry) {
+      return attemptRetry<T>(options)
+    }
+    redirect('/signin?error=session_expired')
+  }
+  throw error
 }
 
 export async function backendRequest<T>(options: BackendRequestOptions): Promise<T> {
@@ -173,13 +192,9 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
-      return await handleResponse<T>(res, url, options.redirectOn401)
+      return await handleResponse<T>(res, url)
     } catch (err) {
-      const error = err as Error & { status?: number }
-      if (error.status === 401 && options.redirectOn401 !== false && !options._isRetry) {
-        return attemptRetry<T>(options)
-      }
-      throw error
+      return handle401<T>(err as Error & { status?: number }, options)
     } finally {
       clearTimeout(timeout)
     }
@@ -198,13 +213,9 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
-      return await handleResponse<T>(res, url, options.redirectOn401)
+      return await handleResponse<T>(res, url)
     } catch (err) {
-      const error = err as Error & { status?: number }
-      if (error.status === 401 && options.redirectOn401 !== false && !options._isRetry) {
-        return attemptRetry<T>(options)
-      }
-      throw error
+      return handle401<T>(err as Error & { status?: number }, options)
     } finally {
       clearTimeout(timeout)
     }

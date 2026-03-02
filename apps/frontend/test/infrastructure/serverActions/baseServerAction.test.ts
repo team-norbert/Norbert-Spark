@@ -93,6 +93,162 @@ describe('backendRequest effectiveTimeoutMs', () => {
   })
 })
 
-// Note: 401 handling behavior is tested through E2E tests in jwt-expiration.spec.ts
-// Unit testing the redirect behavior requires complex module mocking that is better
-// covered by integration/E2E tests
+describe('backendRequest 401 transparent retry', () => {
+  let redirectMock: ReturnType<typeof vi.fn>
+  let originalEnv: string | undefined
+
+  beforeEach(() => {
+    originalEnv = process.env.BACKEND_AI_CALLBACK_URL
+    process.env.BACKEND_AI_CALLBACK_URL = API_URL
+
+    vi.resetModules()
+
+    redirectMock = vi.fn((url: string) => {
+      throw new Error(`NEXT_REDIRECT: ${url}`)
+    })
+    vi.doMock('next/navigation.js', () => ({ redirect: redirectMock }))
+    vi.doMock('next-auth', () => ({ getServerSession: vi.fn() }))
+    vi.doMock('@/lib/auth/auth-config.js', () => ({ authOptions: {} }))
+    vi.doMock('@/infrastructure/logging/logger.js', () => ({
+      createLogger: () => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn() }),
+    }))
+  })
+
+  afterEach(() => {
+    vi.resetModules()
+    vi.restoreAllMocks()
+    if (originalEnv === undefined) delete process.env.BACKEND_AI_CALLBACK_URL
+    else process.env.BACKEND_AI_CALLBACK_URL = originalEnv
+  })
+
+  it('retries once with a refreshed Authorization header on 401', async () => {
+    const mockNodeFetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        text: async () => '{"error":"Unauthorized"}',
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => '{"data":"ok"}',
+      })
+    vi.doMock('node-fetch', () => ({ default: mockNodeFetch }))
+
+    const { backendRequest } = await import('@/infrastructure/serverActions/baseServerAction.js')
+    const { getServerSession } = await import('next-auth')
+    vi.mocked(getServerSession).mockResolvedValueOnce({
+      accessToken: 'new-access-token',
+      expires: '2099-01-01',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any)
+
+    const result = await backendRequest({ method: 'GET', endpoint: '/api/data' })
+
+    expect(result).toEqual({ data: 'ok' })
+    expect(mockNodeFetch).toHaveBeenCalledTimes(2)
+    const [, secondCallOptions] = mockNodeFetch.mock.calls[1] as [
+      string,
+      { headers: Record<string, string> },
+    ]
+    expect(secondCallOptions.headers.Authorization).toBe('Bearer new-access-token')
+  })
+
+  it('calls getServerSession exactly once on 401 before retrying', async () => {
+    const mockNodeFetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        text: async () => '{"error":"Unauthorized"}',
+      })
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => '{}' })
+    vi.doMock('node-fetch', () => ({ default: mockNodeFetch }))
+
+    const { backendRequest } = await import('@/infrastructure/serverActions/baseServerAction.js')
+    const { getServerSession } = await import('next-auth')
+    const mockGetServerSession = vi.mocked(getServerSession)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockGetServerSession.mockResolvedValueOnce({
+      accessToken: 'new-access-token',
+      expires: '2099-01-01',
+    } as any)
+
+    await backendRequest({ method: 'GET', endpoint: '/api/data' })
+
+    expect(mockGetServerSession).toHaveBeenCalledTimes(1)
+  })
+
+  it('redirects to /signin when retry also returns 401', async () => {
+    vi.doMock('node-fetch', () => ({
+      default: vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        text: async () => '{"error":"Unauthorized"}',
+      }),
+    }))
+
+    const { backendRequest } = await import('@/infrastructure/serverActions/baseServerAction.js')
+    const { getServerSession } = await import('next-auth')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(getServerSession).mockResolvedValueOnce({
+      accessToken: 'new-access-token',
+      expires: '2099-01-01',
+    } as any)
+
+    await expect(backendRequest({ method: 'GET', endpoint: '/api/data' })).rejects.toThrow(
+      'NEXT_REDIRECT: /signin?error=session_expired'
+    )
+    expect(redirectMock).toHaveBeenCalledWith('/signin?error=session_expired')
+  })
+
+  it('redirects to /signin when session refresh fails (null session)', async () => {
+    vi.doMock('node-fetch', () => ({
+      default: vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        text: async () => '{"error":"Unauthorized"}',
+      }),
+    }))
+
+    // getServerSession returns null — simulates failed session refresh
+    const { backendRequest } = await import('@/infrastructure/serverActions/baseServerAction.js')
+    const { getServerSession } = await import('next-auth')
+    vi.mocked(getServerSession).mockResolvedValue(null)
+
+    await expect(backendRequest({ method: 'GET', endpoint: '/api/data' })).rejects.toThrow(
+      'NEXT_REDIRECT: /signin?error=session_expired'
+    )
+    expect(redirectMock).toHaveBeenCalledWith('/signin?error=session_expired')
+  })
+
+  it('throws without redirecting when redirectOn401 is false', async () => {
+    vi.doMock('node-fetch', () => ({
+      default: vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        text: async () => '{"error":"Unauthorized"}',
+      }),
+    }))
+
+    const { backendRequest } = await import('@/infrastructure/serverActions/baseServerAction.js')
+    const { getServerSession } = await import('next-auth')
+
+    const error = await backendRequest({
+      method: 'GET',
+      endpoint: '/api/data',
+      redirectOn401: false,
+    }).catch((e) => e)
+
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error & { status?: number }).status).toBe(401)
+    expect(vi.mocked(getServerSession)).not.toHaveBeenCalled()
+    expect(redirectMock).not.toHaveBeenCalled()
+  })
+})
