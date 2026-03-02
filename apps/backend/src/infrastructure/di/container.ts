@@ -363,7 +363,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.logger,
       this.loginUserUseCase,
       this.registerUserWithProviderUseCase,
-      this.refreshAccessTokenUseCase
+      this.refreshAccessTokenUseCase,
+      this.logOutUseCase
     )
     this.aiController = new AIController(
       this.getChatUseCase,
