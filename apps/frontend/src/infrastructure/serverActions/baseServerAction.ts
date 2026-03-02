@@ -51,8 +51,7 @@ function normalizeUrl(apiUrl: string, endpoint: string) {
  */
 async function handleResponse<T>(
   res: Response | Awaited<ReturnType<typeof import('node-fetch').default>>,
-  url: string,
-  redirectOn401 = true
+  url: string
 ): Promise<T> {
   const text = await res.text()
   let parsed: unknown
@@ -64,10 +63,6 @@ async function handleResponse<T>(
 
   if (!res.ok) {
     logger.error('[backendRequest] non-ok response', { url, status: res.status, body: parsed })
-
-    if (res.status === 401 && redirectOn401) {
-      redirect('/signin?error=session_expired')
-    }
 
     const extractedError = (() => {
       if (!parsed || typeof parsed !== 'object') return undefined
@@ -173,11 +168,14 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
-      return await handleResponse<T>(res, url, options.redirectOn401)
+      return await handleResponse<T>(res, url)
     } catch (err) {
       const error = err as Error & { status?: number }
-      if (error.status === 401 && options.redirectOn401 !== false && !options._isRetry) {
-        return attemptRetry<T>(options)
+      if (error.status === 401 && options.redirectOn401 !== false) {
+        if (!options._isRetry) {
+          return attemptRetry<T>(options)
+        }
+        redirect('/signin?error=session_expired')
       }
       throw error
     } finally {
@@ -198,11 +196,14 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
-      return await handleResponse<T>(res, url, options.redirectOn401)
+      return await handleResponse<T>(res, url)
     } catch (err) {
       const error = err as Error & { status?: number }
-      if (error.status === 401 && options.redirectOn401 !== false && !options._isRetry) {
-        return attemptRetry<T>(options)
+      if (error.status === 401 && options.redirectOn401 !== false) {
+        if (!options._isRetry) {
+          return attemptRetry<T>(options)
+        }
+        redirect('/signin?error=session_expired')
       }
       throw error
     } finally {
