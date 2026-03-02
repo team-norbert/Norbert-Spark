@@ -7,6 +7,7 @@ import { AuthController } from '../../../../src/adapters/primary/http/auth.contr
 import { LoginUserUseCase } from '../../../../src/application/use-cases/login-user.use-case.js'
 import { RefreshAccessTokenUseCase } from '../../../../src/application/use-cases/refresh-access-token.use-case.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
+import { UnauthorizedException } from '../../../../src/shared/exceptions/unauthorized.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
 
 // Helper function to create mock auth result with proper UserIdType
