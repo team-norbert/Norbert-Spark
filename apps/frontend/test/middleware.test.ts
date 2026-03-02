@@ -366,6 +366,28 @@ describe('Middleware', () => {
       expect(response.status).toBe(200)
     })
 
+    it('should redirect token with OAuthSyncCacheMiss error from protected route to /signin', async () => {
+      vi.mocked(getToken).mockResolvedValue(createMockToken({ error: 'OAuthSyncCacheMiss' }))
+      const request = createRequest('/dashboard')
+
+      const response = await middleware(request)
+
+      expect(response.status).toBe(302)
+      expect(response.headers.get('location')).toBe(
+        `${baseUrl}/signin?callbackUrl=%2Fdashboard`
+      )
+    })
+
+    it('should allow token with OAuthSyncCacheMiss error to access auth route for re-authentication', async () => {
+      vi.mocked(getToken).mockResolvedValue(createMockToken({ error: 'OAuthSyncCacheMiss' }))
+      const request = createRequest('/signin')
+
+      const response = await middleware(request)
+
+      // Token has error, so user is treated as unauthenticated and can access /signin
+      expect(response.status).toBe(200)
+    })
+
     it('should handle paths with special characters', async () => {
       vi.mocked(getToken).mockResolvedValue(null)
       const request = createRequest('/admin/users?name=John%20Doe&age=30')

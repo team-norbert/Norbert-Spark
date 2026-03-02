@@ -898,7 +898,43 @@ describe('authOptions Configuration', () => {
 
       expect(result.roles).toEqual(['user', 'admin', 'superuser'])
     })
-  })
+
+    it('should set token.error on OAuth sync cache miss', async () => {
+      vi.resetModules()
+      const { authOptions } = await import('@/lib/auth/auth-config.js')
+
+      const mockUser = {
+        id: 'google-123',
+        email: 'google@example.com',
+        name: 'Google User',
+        accessToken: '',
+        roles: [],
+      }
+
+      const mockToken = {
+        accessToken: '',
+        id: '',
+        roles: [],
+        refreshToken: '',
+        accessTokenExp: 0,
+      } as JWT
+
+      // No prior oauthSyncCache.set() call, so this is a cache miss
+      const result = await authOptions.callbacks!.jwt!({
+        token: mockToken,
+        user: mockUser as NextAuthUser,
+        trigger: 'signIn',
+        session: undefined,
+        account: {
+          provider: 'google',
+          type: 'oauth',
+          providerAccountId: 'google-123',
+        },
+        profile: undefined,
+      })
+
+      expect(result.error).toBe('OAuthSyncCacheMiss')
+    })
 
   describe('Session Callback', () => {
     it('should add token data to session', async () => {
@@ -1047,7 +1083,63 @@ describe('authOptions Configuration', () => {
 
       expect((result as Session).accessToken).toBeUndefined()
     })
-  })
+
+    it('should propagate token.error to session.error', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockSession = {
+        user: {
+          email: 'google@example.com',
+        },
+        expires: '2025-12-31',
+      }
+
+      const mockToken = {
+        id: 'google-123',
+        roles: ['user'],
+        accessToken: '',
+        error: 'OAuthSyncCacheMiss',
+      }
+
+      const result = await authOptions.callbacks!.session!({
+        session: mockSession as Session,
+        token: mockToken as JWT,
+        // @ts-expect-error - Testing with custom User type instead of AdapterUser
+        user: undefined as unknown as NextAuthUser,
+        trigger: 'update',
+        newSession: undefined,
+      })
+
+      expect((result as Session).error).toBe('OAuthSyncCacheMiss')
+    })
+
+    it('should not set session.error when token has no error', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockSession = {
+        user: {
+          email: 'test@example.com',
+        },
+        expires: '2025-12-31',
+      }
+
+      const mockToken = {
+        id: 'user-123',
+        roles: ['user'],
+        accessToken: 'valid-token',
+      }
+
+      const result = await authOptions.callbacks!.session!({
+        session: mockSession as Session,
+        token: mockToken as JWT,
+        // @ts-expect-error - Testing with custom User type instead of AdapterUser
+        user: undefined as unknown as NextAuthUser,
+        trigger: 'update',
+        newSession: undefined,
+      })
+
+      expect((result as Session).error).toBeUndefined()
+    })
 
   describe('Integration Tests', () => {
     it('should complete full authentication flow', async () => {
