@@ -5,6 +5,7 @@ import { RegisterUserDto } from '../../../src/application/dtos/register-user.dto
 import type { AuditLogPort } from '../../../src/application/ports/audit-log.port.js'
 import type { EmailServicePort } from '../../../src/application/ports/email.service.port.js'
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
+import type { RefreshTokenRepositoryPort } from '../../../src/application/ports/refresh-token.repository.port.js'
 import type { TokenGeneratorPort } from '../../../src/application/ports/token-generator.port.js'
 import type { UserRepositoryPort } from '../../../src/application/ports/user.repository.port.js'
 import { RegisterUserWithProviderUseCase } from '../../../src/application/use-cases/register-user-with-provider.use-case.js'
@@ -26,6 +27,7 @@ describe('RegisterUserWithProviderUseCase', () => {
   let mockLogger: LoggerPort
   let mockTokenGenerator: TokenGeneratorPort
   let mockAuditLog: AuditLogPort
+  let mockRefreshTokenRepository: RefreshTokenRepositoryPort
   const auditContext = { userId: null, ipAddress: '127.0.0.1', userAgent: 'test-agent' }
 
   beforeEach(() => {
@@ -68,13 +70,23 @@ describe('RegisterUserWithProviderUseCase', () => {
       getByAction: vi.fn(),
     }
 
+    mockRefreshTokenRepository = {
+      create: vi.fn().mockResolvedValue(undefined),
+      findByHash: vi.fn(),
+      revokeByHash: vi.fn(),
+      revokeFamily: vi.fn(),
+      revokeAllForUser: vi.fn(),
+      deleteExpiredBefore: vi.fn(),
+    }
+
     // Create use case instance with mocks
     useCase = new RegisterUserWithProviderUseCase(
       mockUserRepository,
       mockEmailService,
       mockLogger,
       mockTokenGenerator,
-      mockAuditLog
+      mockAuditLog,
+      mockRefreshTokenRepository
     )
   })
 
@@ -135,9 +147,12 @@ describe('RegisterUserWithProviderUseCase', () => {
 
         const result = await useCase.execute(dto, auditContext)
 
-        expect(result.access_token).toBe('mock-jwt-token')
-        expect(result.token_type).toBe('Bearer')
-        expect(result.expires_in).toBe(3600)
+        expect(result.accessToken).toBe('mock-jwt-token')
+        expect(result.refreshToken).toBeDefined()
+        expect(typeof result.refreshToken).toBe('string')
+        expect(result.expiresInSeconds).toBe(604800) // 7 days in seconds
+        expect(result.email).toBe('john@example.com')
+        expect(result.roles).toEqual(['user'])
       })
 
       it('should save the user to the repository without password', async () => {
@@ -404,7 +419,7 @@ describe('RegisterUserWithProviderUseCase', () => {
 
         expect(result).toBeDefined()
         expect(result.userId).toBeDefined()
-        expect(result.access_token).toBe('mock-jwt-token')
+        expect(result.accessToken).toBe('mock-jwt-token')
       })
 
       it('should log error when email fails but not throw', async () => {

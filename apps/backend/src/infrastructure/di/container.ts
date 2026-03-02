@@ -273,7 +273,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.emailService,
       this.logger,
       this.tokenGenerator,
-      this.auditLog
+      this.auditLog,
+      this.refreshTokenRepo
     )
     this.deleteUsersUseCase = new DeleteUsersUseCase(
       this.userRepository,

@@ -283,9 +283,11 @@ export class AuthController {
         success: true,
         data: {
           userId: result.userId,
-          accessToken: result.access_token,
-          tokenType: result.token_type,
-          expiresIn: result.expires_in,
+          email: result.email,
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
+          expiresInSeconds: result.expiresInSeconds,
+          roles: result.roles,
         },
       })
     } catch (error) {
