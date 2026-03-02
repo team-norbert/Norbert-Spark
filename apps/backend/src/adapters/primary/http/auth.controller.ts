@@ -15,7 +15,7 @@ import { oauthSyncAuthMiddleware } from '../../../infrastructure/http/middleware
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 /**
- * HTTP controller for authentication endpoints
+ * HTTP controller for authentication endpoints.
  *
  * Handles authentication-related HTTP requests in the Fastify application.
  * Acts as a primary adapter in the Hexagonal Architecture, translating HTTP
@@ -33,43 +33,42 @@ import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
  * - Exception translation to appropriate HTTP status codes
  *
  * Routes registered:
- * - `POST /auth/login` - User authentication endpoint
+ * - `POST /auth/login`      — Credential-based authentication (public)
+ * - `POST /auth/oauth-sync` — OAuth user synchronisation (shared-secret protected)
+ * - `POST /auth/refresh`    — Access token rotation via refresh token (public)
+ * - `POST /auth/logout`     — Revoke all refresh tokens (JWT protected)
  *
- * Response format:
- * - Success: `{ success: true, data: {...} }`
- * - Error: `{ success: false, error: "message" }`
+ * Uniform response envelope:
+ * - Success: `{ success: true,  data:  { ... } }`
+ * - Error:   `{ success: false, error: "message" }`
  *
  * @example
  * ```typescript
- * // Register controller in Fastify app
- * const authController = new AuthController(loginUserUseCase)
+ * const authController = new AuthController(
+ *   logger,
+ *   loginUserUseCase,
+ *   registerUserWithProviderUseCase,
+ *   refreshAccessTokenUseCase,
+ *   logOutUseCase,
+ * )
  * authController.registerRoutes(app)
- *
- * // Routes are now available at /auth/login
+ * // POST /auth/login, /auth/oauth-sync, /auth/refresh, /auth/logout now available
  * ```
  *
- * @see {@link LoginUserUseCase} for authentication business logic
- * @see {@link LoginUserDto} for request data structure
+ * @see {@link LoginUserUseCase} for credential authentication logic
+ * @see {@link RegisterUserWithProviderUseCase} for OAuth user synchronisation logic
+ * @see {@link RefreshAccessTokenUseCase} for token rotation logic
+ * @see {@link LogOutUseCase} for session revocation logic
  */
 export class AuthController {
   /**
-   * Creates a new AuthController instance
+   * Creates a new AuthController instance.
    *
-   * @param logger - Logger instance for logging within the controller
-   * @param {LoginUserUseCase} loginUserUseCase - Use case for user authentication
-   * @param {RegisterUserWithProviderUseCase} registerUserWithProviderUseCase - Use case for registering OAuth users
-   *
-   * @param refreshAccessTokenUseCase
-   * @param logOutUseCase
-   * @example
-   * ```typescript
-   * const loginUseCase = new LoginUserUseCase(
-   *   userRepository,
-   *   logger,
-   *   tokenGenerator
-   * )
-   * const authController = new AuthController(loginUseCase)
-   * ```
+   * @param logger - Structured logger for recording handler activity and errors.
+   * @param loginUserUseCase - Use case that validates credentials and issues tokens.
+   * @param registerUserWithProviderUseCase - Use case that upserts OAuth-provider users.
+   * @param refreshAccessTokenUseCase - Use case that rotates an existing refresh token.
+   * @param logOutUseCase - Use case that revokes all refresh tokens for a user.
    */
   constructor(
     private readonly logger: LoggerPort,
@@ -80,24 +79,23 @@ export class AuthController {
   ) {}
 
   /**
-   * Registers authentication routes with the Fastify application
+   * Registers all authentication routes with the Fastify application.
    *
-   * Binds HTTP endpoints to their respective handler methods. All routes
-   * are prefixed with `/auth` and use proper HTTP method binding.
+   * Binds the four `POST /auth/*` endpoints to their handler methods.
+   * Route-level middleware is applied where required:
+   * - `/auth/oauth-sync` requires the `oauthSyncAuthMiddleware` shared-secret check.
+   * - `/auth/logout` requires the `authMiddleware` JWT bearer check.
    *
-   * @param {FastifyInstance} app - Fastify application instance
+   * @param app - Fastify application instance to register routes on.
    * @returns {void}
    *
    * @example
    * ```typescript
    * import Fastify from 'fastify'
    * const app = Fastify()
-   *
-   * const authController = new AuthController(loginUserUseCase)
    * authController.registerRoutes(app)
-   *
-   * await app.listen({ port: 3000 })
-   * // POST /auth/login is now available
+   * await app.listen({ port: 3001 })
+   * // POST /auth/login, /auth/oauth-sync, /auth/refresh, /auth/logout available
    * ```
    */
   registerRoutes(app: FastifyInstance): void {
@@ -107,6 +105,50 @@ export class AuthController {
     app.post('/auth/logout', { preHandler: authMiddleware }, this.logout.bind(this))
   }
 
+  /**
+   * Logs out the authenticated user by revoking all their refresh tokens.
+   *
+   * This endpoint implements a "log out from all devices" pattern — every
+   * refresh token associated with the calling user is invalidated immediately.
+   * The user's current access token will remain valid until it naturally expires
+   * (short-lived by design), but no new access tokens can be obtained without
+   * re-authenticating.
+   *
+   * **Security:** Protected by `authMiddleware`. The request must carry a valid
+   * JWT bearer token; the user ID is read from `request.user.sub`.
+   *
+   * @async
+   * @param request - Fastify request. `request.user.sub` must be set by `authMiddleware`.
+   * @param reply - Fastify reply used to send the HTTP response.
+   * @returns {Promise<void>} Resolves once the response has been sent.
+   *
+   * @remarks
+   * Success response (200):
+   * ```json
+   * { "success": true, "data": { "message": "Logged out" } }
+   * ```
+   *
+   * Error responses:
+   * - `401` — JWT missing or invalid (rejected by `authMiddleware` before reaching this handler).
+   * - `500` — Token revocation failed (database error or unexpected exception).
+   *
+   * Error response format:
+   * ```json
+   * { "success": false, "error": "Failed to log out user due to a database error" }
+   * ```
+   *
+   * @example
+   * ```http
+   * POST /auth/logout
+   * Authorization: Bearer <accessToken>
+   *
+   * HTTP/1.1 200 OK
+   * { "success": true, "data": { "message": "Logged out" } }
+   * ```
+   *
+   * @see {@link LogOutUseCase.execute} for token revocation logic
+   * @see {@link authMiddleware} for JWT verification
+   */
   async logout(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       // Extract audit context from request
@@ -143,6 +185,70 @@ export class AuthController {
     }
   }
 
+  /**
+   * Issues a new access token and rotated refresh token in exchange for a valid refresh token.
+   *
+   * Implements refresh token rotation: the supplied refresh token is consumed and
+   * a brand-new refresh token is returned alongside a fresh access token. The old
+   * refresh token is invalidated immediately, so it cannot be reused.
+   *
+   * **Security:** This endpoint is public (no JWT required). Authentication is
+   * proved solely by possession of a valid, unexpired, non-revoked refresh token.
+   * Reuse of an already-consumed token is treated as a potential replay attack and
+   * results in a `401` response.
+   *
+   * @async
+   * @param request - Fastify request. Body must conform to `RefreshTokenRequest`
+   *   (`{ refreshToken: string }` — a 64-character hexadecimal string).
+   * @param reply - Fastify reply used to send the HTTP response.
+   * @returns {Promise<void>} Resolves once the response has been sent.
+   *
+   * @remarks
+   * Success response (200):
+   * ```json
+   * {
+   *   "success": true,
+   *   "data": {
+   *     "accessToken": "<JWT>",
+   *     "refreshToken": "<64-char hex>",
+   *     "expiresInSeconds": 604800
+   *   }
+   * }
+   * ```
+   *
+   * Error responses:
+   * - `400` — `refreshToken` is missing, not a string, or not a 64-character hex value
+   *   (thrown by {@link PostRefreshDTO.validate}).
+   * - `401` — Refresh token not found, already consumed, or expired
+   *   (thrown by {@link RefreshAccessTokenUseCase}).
+   * - `500` — Database error or unexpected exception.
+   *
+   * Error response format:
+   * ```json
+   * { "success": false, "error": "<message>" }
+   * ```
+   *
+   * @example
+   * ```http
+   * POST /auth/refresh
+   * Content-Type: application/json
+   *
+   * { "refreshToken": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" }
+   *
+   * HTTP/1.1 200 OK
+   * {
+   *   "success": true,
+   *   "data": {
+   *     "accessToken": "eyJhbGci...",
+   *     "refreshToken": "a1b2c3d4...",
+   *     "expiresInSeconds": 604800
+   *   }
+   * }
+   * ```
+   *
+   * @see {@link PostRefreshDTO.validate} for request body validation
+   * @see {@link RefreshAccessTokenUseCase.execute} for token rotation logic
+   */
   async refresh(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       // Extract audit context from request
