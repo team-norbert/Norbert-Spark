@@ -320,8 +320,7 @@ export const authOptions: NextAuthOptions = {
       }
     },
     async session({ session, token }) {
-      const user =
-        (session.user ?? {}) as typeof session.user & { id: string; roles: string[] }
+      const user = (session.user ?? {}) as typeof session.user & { id: string; roles: string[] }
       user.id = token.id as string
       user.roles = token.roles as string[]
       session.user = user
