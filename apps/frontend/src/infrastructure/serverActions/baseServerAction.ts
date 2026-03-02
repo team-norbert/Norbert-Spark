@@ -1,8 +1,10 @@
 'use server'
 // Shared utilities (error handling, logging, SSL handling)
 import { redirect } from 'next/navigation.js'
+import { getServerSession } from 'next-auth'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
+import { authOptions } from '@/lib/auth/auth-config.js'
 
 const logger = createLogger({ prefix: 'backendRequest' })
 
@@ -25,6 +27,12 @@ export interface BackendRequestOptions {
    * When false, a 401 error will throw an Error with status 401 instead of redirecting.
    */
   redirectOn401?: boolean
+  /**
+   * Internal flag — set automatically by the retry logic on a 401.
+   * Prevents infinite retry loops. Do not set manually.
+   * @internal
+   */
+  _isRetry?: boolean
 }
 
 function normalizeUrl(apiUrl: string, endpoint: string) {
@@ -57,10 +65,7 @@ async function handleResponse<T>(
   if (!res.ok) {
     logger.error('[backendRequest] non-ok response', { url, status: res.status, body: parsed })
 
-    // Redirect to signin on 401 Unauthorized (JWT expired or invalid)
-    // Only redirect if redirectOn401 is true (default behavior)
     if (res.status === 401 && redirectOn401) {
-      logger.info('[backendRequest] JWT expired or unauthorized - redirecting to signin')
       redirect('/signin?error=session_expired')
     }
 
@@ -81,6 +86,34 @@ async function handleResponse<T>(
   }
 
   return parsed as T
+}
+
+/**
+ * Attempt a single transparent retry after a 401 by refreshing the session.
+ *
+ * Calls `getServerSession()` which triggers the NextAuth `jwt` callback,
+ * performing a silent token refresh if the access token has expired.
+ * If the refresh succeeds, the original request is retried once with the
+ * new access token. If the refresh fails, the user is redirected to sign in.
+ */
+async function attemptRetry<T>(options: BackendRequestOptions): Promise<T> {
+  logger.info('[backendRequest] 401 received — attempting silent token refresh')
+  const refreshedSession = await getServerSession(authOptions)
+
+  if (refreshedSession?.accessToken && !refreshedSession?.error) {
+    logger.info('[backendRequest] Token refreshed — retrying request')
+    return backendRequest<T>({
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${refreshedSession.accessToken}`,
+      },
+      _isRetry: true,
+    })
+  }
+
+  logger.warn('[backendRequest] Token refresh failed — redirecting to sign-in')
+  redirect('/signin?error=session_expired')
 }
 
 export async function backendRequest<T>(options: BackendRequestOptions): Promise<T> {
@@ -141,6 +174,12 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
       })
 
       return await handleResponse<T>(res, url, options.redirectOn401)
+    } catch (err) {
+      const error = err as Error & { status?: number }
+      if (error.status === 401 && options.redirectOn401 !== false && !options._isRetry) {
+        return attemptRetry<T>(options)
+      }
+      throw error
     } finally {
       clearTimeout(timeout)
     }
@@ -160,6 +199,12 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
       })
 
       return await handleResponse<T>(res, url, options.redirectOn401)
+    } catch (err) {
+      const error = err as Error & { status?: number }
+      if (error.status === 401 && options.redirectOn401 !== false && !options._isRetry) {
+        return attemptRetry<T>(options)
+      }
+      throw error
     } finally {
       clearTimeout(timeout)
     }
