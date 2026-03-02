@@ -320,14 +320,12 @@ export const authOptions: NextAuthOptions = {
       }
     },
     async session({ session, token }) {
-      // Send properties to the client
-      if (session.user) {
-        session.user.id = token.id as string
-        session.user.roles = token.roles as string[]
-      }
+      session.user.id = token.id as string
+      session.user.roles = token.roles as string[]
       session.accessToken = token.accessToken as string
+      // NEW: propagate refresh errors to the client
       if (token.error) {
-        session.error = token.error
+        session.error = token.error as string
       }
       return session
     },
