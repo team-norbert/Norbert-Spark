@@ -922,7 +922,7 @@ describe('authOptions Configuration', () => {
       // No prior oauthSyncCache.set() call, so this is a cache miss
       const result = await authOptions.callbacks!.jwt!({
         token: mockToken,
-        user: mockUser as NextAuthUser,
+        user: mockUser as unknown as NextAuthUser,
         trigger: 'signIn',
         session: undefined,
         account: {
@@ -936,285 +936,293 @@ describe('authOptions Configuration', () => {
       expect(result.error).toBe('OAuthSyncCacheMiss')
     })
 
-  describe('Session Callback', () => {
-    it('should add token data to session', async () => {
-      const authOptions = await getAuthOptions()
+    describe('Session Callback', () => {
+      it('should add token data to session', async () => {
+        const authOptions = await getAuthOptions()
 
-      const mockSession = {
-        user: {
-          email: 'test@example.com',
-        },
-        expires: '2025-12-31',
-      }
-
-      const mockToken = {
-        accessToken: 'mock-token',
-        id: 'user-123',
-        roles: ['user'],
-      }
-
-      const result = await authOptions.callbacks!.session!({
-        session: mockSession as Session,
-        token: mockToken as JWT,
-        // @ts-expect-error - Testing with custom User type instead of AdapterUser
-        user: undefined as unknown as NextAuthUser,
-        trigger: 'update',
-        newSession: undefined,
-      })
-
-      expect((result.user as Session['user'])?.id).toBe('user-123')
-      expect((result.user as Session['user'])?.roles).toEqual(['user'])
-      expect((result as Session).accessToken).toBe('mock-token')
-    })
-
-    it('should preserve existing session properties', async () => {
-      const authOptions = await getAuthOptions()
-
-      const mockSession = {
-        user: {
-          email: 'test@example.com',
-          name: 'Test User',
-          image: 'https://example.com/avatar.jpg',
-        },
-        expires: '2025-12-31',
-      }
-
-      const mockToken = {
-        accessToken: 'token',
-        id: 'user-456',
-        roles: ['admin'],
-      }
-
-      const result = await authOptions.callbacks!.session!({
-        session: mockSession as Session,
-        token: mockToken as JWT,
-        // @ts-expect-error - Testing with custom User type instead of AdapterUser
-        user: undefined as unknown as NextAuthUser,
-        trigger: 'update',
-        newSession: undefined,
-      })
-
-      expect(result.user?.email).toBe('test@example.com')
-      expect(result.user?.name).toBe('Test User')
-      expect(result.user?.image).toBe('https://example.com/avatar.jpg')
-      expect(result.expires).toBe('2025-12-31')
-    })
-
-    it('should handle multiple roles in token', async () => {
-      const authOptions = await getAuthOptions()
-
-      const mockSession = {
-        user: {
-          email: 'admin@example.com',
-        },
-        expires: '2025-12-31',
-      }
-
-      const mockToken = {
-        accessToken: 'admin-token',
-        id: 'admin-123',
-        roles: ['user', 'admin', 'moderator'],
-      }
-
-      const result = await authOptions.callbacks!.session!({
-        session: mockSession as Session,
-        token: mockToken as JWT,
-        // @ts-expect-error - Testing with custom User type instead of AdapterUser
-        user: undefined as unknown as NextAuthUser,
-        trigger: 'update',
-        newSession: undefined,
-      })
-
-      expect((result.user as Session['user'])?.roles).toEqual(['user', 'admin', 'moderator'])
-    })
-
-    it('should handle token with no roles', async () => {
-      const authOptions = await getAuthOptions()
-
-      const mockSession = {
-        user: {
-          email: 'test@example.com',
-        },
-        expires: '2025-12-31',
-      }
-
-      const mockToken = {
-        accessToken: 'token',
-        id: 'user-789',
-        // roles undefined
-      }
-
-      const result = await authOptions.callbacks!.session!({
-        session: mockSession as Session,
-        token: mockToken as JWT,
-        // @ts-expect-error - Testing with custom User type instead of AdapterUser
-        user: undefined as unknown as NextAuthUser,
-        trigger: 'update',
-        newSession: undefined,
-      })
-
-      expect((result.user as Session['user'])?.roles).toBeUndefined()
-    })
-
-    it('should handle token with no accessToken', async () => {
-      const authOptions = await getAuthOptions()
-
-      const mockSession = {
-        user: {
-          email: 'test@example.com',
-        },
-        expires: '2025-12-31',
-      }
-
-      const mockToken = {
-        id: 'user-999',
-        roles: ['user'],
-        // accessToken undefined
-      }
-
-      const result = await authOptions.callbacks!.session!({
-        session: mockSession as Session,
-        token: mockToken as JWT,
-        // @ts-expect-error - Testing with custom User type instead of AdapterUser
-        user: undefined as unknown as NextAuthUser,
-        trigger: 'update',
-        newSession: undefined,
-      })
-
-      expect((result as Session).accessToken).toBeUndefined()
-    })
-
-    it('should propagate token.error to session.error', async () => {
-      const authOptions = await getAuthOptions()
-
-      const mockSession = {
-        user: {
-          email: 'google@example.com',
-        },
-        expires: '2025-12-31',
-      }
-
-      const mockToken = {
-        id: 'google-123',
-        roles: ['user'],
-        accessToken: '',
-        error: 'OAuthSyncCacheMiss',
-      }
-
-      const result = await authOptions.callbacks!.session!({
-        session: mockSession as Session,
-        token: mockToken as JWT,
-        // @ts-expect-error - Testing with custom User type instead of AdapterUser
-        user: undefined as unknown as NextAuthUser,
-        trigger: 'update',
-        newSession: undefined,
-      })
-
-      expect((result as Session).error).toBe('OAuthSyncCacheMiss')
-    })
-
-    it('should not set session.error when token has no error', async () => {
-      const authOptions = await getAuthOptions()
-
-      const mockSession = {
-        user: {
-          email: 'test@example.com',
-        },
-        expires: '2025-12-31',
-      }
-
-      const mockToken = {
-        id: 'user-123',
-        roles: ['user'],
-        accessToken: 'valid-token',
-      }
-
-      const result = await authOptions.callbacks!.session!({
-        session: mockSession as Session,
-        token: mockToken as JWT,
-        // @ts-expect-error - Testing with custom User type instead of AdapterUser
-        user: undefined as unknown as NextAuthUser,
-        trigger: 'update',
-        newSession: undefined,
-      })
-
-      expect((result as Session).error).toBeUndefined()
-    })
-
-  describe('Integration Tests', () => {
-    it('should complete full authentication flow', async () => {
-      vi.resetModules()
-      const { authOptions } = await import('@/lib/auth/auth-config.js')
-
-      // Step 1: Authorize user
-      const mockBackendResponse = {
-        success: true,
-        data: {
-          userId: 'user-123',
-          email: 'test@example.com',
-          accessToken: 'backend-jwt-token',
-          roles: ['user'],
-        },
-      }
-
-      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockBackendResponse,
-      })
-
-      // Credentials provider is now at index 1 (Google is at 0)
-      const provider = authOptions.providers[1] as {
-        options: {
-          authorize: (
-            credentials: Record<string, string>,
-            req: unknown
-          ) => Promise<NextAuthUser | null>
-        }
-      }
-      const user = await provider.options.authorize(
-        {
-          email: 'test@example.com',
-          password: 'password123',
-        },
-        {}
-      )
-
-      expect(user).toBeDefined()
-
-      // Step 2: JWT callback adds user data to token
-      const token = await authOptions.callbacks!.jwt!({
-        token: { accessToken: '', id: '', roles: [], refreshToken: '', accessTokenExp: 0 } as JWT,
-        user: user as NextAuthUser,
-        trigger: 'signIn',
-        session: undefined,
-        account: {
-          provider: 'credentials',
-          type: 'credentials',
-          providerAccountId: 'test-account-id',
-        },
-        profile: undefined,
-      })
-
-      expect(token.accessToken).toBe('backend-jwt-token')
-      expect(token.id).toBe('user-123')
-      expect(token.roles).toEqual(['user'])
-
-      // Step 3: Session callback adds token data to session
-      const session = await authOptions.callbacks!.session!({
-        session: {
-          user: { email: 'test@example.com' },
+        const mockSession = {
+          user: {
+            email: 'test@example.com',
+          },
           expires: '2025-12-31',
-        } as Session,
-        token: token as JWT,
-        // @ts-expect-error - Testing with custom User type instead of AdapterUser
-        user: undefined as unknown as NextAuthUser,
-        trigger: 'update',
-        newSession: undefined,
+        }
+
+        const mockToken = {
+          accessToken: 'mock-token',
+          id: 'user-123',
+          roles: ['user'],
+        }
+
+        const result = await authOptions.callbacks!.session!({
+          session: mockSession as Session,
+          token: mockToken as JWT,
+          // @ts-expect-error - Testing with custom User type instead of AdapterUser
+          user: undefined as unknown as NextAuthUser,
+          trigger: 'update',
+          newSession: undefined,
+        })
+
+        expect((result.user as Session['user'])?.id).toBe('user-123')
+        expect((result.user as Session['user'])?.roles).toEqual(['user'])
+        expect((result as Session).accessToken).toBe('mock-token')
       })
 
-      expect((session.user as Session['user'])?.id).toBe('user-123')
-      expect((session.user as Session['user'])?.roles).toEqual(['user'])
-      expect((session as Session).accessToken).toBe('backend-jwt-token')
+      it('should preserve existing session properties', async () => {
+        const authOptions = await getAuthOptions()
+
+        const mockSession = {
+          user: {
+            email: 'test@example.com',
+            name: 'Test User',
+            image: 'https://example.com/avatar.jpg',
+          },
+          expires: '2025-12-31',
+        }
+
+        const mockToken = {
+          accessToken: 'token',
+          id: 'user-456',
+          roles: ['admin'],
+        }
+
+        const result = await authOptions.callbacks!.session!({
+          session: mockSession as Session,
+          token: mockToken as JWT,
+          // @ts-expect-error - Testing with custom User type instead of AdapterUser
+          user: undefined as unknown as NextAuthUser,
+          trigger: 'update',
+          newSession: undefined,
+        })
+
+        expect(result.user?.email).toBe('test@example.com')
+        expect(result.user?.name).toBe('Test User')
+        expect(result.user?.image).toBe('https://example.com/avatar.jpg')
+        expect(result.expires).toBe('2025-12-31')
+      })
+
+      it('should handle multiple roles in token', async () => {
+        const authOptions = await getAuthOptions()
+
+        const mockSession = {
+          user: {
+            email: 'admin@example.com',
+          },
+          expires: '2025-12-31',
+        }
+
+        const mockToken = {
+          accessToken: 'admin-token',
+          id: 'admin-123',
+          roles: ['user', 'admin', 'moderator'],
+        }
+
+        const result = await authOptions.callbacks!.session!({
+          session: mockSession as Session,
+          token: mockToken as JWT,
+          // @ts-expect-error - Testing with custom User type instead of AdapterUser
+          user: undefined as unknown as NextAuthUser,
+          trigger: 'update',
+          newSession: undefined,
+        })
+
+        expect((result.user as Session['user'])?.roles).toEqual(['user', 'admin', 'moderator'])
+      })
+
+      it('should handle token with no roles', async () => {
+        const authOptions = await getAuthOptions()
+
+        const mockSession = {
+          user: {
+            email: 'test@example.com',
+          },
+          expires: '2025-12-31',
+        }
+
+        const mockToken = {
+          accessToken: 'token',
+          id: 'user-789',
+          // roles undefined
+        }
+
+        const result = await authOptions.callbacks!.session!({
+          session: mockSession as Session,
+          token: mockToken as JWT,
+          // @ts-expect-error - Testing with custom User type instead of AdapterUser
+          user: undefined as unknown as NextAuthUser,
+          trigger: 'update',
+          newSession: undefined,
+        })
+
+        expect((result.user as Session['user'])?.roles).toBeUndefined()
+      })
+
+      it('should handle token with no accessToken', async () => {
+        const authOptions = await getAuthOptions()
+
+        const mockSession = {
+          user: {
+            email: 'test@example.com',
+          },
+          expires: '2025-12-31',
+        }
+
+        const mockToken = {
+          id: 'user-999',
+          roles: ['user'],
+          // accessToken undefined
+        }
+
+        const result = await authOptions.callbacks!.session!({
+          session: mockSession as Session,
+          token: mockToken as JWT,
+          // @ts-expect-error - Testing with custom User type instead of AdapterUser
+          user: undefined as unknown as NextAuthUser,
+          trigger: 'update',
+          newSession: undefined,
+        })
+
+        expect((result as Session).accessToken).toBeUndefined()
+      })
+
+      it('should propagate token.error to session.error', async () => {
+        const authOptions = await getAuthOptions()
+
+        const mockSession = {
+          user: {
+            email: 'google@example.com',
+          },
+          expires: '2025-12-31',
+        }
+
+        const mockToken = {
+          id: 'google-123',
+          roles: ['user'],
+          accessToken: '',
+          error: 'OAuthSyncCacheMiss',
+        }
+
+        const result = await authOptions.callbacks!.session!({
+          session: mockSession as Session,
+          token: mockToken as JWT,
+          // @ts-expect-error - Testing with custom User type instead of AdapterUser
+          user: undefined as unknown as NextAuthUser,
+          trigger: 'update',
+          newSession: undefined,
+        })
+
+        expect((result as Session).error).toBe('OAuthSyncCacheMiss')
+      })
+
+      it('should not set session.error when token has no error', async () => {
+        const authOptions = await getAuthOptions()
+
+        const mockSession = {
+          user: {
+            email: 'test@example.com',
+          },
+          expires: '2025-12-31',
+        }
+
+        const mockToken = {
+          id: 'user-123',
+          roles: ['user'],
+          accessToken: 'valid-token',
+        }
+
+        const result = await authOptions.callbacks!.session!({
+          session: mockSession as Session,
+          token: mockToken as JWT,
+          // @ts-expect-error - Testing with custom User type instead of AdapterUser
+          user: undefined as unknown as NextAuthUser,
+          trigger: 'update',
+          newSession: undefined,
+        })
+
+        expect((result as Session).error).toBeUndefined()
+      })
+
+      describe('Integration Tests', () => {
+        it('should complete full authentication flow', async () => {
+          vi.resetModules()
+          const { authOptions } = await import('@/lib/auth/auth-config.js')
+
+          // Step 1: Authorize user
+          const mockBackendResponse = {
+            success: true,
+            data: {
+              userId: 'user-123',
+              email: 'test@example.com',
+              accessToken: 'backend-jwt-token',
+              roles: ['user'],
+            },
+          }
+
+          ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockBackendResponse,
+          })
+
+          // Credentials provider is now at index 1 (Google is at 0)
+          const provider = authOptions.providers[1] as {
+            options: {
+              authorize: (
+                credentials: Record<string, string>,
+                req: unknown
+              ) => Promise<NextAuthUser | null>
+            }
+          }
+          const user = await provider.options.authorize(
+            {
+              email: 'test@example.com',
+              password: 'password123',
+            },
+            {}
+          )
+
+          expect(user).toBeDefined()
+
+          // Step 2: JWT callback adds user data to token
+          const token = await authOptions.callbacks!.jwt!({
+            token: {
+              accessToken: '',
+              id: '',
+              roles: [],
+              refreshToken: '',
+              accessTokenExp: 0,
+            } as JWT,
+            user: user as NextAuthUser,
+            trigger: 'signIn',
+            session: undefined,
+            account: {
+              provider: 'credentials',
+              type: 'credentials',
+              providerAccountId: 'test-account-id',
+            },
+            profile: undefined,
+          })
+
+          expect(token.accessToken).toBe('backend-jwt-token')
+          expect(token.id).toBe('user-123')
+          expect(token.roles).toEqual(['user'])
+
+          // Step 3: Session callback adds token data to session
+          const session = await authOptions.callbacks!.session!({
+            session: {
+              user: { email: 'test@example.com' },
+              expires: '2025-12-31',
+            } as Session,
+            token: token as JWT,
+            // @ts-expect-error - Testing with custom User type instead of AdapterUser
+            user: undefined as unknown as NextAuthUser,
+            trigger: 'update',
+            newSession: undefined,
+          })
+
+          expect((session.user as Session['user'])?.id).toBe('user-123')
+          expect((session.user as Session['user'])?.roles).toEqual(['user'])
+          expect((session as Session).accessToken).toBe('backend-jwt-token')
+        })
+      })
     })
   })
 })

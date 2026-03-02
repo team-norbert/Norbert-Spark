@@ -373,9 +373,7 @@ describe('Middleware', () => {
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe(
-        `${baseUrl}/signin?callbackUrl=%2Fdashboard`
-      )
+      expect(response.headers.get('location')).toBe(`${baseUrl}/signin?callbackUrl=%2Fdashboard`)
     })
 
     it('should allow token with OAuthSyncCacheMiss error to access auth route for re-authentication', async () => {
