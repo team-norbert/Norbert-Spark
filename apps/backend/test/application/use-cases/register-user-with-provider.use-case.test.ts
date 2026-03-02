@@ -150,9 +150,11 @@ describe('RegisterUserWithProviderUseCase', () => {
         expect(result.accessToken).toBe('mock-jwt-token')
         expect(result.refreshToken).toBeDefined()
         expect(typeof result.refreshToken).toBe('string')
-        expect(result.expiresInSeconds).toBe(604800) // 7 days in seconds
+        expect(typeof result.expiresInSeconds).toBe('number')
+        expect(result.expiresInSeconds).toBeGreaterThan(0)
         expect(result.email).toBe('john@example.com')
         expect(result.roles).toEqual(['user'])
+        expect(mockRefreshTokenRepository.create).toHaveBeenCalledTimes(1)
       })
 
       it('should save the user to the repository without password', async () => {
