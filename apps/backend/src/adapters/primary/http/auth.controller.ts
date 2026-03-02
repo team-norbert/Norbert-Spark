@@ -95,6 +95,34 @@ export class AuthController {
   registerRoutes(app: FastifyInstance): void {
     app.post('/auth/login', this.login.bind(this))
     app.post('/auth/oauth-sync', { preHandler: oauthSyncAuthMiddleware }, this.oauthSync.bind(this))
+    app.post('/auth/refresh', this.refresh.bind(this)) // NEW
+    // TODO: create authMiddleware ->  6c. New handler: `logout()`
+    //app.post('/auth/logout', { preHandler: authMiddleware }, this.logout.bind(this))) // NEW
+  }
+
+  async refresh(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      // TODO: placeholder -> 6b. New handler: `refresh()`
+      reply.code(501).send({
+        success: false,
+        error: 'Token refresh endpoint is not implemented yet',
+      })
+    } catch (error) {
+      this.logger.error(
+        'Error in refresh handler',
+        error instanceof Error ? error : new Error(String(error))
+      )
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage =
+        error instanceof DrizzleQueryError
+          ? 'Failed to refresh authentication token due to a database error'
+          : err?.message || 'Failed to refresh authentication token due to an internal server error'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
   }
 
   /**

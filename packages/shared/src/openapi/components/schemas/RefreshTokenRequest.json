@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "description": "Request payload for refreshing authentication tokens",
+  "required": ["refreshToken"],
+  "properties": {
+    "refreshToken": {
+      "type": "string",
+      "description": "The refresh token issued during authentication",
+      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxx",
+      "minLength": 1
+    }
+  }
+}

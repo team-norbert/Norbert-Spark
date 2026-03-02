@@ -1,0 +1,65 @@
+{
+  "post": {
+    "summary": "Logout and revoke refresh token",
+    "description": "Logs out the current user by revoking their refresh token family. Requires a valid access token in the Authorization header. No request body is needed.",
+    "operationId": "logout",
+    "tags": ["auth"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "description": "No request body required for logout",
+      "required": false,
+      "content": {}
+    },
+    "responses": {
+      "200": {
+        "description": "Successfully logged out",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["success", "message"],
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Logged out successfully"
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - missing or invalid access token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Unauthorized"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

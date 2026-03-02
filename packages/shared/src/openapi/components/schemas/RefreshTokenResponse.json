@@ -1,0 +1,34 @@
+{
+  "type": "object",
+  "description": "Structured response for authentication token refresh, containing the new access token and refresh token",
+  "required": ["success", "data"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Indicates if the token refresh was successful",
+      "example": true
+    },
+    "data": {
+      "type": "object",
+      "description": "Object containing the new access token and refresh token",
+      "required": ["accessToken", "refreshToken", "expiresIn"],
+      "properties": {
+        "accessToken": {
+          "type": "string",
+          "description": "The newly issued access token for authentication",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxx"
+        },
+        "refreshToken": {
+          "type": "string",
+          "description": "The newly issued refresh token for future token refreshes",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxx"
+        },
+        "expiresIn": {
+          "type": "integer",
+          "description": "The number of seconds until the access token expires",
+          "example": 3600
+        }
+      }
+    }
+  }
+}

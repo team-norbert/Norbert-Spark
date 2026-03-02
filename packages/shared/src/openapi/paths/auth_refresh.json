@@ -1,0 +1,69 @@
+{
+  "post": {
+    "summary": "Refresh JWT access token",
+    "description": "Refreshes a JWT access token using a valid refresh token. This endpoint allows clients to obtain a new access token without requiring the user to re-authenticate, as long as the refresh token is still valid.",
+    "operationId": "refresh",
+    "tags": ["auth"],
+    "security": [],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../components/schemas/RefreshTokenRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Access token successfully refreshed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/RefreshTokenResponse.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Refresh token is required and must be a non-empty string"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - invalid or expired refresh token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            },
+            "example": {
+              "success": false,
+              "error": "Invalid or expired refresh token"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/Error.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}
