@@ -208,6 +208,42 @@ describe('AuditAction Enum', () => {
     it('should have EMAIL_CHANGE constant', () => {
       expect(AuditAction.EMAIL_CHANGE).toBe('email_change')
     })
+
+    it('should have FETCH constant', () => {
+      expect(AuditAction.FETCH).toBe('fetch')
+    })
+
+    it('should have FETCH_FAILED constant', () => {
+      expect(AuditAction.FETCH_FAILED).toBe('fetch_failed')
+    })
+
+    it('should have REGISTRATION_FAILED constant', () => {
+      expect(AuditAction.REGISTRATION_FAILED).toBe('registration_failed')
+    })
+
+    it('should have TOKEN_ISSUED constant', () => {
+      expect(AuditAction.TOKEN_ISSUED).toBe('token_issued')
+    })
+
+    it('should have TOKEN_REFRESHED constant', () => {
+      expect(AuditAction.TOKEN_REFRESHED).toBe('token_refreshed')
+    })
+
+    it('should have REFRESH_TOKEN_REPLAY_DETECTED constant', () => {
+      expect(AuditAction.REFRESH_TOKEN_REPLAY_DETECTED).toBe('refresh_token_replay_detected')
+    })
+
+    it('should have REFRESH_FAMILY_REVOKED constant', () => {
+      expect(AuditAction.REFRESH_FAMILY_REVOKED).toBe('refresh_family_revoked')
+    })
+
+    it('should have USER_LOGOUT constant', () => {
+      expect(AuditAction.USER_LOGOUT).toBe('user_logout')
+    })
+
+    it('should have REFRESH_TOKENS_EXPIRED_CLEANUP constant', () => {
+      expect(AuditAction.REFRESH_TOKENS_EXPIRED_CLEANUP).toBe('refresh_tokens_expired_cleanup')
+    })
   })
 
   describe('Type Safety', () => {
@@ -220,6 +256,15 @@ describe('AuditAction Enum', () => {
       const loginFailedAction: AuditAction = AuditAction.LOGIN_FAILED
       const passwordChangeAction: AuditAction = AuditAction.PASSWORD_CHANGE
       const emailChangeAction: AuditAction = AuditAction.EMAIL_CHANGE
+      const fetchAction: AuditAction = AuditAction.FETCH
+      const fetchFailedAction: AuditAction = AuditAction.FETCH_FAILED
+      const registrationFailedAction: AuditAction = AuditAction.REGISTRATION_FAILED
+      const tokenIssuedAction: AuditAction = AuditAction.TOKEN_ISSUED
+      const tokenRefreshedAction: AuditAction = AuditAction.TOKEN_REFRESHED
+      const replayDetectedAction: AuditAction = AuditAction.REFRESH_TOKEN_REPLAY_DETECTED
+      const familyRevokedAction: AuditAction = AuditAction.REFRESH_FAMILY_REVOKED
+      const userLogoutAction: AuditAction = AuditAction.USER_LOGOUT
+      const expiredCleanupAction: AuditAction = AuditAction.REFRESH_TOKENS_EXPIRED_CLEANUP
 
       expect(createAction).toBe('create')
       expect(updateAction).toBe('update')
@@ -229,6 +274,15 @@ describe('AuditAction Enum', () => {
       expect(loginFailedAction).toBe('login_failed')
       expect(passwordChangeAction).toBe('password_change')
       expect(emailChangeAction).toBe('email_change')
+      expect(fetchAction).toBe('fetch')
+      expect(fetchFailedAction).toBe('fetch_failed')
+      expect(registrationFailedAction).toBe('registration_failed')
+      expect(tokenIssuedAction).toBe('token_issued')
+      expect(tokenRefreshedAction).toBe('token_refreshed')
+      expect(replayDetectedAction).toBe('refresh_token_replay_detected')
+      expect(familyRevokedAction).toBe('refresh_family_revoked')
+      expect(userLogoutAction).toBe('user_logout')
+      expect(expiredCleanupAction).toBe('refresh_tokens_expired_cleanup')
     })
 
     it('should allow comparison between enum values', () => {
@@ -244,9 +298,18 @@ describe('AuditAction Enum', () => {
       expect(actionKeys).toContain('DELETE')
       expect(actionKeys).toContain('LOGIN')
       expect(actionKeys).toContain('LOGOUT')
+      expect(actionKeys).toContain('FETCH')
+      expect(actionKeys).toContain('FETCH_FAILED')
       expect(actionKeys).toContain('LOGIN_FAILED')
       expect(actionKeys).toContain('PASSWORD_CHANGE')
       expect(actionKeys).toContain('EMAIL_CHANGE')
+      expect(actionKeys).toContain('REGISTRATION_FAILED')
+      expect(actionKeys).toContain('TOKEN_ISSUED')
+      expect(actionKeys).toContain('TOKEN_REFRESHED')
+      expect(actionKeys).toContain('REFRESH_TOKEN_REPLAY_DETECTED')
+      expect(actionKeys).toContain('REFRESH_FAMILY_REVOKED')
+      expect(actionKeys).toContain('USER_LOGOUT')
+      expect(actionKeys).toContain('REFRESH_TOKENS_EXPIRED_CLEANUP')
     })
   })
 
@@ -255,6 +318,14 @@ describe('AuditAction Enum', () => {
       expect(AuditAction.LOGIN_FAILED).toBe('login_failed')
       expect(AuditAction.PASSWORD_CHANGE).toBe('password_change')
       expect(AuditAction.EMAIL_CHANGE).toBe('email_change')
+      expect(AuditAction.FETCH_FAILED).toBe('fetch_failed')
+      expect(AuditAction.REGISTRATION_FAILED).toBe('registration_failed')
+      expect(AuditAction.TOKEN_ISSUED).toBe('token_issued')
+      expect(AuditAction.TOKEN_REFRESHED).toBe('token_refreshed')
+      expect(AuditAction.REFRESH_TOKEN_REPLAY_DETECTED).toBe('refresh_token_replay_detected')
+      expect(AuditAction.REFRESH_FAMILY_REVOKED).toBe('refresh_family_revoked')
+      expect(AuditAction.USER_LOGOUT).toBe('user_logout')
+      expect(AuditAction.REFRESH_TOKENS_EXPIRED_CLEANUP).toBe('refresh_tokens_expired_cleanup')
     })
 
     it('should use simple lowercase for single-word actions', () => {
@@ -263,6 +334,7 @@ describe('AuditAction Enum', () => {
       expect(AuditAction.DELETE).toBe('delete')
       expect(AuditAction.LOGIN).toBe('login')
       expect(AuditAction.LOGOUT).toBe('logout')
+      expect(AuditAction.FETCH).toBe('fetch')
     })
   })
 
@@ -283,6 +355,12 @@ describe('AuditAction Enum', () => {
         AuditAction.LOGIN_FAILED,
         AuditAction.PASSWORD_CHANGE,
         AuditAction.EMAIL_CHANGE,
+        AuditAction.TOKEN_ISSUED,
+        AuditAction.TOKEN_REFRESHED,
+        AuditAction.REFRESH_TOKEN_REPLAY_DETECTED,
+        AuditAction.REFRESH_FAMILY_REVOKED,
+        AuditAction.USER_LOGOUT,
+        AuditAction.REFRESH_TOKENS_EXPIRED_CLEANUP,
       ]
 
       expect(authActions).not.toContain(AuditAction.CREATE)
@@ -306,6 +384,12 @@ describe('AuditAction Enum', () => {
           [AuditAction.PASSWORD_CHANGE]: 'Password Changed',
           [AuditAction.EMAIL_CHANGE]: 'Email Changed',
           [AuditAction.REGISTRATION_FAILED]: 'Registration Failed',
+          [AuditAction.TOKEN_ISSUED]: 'Token Issued',
+          [AuditAction.TOKEN_REFRESHED]: 'Token Refreshed',
+          [AuditAction.REFRESH_TOKEN_REPLAY_DETECTED]: 'Replay Detected',
+          [AuditAction.REFRESH_FAMILY_REVOKED]: 'Family Revoked',
+          [AuditAction.USER_LOGOUT]: 'User Logout',
+          [AuditAction.REFRESH_TOKENS_EXPIRED_CLEANUP]: 'Expired Cleanup',
         }
         // eslint-disable-next-line security/detect-object-injection -- Safe: action is typed as AuditAction enum
         return labels[action]
@@ -314,6 +398,9 @@ describe('AuditAction Enum', () => {
       expect(getActionLabel(AuditAction.CREATE)).toBe('Created')
       expect(getActionLabel(AuditAction.LOGIN)).toBe('Logged In')
       expect(getActionLabel(AuditAction.PASSWORD_CHANGE)).toBe('Password Changed')
+      expect(getActionLabel(AuditAction.TOKEN_ISSUED)).toBe('Token Issued')
+      expect(getActionLabel(AuditAction.REFRESH_TOKEN_REPLAY_DETECTED)).toBe('Replay Detected')
+      expect(getActionLabel(AuditAction.REFRESH_TOKENS_EXPIRED_CLEANUP)).toBe('Expired Cleanup')
     })
 
     it('should work in switch statements', () => {
@@ -378,8 +465,13 @@ describe('AuditAction Enum', () => {
       expect(values).toContain('password_change')
       expect(values).toContain('email_change')
       expect(values).toContain('registration_failed')
+      expect(values).toContain('token_issued')
+      expect(values).toContain('token_refreshed')
+      expect(values).toContain('refresh_token_replay_detected')
+      expect(values).toContain('refresh_family_revoked')
       expect(values).toContain('user_logout')
-      expect(values).toHaveLength(12)
+      expect(values).toContain('refresh_tokens_expired_cleanup')
+      expect(values).toHaveLength(17)
     })
 
     it('should allow iteration for validation', () => {
@@ -473,13 +565,22 @@ describe('EntityType and AuditAction Integration', () => {
         AuditAction.DELETE,
         AuditAction.LOGIN,
         AuditAction.LOGOUT,
+        AuditAction.FETCH,
+        AuditAction.FETCH_FAILED,
         AuditAction.LOGIN_FAILED,
         AuditAction.PASSWORD_CHANGE,
         AuditAction.EMAIL_CHANGE,
+        AuditAction.REGISTRATION_FAILED,
+        AuditAction.TOKEN_ISSUED,
+        AuditAction.TOKEN_REFRESHED,
+        AuditAction.REFRESH_TOKEN_REPLAY_DETECTED,
+        AuditAction.REFRESH_FAMILY_REVOKED,
+        AuditAction.USER_LOGOUT,
+        AuditAction.REFRESH_TOKENS_EXPIRED_CLEANUP,
       ]
 
-      expect(allActions).toHaveLength(8)
-      expect(new Set(allActions).size).toBe(8) // No duplicates
+      expect(allActions).toHaveLength(17)
+      expect(new Set(allActions).size).toBe(17) // No duplicates
     })
   })
 })

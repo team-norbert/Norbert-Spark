@@ -1,6 +1,7 @@
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
+import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
 import type { RefreshTokenRepositoryPort } from '../ports/refresh-token.repository.port.js'
@@ -127,42 +128,46 @@ export class LogOutUseCase {
     this.logger.info(`Executing LogOutUseCase for user ID: ${userId}`)
 
     try {
+      // Revoke all refresh tokens for the user (log out from all devices)
       await this.refreshTokenRepo.revokeAllForUser(userId)
-    } catch (error) {
-      this.logger.error(
-        `Error executing LogOutUseCase for user ID: ${userId}`,
-        error instanceof Error ? error : new Error(String(error))
-      )
-
       const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
         entityType: EntityType.USER,
         entityId: userId,
         action: AuditAction.USER_LOGOUT,
         changes: {
-          reason: 'user_logout_error',
+          reason: 'refresh_token_revoke_successful',
         },
-        ipAddress: auditContext.ipAddress,
+        ipAddress: auditContext.ipAddress ?? undefined,
         userAgent: auditContext.userAgent ?? undefined,
       }
       // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
-
-      throw error
+    } catch (err) {
+      this.logger.error(
+        'Failed to revoke all refresh tokens for user during logout',
+        err instanceof Error ? err : new Error(String(err)),
+        {
+          // targetUserId is the user being logged out; actorUserId is who initiated the logout
+          // (they differ in admin-initiated logout scenarios)
+          targetUserId: userId,
+          actorUserId: auditContext.userId,
+        }
+      )
+      const auditEntry: CreateAuditLogDTO = {
+        userId: auditContext.userId,
+        entityType: EntityType.USER,
+        entityId: userId,
+        action: AuditAction.USER_LOGOUT,
+        changes: {
+          reason: 'refresh_token_revoke_failed',
+        },
+        ipAddress: auditContext.ipAddress ?? undefined,
+        userAgent: auditContext.userAgent ?? undefined,
+      }
+      // AuditLogPort.log() never throws per contract
+      await this.auditLog.log(auditEntry)
+      throw new InternalErrorException('Failed to revoke refresh tokens for user during logout')
     }
-
-    const auditEntry: CreateAuditLogDTO = {
-      userId: auditContext.userId,
-      entityType: EntityType.USER,
-      entityId: userId,
-      action: AuditAction.USER_LOGOUT,
-      changes: {
-        reason: 'user_logout',
-      },
-      ipAddress: auditContext.ipAddress,
-      userAgent: auditContext.userAgent ?? undefined,
-    }
-    // AuditLogPort.log() never throws per contract
-    await this.auditLog.log(auditEntry)
   }
 }

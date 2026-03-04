@@ -285,8 +285,9 @@ describe('RefreshAccessTokenUseCase', () => {
         const auditCall = vi.mocked(mockAuditLog.log).mock.calls[0][0]
         expect(auditCall.userId).toBe(mockRecord.getUserId())
         expect(auditCall.entityType).toBe(EntityType.TOKEN)
-        expect(auditCall.action).toBe(AuditAction.UPDATE)
-        expect(auditCall.changes).toEqual({ reason: 'token_refreshed' })
+        expect(auditCall.entityId).toBe(mockRecord.getTokenFamily())
+        expect(auditCall.action).toBe(AuditAction.TOKEN_REFRESHED)
+        expect(auditCall.changes).toEqual({ reason: 'refresh_token_stored' })
         expect(auditCall.ipAddress).toBe('127.0.0.1')
         expect(auditCall.userAgent).toBe('test-user-agent')
       })
@@ -378,7 +379,7 @@ describe('RefreshAccessTokenUseCase', () => {
 
         await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow(UnauthorizedException)
         await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow(
-          'Token has been revoked'
+          'Refresh token has been revoked'
         )
       })
 
@@ -399,7 +400,7 @@ describe('RefreshAccessTokenUseCase', () => {
         expect(mockRefreshTokenRepo.revokeFamily).toHaveBeenCalledWith(tokenFamily)
       })
 
-      it('should log replay attack detection to audit log', async () => {
+      it('should log replay detection and family revocation audit entries', async () => {
         const mockToken = RefreshToken.generate()
         const rawToken = mockToken.getRawToken()
         const mockRecord = createMockTokenRecord({ isRevoked: true })
@@ -408,15 +409,24 @@ describe('RefreshAccessTokenUseCase', () => {
 
         await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow()
 
-        expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
-        const auditCall = vi.mocked(mockAuditLog.log).mock.calls[0][0]
-        expect(auditCall.userId).toBe(mockRecord.getUserId())
-        expect(auditCall.entityType).toBe(EntityType.TOKEN)
-        expect(auditCall.action).toBe(AuditAction.UPDATE)
-        expect(auditCall.changes).toEqual({ reason: 'refresh_token_replay_detected' })
+        expect(mockAuditLog.log).toHaveBeenCalledTimes(2)
+
+        // First audit: REFRESH_TOKEN_REPLAY_DETECTED
+        const replayAudit = vi.mocked(mockAuditLog.log).mock.calls[0][0]
+        expect(replayAudit.userId).toBe(mockRecord.getUserId())
+        expect(replayAudit.entityType).toBe(EntityType.TOKEN)
+        expect(replayAudit.action).toBe(AuditAction.REFRESH_TOKEN_REPLAY_DETECTED)
+        expect(replayAudit.changes).toEqual({ reason: 'refresh_token_replay_detected' })
+
+        // Second audit: REFRESH_FAMILY_REVOKED (success)
+        const revokedAudit = vi.mocked(mockAuditLog.log).mock.calls[1][0]
+        expect(revokedAudit.userId).toBe(mockRecord.getUserId())
+        expect(revokedAudit.entityType).toBe(EntityType.TOKEN)
+        expect(revokedAudit.action).toBe(AuditAction.REFRESH_FAMILY_REVOKED)
+        expect(revokedAudit.changes).toEqual({ reason: 'refresh_family_revoked' })
       })
 
-      it('should revoke family before logging audit entry', async () => {
+      it('should log replay detection, then revoke family, then log family revocation', async () => {
         const mockToken = RefreshToken.generate()
         const rawToken = mockToken.getRawToken()
         const mockRecord = createMockTokenRecord({ isRevoked: true })
@@ -432,7 +442,7 @@ describe('RefreshAccessTokenUseCase', () => {
 
         await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow()
 
-        expect(callOrder).toEqual(['revokeFamily', 'auditLog'])
+        expect(callOrder).toEqual(['auditLog', 'revokeFamily', 'auditLog'])
       })
 
       it('should not generate new tokens when replay attack is detected', async () => {

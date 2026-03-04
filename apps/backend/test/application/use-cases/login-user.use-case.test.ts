@@ -239,7 +239,7 @@ describe('LoginUserUseCase', () => {
 
         await useCase.execute(dto, auditContext)
 
-        expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
+        expect(mockAuditLog.log).toHaveBeenCalledTimes(2)
         expect(mockAuditLog.log).toHaveBeenCalledWith({
           userId: mockUser.id,
           entityType: 'user',
@@ -252,6 +252,29 @@ describe('LoginUserUseCase', () => {
           ipAddress: '127.0.0.1',
           userAgent: 'test-user-agent',
         })
+        expect(mockAuditLog.log).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId: mockUser.id,
+            entityType: 'token',
+            action: 'token_issued',
+            changes: {
+              reason: 'refresh_token_stored',
+            },
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
+        // entityId should be the token family UUID (not the user ID)
+        const tokenIssuedCall = vi
+          .mocked(mockAuditLog.log)
+          .mock.calls.find(
+            ([entry]) =>
+              entry.action === 'token_issued' && entry.changes?.reason === 'refresh_token_stored'
+          )
+        expect(tokenIssuedCall?.[0].entityId).toMatch(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        )
+        expect(tokenIssuedCall?.[0].entityId).not.toBe(mockUser.id)
       })
     })
 
@@ -768,7 +791,31 @@ describe('LoginUserUseCase', () => {
         )
 
         await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
-          'Database error: Unable to store refresh token'
+          'Failed to store refresh token'
+        )
+
+        // Should log the original error
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Failed to store refresh token',
+          expect.any(Error),
+          expect.objectContaining({
+            userId: mockUser.id,
+            email: 'john@example.com',
+          })
+        )
+
+        // Should log TOKEN_ISSUED audit for failure only (catch)
+        expect(mockAuditLog.log).toHaveBeenCalledWith(
+          expect.objectContaining({
+            action: 'token_issued',
+            changes: { reason: 'refresh_token_storage_failed' },
+          })
+        )
+        expect(mockAuditLog.log).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            action: 'token_issued',
+            changes: { reason: 'refresh_token_stored' },
+          })
         )
       })
 
