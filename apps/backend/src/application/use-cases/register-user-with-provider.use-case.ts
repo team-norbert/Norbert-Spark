@@ -226,6 +226,19 @@ export class RegisterUserWithProviderUseCase {
         ipAddress: auditContext.ipAddress ?? undefined,
         userAgent: auditContext.userAgent ?? undefined,
       })
+      const auditEntry: CreateAuditLogDTO = {
+        userId: userId,
+        entityType: EntityType.USER,
+        entityId: userId,
+        action: AuditAction.TOKEN_ISSUED,
+        changes: {
+          reason: 'refresh_token_stored',
+        },
+        ipAddress: auditContext.ipAddress ?? undefined,
+        userAgent: auditContext.userAgent ?? undefined,
+      }
+      // AuditLogPort.log() never throws per contract
+      await this.auditLog.log(auditEntry)
     } catch (err) {
       this.logger.error(
         'Failed to store refresh token',
@@ -249,20 +262,6 @@ export class RegisterUserWithProviderUseCase {
       // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
       throw new InternalErrorException('Failed to store refresh token')
-    } finally {
-      const auditEntry: CreateAuditLogDTO = {
-        userId: userId,
-        entityType: EntityType.USER,
-        entityId: userId,
-        action: AuditAction.TOKEN_ISSUED,
-        changes: {
-          reason: 'refresh_token_stored',
-        },
-        ipAddress: auditContext.ipAddress ?? undefined,
-        userAgent: auditContext.userAgent ?? undefined,
-      }
-      // AuditLogPort.log() never throws per contract
-      await this.auditLog.log(auditEntry)
     }
 
     return {

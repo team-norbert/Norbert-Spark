@@ -378,7 +378,9 @@ describe('RefreshAccessTokenUseCase', () => {
         vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
 
         await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow(UnauthorizedException)
-        await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow('User not found')
+        await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow(
+          'Refresh token has been revoked'
+        )
       })
 
       it('should revoke entire token family when revoked token is used', async () => {
@@ -416,12 +418,12 @@ describe('RefreshAccessTokenUseCase', () => {
         expect(replayAudit.action).toBe(AuditAction.REFRESH_TOKEN_REPLAY_DETECTED)
         expect(replayAudit.changes).toEqual({ reason: 'refresh_token_replay_detected' })
 
-        // Second audit: REFRESH_FAMILY_REVOKED (from finally block)
+        // Second audit: REFRESH_FAMILY_REVOKED (success)
         const revokedAudit = vi.mocked(mockAuditLog.log).mock.calls[1][0]
         expect(revokedAudit.userId).toBe(mockRecord.getUserId())
         expect(revokedAudit.entityType).toBe(EntityType.TOKEN)
         expect(revokedAudit.action).toBe(AuditAction.REFRESH_FAMILY_REVOKED)
-        expect(revokedAudit.changes).toEqual({ reason: 'refresh_token_stored' })
+        expect(revokedAudit.changes).toEqual({ reason: 'refresh_family_revoked' })
       })
 
       it('should log replay detection, then revoke family, then log family revocation', async () => {
@@ -452,7 +454,7 @@ describe('RefreshAccessTokenUseCase', () => {
 
         await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow()
 
-        expect(mockUserRepo.findById).toHaveBeenCalledTimes(1)
+        expect(mockUserRepo.findById).not.toHaveBeenCalled()
         expect(mockTokenGenerator.generateToken).not.toHaveBeenCalled()
         expect(mockRefreshTokenRepo.create).not.toHaveBeenCalled()
       })

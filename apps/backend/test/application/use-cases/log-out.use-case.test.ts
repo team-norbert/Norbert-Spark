@@ -190,7 +190,11 @@ describe('LogOutUseCase', () => {
           InternalErrorException
         )
 
-        expect(mockLogger.error).toHaveBeenCalledWith('Fail', error, { userId })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Failed to revoke all refresh tokens for user during logout',
+          error,
+          { userId }
+        )
       })
 
       it('should still create audit log entry when revokeAllForUser fails', async () => {
@@ -203,21 +207,14 @@ describe('LogOutUseCase', () => {
 
         await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow()
 
-        expect(mockAuditLog.log).toHaveBeenCalledTimes(2)
+        expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
 
-        // First audit call (catch): refresh_token_revoke_failed
+        // Audit call on failure (catch): refresh_token_revoke_failed
         const catchAudit = vi.mocked(mockAuditLog.log).mock.calls[0][0]
         expect(catchAudit.userId).toBe(userId)
         expect(catchAudit.entityType).toBe(EntityType.TOKEN)
         expect(catchAudit.action).toBe(AuditAction.USER_LOGOUT)
         expect(catchAudit.changes).toEqual({ reason: 'refresh_token_revoke_failed' })
-
-        // Second audit call (finally): refresh_token_revoke_successful
-        const finallyAudit = vi.mocked(mockAuditLog.log).mock.calls[1][0]
-        expect(finallyAudit.userId).toBe(userId)
-        expect(finallyAudit.entityType).toBe(EntityType.TOKEN)
-        expect(finallyAudit.action).toBe(AuditAction.USER_LOGOUT)
-        expect(finallyAudit.changes).toEqual({ reason: 'refresh_token_revoke_successful' })
       })
 
       it('should handle Error instance correctly', async () => {
@@ -231,7 +228,11 @@ describe('LogOutUseCase', () => {
           InternalErrorException
         )
 
-        expect(mockLogger.error).toHaveBeenCalledWith('Fail', error, { userId })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Failed to revoke all refresh tokens for user during logout',
+          error,
+          { userId }
+        )
       })
 
       it('should convert non-Error objects to Error instances', async () => {
@@ -245,7 +246,7 @@ describe('LogOutUseCase', () => {
         )
 
         expect(mockLogger.error).toHaveBeenCalledWith(
-          'Fail',
+          'Failed to revoke all refresh tokens for user during logout',
           expect.objectContaining({ message: 'string error' }),
           { userId }
         )
@@ -262,7 +263,7 @@ describe('LogOutUseCase', () => {
         )
 
         expect(mockLogger.error).toHaveBeenCalledWith(
-          'Fail',
+          'Failed to revoke all refresh tokens for user during logout',
           expect.objectContaining({ message: 'null' }),
           { userId }
         )
@@ -279,7 +280,7 @@ describe('LogOutUseCase', () => {
         )
 
         expect(mockLogger.error).toHaveBeenCalledWith(
-          'Fail',
+          'Failed to revoke all refresh tokens for user during logout',
           expect.objectContaining({ message: 'undefined' }),
           { userId }
         )
@@ -292,10 +293,10 @@ describe('LogOutUseCase', () => {
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(new Error('Test error'))
 
         await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(
-          'Failed to revoke token family after replay attack detected'
+          'Failed to revoke refresh tokens for user during logout'
         )
 
-        expect(mockAuditLog.log).toHaveBeenCalledTimes(2)
+        expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
       })
 
       it('should re-throw error when revoke fails', async () => {
@@ -306,7 +307,7 @@ describe('LogOutUseCase', () => {
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(error)
 
         await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(
-          'Failed to revoke token family after replay attack detected'
+          'Failed to revoke refresh tokens for user during logout'
         )
       })
     })

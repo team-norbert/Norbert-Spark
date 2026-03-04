@@ -28,7 +28,7 @@ export const AuditAction = {
   REFRESH_TOKEN_REPLAY_DETECTED: 'refresh_token_replay_detected', // Revoked token presented — potential attack
   REFRESH_FAMILY_REVOKED: 'refresh_family_revoked', // Entire token family revoked due to replay
   USER_LOGOUT: 'user_logout', // User explicitly logged out
-  REFRESH_TOKENS_EXPIRED_CLEANUP: 'refresh_tokens_expired_cleanup', // Entire token family revoked due to replay
+  REFRESH_TOKENS_EXPIRED_CLEANUP: 'refresh_tokens_expired_cleanup', // Periodic cleanup task removing expired refresh tokens
 } as const
 
 export type EntityType = (typeof EntityType)[keyof typeof EntityType]
