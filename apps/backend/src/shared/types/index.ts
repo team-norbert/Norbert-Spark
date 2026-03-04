@@ -1,17 +1,12 @@
-import {
-  type InferUITools,
-  type UIMessage,
-  type UIMessagePart,
-  type UIMessageStreamWriter,
-} from 'ai'
+import { type UIMessage, type UIMessagePart } from 'ai'
 import { z } from 'zod'
 
 import type { UserIdType } from '../../domain/value-objects/userID.js'
+import type { UUIDType } from '../../domain/value-objects/uuid.js'
+import { EnvConfig } from '../../infrastructure/config/env.config.js'
 import type { DBChatType } from '../../infrastructure/database/schema.js'
 
 export const metadataSchema = z.object({})
-
-type MyMetadata = z.infer<typeof metadataSchema>
 
 export const dataPartSchema = z.object({
   darkness: z.object({
@@ -48,3 +43,63 @@ export namespace DB {
 
 export type PutChatDetailsType = Pick<DBChatType, 'id'> &
   Partial<Pick<DBChatType, 'name' | 'description' | 'seoFriendlyId'>>
+
+export type AuditContextType = {
+  userId: UserIdType | null
+  ipAddress: string | null
+  userAgent: string | null
+  level: string
+  time: Date
+  event?: string
+  requestId: UUIDType | null
+  method: string
+  route: string | undefined
+  statusCode: number
+  durationMs?: number | undefined
+  service: string
+  env: string
+  version: string
+  additionalInfo?: Record<string, unknown>
+}
+
+/**
+ * Input type for creating an audit context with optional fields that have defaults.
+ */
+export type CreateAuditContextInput = Omit<
+  AuditContextType,
+  'service' | 'version' | 'time' | 'env' | 'level'
+> & {
+  service?: string
+}
+
+/**
+ * Creates an audit context with default values.
+ * @param input - The audit context input with optional service (defaults to 'norberts-spark-backend')
+ * @returns A fully populated audit context
+ * @example
+ * // Example log output produced by this function:
+ * // {
+ * //   "level": "info",
+ * //   "time": 1740700800000,
+ * //   "event": "http.request.completed",
+ * //   "requestId": "01950000-0000-7000-8000-000000000001",
+ * //   "userId": "01950000-0000-7000-8000-000000000002",
+ * //   "method": "GET",
+ * //   "route": "/api/v1/ai/chats/:userId",
+ * //   "statusCode": 200,
+ * //   "durationMs": 37,
+ * //   "service": "norberts-spark-backend",
+ * //   "env": "production",
+ * //   "version": "v1"
+ * // }
+ */
+export function createAuditContext(input: CreateAuditContextInput): AuditContextType {
+  return {
+    ...input,
+    time: new Date(),
+    service: input.service ?? 'norberts-spark-backend',
+    version: EnvConfig.API_VERSION,
+    env: EnvConfig.NODE_ENV,
+    level: EnvConfig.LOG_LEVEL,
+  }
+}

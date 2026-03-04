@@ -153,10 +153,13 @@ describe('AIController', () => {
 
     // Create mock Fastify request
     mockRequest = {
+      id: uuidv7(),
       body: {},
       params: {},
       query: {},
       ip: '127.0.0.1',
+      method: 'POST',
+      routeOptions: { url: '/ai/chat' },
       headers: {
         'user-agent': 'test-user-agent',
       },
