@@ -67,6 +67,7 @@ describe('logoutUserAction', () => {
           Authorization: `Bearer ${TEST_TOKEN}`,
         },
         timeoutMs: 10000,
+        redirectOn401: false,
       })
       expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user')
       expect(mockLoggerInfo).toHaveBeenCalledWith('Logout successful')
