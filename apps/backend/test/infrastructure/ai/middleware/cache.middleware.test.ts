@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Mock Upstash Redis

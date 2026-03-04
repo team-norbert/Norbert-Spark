@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { PDFUtils, ZipSecurityError } from '../../../src/shared/utils/pdf.utils.js'
