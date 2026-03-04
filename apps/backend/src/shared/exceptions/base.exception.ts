@@ -6,9 +6,10 @@ export abstract class BaseException extends Error {
     message: string,
     public readonly code: ErrorCode,
     public readonly statusCode: HttpStatus,
-    public readonly details?: Record<string, any>
+    public readonly details?: Record<string, any>,
+    options?: ErrorOptions
   ) {
-    super(message)
+    super(message, options)
     this.name = this.constructor.name
     Error.captureStackTrace(this, this.constructor)
   }
