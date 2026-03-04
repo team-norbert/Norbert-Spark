@@ -4,6 +4,7 @@ import { signOut } from 'next-auth/react'
 import React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { logoutUserAction } from '@/infrastructure/serverActions/logoutUser.server.js'
 import { useFileUpload } from '@/view/hooks/useFileUpload.js'
 
 // Mock next/navigation
@@ -745,6 +746,45 @@ describe('useFileUpload', () => {
 
     describe('handleSignOut', () => {
       it('should call signOut with callback to signin page', async () => {
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
+
+        await act(async () => {
+          await result.current.handleSignOut()
+        })
+
+        expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/signin' })
+        expect(signOut).toHaveBeenCalledTimes(1)
+      })
+
+      it('should call logoutUserAction before signOut', async () => {
+        const callOrder: string[] = []
+        vi.mocked(logoutUserAction).mockImplementationOnce(async () => {
+          callOrder.push('logoutUserAction')
+          return { success: true, message: 'Logged out', status: 200 }
+        })
+        vi.mocked(signOut).mockImplementationOnce(async () => {
+          callOrder.push('signOut')
+          return undefined as any
+        })
+
+        const { result } = renderHook(() =>
+          useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
+        )
+
+        await act(async () => {
+          await result.current.handleSignOut()
+        })
+
+        expect(logoutUserAction).toHaveBeenCalledTimes(1)
+        expect(signOut).toHaveBeenCalledTimes(1)
+        expect(callOrder).toEqual(['logoutUserAction', 'signOut'])
+      })
+
+      it('should still call signOut even when logoutUserAction fails', async () => {
+        vi.mocked(logoutUserAction).mockRejectedValueOnce(new Error('Backend logout failed'))
+
         const { result } = renderHook(() =>
           useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
         )

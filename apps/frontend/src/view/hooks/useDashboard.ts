@@ -5,7 +5,7 @@ import { useCallback } from 'react'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { logoutUserAction } from '@/infrastructure/serverActions/logoutUser.server.js'
 
-const logger = createLogger({ prefix: '[useFileUpload]' })
+const logger = createLogger({ prefix: '[useDashboard]' })
 
 interface UseDashboardProps {
   userRoles: string[]
