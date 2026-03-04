@@ -82,7 +82,7 @@ export function createAuditContext(input: CreateAuditContextInput): auditContext
     ...input,
     time: new Date(),
     service: input.service ?? 'norberts-spark-backend',
-    version: '1.0.0',
+    version: EnvConfig.API_VERSION,
     env: EnvConfig.NODE_ENV,
     level: EnvConfig.LOG_LEVEL,
   }
