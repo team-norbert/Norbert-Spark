@@ -283,10 +283,11 @@ describe('RefreshAccessTokenUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
         const auditCall = vi.mocked(mockAuditLog.log).mock.calls[0][0]
-        expect(auditCall.userId).toBe(mockRecord.getUserId())
-        expect(auditCall.entityType).toBe(EntityType.TOKEN)
-        expect(auditCall.action).toBe(AuditAction.UPDATE)
-        expect(auditCall.changes).toEqual({ reason: 'token_refreshed' })
+        expect(auditCall.userId).toBe(mockUser.id)
+        expect(auditCall.entityType).toBe(EntityType.USER)
+        expect(auditCall.entityId).toBe(mockUser.id)
+        expect(auditCall.action).toBe(AuditAction.TOKEN_REFRESHED)
+        expect(auditCall.changes).toEqual({ reason: 'refresh_token_stored' })
         expect(auditCall.ipAddress).toBe('127.0.0.1')
         expect(auditCall.userAgent).toBe('test-user-agent')
       })

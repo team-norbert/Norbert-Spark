@@ -7,6 +7,7 @@ import { RefreshToken } from '../../domain/value-objects/refreshToken.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 import { Uuid } from '../../domain/value-objects/uuid.js'
 import { EnvConfig } from '../../infrastructure/config/env.config.js'
+import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 import { UnauthorizedException } from '../../shared/exceptions/unauthorized.exception.js'
 import type { JwtUserClaims } from '../../shared/types/index.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
@@ -183,28 +184,54 @@ export class RefreshAccessTokenUseCase {
         : parsedExpiration
       const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
 
-      await this.refreshTokenRepo.create({
-        userId: user.id as UserIdType,
-        tokenHash: newRefreshToken.getHash(),
-        tokenFamily: record.getTokenFamily(),
-        expiresAt,
-        ipAddress: auditContext.ipAddress ?? undefined,
-        userAgent: auditContext.userAgent ?? undefined,
-      })
-
-      const auditEntry: CreateAuditLogDTO = {
-        userId: record.getUserId(),
-        entityType: EntityType.TOKEN,
-        entityId: new Uuid(record.getTokenFamily()).getValue(),
-        action: AuditAction.UPDATE,
-        changes: {
-          reason: 'token_refreshed',
-        },
-        ipAddress: auditContext.ipAddress ?? undefined,
-        userAgent: auditContext.userAgent ?? undefined,
+      try {
+        // Store the refresh token in the database
+        await this.refreshTokenRepo.create({
+          userId: user.id as UserIdType,
+          tokenHash: newRefreshToken.getHash(),
+          tokenFamily: record.getTokenFamily(),
+          expiresAt,
+          ipAddress: auditContext.ipAddress ?? undefined,
+          userAgent: auditContext.userAgent ?? undefined,
+        })
+      } catch (err) {
+        this.logger.error(
+          'Failed to store refresh token',
+          err instanceof Error ? err : new Error(String(err)),
+          {
+            userId: user.id as UserIdType,
+            email: user.getEmail(),
+          }
+        )
+        const auditEntry: CreateAuditLogDTO = {
+          userId: user.id as UserIdType,
+          entityType: EntityType.USER,
+          entityId: user.id as UserIdType,
+          action: AuditAction.TOKEN_REFRESHED,
+          changes: {
+            reason: 'refresh_token_storage_failed',
+          },
+          ipAddress: auditContext.ipAddress ?? undefined,
+          userAgent: auditContext.userAgent ?? undefined,
+        }
+        // AuditLogPort.log() never throws per contract
+        await this.auditLog.log(auditEntry)
+        throw new InternalErrorException('Failed to store refresh token')
+      } finally {
+        const auditEntry: CreateAuditLogDTO = {
+          userId: user.id as UserIdType,
+          entityType: EntityType.USER,
+          entityId: user.id as UserIdType,
+          action: AuditAction.TOKEN_REFRESHED,
+          changes: {
+            reason: 'refresh_token_stored',
+          },
+          ipAddress: auditContext.ipAddress ?? undefined,
+          userAgent: auditContext.userAgent ?? undefined,
+        }
+        // AuditLogPort.log() never throws per contract
+        await this.auditLog.log(auditEntry)
       }
-      // AuditLogPort.log() never throws per contract
-      await this.auditLog.log(auditEntry)
 
       return {
         accessToken: newlyGeneratedAccessToken,

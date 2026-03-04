@@ -757,9 +757,9 @@ All token lifecycle events should be logged to the existing audit system:
 | Action                           | When                                       | Where in the codebase                              |
 | -------------------------------- | ------------------------------------------ | -------------------------------------------------- |
 | `TOKEN_ISSUED`                   | Login or OAuth sync (initial issuance)     | LoginUserUseCase / RegisterUserWithProviderUseCase |
-| `TOKEN_REFRESHED`                | Successful token refresh                   |                                                    |
-| `REFRESH_TOKEN_REPLAY_DETECTED`  | Revoked token presented — potential attack |                                                    |
-| `REFRESH_FAMILY_REVOKED`         | Entire token family revoked due to replay  |                                                    |
+| `TOKEN_REFRESHED`                | Successful token refresh                   | RefreshAccessTokenUseCase                          |
+| `REFRESH_TOKEN_REPLAY_DETECTED`  | Revoked token presented — potential attack | RefreshAccessTokenUseCase                          |
+| `REFRESH_FAMILY_REVOKED`         | Entire token family revoked due to replay  | RefreshAccessTokenUseCase                          |
 | `USER_LOGOUT`                    | User explicitly logged out                 |                                                    |
 | `REFRESH_TOKENS_EXPIRED_CLEANUP` | Periodic cleanup of expired tokens         |                                                    |
 
