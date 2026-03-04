@@ -51,11 +51,10 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
 
   fastify.addHook('onRequest', (request, _reply, done) => {
     request.startTime = Date.now()
-    request.durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
     done()
   })
 
-  fastify.addHook('onError', (request, reply, error, done) => {
+  fastify.addHook('onResponse', (request, _reply, done) => {
     request.durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
     done()
   })
