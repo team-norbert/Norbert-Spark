@@ -9,6 +9,7 @@ import { OpenAPI } from '@norberts-spark/shared'
 import * as Sentry from '@sentry/node'
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 import Fastify from 'fastify'
+import { uuidv7 } from 'uuidv7'
 
 import { EnvConfig } from '../config/env.config.js'
 /**
@@ -28,6 +29,7 @@ import { EnvConfig } from '../config/env.config.js'
  */
 export function createFastifyApp(options?: FastifyServerOptions): FastifyInstance {
   const fastify = Fastify({
+    genReqId: () => uuidv7(),
     logger: {
       redact: ['req.headers.authorization'],
       level: 'info',
@@ -45,6 +47,17 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
       },
     },
     ...options,
+  })
+
+  fastify.addHook('onRequest', (request, _reply, done) => {
+    request.startTime = Date.now()
+    request.durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
+    done()
+  })
+
+  fastify.addHook('onError', (request, reply, error, done) => {
+    request.durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
+    done()
   })
 
   // Register CORS with permissive policy for development
