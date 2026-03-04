@@ -16,6 +16,13 @@ vi.mock('next-auth/react', () => ({
   signOut: vi.fn(),
 }))
 
+// Mock logout server action
+vi.mock('@/infrastructure/serverActions/logoutUser.server.js', () => ({
+  logoutUserAction: vi
+    .fn()
+    .mockResolvedValue({ success: true, message: 'Logged out', status: 200 }),
+}))
+
 describe('useFileUpload', () => {
   const mockPush = vi.fn()
   const mockRouter = {
@@ -737,13 +744,13 @@ describe('useFileUpload', () => {
     })
 
     describe('handleSignOut', () => {
-      it('should call signOut with callback to signin page', () => {
+      it('should call signOut with callback to signin page', async () => {
         const { result } = renderHook(() =>
           useFileUpload({ flow: 'upload', callbackUrl: 'upload' })
         )
 
-        act(() => {
-          result.current.handleSignOut()
+        await act(async () => {
+          await result.current.handleSignOut()
         })
 
         expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/signin' })
