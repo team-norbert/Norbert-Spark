@@ -190,6 +190,14 @@ Manages import/export syntax and prevents issues like duplicate imports, missing
 - `import/newline-after-import`: Error - Enforces blank line after imports
 - `import/no-duplicates`: Error - Prevents duplicate imports
 
+##### eslint-plugin-promise
+
+Enforces best practices for JavaScript Promises. Uses the recommended preset to catch common mistakes like missing returns in `.then()`, unhandled rejections, and incorrect Promise construction.
+
+**Configuration**: Uses recommended rules via `promisePlugin.configs.recommended.rules`
+
+Used in: Root (inherited by all workspaces)
+
 ##### eslint-plugin-simple-import-sort
 
 Automatically sorts import statements in a consistent order. Enforces alphabetical ordering of imports and exports.
@@ -232,7 +240,7 @@ Identifies potential security vulnerabilities in the code including unsafe regul
 
 **Rules**:
 
-- `security/detect-object-injection`: Warn - Detects potential object injection vulnerabilities
+- `security/detect-object-injection`: Error - Detects potential object injection vulnerabilities
 - `security/detect-non-literal-regexp`: Warn - Warns about non-literal RegExp constructors
 - `security/detect-unsafe-regex`: Error - Detects regex vulnerabilities
 - `security/detect-buffer-noassert`: Error - Prevents buffer vulnerabilities
@@ -250,7 +258,8 @@ Provides linting rules for Vitest test files. Enforces best practices for test w
 
 **Rules**:
 
-- Uses recommended Vitest rules
+- Uses recommended Vitest rules (backend, frontend)
+- Shared package uses a subset: `vitest/expect-expect`, `vitest/no-identical-title`, `vitest/no-focused-tests`, `vitest/valid-expect`
 - `vitest/no-conditional-expect`: Off (shared package) - Allows conditional expects for type narrowing
 
 Used in: Backend, Frontend, Shared package
@@ -276,22 +285,17 @@ React Query (TanStack Query) specific rules for proper query usage and cache man
 
 Used in: Frontend only
 
-##### eslint-plugin-react
+##### @eslint-react/eslint-plugin
 
-Core React linting rules for JSX syntax, component patterns, and React best practices.
+Modern React linting plugin that replaces both `eslint-plugin-react` and `eslint-plugin-react-hooks`. Provides comprehensive React, React Hooks, React DOM, React Server Components, and Web API rules with full ESLint 10 and TypeScript support.
 
-**Configuration**:
+**Configuration**: Uses `recommended-typescript` preset, which includes:
 
-- Uses `flat.recommended` preset
-- Uses `flat.jsx-runtime` preset (no need to import React in JSX files)
-
-Used in: Frontend only
-
-##### eslint-plugin-react-hooks
-
-Enforces the Rules of Hooks and proper dependency arrays in React hooks. Catches common mistakes with hooks like `useEffect`, `useCallback`, `useMemo`, etc.
-
-**Configuration**: Uses recommended rules
+- Core React rules (component patterns, JSX best practices)
+- Hooks rules (rules of hooks, exhaustive deps)
+- DOM rules (no dangerouslySetInnerHTML, no script URLs, etc.)
+- React Server Components rules
+- Web API rules
 
 Used in: Frontend only
 
@@ -337,9 +341,11 @@ Used in: Frontend only
 #### Common Custom Rules Across Workspaces
 
 - `no-console`: Varies by workspace - Warn in root (with exceptions), warn in shared, off in backend, off in frontend
-- `no-restricted-syntax`: Error - Disallows TypeScript enums across all workspaces, enforcing const objects with "as const" instead for better type safety and runtime behavior
-- `no-unused-vars`: Off - Disabled in favor of TypeScript-specific rule
+- `no-restricted-syntax`: Error - Disallows TypeScript enums in frontend, backend, and shared workspaces, enforcing const objects with "as const" instead for better type safety and runtime behaviour
+- `no-unused-vars`: Off - Disabled in favour of TypeScript-specific rule
+- `no-redeclare` / `@typescript-eslint/no-redeclare`: Off for TypeScript files - The TypeScript compiler already enforces redeclaration errors, and the `const Foo = ... as const` + `type Foo = ...` idiom (value/type namespace separation) is valid TypeScript but triggers both ESLint rules
 - `semi`: Error - Never use semicolons (root config only)
+- `max-lines`: Error - Maximum 600 lines per file (skips blank lines and comments). Disabled for test/spec files
 
 ### Prettier
 

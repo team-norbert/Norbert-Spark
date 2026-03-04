@@ -344,7 +344,8 @@ export function readMarkdownFile(fullPath: string): string {
     return readFileSync(fullPath, 'utf-8')
   } catch (error) {
     throw new Error(
-      `Error reading file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Error reading file: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      { cause: error }
     )
   }
 }

@@ -39,10 +39,10 @@ export function useAdminPage(): UseAdminPageReturn {
     page: 0,
     pageSize: 10,
   })
-  const [selectedUserIds, setSelectedUserIds] = useState<GridRowSelectionModel>({
+  const [selectedUserIds, setSelectedUserIds] = useState<GridRowSelectionModel>(() => ({
     type: 'include',
     ids: new Set(),
-  })
+  }))
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)

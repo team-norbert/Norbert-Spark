@@ -92,7 +92,8 @@ export class TokeniseGemini {
       input = readFileSync(resolvedPath, 'utf-8')
     } catch (error) {
       throw new Error(
-        `Failed to read file "${filePath}": ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to read file "${filePath}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { cause: error }
       )
     }
 

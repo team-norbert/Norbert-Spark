@@ -87,7 +87,7 @@ try {
   }
 } catch (error) {
   logger.error('Failed to fetch system prompt, using default', error as Error)
-  throw new Error('No system prompt found')
+  throw new Error('No system prompt found', { cause: error })
 }
 
 /**

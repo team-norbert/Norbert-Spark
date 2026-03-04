@@ -1,3 +1,4 @@
+import eslintReact from '@eslint-react/eslint-plugin'
 import nextPlugin from '@next/eslint-plugin-next'
 import queryPlugin from '@tanstack/eslint-plugin-query'
 import vitestPlugin from '@vitest/eslint-plugin'
@@ -6,8 +7,6 @@ import drizzlePlugin from 'eslint-plugin-drizzle'
 import jsdoc from 'eslint-plugin-jsdoc'
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y'
 import playwrightPlugin from 'eslint-plugin-playwright'
-import reactPlugin from 'eslint-plugin-react'
-import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import security from 'eslint-plugin-security'
 import tseslint from 'typescript-eslint'
 
@@ -30,8 +29,8 @@ const config: Linter.Config[] = [
     },
   },
   ...queryPlugin.configs['flat/recommended'],
-  reactPlugin.configs.flat.recommended,
-  reactPlugin.configs.flat['jsx-runtime'],
+  // @eslint-react: recommended-typescript preset (replaces eslint-plugin-react + react-hooks)
+  eslintReact.configs['recommended-typescript'],
   jsxA11yPlugin.flatConfigs.recommended,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
@@ -44,9 +43,6 @@ const config: Linter.Config[] = [
   },
   {
     files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
-    plugins: {
-      'react-hooks': reactHooksPlugin,
-    },
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
@@ -96,13 +92,7 @@ const config: Linter.Config[] = [
         React: 'readonly',
       },
     },
-    settings: {
-      react: {
-        version: 'detect',
-      },
-    },
     rules: {
-      ...reactHooksPlugin.configs.recommended.rules,
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/triple-slash-reference': 'off',
       'no-restricted-syntax': [
@@ -114,14 +104,6 @@ const config: Linter.Config[] = [
       ],
       'no-unused-vars': 'off',
       'no-console': 'off',
-    },
-  },
-  {
-    // Global settings for React
-    settings: {
-      react: {
-        version: 'detect',
-      },
     },
   },
   {

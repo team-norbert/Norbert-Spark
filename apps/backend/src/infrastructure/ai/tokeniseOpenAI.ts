@@ -66,9 +66,7 @@ class TokeniseOpenAI {
     try {
       return this.tokenizer.encode(content)
     } catch (error) {
-      throw new ValidationException(
-        'Invalid file path: paths cannot contain directory traversal (..), forward slashes (/), or backslashes (\\). Only filenames in the current directory are allowed.'
-      )
+      throw new ValidationException('Failed to tokenize content', undefined, { cause: error })
     }
   }
 
@@ -106,7 +104,8 @@ class TokeniseOpenAI {
       input = readFileSync(resolvedPath, 'utf-8')
     } catch (error) {
       throw new Error(
-        `Failed to read file "${filePath}": ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to read file "${filePath}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { cause: error }
       )
     }
 

@@ -35,6 +35,12 @@ describe('TypeException', () => {
       expect(exception.name).toBe('TypeException')
     })
 
+    it('should support cause via ErrorOptions', () => {
+      const cause = new Error('root cause')
+      const exception = new TypeException('Type error', undefined, { cause })
+      expect(exception.cause).toBe(cause)
+    })
+
     it('should be instance of BaseException and Error', () => {
       const exception = new TypeException('Error')
       expect(exception).toBeInstanceOf(TypeException)

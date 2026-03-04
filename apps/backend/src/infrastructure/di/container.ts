@@ -212,7 +212,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.app = createFastifyApp(httpsOptions)
     } catch (error) {
       throw new Error(
-        `Failed to initialize Fastify app: ${error instanceof Error ? error.message : error}`
+        `Failed to initialize Fastify app: ${error instanceof Error ? error.message : error}`,
+        { cause: error }
       )
     }
 
