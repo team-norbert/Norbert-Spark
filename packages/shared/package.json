@@ -31,7 +31,7 @@
     "split:api": "redocly split ./src/openapi.json --outDir ./src/openapi"
   },
   "dependencies": {
-    "ai": "^6.0.86",
+    "ai": "^6.0.112",
     "zod": "^4.3.6"
   },
   "exports": {
@@ -45,7 +45,7 @@
     }
   },
   "devDependencies": {
-    "@redocly/cli": "^2.18.2",
+    "@redocly/cli": "^2.20.3",
     "@stoplight/spectral-cli": "^6.15.0",
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/eslint-plugin": "^1.6.9",

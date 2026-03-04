@@ -81,7 +81,9 @@ export class HeartOfDarknessTool {
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
           this.logger.error(`Error loading Heart of Darkness text: ${errorMessage}`)
-          throw new Error(`Error loading Heart of Darkness text: ${errorMessage}`)
+          throw new Error(`Error loading Heart of Darkness text: ${errorMessage}`, {
+            cause: error,
+          })
         }
       },
     })

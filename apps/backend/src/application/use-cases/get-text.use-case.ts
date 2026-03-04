@@ -68,7 +68,8 @@ export class GetTextUseCase {
     } catch (error) {
       if (error instanceof z.ZodError) {
         throw new TypeException(
-          `Invalid file extension for "${fileName}". Supported extensions are: .txt, .csv, .json, .toon, .onnx, .safetensors, .pt, .py, .gguf`
+          `Invalid file extension for "${fileName}". Supported extensions are: .txt, .csv, .json, .toon, .onnx, .safetensors, .pt, .py, .gguf`,
+          { cause: error }
         )
       }
     }
@@ -111,11 +112,14 @@ export class GetTextUseCase {
       // Handle file not found error
       const nodeError = error as NodeJS.ErrnoException
       if (nodeError.code === 'ENOENT') {
-        throw new Error(`Error reading file "${this.filePath}": File not found: ${this.file}`)
+        throw new Error(`Error reading file "${this.filePath}": File not found: ${this.file}`, {
+          cause: error,
+        })
       }
       // Handle other errors
       throw new Error(
-        `Error reading file "${this.filePath}": ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Error reading file "${this.filePath}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { cause: error }
       )
     }
   }

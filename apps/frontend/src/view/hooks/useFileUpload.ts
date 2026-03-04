@@ -266,7 +266,9 @@ export function useFileUpload({
           logger.warn(`Upload attempt ${retries} failed for ${file.name}`, error)
 
           if (retries >= MAX_RETRIES) {
-            throw new Error(`Failed to upload ${file.name} after ${MAX_RETRIES} retries`)
+            throw new Error(`Failed to upload ${file.name} after ${MAX_RETRIES} retries`, {
+              cause: error,
+            })
           }
 
           // Exponential backoff before retry
