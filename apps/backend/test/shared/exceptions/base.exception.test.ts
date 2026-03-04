@@ -6,8 +6,8 @@ import { BaseException } from '../../../src/shared/exceptions/base.exception.js'
 
 // Create a concrete implementation for testing
 class TestException extends BaseException {
-  constructor(message: string, details?: Record<string, any>) {
-    super(message, ErrorCode.INTERNAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, details)
+  constructor(message: string, details?: Record<string, any>, cause?: unknown) {
+    super(message, ErrorCode.INTERNAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, details, cause)
   }
 }
 
@@ -54,6 +54,23 @@ describe('BaseException', () => {
       const exception = new TestException('Error')
       expect(exception.stack).toBeDefined()
       expect(exception.stack).toContain('TestException')
+    })
+
+    it('should set cause when provided', () => {
+      const cause = new Error('original error')
+      const exception = new TestException('Wrapper error', undefined, cause)
+      expect(exception.cause).toBe(cause)
+    })
+
+    it('should have undefined cause when not provided', () => {
+      const exception = new TestException('Error')
+      expect(exception.cause).toBeUndefined()
+    })
+
+    it('should support non-Error cause values', () => {
+      const cause = 'string cause'
+      const exception = new TestException('Error', undefined, cause)
+      expect(exception.cause).toBe(cause)
     })
   })
 

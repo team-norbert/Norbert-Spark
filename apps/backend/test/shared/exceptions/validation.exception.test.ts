@@ -41,6 +41,25 @@ describe('ValidationException', () => {
       expect(exception).toBeInstanceOf(BaseException)
       expect(exception).toBeInstanceOf(Error)
     })
+
+    it('should set cause when provided', () => {
+      const cause = new Error('original error')
+      const exception = new ValidationException('Validation failed', undefined, cause)
+      expect(exception.cause).toBe(cause)
+    })
+
+    it('should have undefined cause when not provided', () => {
+      const exception = new ValidationException('Validation failed')
+      expect(exception.cause).toBeUndefined()
+    })
+
+    it('should support both details and cause together', () => {
+      const cause = new Error('root cause')
+      const details = { field: 'email', reason: 'invalid' }
+      const exception = new ValidationException('Validation failed', details, cause)
+      expect(exception.details).toEqual(details)
+      expect(exception.cause).toBe(cause)
+    })
   })
 
   describe('properties', () => {
