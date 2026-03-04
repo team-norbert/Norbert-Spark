@@ -7,6 +7,7 @@ import {
   type HeartOfDarknessOutput,
   HeartOfDarknessTool,
 } from '../../../../src/infrastructure/ai/tools/heart-of-darkness.tool.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Mock instance to be used across tests
 let mockGetTextUseCaseInstance: {
@@ -37,12 +38,7 @@ describe('HeartOfDarknessTool', () => {
     vi.clearAllMocks()
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     // Create mock ToolCallOptions
     mockOptions = {
@@ -455,12 +451,7 @@ describe('HeartOfDarknessTool', () => {
     })
 
     it('should create separate instances with separate loggers', () => {
-      const mockLogger2: LoggerPort = {
-        info: vi.fn(),
-        error: vi.fn(),
-        warn: vi.fn(),
-        debug: vi.fn(),
-      }
+      const mockLogger2 = createMockLogger()
 
       const tool1 = new HeartOfDarknessTool(mockLogger)
       const tool2 = new HeartOfDarknessTool(mockLogger2)

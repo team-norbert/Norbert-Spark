@@ -11,6 +11,7 @@ import { Email, type EmailType } from '../../../src/domain/value-objects/email.j
 import { Password } from '../../../src/domain/value-objects/password.js'
 import { Role } from '../../../src/domain/value-objects/role.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 // Helper function to create mock UserIdType from UUID string
 function createMockUserId(uuid?: string): UserIdType {
@@ -46,12 +47,7 @@ describe('GetUserByIdUseCase', () => {
       saveProvider: vi.fn(),
     }
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn(),

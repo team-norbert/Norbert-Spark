@@ -8,6 +8,7 @@ import { GetChatAiOptionsUseCase } from '../../../src/application/use-cases/get-
 import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { ChatId } from '../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('GetChatAiOptionsUseCase', () => {
   let useCase: GetChatAiOptionsUseCase
@@ -19,12 +20,7 @@ describe('GetChatAiOptionsUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

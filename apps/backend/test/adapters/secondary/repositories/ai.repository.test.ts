@@ -8,6 +8,7 @@ import { ChatId } from '../../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
 import { Uuid7Util } from '../../../../src/shared/utils/uuid7.util.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Mock the database module
 vi.mock('../../../../src/infrastructure/database/index.js', () => ({
@@ -37,12 +38,7 @@ describe('AIRepository', () => {
     vi.clearAllMocks()
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     repository = new AIRepository(mockLogger)
     vi.mocked(Uuid7Util.createUuidv7).mockReturnValue(mockChatIdString)

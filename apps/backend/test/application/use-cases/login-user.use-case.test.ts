@@ -14,6 +14,7 @@ import { Password } from '../../../src/domain/value-objects/password.js'
 import { Role } from '../../../src/domain/value-objects/role.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
 import { UnauthorizedException } from '../../../src/shared/exceptions/unauthorized.exception.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 // Explicit TTL used throughout this suite – keeps assertions independent of the
 // REFRESH_TOKEN_EXPIRATION environment variable that may differ across environments.
@@ -76,12 +77,7 @@ describe('LoginUserUseCase', () => {
       saveProvider: vi.fn(),
     }
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockTokenGenerator = {
       generateToken: vi.fn().mockReturnValue('mock-jwt-token'),

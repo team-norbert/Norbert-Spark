@@ -11,6 +11,7 @@ import type { PutAIAdminUseCase } from '../../../../src/application/use-cases/pu
 import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
 import { NotFoundException } from '../../../../src/shared/exceptions/not-found.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 describe('AIAdminController', () => {
   let controller: AIAdminController
@@ -41,12 +42,7 @@ describe('AIAdminController', () => {
     } as any
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    } as LoggerPort
+    mockLogger = createMockLogger()
 
     // Create mock request
     mockRequest = {

@@ -8,6 +8,7 @@ import { DeleteUsersUseCase } from '../../../src/application/use-cases/delete-us
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { DatabaseException } from '../../../src/shared/exceptions/database.exception.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 // Helper function to create mock UserIdType from UUID string
 function createMockUserId(uuid?: string): UserIdType {
@@ -42,12 +43,7 @@ describe('DeleteUsersUseCase', () => {
       saveProvider: vi.fn(),
     }
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

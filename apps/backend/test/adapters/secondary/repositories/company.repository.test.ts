@@ -8,6 +8,7 @@ import type {
   DBCompanySelect,
   DBKeyPersonSelect,
 } from '../../../../src/infrastructure/database/schema.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Mock the database module
 vi.mock('../../../../src/infrastructure/database/index.js', () => ({
@@ -25,12 +26,7 @@ describe('CompanyRepository', () => {
     vi.clearAllMocks()
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     repository = new CompanyRepository(mockLogger)
   })

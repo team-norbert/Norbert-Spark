@@ -11,6 +11,7 @@ import type { DBEmbeddingModelSelect } from '../../../../src/infrastructure/data
 import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
 import { NotFoundException } from '../../../../src/shared/exceptions/not-found.exception.js'
 import type { PDFUtils } from '../../../../src/shared/utils/pdf.utils.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 const makeMockModel = (
   overrides: Partial<DBEmbeddingModelSelect> = {}
@@ -46,12 +47,7 @@ describe('AiRagController', () => {
 
     mockPdfUtils = {} as any
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    } as LoggerPort
+    mockLogger = createMockLogger()
 
     mockRequest = {
       user: { sub: uuidv7() },

@@ -16,6 +16,7 @@ import { Password } from '../../../src/domain/value-objects/password.js'
 import { Role } from '../../../src/domain/value-objects/role.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
 import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('GetAllUsersUseCase', () => {
   let useCase: GetAllUsersUseCase
@@ -52,12 +53,7 @@ describe('GetAllUsersUseCase', () => {
       saveProvider: vi.fn(),
     }
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     // Create use case instance with mocks
     useCase = new GetAllUsersUseCase(mockUserRepository, mockLogger)

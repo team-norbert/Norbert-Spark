@@ -13,6 +13,7 @@ import type {
   DBCompanySelect,
   DBKeyPersonSelect,
 } from '../../../src/infrastructure/database/schema.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('PutCompanyDetailsUseCase', () => {
   let useCase: PutCompanyDetailsUseCase
@@ -32,12 +33,7 @@ describe('PutCompanyDetailsUseCase', () => {
     }
 
     // Create mock implementations
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

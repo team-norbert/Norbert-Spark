@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { PDFUtils, ZipSecurityError } from '../../../src/shared/utils/pdf.utils.js'
+import { createMockLogger } from '../factories/logger.factory.js'
 
 describe('PDFUtils', () => {
   let pdfUtils: PDFUtils
@@ -12,12 +13,7 @@ describe('PDFUtils', () => {
 
   beforeEach(() => {
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     // Create PDFUtils instance with mock logger
     pdfUtils = new PDFUtils(mockLogger)

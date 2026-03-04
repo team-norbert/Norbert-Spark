@@ -10,6 +10,7 @@ import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { ChatId, type ChatIdType as _ChatIdType } from '../../../src/domain/value-objects/chatID.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('GetChatsByUserIdUseCase', () => {
   let useCase: GetChatsByUserIdUseCase
@@ -33,12 +34,7 @@ describe('GetChatsByUserIdUseCase', () => {
     }
 
     // Create mock implementations
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

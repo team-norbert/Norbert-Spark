@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Mock Upstash Redis
 const mockGet = vi.fn()
@@ -62,12 +63,7 @@ vi.mock('obscured', () => {
 })
 
 // Mock logger
-const _mockLogger = {
-  info: vi.fn(),
-  warn: vi.fn(),
-  debug: vi.fn(),
-  error: vi.fn(),
-}
+const _mockLogger = createMockLogger()
 
 describe('cacheMiddleware', () => {
   beforeEach(() => {
