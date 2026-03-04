@@ -26,7 +26,7 @@ export interface LogoutResult {
  *
  * @returns Result with success status and message
  */
-export async function logoutUserAction(): Promise<LogoutResult> {
+export async function logoutAction(): Promise<LogoutResult> {
   try {
     logger.info('Logging out user')
 
@@ -62,7 +62,7 @@ export async function logoutUserAction(): Promise<LogoutResult> {
   } catch (error_) {
     const err = error_ as Error & { status?: number; body?: unknown }
 
-    logger.error('logoutUserAction error', {
+    logger.error('logoutAction error', {
       error: err.message,
       status: err.status,
       body: err.body,

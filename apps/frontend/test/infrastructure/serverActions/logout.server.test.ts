@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-describe('logoutUserAction', () => {
+describe('logoutAction', () => {
   let mockGetAuthToken: ReturnType<typeof vi.fn>
   let mockBackendRequest: ReturnType<typeof vi.fn>
   let mockLoggerInfo: ReturnType<typeof vi.fn>
@@ -49,10 +49,10 @@ describe('logoutUserAction', () => {
         data: { message: 'Successfully logged out' },
       })
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: true,
@@ -66,6 +66,7 @@ describe('logoutUserAction', () => {
         headers: {
           Authorization: `Bearer ${TEST_TOKEN}`,
         },
+        redirectOn401: false,
         timeoutMs: 10000,
       })
       expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user')
@@ -80,10 +81,10 @@ describe('logoutUserAction', () => {
         data: { message: 'User session terminated' },
       })
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: true,
@@ -99,10 +100,10 @@ describe('logoutUserAction', () => {
         data: {},
       })
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: true,
@@ -117,10 +118,10 @@ describe('logoutUserAction', () => {
         success: true,
       })
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: true,
@@ -133,10 +134,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockResolvedValue({ success: true, data: { message: 'Done' } })
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      await logoutUserAction()
+      await logoutAction()
 
       expect(mockBackendRequest).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -149,10 +150,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockResolvedValue({ success: true, data: { message: 'Done' } })
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      await logoutUserAction()
+      await logoutAction()
 
       expect(mockBackendRequest).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -165,10 +166,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockResolvedValue({ success: true, data: { message: 'Done' } })
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      await logoutUserAction()
+      await logoutAction()
 
       expect(mockBackendRequest).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -181,10 +182,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockResolvedValue({ success: true, data: { message: 'Done' } })
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      await logoutUserAction()
+      await logoutAction()
 
       expect(mockBackendRequest).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -200,10 +201,10 @@ describe('logoutUserAction', () => {
     it('should return error when no auth token available', async () => {
       mockGetAuthToken.mockResolvedValue(null)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
@@ -217,10 +218,10 @@ describe('logoutUserAction', () => {
     it('should return error when auth token is undefined', async () => {
       mockGetAuthToken.mockResolvedValue(undefined)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
@@ -234,10 +235,10 @@ describe('logoutUserAction', () => {
     it('should return error when auth token is empty string', async () => {
       mockGetAuthToken.mockResolvedValue('')
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
@@ -251,10 +252,10 @@ describe('logoutUserAction', () => {
     it('should not attempt logout when authentication fails', async () => {
       mockGetAuthToken.mockResolvedValue(null)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      await logoutUserAction()
+      await logoutAction()
 
       expect(mockBackendRequest).not.toHaveBeenCalled()
       expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user')
@@ -271,17 +272,17 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
         message: 'Authentication expired. Please sign in again.',
         status: 401,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', {
+      expect(mockLoggerError).toHaveBeenCalledWith('logoutAction error', {
         error: 'Unauthorized',
         status: 401,
         body: { error: 'Invalid token' },
@@ -296,17 +297,17 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
         message: 'Database connection failed',
         status: 500,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', {
+      expect(mockLoggerError).toHaveBeenCalledWith('logoutAction error', {
         error: 'Internal server error',
         status: 500,
         body: { error: 'Database connection failed' },
@@ -321,10 +322,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
@@ -340,10 +341,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
@@ -359,10 +360,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
@@ -376,17 +377,17 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
         message: 'Network failure',
         status: 500,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', {
+      expect(mockLoggerError).toHaveBeenCalledWith('logoutAction error', {
         error: 'Network failure',
         status: undefined,
         body: undefined,
@@ -400,10 +401,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
@@ -418,10 +419,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
@@ -435,10 +436,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
@@ -452,10 +453,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      const result = await logoutUserAction()
+      const result = await logoutAction()
 
       expect(result).toEqual({
         success: false,
@@ -474,12 +475,12 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      await logoutUserAction()
+      await logoutAction()
 
-      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', {
+      expect(mockLoggerError).toHaveBeenCalledWith('logoutAction error', {
         error: 'Test error',
         status: 503,
         body: { error: 'Service temporarily unavailable' },
@@ -491,12 +492,12 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      await logoutUserAction()
+      await logoutAction()
 
-      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', {
+      expect(mockLoggerError).toHaveBeenCalledWith('logoutAction error', {
         error: 'Unknown error',
         status: undefined,
         body: undefined,
@@ -507,10 +508,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockResolvedValue({ success: true, data: { message: 'Done' } })
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      await logoutUserAction()
+      await logoutAction()
 
       expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user')
     })
@@ -519,10 +520,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockResolvedValue({ success: true, data: { message: 'Done' } })
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      await logoutUserAction()
+      await logoutAction()
 
       expect(mockLoggerInfo).toHaveBeenCalledWith('Logout successful')
     })
@@ -530,10 +531,10 @@ describe('logoutUserAction', () => {
     it('should not log success when authentication fails', async () => {
       mockGetAuthToken.mockResolvedValue(null)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      await logoutUserAction()
+      await logoutAction()
 
       expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user')
       expect(mockLoggerInfo).not.toHaveBeenCalledWith('Logout successful')
@@ -545,10 +546,10 @@ describe('logoutUserAction', () => {
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
       mockBackendRequest.mockRejectedValue(mockError)
 
-      const { logoutUserAction } =
-        await import('@/infrastructure/serverActions/logoutUser.server.js')
+      const { logoutAction } =
+        await import('@/infrastructure/serverActions/logout.server.js')
 
-      await logoutUserAction()
+      await logoutAction()
 
       expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user')
       expect(mockLoggerInfo).not.toHaveBeenCalledWith('Logout successful')
