@@ -130,25 +130,6 @@ export class LogOutUseCase {
     try {
       // Store the refresh token in the database
       await this.refreshTokenRepo.revokeAllForUser(userId)
-    } catch (err) {
-      this.logger.error('Fail', err instanceof Error ? err : new Error(String(err)), {
-        userId: auditContext.userId,
-      })
-      const auditEntry: CreateAuditLogDTO = {
-        userId: auditContext.userId,
-        entityType: EntityType.TOKEN,
-        entityId: userId,
-        action: AuditAction.USER_LOGOUT,
-        changes: {
-          reason: 'refresh_token_revoke_failed',
-        },
-        ipAddress: auditContext.ipAddress ?? undefined,
-        userAgent: auditContext.userAgent ?? undefined,
-      }
-      // AuditLogPort.log() never throws per contract
-      await this.auditLog.log(auditEntry)
-      throw new InternalErrorException('Failed to revoke token family after replay attack detected')
-    } finally {
       const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
         entityType: EntityType.TOKEN,
@@ -162,6 +143,28 @@ export class LogOutUseCase {
       }
       // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
+    } catch (err) {
+      this.logger.error(
+        'Failed to revoke all refresh tokens for user during logout',
+        err instanceof Error ? err : new Error(String(err)),
+        {
+          userId: auditContext.userId,
+        }
+      )
+      const auditEntry: CreateAuditLogDTO = {
+        userId: auditContext.userId,
+        entityType: EntityType.TOKEN,
+        entityId: userId,
+        action: AuditAction.USER_LOGOUT,
+        changes: {
+          reason: 'refresh_token_revoke_failed',
+        },
+        ipAddress: auditContext.ipAddress ?? undefined,
+        userAgent: auditContext.userAgent ?? undefined,
+      }
+      // AuditLogPort.log() never throws per contract
+      await this.auditLog.log(auditEntry)
+      throw new InternalErrorException('Failed to revoke refresh tokens for user during logout')
     }
   }
 }

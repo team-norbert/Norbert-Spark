@@ -792,14 +792,14 @@ describe('LoginUserUseCase', () => {
           })
         )
 
-        // Should log TOKEN_ISSUED audit for failure (catch) and finally
+        // Should log TOKEN_ISSUED audit for failure only (catch)
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
             action: 'token_issued',
             changes: { reason: 'refresh_token_storage_failed' },
           })
         )
-        expect(mockAuditLog.log).toHaveBeenCalledWith(
+        expect(mockAuditLog.log).not.toHaveBeenCalledWith(
           expect.objectContaining({
             action: 'token_issued',
             changes: { reason: 'refresh_token_stored' },
