@@ -4,7 +4,7 @@ import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 
 /**
  * Creates a fully typed mock LoggerPort for use in tests.
- * The child() method returns the same mock instance.
+ * The child() method returns a new mock instance to avoid binding leakage between tests.
  */
 export function createMockLogger(): LoggerPort {
   const mockLogger: LoggerPort = {
@@ -12,7 +12,7 @@ export function createMockLogger(): LoggerPort {
     error: vi.fn(),
     warn: vi.fn(),
     debug: vi.fn(),
-    child: vi.fn().mockReturnThis(),
+    child: vi.fn().mockImplementation(() => createMockLogger()),
   }
   return mockLogger
 }
