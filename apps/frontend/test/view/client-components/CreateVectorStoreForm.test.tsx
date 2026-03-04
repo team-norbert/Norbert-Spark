@@ -74,7 +74,8 @@ function selectDimension(value: string) {
   ) as HTMLElement
   const trigger = (selectRoot.querySelector('[role="combobox"]') ?? selectRoot) as HTMLElement
   fireEvent.mouseDown(trigger)
-  fireEvent.click(screen.getByRole('option', { name: value }))
+  // CSS attribute selector is far faster than screen.getByRole which traverses the full ARIA tree
+  fireEvent.click(document.querySelector(`li[role="option"][data-value="${value}"]`) as HTMLElement)
 }
 
 /** Open the Distance Metric Select dropdown and click the given option. */
@@ -84,7 +85,8 @@ function selectDistanceMetric(value: string) {
   ) as HTMLElement
   const trigger = (selectRoot.querySelector('[role="combobox"]') ?? selectRoot) as HTMLElement
   fireEvent.mouseDown(trigger)
-  fireEvent.click(screen.getByRole('option', { name: value }))
+  // CSS attribute selector is far faster than screen.getByRole which traverses the full ARIA tree
+  fireEvent.click(document.querySelector(`li[role="option"][data-value="${value}"]`) as HTMLElement)
 }
 
 const DEFAULT_FILE_KEYS = ['uploads/file-a.pdf', 'uploads/file-b.pdf']
@@ -101,68 +103,54 @@ describe('CreateVectorStoreForm', () => {
   // ── Rendering ───────────────────────────────────────────────────────────────
 
   describe('Rendering', () => {
-    it('renders the "Create Vector Store" card title', () => {
+    // Shared render for all read-only snapshot-style assertions; avoids repeating
+    // render() in every test body.  RTL's afterEach cleanup still runs per-test.
+    beforeEach(() => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+    })
 
+    it('renders the "Create Vector Store" card title', () => {
       expect(screen.getByRole('heading', { name: /create vector store/i })).toBeInTheDocument()
     })
 
     it('renders the Documents section heading', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
       expect(screen.getByText('Documents')).toBeInTheDocument()
     })
 
     it('renders the Embedding Models section heading', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
       expect(screen.getByText('Embedding Models')).toBeInTheDocument()
     })
 
     it('renders the Vector Embeddings section heading', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
       expect(screen.getByText('Vector Embeddings')).toBeInTheDocument()
     })
 
     it('renders the Chat AI Options section heading', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
       expect(screen.getByText('Chat AI Options')).toBeInTheDocument()
     })
 
     it('renders the Title and Source text fields', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
       expect(screen.getByLabelText(/^vector store id/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^title/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^source/i)).toBeInTheDocument()
     })
 
     it('renders the Model Name and Model Provider text fields', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
       expect(screen.getByLabelText(/^model name/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^model provider/i)).toBeInTheDocument()
     })
 
     it('renders Distance Metric, Chunk Size and Chunk Overlap fields', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
       expect(screen.getByLabelText(/^distance metric/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^chunk size/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^chunk overlap/i)).toBeInTheDocument()
     })
 
     it('renders the Chat Type ID field', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
       expect(screen.getByLabelText(/^chat type id/i)).toBeInTheDocument()
     })
 
     it('renders all optional chatAIOptions fields', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
       expect(screen.getByLabelText(/^max tokens/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^temperature/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^top p/i)).toBeInTheDocument()
@@ -174,12 +162,12 @@ describe('CreateVectorStoreForm', () => {
     })
 
     it('renders the "Create Vector Store" submit button', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
       expect(screen.getByRole('button', { name: /create vector store/i })).toBeInTheDocument()
     })
 
     it('shows a caption for each uploaded file', () => {
+      // This test needs non-empty fileKeys; the beforeEach render (fileKeys=[]) stays in
+      // the document but does not contain these captions, so no false positives occur.
       render(<CreateVectorStoreForm fileKeys={DEFAULT_FILE_KEYS} onSubmit={mockOnSubmit} />)
 
       expect(screen.getByText(/File 1:.*file-a\.pdf/i)).toBeInTheDocument()
@@ -187,8 +175,6 @@ describe('CreateVectorStoreForm', () => {
     })
 
     it('does not show the fileKeys line when the array is empty', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
       expect(screen.queryByText(/files to embed/i)).not.toBeInTheDocument()
     })
   })
@@ -196,73 +182,77 @@ describe('CreateVectorStoreForm', () => {
   // ── Initial state ───────────────────────────────────────────────────────────
 
   describe('Initial state', () => {
-    it('all text fields start empty', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+    // ── default props ──────────────────────────────────────────────────────────
+    describe('default props', () => {
+      beforeEach(() => {
+        render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+      })
 
-      const labelRegexes = [
-        /^vector store id/i,
-        /^title/i,
-        /^source/i,
-        /^model name/i,
-        /^model provider/i,
-        /^chat type id/i,
-        /^max tokens/i,
-        /^temperature/i,
-        /^top p/i,
-        /^frequency penalty/i,
-        /^presence penalty/i,
-        /^stop sequences/i,
-        /^seed/i,
-        /^max retries/i,
-      ]
-      for (const labelRegex of labelRegexes) {
-        expect((screen.getByLabelText(labelRegex) as HTMLInputElement).value).toBe('')
-      }
+      it('all text fields start empty', () => {
+        const labelRegexes = [
+          /^vector store id/i,
+          /^title/i,
+          /^source/i,
+          /^model name/i,
+          /^model provider/i,
+          /^chat type id/i,
+          /^max tokens/i,
+          /^temperature/i,
+          /^top p/i,
+          /^frequency penalty/i,
+          /^presence penalty/i,
+          /^stop sequences/i,
+          /^seed/i,
+          /^max retries/i,
+        ]
+        for (const labelRegex of labelRegexes) {
+          expect((screen.getByLabelText(labelRegex) as HTMLInputElement).value).toBe('')
+        }
+      })
+
+      it('chatTypeId is empty when initialChatTypeId is not provided', () => {
+        expect((screen.getByLabelText(/^chat type id/i) as HTMLInputElement).value).toBe('')
+      })
+
+      it('id field starts empty', () => {
+        expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe('')
+      })
+
+      it('distanceMetric Select shows "— choose a distance metric —" placeholder by default', () => {
+        expect(screen.getByText('— choose a distance metric —')).toBeInTheDocument()
+      })
+
+      it('dimension shows "— choose a dimension —" placeholder by default', () => {
+        // The MUI Select shows the placeholder when no dimension has been chosen
+        expect(screen.getByText('— choose a dimension —')).toBeInTheDocument()
+      })
     })
 
-    it('chatTypeId is empty when initialChatTypeId is not provided', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+    // ── with initialChatTypeId prop ────────────────────────────────────────────
+    describe('with initialChatTypeId prop', () => {
+      it('chatTypeId is pre-populated when initialChatTypeId is provided', () => {
+        const id = 'aabbccdd-1234-1234-1234-aabbccddee01'
+        render(
+          <CreateVectorStoreForm fileKeys={[]} initialChatTypeId={id} onSubmit={mockOnSubmit} />
+        )
 
-      expect((screen.getByLabelText(/^chat type id/i) as HTMLInputElement).value).toBe('')
-    })
+        expect((screen.getByLabelText(/^chat type id/i) as HTMLInputElement).value).toBe(id)
+      })
 
-    it('id field starts empty', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+      it('id field is pre-populated from initialChatTypeId when provided', () => {
+        const initialId = 'aabbccdd-1234-1234-1234-aabbccddee01'
+        render(
+          <CreateVectorStoreForm
+            fileKeys={[]}
+            initialChatTypeId={initialId}
+            onSubmit={mockOnSubmit}
+          />
+        )
 
-      expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe('')
-    })
-
-    it('distanceMetric Select shows "— choose a distance metric —" placeholder by default', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      expect(screen.getByText('— choose a distance metric —')).toBeInTheDocument()
-    })
-
-    it('chatTypeId is pre-populated when initialChatTypeId is provided', () => {
-      const id = 'aabbccdd-1234-1234-1234-aabbccddee01'
-      render(<CreateVectorStoreForm fileKeys={[]} initialChatTypeId={id} onSubmit={mockOnSubmit} />)
-
-      expect((screen.getByLabelText(/^chat type id/i) as HTMLInputElement).value).toBe(id)
-    })
-
-    it('id field is pre-populated from initialChatTypeId when provided', () => {
-      const initialId = 'aabbccdd-1234-1234-1234-aabbccddee01'
-      render(
-        <CreateVectorStoreForm
-          fileKeys={[]}
-          initialChatTypeId={initialId}
-          onSubmit={mockOnSubmit}
-        />
-      )
-
-      expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe(initialId)
-    })
-
-    it('dimension shows "— choose a dimension —" placeholder by default', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      // The MUI Select shows the placeholder when no dimension has been chosen
-      expect(screen.getByText('— choose a dimension —')).toBeInTheDocument()
+        expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe(
+          initialId
+        )
+      })
     })
   })
 
@@ -276,7 +266,7 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit).toHaveBeenCalledTimes(1)
-    }, 15000)
+    })
 
     it('passes the correct documents shape', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
@@ -291,7 +281,7 @@ describe('CreateVectorStoreForm', () => {
           source: 'https://gutenberg.org/hod',
         },
       ])
-    }, 25000)
+    })
 
     it('passes the required id field', () => {
       const testId = 'abc12345-0000-0000-0000-000000000001'
@@ -331,7 +321,7 @@ describe('CreateVectorStoreForm', () => {
         modelProvider: 'openai',
         dimension: 1536, // default
       })
-    }, 15000)
+    })
 
     it('converts chunkSize and chunkOverlap to numbers', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
@@ -435,7 +425,7 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.frequencyPenalty).toBe(0.5)
-    }, 15000)
+    })
 
     it('includes presencePenalty as a number when provided', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
@@ -445,7 +435,7 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.presencePenalty).toBe(-0.3)
-    }, 15000)
+    })
 
     it('includes seed as a number when provided', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
@@ -455,7 +445,7 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.seed).toBe(42)
-    }, 15000)
+    })
 
     it('includes maxRetries as a number when provided', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
@@ -466,7 +456,7 @@ describe('CreateVectorStoreForm', () => {
 
       expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.maxRetries).toBe(3)
     })
-  }, 15000)
+  })
 
   // ── stopSequences parsing ────────────────────────────────────────────────────
 
@@ -678,7 +668,12 @@ describe('CreateVectorStoreForm', () => {
     /** Selects the single mock model (text-embedding-ada-002) from the dropdown. */
     function selectEmbeddingModelFromDropdown() {
       openEmbeddingModelsDropdown()
-      fireEvent.click(screen.getByRole('option', { name: /text-embedding-ada-002/i }))
+      // Target the mock model by its known ID via CSS selector — faster than getByRole ARIA traversal
+      fireEvent.click(
+        document.querySelector(
+          'li[role="option"][data-value="aaaaaaaa-0000-0000-0000-000000000001"]'
+        ) as HTMLElement
+      )
     }
 
     it('shows no conflict error when only the dropdown is used', () => {
@@ -820,7 +815,8 @@ describe('CreateVectorStoreForm', () => {
 
       // Selecting the empty option clears selectedModelId → no conflict possible
       openEmbeddingModelsDropdown()
-      fireEvent.click(screen.getByRole('option', { name: /choose a model/i }))
+      // Empty data-value = the "— choose a model —" placeholder option
+      fireEvent.click(document.querySelector('li[role="option"][data-value=""]') as HTMLElement)
 
       expect(
         screen.queryByText(/please use either the dropdown or manual entry/i)
