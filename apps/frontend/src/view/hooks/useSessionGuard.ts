@@ -1,7 +1,10 @@
 import { signOut, useSession } from 'next-auth/react'
 import { useEffect } from 'react'
 
+import { createLogger } from '@/infrastructure/logging/logger.js'
 import { logoutUserAction } from '@/infrastructure/serverActions/logoutUser.server.js'
+
+const logger = createLogger({ prefix: '[useSessionGuard]' })
 
 /**
  * Custom hook for session guard logic.
@@ -23,6 +26,8 @@ export function useSessionGuard(): void {
       void (async () => {
         try {
           await logoutUserAction()
+        } catch (error) {
+          logger.error('Failed to logout user on backend', error)
         } finally {
           await signOut({ callbackUrl: '/signin?error=session_expired' })
         }
