@@ -8,6 +8,7 @@ import { LogOutUseCase } from '../../../src/application/use-cases/log-out.use-ca
 import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
+import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
 
 describe('LogOutUseCase', () => {
   let useCase: LogOutUseCase
@@ -93,10 +94,10 @@ describe('LogOutUseCase', () => {
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
             userId: userId,
-            entityType: EntityType.USER,
+            entityType: EntityType.TOKEN,
             action: AuditAction.USER_LOGOUT,
             changes: {
-              reason: 'user_logout',
+              reason: 'refresh_token_revoke_successful',
             },
             ipAddress: contextWithUser.ipAddress,
             userAgent: contextWithUser.userAgent,
@@ -185,12 +186,11 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(error)
 
-        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(error)
-
-        expect(mockLogger.error).toHaveBeenCalledWith(
-          `Error executing LogOutUseCase for user ID: ${userId}`,
-          error
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(
+          InternalErrorException
         )
+
+        expect(mockLogger.error).toHaveBeenCalledWith('Fail', error, { userId })
       })
 
       it('should still create audit log entry when revokeAllForUser fails', async () => {
@@ -203,16 +203,21 @@ describe('LogOutUseCase', () => {
 
         await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow()
 
-        expect(mockAuditLog.log).toHaveBeenCalledWith(
-          expect.objectContaining({
-            userId: userId,
-            entityType: EntityType.USER,
-            action: AuditAction.USER_LOGOUT,
-            changes: {
-              reason: 'user_logout_error',
-            },
-          })
-        )
+        expect(mockAuditLog.log).toHaveBeenCalledTimes(2)
+
+        // First audit call (catch): refresh_token_revoke_failed
+        const catchAudit = vi.mocked(mockAuditLog.log).mock.calls[0][0]
+        expect(catchAudit.userId).toBe(userId)
+        expect(catchAudit.entityType).toBe(EntityType.TOKEN)
+        expect(catchAudit.action).toBe(AuditAction.USER_LOGOUT)
+        expect(catchAudit.changes).toEqual({ reason: 'refresh_token_revoke_failed' })
+
+        // Second audit call (finally): refresh_token_revoke_successful
+        const finallyAudit = vi.mocked(mockAuditLog.log).mock.calls[1][0]
+        expect(finallyAudit.userId).toBe(userId)
+        expect(finallyAudit.entityType).toBe(EntityType.TOKEN)
+        expect(finallyAudit.action).toBe(AuditAction.USER_LOGOUT)
+        expect(finallyAudit.changes).toEqual({ reason: 'refresh_token_revoke_successful' })
       })
 
       it('should handle Error instance correctly', async () => {
@@ -222,14 +227,11 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(error)
 
-        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(error)
-
-        expect(mockLogger.error).toHaveBeenCalledWith(
-          expect.any(String),
-          expect.objectContaining({
-            message: 'Specific error message',
-          })
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(
+          InternalErrorException
         )
+
+        expect(mockLogger.error).toHaveBeenCalledWith('Fail', error, { userId })
       })
 
       it('should convert non-Error objects to Error instances', async () => {
@@ -238,13 +240,14 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue('string error')
 
-        await expect(useCase.execute(userId, contextWithUser)).rejects.toBe('string error')
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(
+          InternalErrorException
+        )
 
         expect(mockLogger.error).toHaveBeenCalledWith(
-          expect.any(String),
-          expect.objectContaining({
-            message: 'string error',
-          })
+          'Fail',
+          expect.objectContaining({ message: 'string error' }),
+          { userId }
         )
       })
 
@@ -254,13 +257,14 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(null)
 
-        await expect(useCase.execute(userId, contextWithUser)).rejects.toBeNull()
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(
+          InternalErrorException
+        )
 
         expect(mockLogger.error).toHaveBeenCalledWith(
-          expect.any(String),
-          expect.objectContaining({
-            message: 'null',
-          })
+          'Fail',
+          expect.objectContaining({ message: 'null' }),
+          { userId }
         )
       })
 
@@ -270,13 +274,14 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(undefined)
 
-        await expect(useCase.execute(userId, contextWithUser)).rejects.toBeUndefined()
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(
+          InternalErrorException
+        )
 
         expect(mockLogger.error).toHaveBeenCalledWith(
-          expect.any(String),
-          expect.objectContaining({
-            message: 'undefined',
-          })
+          'Fail',
+          expect.objectContaining({ message: 'undefined' }),
+          { userId }
         )
       })
 
@@ -286,9 +291,11 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(new Error('Test error'))
 
-        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow('Test error')
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(
+          'Failed to revoke token family after replay attack detected'
+        )
 
-        expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
+        expect(mockAuditLog.log).toHaveBeenCalledTimes(2)
       })
 
       it('should re-throw error when revoke fails', async () => {
@@ -298,7 +305,9 @@ describe('LogOutUseCase', () => {
 
         vi.mocked(mockRefreshTokenRepo.revokeAllForUser).mockRejectedValue(error)
 
-        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow('Revoke failed')
+        await expect(useCase.execute(userId, contextWithUser)).rejects.toThrow(
+          'Failed to revoke token family after replay attack detected'
+        )
       })
     })
 
@@ -318,7 +327,7 @@ describe('LogOutUseCase', () => {
         expect(auditCall).toHaveProperty('ipAddress')
       })
 
-      it('should use EntityType.USER for entity type', async () => {
+      it('should use EntityType.TOKEN for entity type', async () => {
         const userId = createUserId()
         const contextWithUser = { ...auditContext, userId }
 
@@ -326,7 +335,7 @@ describe('LogOutUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
-            entityType: EntityType.USER,
+            entityType: EntityType.TOKEN,
           })
         )
       })

@@ -760,7 +760,7 @@ All token lifecycle events should be logged to the existing audit system:
 | `TOKEN_REFRESHED`                | Successful token refresh                   | RefreshAccessTokenUseCase                          |
 | `REFRESH_TOKEN_REPLAY_DETECTED`  | Revoked token presented — potential attack | RefreshAccessTokenUseCase                          |
 | `REFRESH_FAMILY_REVOKED`         | Entire token family revoked due to replay  | RefreshAccessTokenUseCase                          |
-| `USER_LOGOUT`                    | User explicitly logged out                 |                                                    |
+| `USER_LOGOUT`                    | User explicitly logged out                 | LogOutUseCase                                      |
 | `REFRESH_TOKENS_EXPIRED_CLEANUP` | Periodic cleanup of expired tokens         |                                                    |
 
 These can use the existing `AuditLogPort` and `AuditAction` enum.
