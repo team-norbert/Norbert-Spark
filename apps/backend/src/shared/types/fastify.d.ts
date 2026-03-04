@@ -7,5 +7,6 @@ declare module 'fastify' {
     user?: JwtUserClaims
     startTime?: number
     durationMs?: number
+    route?: string
   }
 }

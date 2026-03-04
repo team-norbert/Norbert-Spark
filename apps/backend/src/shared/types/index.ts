@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { UUIDType } from '../../domain/value-objects/uuid.js'
+import { EnvConfig } from '../../infrastructure/config/env.config.js'
 import type { DBChatType } from '../../infrastructure/database/schema.js'
 
 export const metadataSchema = z.object({})
@@ -48,13 +49,13 @@ export type auditContextType = {
   ipAddress: string | null
   userAgent: string | null
   level: string
-  time: number
-  event: string
+  time: Date
+  event?: string
   requestId: UUIDType | null
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS'
-  route: string
+  method: string
+  route: string | undefined
   statusCode: number
-  durationMs: number
+  durationMs: number | undefined
   service: string
   env: string
   version: string
@@ -64,7 +65,10 @@ export type auditContextType = {
 /**
  * Input type for creating an audit context with optional fields that have defaults.
  */
-export type CreateAuditContextInput = Omit<auditContextType, 'service' | 'version'> & {
+export type CreateAuditContextInput = Omit<
+  auditContextType,
+  'service' | 'version' | 'time' | 'env' | 'level'
+> & {
   service?: string
 }
 
@@ -76,8 +80,11 @@ export type CreateAuditContextInput = Omit<auditContextType, 'service' | 'versio
 export function createAuditContext(input: CreateAuditContextInput): auditContextType {
   return {
     ...input,
+    time: new Date(),
     service: input.service ?? 'norberts-spark-backend',
     version: '1.0.0',
+    env: EnvConfig.NODE_ENV,
+    level: EnvConfig.LOG_LEVEL,
   }
 }
 

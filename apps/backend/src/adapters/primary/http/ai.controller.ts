@@ -25,6 +25,7 @@ import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-c
 import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
+import { Uuid } from '../../../domain/value-objects/uuid.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
@@ -122,34 +123,16 @@ export class AIController {
     // Note: manually test various failure modes
 
     // Extract audit context from request
-    // @ts-ignore
     const auditContext: auditContextType = createAuditContext({
       userId: request.user?.sub ?? null,
       ipAddress: safelyMaskIp(request.ip),
       userAgent: request.headers['user-agent'] ?? null,
-      level: EnvConfig.LOG_LEVEL,
-      env: EnvConfig.NODE_ENV,
+      route: request.route,
+      statusCode: reply.statusCode,
+      method: request.method,
+      requestId: new Uuid(request.id).getValue(),
+      durationMs: request.durationMs,
     })
-
-    /**
-     * export type auditContextType = {
-     *   userId: UserIdType | null
-     *   ipAddress: string | null
-     *   userAgent: string | null
-     *   level: string
-     *   time: number
-     *   event: string
-     *   requestId: UUIDType | null
-     *   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS'
-     *   route: string
-     *   statusCode: number
-     *   durationMs: number
-     *   service: string
-     *   env: string
-     *   version: string
-     *   additionalInfo?: Record<string, unknown>
-     * }
-     */
 
     let messages: UIMessage[]
     let id: ChatIdType
