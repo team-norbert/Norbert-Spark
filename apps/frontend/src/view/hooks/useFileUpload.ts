@@ -427,9 +427,14 @@ export function useFileUpload({
    * Sign out the user using NextAuth
    * Clears the session and redirects to the signin page
    */
-  const handleSignOut = useCallback(() => {
-    logoutUserAction()
-    signOut({ callbackUrl: '/signin' })
+  const handleSignOut = useCallback(async () => {
+    try {
+      await logoutUserAction()
+    } catch (error) {
+      logger.error('Failed to logout user on backend', error)
+    } finally {
+      await signOut({ callbackUrl: '/signin' })
+    }
   }, [])
 
   return {
