@@ -59,7 +59,8 @@ Error log shape:
     "stack": "Error: Database connection refused\n    at ..."
   },
   "service": "norberts-spark-backend",
-  "env": "production"
+  "env": "production",
+  "version": "1.0.0"
 }
 ```
 
@@ -238,6 +239,12 @@ fastify.addHook('onRequest', (request, _reply, done) => {
 })
 
 fastify.addHook('onResponse', (request, reply, done) => {
+  // Skip logging here for server errors — onError already emitted http.request.error for those
+  if (reply.statusCode >= 500) {
+    done()
+    return
+  }
+
   const durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
   const userId = request.user?.sub ?? undefined
 
@@ -258,6 +265,8 @@ fastify.addHook('onResponse', (request, reply, done) => {
 })
 
 fastify.addHook('onError', (request, reply, error, done) => {
+  const durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
+
   request.log.error(
     {
       event: 'http.request.error',
@@ -266,6 +275,7 @@ fastify.addHook('onError', (request, reply, error, done) => {
       method: request.method,
       route: request.routeOptions?.url ?? request.url,
       statusCode: reply.statusCode,
+      durationMs,
       errorCode: error instanceof BaseException ? error.code : 'INTERNAL_ERROR',
       err: error,
     },
@@ -442,13 +452,13 @@ The `apps/backend/src/domain/audit/redact-sensitive-data.ts` module defines a `S
 this.logger = pino({
   redact: {
     paths: [
-      'context.email',
-      'context.password',
-      'context.token',
-      'context.accessToken',
-      'context.refreshToken',
-      'context.resetToken',
-      'context.ip',
+      'email',
+      'password',
+      'token',
+      'accessToken',
+      'refreshToken',
+      'resetToken',
+      'ip',
     ],
     censor: '[REDACTED]',
   },
@@ -486,8 +496,8 @@ this.logger = pino({
 ## Suggested Implementation Order
 
 1. `genReqId` in Fastify config (smallest, zero risk)
-2. `base` fields and `redact` in `PinoLoggerService`
-3. New env vars (`SERVICE_NAME`, `APP_VERSION`)
+2. New env vars (`SERVICE_NAME`, `APP_VERSION`)
+3. `base` fields and `redact` in `PinoLoggerService`
 4. `onRequest` / `onResponse` / `onError` hooks + `FastifyRequest` type augmentation
 5. Fix Fastify built-in serializer (remove PII)
 6. `child()` on `LoggerPort` and `PinoLoggerService`
