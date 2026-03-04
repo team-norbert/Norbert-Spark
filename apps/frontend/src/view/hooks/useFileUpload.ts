@@ -8,6 +8,7 @@ import type { z } from 'zod'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { extractDataByFileIdAction } from '@/infrastructure/serverActions/extractDataByFileId.server.js'
 import { getPresignedUrls } from '@/infrastructure/serverActions/getPresignedUrls.server.js'
+import { logoutUserAction } from '@/infrastructure/serverActions/logoutUser.server.js'
 
 const logger = createLogger({ prefix: '[useFileUpload]' })
 
@@ -426,8 +427,14 @@ export function useFileUpload({
    * Sign out the user using NextAuth
    * Clears the session and redirects to the signin page
    */
-  const handleSignOut = useCallback(() => {
-    signOut({ callbackUrl: '/signin' })
+  const handleSignOut = useCallback(async () => {
+    try {
+      await logoutUserAction()
+    } catch (error) {
+      logger.error('Failed to logout user on backend', error)
+    } finally {
+      await signOut({ callbackUrl: '/signin' })
+    }
   }, [])
 
   return {

@@ -1,13 +1,29 @@
-import { renderHook } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import { type Session } from 'next-auth'
 import { signOut, useSession } from 'next-auth/react'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
+import { logoutUserAction } from '@/infrastructure/serverActions/logoutUser.server.js'
 import { useSessionGuard } from '@/view/hooks/useSessionGuard.js'
 
 vi.mock('next-auth/react', () => ({
   useSession: vi.fn(),
   signOut: vi.fn(),
+}))
+
+vi.mock('@/infrastructure/serverActions/logoutUser.server.js', () => ({
+  logoutUserAction: vi
+    .fn()
+    .mockResolvedValue({ success: true, message: 'Logged out', status: 200 }),
+}))
+
+vi.mock('@/infrastructure/logging/logger.js', () => ({
+  createLogger: vi.fn().mockReturnValue({
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  }),
 }))
 
 const mockUseSession = useSession as Mock
@@ -35,7 +51,7 @@ describe('useSessionGuard', () => {
   })
 
   describe('Sign-Out on RefreshTokenExpired', () => {
-    it('should call signOut when session.error is RefreshTokenExpired', () => {
+    it('should call signOut when session.error is RefreshTokenExpired', async () => {
       mockUseSession.mockReturnValue({
         data: createMockSession({ error: 'RefreshTokenExpired' }),
         status: 'authenticated',
@@ -43,9 +59,42 @@ describe('useSessionGuard', () => {
 
       renderHook(() => useSessionGuard())
 
-      expect(mockSignOut).toHaveBeenCalledTimes(1)
-      expect(mockSignOut).toHaveBeenCalledWith({
-        callbackUrl: '/signin?error=session_expired',
+      await waitFor(() => {
+        expect(mockSignOut).toHaveBeenCalledTimes(1)
+        expect(mockSignOut).toHaveBeenCalledWith({
+          callbackUrl: '/signin?error=session_expired',
+        })
+      })
+    })
+
+    it('should call logoutUserAction when session.error is RefreshTokenExpired', async () => {
+      mockUseSession.mockReturnValue({
+        data: createMockSession({ error: 'RefreshTokenExpired' }),
+        status: 'authenticated',
+      })
+
+      renderHook(() => useSessionGuard())
+
+      await waitFor(() => {
+        expect(logoutUserAction).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    it('should still call signOut even when logoutUserAction fails', async () => {
+      ;(logoutUserAction as Mock).mockRejectedValueOnce(new Error('Backend logout failed'))
+
+      mockUseSession.mockReturnValue({
+        data: createMockSession({ error: 'RefreshTokenExpired' }),
+        status: 'authenticated',
+      })
+
+      renderHook(() => useSessionGuard())
+
+      await waitFor(() => {
+        expect(mockSignOut).toHaveBeenCalledTimes(1)
+        expect(mockSignOut).toHaveBeenCalledWith({
+          callbackUrl: '/signin?error=session_expired',
+        })
       })
     })
 
@@ -109,7 +158,7 @@ describe('useSessionGuard', () => {
       expect(mockUseSession).toHaveBeenCalled()
     })
 
-    it('should react to session error changes', () => {
+    it('should react to session error changes', async () => {
       const { rerender } = renderHook(() => useSessionGuard())
 
       expect(mockSignOut).not.toHaveBeenCalled()
@@ -121,13 +170,15 @@ describe('useSessionGuard', () => {
 
       rerender()
 
-      expect(mockSignOut).toHaveBeenCalledTimes(1)
-      expect(mockSignOut).toHaveBeenCalledWith({
-        callbackUrl: '/signin?error=session_expired',
+      await waitFor(() => {
+        expect(mockSignOut).toHaveBeenCalledTimes(1)
+        expect(mockSignOut).toHaveBeenCalledWith({
+          callbackUrl: '/signin?error=session_expired',
+        })
       })
     })
 
-    it('should not call signOut again when re-rendered with the same error', () => {
+    it('should not call signOut again when re-rendered with the same error', async () => {
       mockUseSession.mockReturnValue({
         data: createMockSession({ error: 'RefreshTokenExpired' }),
         status: 'authenticated',
@@ -135,7 +186,9 @@ describe('useSessionGuard', () => {
 
       const { rerender } = renderHook(() => useSessionGuard())
 
-      expect(mockSignOut).toHaveBeenCalledTimes(1)
+      await waitFor(() => {
+        expect(mockSignOut).toHaveBeenCalledTimes(1)
+      })
 
       rerender()
 

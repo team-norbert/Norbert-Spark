@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation.js'
 import { signOut } from 'next-auth/react'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
+import { logoutUserAction } from '@/infrastructure/serverActions/logoutUser.server.js'
 import { useDashboard } from '@/view/hooks/useDashboard.js'
 
 // Mock next/navigation
@@ -13,6 +14,13 @@ vi.mock('next/navigation.js', () => ({
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
   signOut: vi.fn(),
+}))
+
+// Mock logout server action
+vi.mock('@/infrastructure/serverActions/logoutUser.server.js', () => ({
+  logoutUserAction: vi
+    .fn()
+    .mockResolvedValue({ success: true, message: 'Logged out', status: 200 }),
 }))
 
 describe('useDashboard', () => {
@@ -359,34 +367,68 @@ describe('useDashboard', () => {
   })
 
   describe('handleSignOut - Sign Out Function', () => {
-    it('should call signOut with callbackUrl /signin', () => {
+    it('should call signOut with callbackUrl /signin', async () => {
       const { result } = renderHook(() => useDashboard({ userRoles: ['user'] }))
 
-      act(() => {
-        result.current.handleSignOut()
+      await act(async () => {
+        await result.current.handleSignOut()
       })
 
       expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/signin' })
       expect(signOut).toHaveBeenCalledTimes(1)
     })
 
-    it('should call signOut function to end session', () => {
+    it('should call signOut function to end session', async () => {
       const { result } = renderHook(() => useDashboard({ userRoles: ['admin'] }))
 
-      act(() => {
-        result.current.handleSignOut()
+      await act(async () => {
+        await result.current.handleSignOut()
       })
 
       expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/signin' })
     })
 
-    it('should handle multiple sign out calls', () => {
+    it('should call logoutUserAction before signOut', async () => {
+      const callOrder: string[] = []
+      ;(logoutUserAction as Mock).mockImplementationOnce(async () => {
+        callOrder.push('logoutUserAction')
+        return { success: true, message: 'Logged out', status: 200 }
+      })
+      ;(signOut as Mock).mockImplementationOnce(async () => {
+        callOrder.push('signOut')
+      })
+
       const { result } = renderHook(() => useDashboard({ userRoles: ['user'] }))
 
-      act(() => {
-        result.current.handleSignOut()
-        result.current.handleSignOut()
-        result.current.handleSignOut()
+      await act(async () => {
+        await result.current.handleSignOut()
+      })
+
+      expect(logoutUserAction).toHaveBeenCalledTimes(1)
+      expect(signOut).toHaveBeenCalledTimes(1)
+      expect(callOrder).toEqual(['logoutUserAction', 'signOut'])
+    })
+
+    it('should still call signOut even when logoutUserAction fails', async () => {
+      ;(logoutUserAction as Mock).mockRejectedValueOnce(new Error('Backend logout failed'))
+
+      const { result } = renderHook(() => useDashboard({ userRoles: ['user'] }))
+
+      await act(async () => {
+        await result.current.handleSignOut()
+      })
+
+      expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/signin' })
+      expect(signOut).toHaveBeenCalledTimes(1)
+    })
+
+    it('should handle multiple sign out calls', async () => {
+      const { result } = renderHook(() => useDashboard({ userRoles: ['user'] }))
+
+      await act(async () => {
+        await result.current.handleSignOut()
+        await result.current.handleSignOut()
+        await result.current.handleSignOut()
       })
 
       expect(signOut).toHaveBeenCalledTimes(3)
@@ -395,12 +437,12 @@ describe('useDashboard', () => {
       expect(signOut).toHaveBeenNthCalledWith(3, { callbackUrl: '/signin' })
     })
 
-    it('should work independently from handleNavigate', () => {
+    it('should work independently from handleNavigate', async () => {
       const { result } = renderHook(() => useDashboard({ userRoles: ['user'] }))
 
-      act(() => {
+      await act(async () => {
         result.current.handleNavigate('/profile')
-        result.current.handleSignOut()
+        await result.current.handleSignOut()
         result.current.handleNavigate('/ai')
       })
 
