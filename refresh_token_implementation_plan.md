@@ -754,14 +754,14 @@ If an attacker steals an old refresh token and tries to use it after the legitim
 
 All token lifecycle events should be logged to the existing audit system:
 
-| Action                           | When                                       | Where |
-| -------------------------------- | ------------------------------------------ | ----- |
-| `TOKEN_ISSUED`                   | Login or OAuth sync (initial issuance)     |       |
-| `TOKEN_REFRESHED`                | Successful token refresh                   |       |
-| `REFRESH_TOKEN_REPLAY_DETECTED`  | Revoked token presented — potential attack |       |
-| `REFRESH_FAMILY_REVOKED`         | Entire token family revoked due to replay  |       |
-| `USER_LOGOUT`                    | User explicitly logged out                 |       |
-| `REFRESH_TOKENS_EXPIRED_CLEANUP` | Periodic cleanup of expired tokens         |       |
+| Action                           | When                                       | Where in the codebase                              |
+| -------------------------------- | ------------------------------------------ | -------------------------------------------------- |
+| `TOKEN_ISSUED`                   | Login or OAuth sync (initial issuance)     | LoginUserUseCase / RegisterUserWithProviderUseCase |
+| `TOKEN_REFRESHED`                | Successful token refresh                   |                                                    |
+| `REFRESH_TOKEN_REPLAY_DETECTED`  | Revoked token presented — potential attack |                                                    |
+| `REFRESH_FAMILY_REVOKED`         | Entire token family revoked due to replay  |                                                    |
+| `USER_LOGOUT`                    | User explicitly logged out                 |                                                    |
+| `REFRESH_TOKENS_EXPIRED_CLEANUP` | Periodic cleanup of expired tokens         |                                                    |
 
 These can use the existing `AuditLogPort` and `AuditAction` enum.
 

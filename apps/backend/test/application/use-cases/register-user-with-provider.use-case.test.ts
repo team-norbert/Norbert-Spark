@@ -124,13 +124,22 @@ describe('RegisterUserWithProviderUseCase', () => {
 
         await useCase.execute(dto, auditContext)
 
-        expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
+        expect(mockAuditLog.log).toHaveBeenCalledTimes(2)
         expect(mockAuditLog.log).toHaveBeenCalledWith({
           userId: mockUserId,
           entityType: EntityType.USER,
           entityId: mockUserId,
           action: AuditAction.CREATE,
           changes: { reason: 'new_user' },
+          ipAddress: auditContext.ipAddress,
+          userAgent: auditContext.userAgent,
+        })
+        expect(mockAuditLog.log).toHaveBeenCalledWith({
+          userId: mockUserId,
+          entityType: EntityType.USER,
+          entityId: mockUserId,
+          action: AuditAction.TOKEN_ISSUED,
+          changes: { reason: 'refresh_token_stored' },
           ipAddress: auditContext.ipAddress,
           userAgent: auditContext.userAgent,
         })

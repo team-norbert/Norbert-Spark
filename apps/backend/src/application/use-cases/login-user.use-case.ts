@@ -219,7 +219,7 @@ export class LoginUserUseCase {
         email: dto.email,
         success: true,
       } satisfies LoginChanges,
-      ipAddress: auditContext.ipAddress,
+      ipAddress: auditContext.ipAddress ?? undefined,
       userAgent: auditContext.userAgent ?? undefined,
     }
     // AuditLogPort.log() never throws per contract
@@ -242,15 +242,54 @@ export class LoginUserUseCase {
       : parsedExpiration
     const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
 
-    // Store the refresh token in the database
-    await this.refreshTokenRepo.create({
-      userId: user.id,
-      tokenHash: newRefreshToken.getHash(),
-      tokenFamily: new Uuid(tokenFamily).getValue(),
-      expiresAt: expiresAt,
-      ipAddress: auditContext.ipAddress ?? undefined,
-      userAgent: auditContext.userAgent ?? undefined,
-    })
+    try {
+      // Store the refresh token in the database
+      await this.refreshTokenRepo.create({
+        userId: user.id,
+        tokenHash: newRefreshToken.getHash(),
+        tokenFamily: new Uuid(tokenFamily).getValue(),
+        expiresAt: expiresAt,
+        ipAddress: auditContext.ipAddress ?? undefined,
+        userAgent: auditContext.userAgent ?? undefined,
+      })
+    } catch (err) {
+      this.logger.error(
+        'Failed to store refresh token',
+        err instanceof Error ? err : new Error(String(err)),
+        {
+          userId: user.id,
+          email: user.getEmail(),
+        }
+      )
+      const auditEntry: CreateAuditLogDTO = {
+        userId: user.id,
+        entityType: EntityType.USER,
+        entityId: user.id,
+        action: AuditAction.TOKEN_ISSUED,
+        changes: {
+          reason: 'refresh_token_storage_failed',
+        },
+        ipAddress: auditContext.ipAddress ?? undefined,
+        userAgent: auditContext.userAgent ?? undefined,
+      }
+      // AuditLogPort.log() never throws per contract
+      await this.auditLog.log(auditEntry)
+      throw new InternalErrorException('Failed to store refresh token')
+    } finally {
+      const auditEntry: CreateAuditLogDTO = {
+        userId: user.id,
+        entityType: EntityType.USER,
+        entityId: user.id,
+        action: AuditAction.TOKEN_ISSUED,
+        changes: {
+          reason: 'refresh_token_stored',
+        },
+        ipAddress: auditContext.ipAddress ?? undefined,
+        userAgent: auditContext.userAgent ?? undefined,
+      }
+      // AuditLogPort.log() never throws per contract
+      await this.auditLog.log(auditEntry)
+    }
 
     return {
       userId: user.id,

@@ -239,7 +239,7 @@ describe('LoginUserUseCase', () => {
 
         await useCase.execute(dto, auditContext)
 
-        expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
+        expect(mockAuditLog.log).toHaveBeenCalledTimes(2)
         expect(mockAuditLog.log).toHaveBeenCalledWith({
           userId: mockUser.id,
           entityType: 'user',
@@ -248,6 +248,17 @@ describe('LoginUserUseCase', () => {
           changes: {
             email: 'john@example.com',
             success: true,
+          },
+          ipAddress: '127.0.0.1',
+          userAgent: 'test-user-agent',
+        })
+        expect(mockAuditLog.log).toHaveBeenCalledWith({
+          userId: mockUser.id,
+          entityType: 'user',
+          entityId: mockUser.id,
+          action: 'token_issued',
+          changes: {
+            reason: 'refresh_token_stored',
           },
           ipAddress: '127.0.0.1',
           userAgent: 'test-user-agent',
@@ -768,7 +779,31 @@ describe('LoginUserUseCase', () => {
         )
 
         await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
-          'Database error: Unable to store refresh token'
+          'Failed to store refresh token'
+        )
+
+        // Should log the original error
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Failed to store refresh token',
+          expect.any(Error),
+          expect.objectContaining({
+            userId: mockUser.id,
+            email: 'john@example.com',
+          })
+        )
+
+        // Should log TOKEN_ISSUED audit for failure (catch) and finally
+        expect(mockAuditLog.log).toHaveBeenCalledWith(
+          expect.objectContaining({
+            action: 'token_issued',
+            changes: { reason: 'refresh_token_storage_failed' },
+          })
+        )
+        expect(mockAuditLog.log).toHaveBeenCalledWith(
+          expect.objectContaining({
+            action: 'token_issued',
+            changes: { reason: 'refresh_token_stored' },
+          })
         )
       })
 
