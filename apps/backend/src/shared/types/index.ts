@@ -44,7 +44,7 @@ export namespace DB {
 export type PutChatDetailsType = Pick<DBChatType, 'id'> &
   Partial<Pick<DBChatType, 'name' | 'description' | 'seoFriendlyId'>>
 
-export type auditContextType = {
+export type AuditContextType = {
   userId: UserIdType | null
   ipAddress: string | null
   userAgent: string | null
@@ -66,7 +66,7 @@ export type auditContextType = {
  * Input type for creating an audit context with optional fields that have defaults.
  */
 export type CreateAuditContextInput = Omit<
-  auditContextType,
+  AuditContextType,
   'service' | 'version' | 'time' | 'env' | 'level'
 > & {
   service?: string
@@ -77,7 +77,7 @@ export type CreateAuditContextInput = Omit<
  * @param input - The audit context input with optional service (defaults to 'norberts-spark-backend')
  * @returns A fully populated audit context
  */
-export function createAuditContext(input: CreateAuditContextInput): auditContextType {
+export function createAuditContext(input: CreateAuditContextInput): AuditContextType {
   return {
     ...input,
     time: new Date(),
