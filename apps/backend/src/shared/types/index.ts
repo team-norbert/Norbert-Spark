@@ -76,6 +76,22 @@ export type CreateAuditContextInput = Omit<
  * Creates an audit context with default values.
  * @param input - The audit context input with optional service (defaults to 'norberts-spark-backend')
  * @returns A fully populated audit context
+ * @example
+ * // Example log output produced by this function:
+ * // {
+ * //   "level": "info",
+ * //   "time": 1740700800000,
+ * //   "event": "http.request.completed",
+ * //   "requestId": "01950000-0000-7000-8000-000000000001",
+ * //   "userId": "01950000-0000-7000-8000-000000000002",
+ * //   "method": "GET",
+ * //   "route": "/api/v1/ai/chats/:userId",
+ * //   "statusCode": 200,
+ * //   "durationMs": 37,
+ * //   "service": "norberts-spark-backend",
+ * //   "env": "production",
+ * //   "version": "v1"
+ * // }
  */
 export function createAuditContext(input: CreateAuditContextInput): AuditContextType {
   return {
@@ -87,20 +103,3 @@ export function createAuditContext(input: CreateAuditContextInput): AuditContext
     level: EnvConfig.LOG_LEVEL,
   }
 }
-
-/**
- * {
- *   "level": "info",
- *   "time": 1740700800000,
- *   "event": "http.request.completed",
- *   "requestId": "01950000-0000-7000-8000-000000000001",
- *   "userId": "01950000-0000-7000-8000-000000000002",
- *   "method": "GET",
- *   "route": "/api/v1/ai/chats/:userId",
- *   "statusCode": 200,
- *   "durationMs": 37,
- *   "service": "norberts-spark-backend",
- *   "env": "production",
- *   "version": "1.0.0"
- * }
- */
