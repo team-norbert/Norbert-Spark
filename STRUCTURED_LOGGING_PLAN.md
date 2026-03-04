@@ -75,7 +75,7 @@ Error log shape:
 | `method`     | `request.method`                                          | GET / POST / PUT / DELETE etc.                                                                              |
 | `route`      | `request.routeOptions.url`                                | Parameterised path e.g. `/ai/chats/:userId`, **not** the resolved URL — avoids leaking IDs into log indexes |
 | `statusCode` | `reply.statusCode`                                        | Read in the `onResponse` hook after the reply is sent                                                       |
-| `durationMs` | `reply.elapsedTime`                                       | Fastify populates this automatically; round to integer                                                      |
+| `durationMs` | `Date.now() - request.startTime`                          | `request.startTime` set in `onRequest` hook; round to integer                                               |
 
 ### Group 2 — User identity
 
@@ -106,7 +106,7 @@ Replace free-text `message` strings with a stable, machine-friendly `event` fiel
 | `user.registered`                           | In `RegisterUserUseCase` after creation       |
 | `chat.created`                              | In `SaveChatUseCase` after first insert       |
 | `chat.appended`                             | In `AppendedChatUseCase` after message append |
-| `token.refreshed`                           | (Future — refresh token use case)             |
+| `token.refreshed`                           | In `RefreshAccessTokenUseCase` (add `event` field in Step 7) |
 | `db.query.failed`                           | On `DrizzleQueryError` in any repository      |
 | `ai.stream.started` / `ai.stream.completed` | Around `streamText` in `AIController.chat()`  |
 
@@ -238,7 +238,8 @@ fastify.addHook('onRequest', (request, _reply, done) => {
 })
 
 fastify.addHook('onResponse', (request, reply, done) => {
-  const durationMs = Math.round(Date.now() - (request.startTime ?? Date.now()))
+  const durationMs =
+    request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
   const userId = request.user?.sub ?? undefined
 
   request.log.info(
@@ -281,7 +282,7 @@ Note that `request.log` is Fastify's **built-in per-request Pino logger** — it
 You will need to augment the `FastifyRequest` type to include `startTime`:
 
 ```typescript
-// In apps/backend/src/shared/types/fastify.d.ts (new file)
+// In apps/backend/src/shared/types/fastify.d.ts (existing file — add to the existing interface)
 import 'fastify'
 
 declare module 'fastify' {
@@ -368,10 +369,14 @@ static readonly APP_VERSION  = process.env.APP_VERSION  || 'unknown'
 `APP_VERSION` can be injected at deploy time from the git commit SHA or the `package.json` version:
 
 ```bash
-# In Dockerfile or CI pipeline
-ENV APP_VERSION=$(git rev-parse --short HEAD)
+# In Dockerfile
+ARG APP_VERSION=unknown
+ENV APP_VERSION=${APP_VERSION}
+
+# In CI pipeline or local shell (build-time argument)
+docker build --build-arg APP_VERSION=$(git rev-parse --short HEAD) -t norberts-spark-backend .
 # or
-ENV APP_VERSION=$(node -p "require('./package.json').version")
+docker build --build-arg APP_VERSION=$(node -p "require('./package.json').version") -t norberts-spark-backend .
 ```
 
 **File:** `apps/backend/.env.example`
@@ -432,7 +437,7 @@ Do a project-wide search for the following patterns and audit each result:
 | `token` inside a `logger.` call                 | Access/refresh tokens must never be logged |
 | `ip` or `remoteAddress` inside a `logger.` call | IP is PII under UK GDPR                    |
 
-The `apps/backend/src/infrastructure/redaction/` module already lists sensitive field names to redact in audit logs. The same list should inform a Pino `redact` configuration:
+The `apps/backend/src/domain/audit/redact-sensitive-data.ts` module defines a `SENSITIVE_FIELDS` constant listing sensitive field names to redact in audit logs. The same list should inform a Pino `redact` configuration:
 
 ```typescript
 this.logger = pino({
@@ -459,7 +464,7 @@ this.logger = pino({
 | #   | File                                                             | Action                                                                                                |
 | --- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | 1   | `apps/backend/src/infrastructure/http/fastify.config.ts`         | Add `genReqId`, `onRequest`/`onResponse`/`onError` hooks, remove PII from serializer                  |
-| 2   | `apps/backend/src/shared/types/fastify.d.ts`                     | New — augment `FastifyRequest` with `startTime?: number`                                              |
+| 2   | `apps/backend/src/shared/types/fastify.d.ts`                     | Update — augment `FastifyRequest` with `startTime?: number`                                           |
 | 3   | `apps/backend/src/application/ports/logger.port.ts`              | Add `child()` method                                                                                  |
 | 4   | `apps/backend/src/adapters/secondary/services/logger.service.ts` | Implement `child()`, add `base` fields, add `redact` config                                           |
 | 5   | `apps/backend/src/infrastructure/config/env.config.ts`           | Add `SERVICE_NAME`, `APP_VERSION`                                                                     |
