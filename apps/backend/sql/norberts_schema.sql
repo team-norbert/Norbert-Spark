@@ -350,7 +350,7 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     last_used_at TIMESTAMPTZ,
 
-    ip_address INET,
+    ip_address TEXT,                -- TEXT not INET: IPs are GDPR-masked (e.g. 127.0.0.xxx)
     user_agent TEXT
     );
 
@@ -662,7 +662,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
     entity_id TEXT,
     action VARCHAR(50) NOT NULL,
     changes JSONB,
-    ip_address INET,
+    ip_address TEXT,
     user_agent TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

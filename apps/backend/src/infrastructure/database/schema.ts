@@ -7,7 +7,6 @@ import {
   customType,
   date,
   index,
-  inet,
   integer,
   jsonb,
   numeric,
@@ -442,8 +441,10 @@ export const refreshTokens = pgTable(
     lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
     /**
      * IP address at token creation time (optional, for security auditing).
+     * Stored as text because IP addresses are GDPR-masked (e.g., '192.168.1.xxx')
+     * which are not valid inet values.
      */
-    ipAddress: inet('ip_address'),
+    ipAddress: text('ip_address'),
     /**
      * User agent at token creation time (optional, for security auditing).
      */
@@ -1246,7 +1247,11 @@ export const auditLog = pgTable(
     entityId: text('entity_id'),
     action: varchar('action', { length: 50 }).notNull(),
     changes: jsonb('changes'),
-    ipAddress: inet('ip_address'),
+    /**
+     * IP address stored as text because IP addresses are GDPR-masked
+     * (e.g., '192.168.1.xxx') which are not valid inet values.
+     */
+    ipAddress: text('ip_address'),
     userAgent: text('user_agent'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
