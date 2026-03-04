@@ -46,6 +46,7 @@ export async function logoutUserAction(): Promise<LogoutResult> {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      redirectOn401: false,
       timeoutMs: 10000,
     })
 
