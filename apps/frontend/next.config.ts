@@ -9,7 +9,7 @@ import path from 'path'
 const csp = [
   "default-src 'self'",
   // If you can, avoid 'unsafe-inline' long-term. It's included here as a safe starting point for many Next apps.
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
