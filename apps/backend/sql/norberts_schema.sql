@@ -662,6 +662,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
     entity_id TEXT,
     action VARCHAR(50) NOT NULL,
     changes JSONB,
+    -- NOTE: ip_address stores a GDPR-masked/anonymized client IP value (not the full/raw IP address).
     ip_address TEXT,
     user_agent TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
