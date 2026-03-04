@@ -20,8 +20,13 @@ export function useSessionGuard(): void {
 
   useEffect(() => {
     if (session?.error === 'RefreshTokenExpired') {
-      logoutUserAction()
-      signOut({ callbackUrl: '/signin?error=session_expired' })
+      void (async () => {
+        try {
+          await logoutUserAction()
+        } finally {
+          await signOut({ callbackUrl: '/signin?error=session_expired' })
+        }
+      })()
     }
   }, [session?.error])
 }
