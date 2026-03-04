@@ -97,18 +97,18 @@ Error log shape:
 
 Replace free-text `message` strings with a stable, machine-friendly `event` field alongside the human message. Use dot-separated namespacing:
 
-| Event                                       | When                                          |
-| ------------------------------------------- | --------------------------------------------- |
-| `http.request.completed`                    | Every successful response (2xx / 3xx / 4xx)   |
-| `http.request.error`                        | 5xx or unhandled exception                    |
-| `user.login.success`                        | In `LoginUserUseCase` after token generation  |
-| `user.login.failed`                         | In `LoginUserUseCase` after bad credentials   |
-| `user.registered`                           | In `RegisterUserUseCase` after creation       |
-| `chat.created`                              | In `SaveChatUseCase` after first insert       |
-| `chat.appended`                             | In `AppendedChatUseCase` after message append |
+| Event                                       | When                                                         |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| `http.request.completed`                    | Every successful response (2xx / 3xx / 4xx)                  |
+| `http.request.error`                        | 5xx or unhandled exception                                   |
+| `user.login.success`                        | In `LoginUserUseCase` after token generation                 |
+| `user.login.failed`                         | In `LoginUserUseCase` after bad credentials                  |
+| `user.registered`                           | In `RegisterUserUseCase` after creation                      |
+| `chat.created`                              | In `SaveChatUseCase` after first insert                      |
+| `chat.appended`                             | In `AppendedChatUseCase` after message append                |
 | `token.refreshed`                           | In `RefreshAccessTokenUseCase` (add `event` field in Step 7) |
-| `db.query.failed`                           | On `DrizzleQueryError` in any repository      |
-| `ai.stream.started` / `ai.stream.completed` | Around `streamText` in `AIController.chat()`  |
+| `db.query.failed`                           | On `DrizzleQueryError` in any repository                     |
+| `ai.stream.started` / `ai.stream.completed` | Around `streamText` in `AIController.chat()`                 |
 
 ### Group 5 — Error details
 
@@ -238,8 +238,7 @@ fastify.addHook('onRequest', (request, _reply, done) => {
 })
 
 fastify.addHook('onResponse', (request, reply, done) => {
-  const durationMs =
-    request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
+  const durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
   const userId = request.user?.sub ?? undefined
 
   request.log.info(
