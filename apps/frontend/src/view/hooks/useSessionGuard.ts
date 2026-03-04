@@ -1,6 +1,8 @@
 import { signOut, useSession } from 'next-auth/react'
 import { useEffect } from 'react'
 
+import { logoutUserAction } from '@/infrastructure/serverActions/logoutUser.server.js'
+
 /**
  * Custom hook for session guard logic.
  * Monitors the session for token expiry errors and triggers sign-out when detected.
@@ -18,6 +20,7 @@ export function useSessionGuard(): void {
 
   useEffect(() => {
     if (session?.error === 'RefreshTokenExpired') {
+      logoutUserAction()
       signOut({ callbackUrl: '/signin?error=session_expired' })
     }
   }, [session?.error])

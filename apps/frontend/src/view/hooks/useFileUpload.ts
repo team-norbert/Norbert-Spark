@@ -8,6 +8,7 @@ import type { z } from 'zod'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { extractDataByFileIdAction } from '@/infrastructure/serverActions/extractDataByFileId.server.js'
 import { getPresignedUrls } from '@/infrastructure/serverActions/getPresignedUrls.server.js'
+import { logoutUserAction } from '@/infrastructure/serverActions/logoutUser.server.js'
 
 const logger = createLogger({ prefix: '[useFileUpload]' })
 
@@ -427,6 +428,7 @@ export function useFileUpload({
    * Clears the session and redirects to the signin page
    */
   const handleSignOut = useCallback(() => {
+    logoutUserAction()
     signOut({ callbackUrl: '/signin' })
   }, [])
 
