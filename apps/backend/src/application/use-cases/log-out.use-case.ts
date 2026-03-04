@@ -128,11 +128,11 @@ export class LogOutUseCase {
     this.logger.info(`Executing LogOutUseCase for user ID: ${userId}`)
 
     try {
-      // Store the refresh token in the database
+      // Revoke all refresh tokens for the user (log out from all devices)
       await this.refreshTokenRepo.revokeAllForUser(userId)
       const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
-        entityType: EntityType.TOKEN,
+        entityType: EntityType.USER,
         entityId: userId,
         action: AuditAction.USER_LOGOUT,
         changes: {
@@ -148,12 +148,15 @@ export class LogOutUseCase {
         'Failed to revoke all refresh tokens for user during logout',
         err instanceof Error ? err : new Error(String(err)),
         {
-          userId: auditContext.userId,
+          // targetUserId is the user being logged out; actorUserId is who initiated the logout
+          // (they differ in admin-initiated logout scenarios)
+          targetUserId: userId,
+          actorUserId: auditContext.userId,
         }
       )
       const auditEntry: CreateAuditLogDTO = {
         userId: auditContext.userId,
-        entityType: EntityType.TOKEN,
+        entityType: EntityType.USER,
         entityId: userId,
         action: AuditAction.USER_LOGOUT,
         changes: {

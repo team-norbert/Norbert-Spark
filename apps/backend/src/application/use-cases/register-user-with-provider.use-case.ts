@@ -228,8 +228,8 @@ export class RegisterUserWithProviderUseCase {
       })
       const auditEntry: CreateAuditLogDTO = {
         userId: userId,
-        entityType: EntityType.USER,
-        entityId: userId,
+        entityType: EntityType.TOKEN,
+        entityId: new Uuid(tokenFamily).getValue(),
         action: AuditAction.TOKEN_ISSUED,
         changes: {
           reason: 'refresh_token_stored',
@@ -250,8 +250,8 @@ export class RegisterUserWithProviderUseCase {
       )
       const auditEntry: CreateAuditLogDTO = {
         userId: userId,
-        entityType: EntityType.USER,
-        entityId: userId,
+        entityType: EntityType.TOKEN,
+        entityId: new Uuid(tokenFamily).getValue(),
         action: AuditAction.TOKEN_ISSUED,
         changes: {
           reason: 'refresh_token_storage_failed',
