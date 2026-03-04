@@ -15,6 +15,13 @@ vi.mock('next-auth/react', () => ({
   signOut: vi.fn(),
 }))
 
+// Mock logout server action
+vi.mock('@/infrastructure/serverActions/logoutUser.server.js', () => ({
+  logoutUserAction: vi
+    .fn()
+    .mockResolvedValue({ success: true, message: 'Logged out', status: 200 }),
+}))
+
 describe('useDashboard', () => {
   const mockPush = vi.fn()
   const mockRouter = {
@@ -359,34 +366,34 @@ describe('useDashboard', () => {
   })
 
   describe('handleSignOut - Sign Out Function', () => {
-    it('should call signOut with callbackUrl /signin', () => {
+    it('should call signOut with callbackUrl /signin', async () => {
       const { result } = renderHook(() => useDashboard({ userRoles: ['user'] }))
 
-      act(() => {
-        result.current.handleSignOut()
+      await act(async () => {
+        await result.current.handleSignOut()
       })
 
       expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/signin' })
       expect(signOut).toHaveBeenCalledTimes(1)
     })
 
-    it('should call signOut function to end session', () => {
+    it('should call signOut function to end session', async () => {
       const { result } = renderHook(() => useDashboard({ userRoles: ['admin'] }))
 
-      act(() => {
-        result.current.handleSignOut()
+      await act(async () => {
+        await result.current.handleSignOut()
       })
 
       expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/signin' })
     })
 
-    it('should handle multiple sign out calls', () => {
+    it('should handle multiple sign out calls', async () => {
       const { result } = renderHook(() => useDashboard({ userRoles: ['user'] }))
 
-      act(() => {
-        result.current.handleSignOut()
-        result.current.handleSignOut()
-        result.current.handleSignOut()
+      await act(async () => {
+        await result.current.handleSignOut()
+        await result.current.handleSignOut()
+        await result.current.handleSignOut()
       })
 
       expect(signOut).toHaveBeenCalledTimes(3)
@@ -395,12 +402,12 @@ describe('useDashboard', () => {
       expect(signOut).toHaveBeenNthCalledWith(3, { callbackUrl: '/signin' })
     })
 
-    it('should work independently from handleNavigate', () => {
+    it('should work independently from handleNavigate', async () => {
       const { result } = renderHook(() => useDashboard({ userRoles: ['user'] }))
 
-      act(() => {
+      await act(async () => {
         result.current.handleNavigate('/profile')
-        result.current.handleSignOut()
+        await result.current.handleSignOut()
         result.current.handleNavigate('/ai')
       })
 
