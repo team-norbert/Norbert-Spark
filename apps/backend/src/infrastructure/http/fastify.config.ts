@@ -56,7 +56,6 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
 
   fastify.addHook('onResponse', (request, _reply, done) => {
     request.durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
-    request.route = request.routeOptions.url
     done()
   })
 
