@@ -55,7 +55,7 @@ export type AuditContextType = {
   method: string
   route: string | undefined
   statusCode: number
-  durationMs: number | undefined
+  durationMs?: number | undefined
   service: string
   env: string
   version: string
