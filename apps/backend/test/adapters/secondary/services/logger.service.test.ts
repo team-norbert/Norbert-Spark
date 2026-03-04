@@ -18,6 +18,8 @@ vi.mock('../../../../src/infrastructure/config/env.config.js', () => ({
   EnvConfig: {
     NODE_ENV: 'development',
     LOG_LEVEL: 'info', // Default for tests
+    SERVICE_NAME: undefined,
+    API_VERSION: undefined,
   },
 }))
 
@@ -37,6 +39,8 @@ describe('PinoLoggerService', () => {
       EnvConfig: {
         NODE_ENV: 'development',
         LOG_LEVEL: logLevel ?? 'info',
+        SERVICE_NAME: undefined,
+        API_VERSION: undefined,
       },
     }))
 
@@ -74,6 +78,11 @@ describe('PinoLoggerService', () => {
 
       expect(pino).toHaveBeenCalledWith({
         level: 'info',
+        base: {
+          service: undefined,
+          env: 'development',
+          version: undefined,
+        },
         transport: {
           target: 'pino-pretty',
           options: {
@@ -89,6 +98,11 @@ describe('PinoLoggerService', () => {
 
       expect(pino).toHaveBeenCalledWith({
         level: 'debug',
+        base: {
+          service: undefined,
+          env: 'development',
+          version: undefined,
+        },
         transport: {
           target: 'pino-pretty',
           options: {
