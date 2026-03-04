@@ -252,17 +252,29 @@ describe('LoginUserUseCase', () => {
           ipAddress: '127.0.0.1',
           userAgent: 'test-user-agent',
         })
-        expect(mockAuditLog.log).toHaveBeenCalledWith({
-          userId: mockUser.id,
-          entityType: 'user',
-          entityId: mockUser.id,
-          action: 'token_issued',
-          changes: {
-            reason: 'refresh_token_stored',
-          },
-          ipAddress: '127.0.0.1',
-          userAgent: 'test-user-agent',
-        })
+        expect(mockAuditLog.log).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId: mockUser.id,
+            entityType: 'token',
+            action: 'token_issued',
+            changes: {
+              reason: 'refresh_token_stored',
+            },
+            ipAddress: '127.0.0.1',
+            userAgent: 'test-user-agent',
+          })
+        )
+        // entityId should be the token family UUID (not the user ID)
+        const tokenIssuedCall = vi
+          .mocked(mockAuditLog.log)
+          .mock.calls.find(
+            ([entry]) =>
+              entry.action === 'token_issued' && entry.changes?.reason === 'refresh_token_stored'
+          )
+        expect(tokenIssuedCall?.[0].entityId).toMatch(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        )
+        expect(tokenIssuedCall?.[0].entityId).not.toBe(mockUser.id)
       })
     })
 

@@ -179,9 +179,8 @@ export class RefreshAccessTokenUseCase {
           }
           // AuditLogPort.log() never throws per contract
           await this.auditLog.log(revokeFailureAuditEntry)
-          throw new InternalErrorException(
-            'Failed to revoke token family after replay attack detected'
-          )
+          // For security/consistency, still treat this as an unauthorized replay attempt
+          throw new UnauthorizedException('Refresh token has been revoked')
         }
         throw new UnauthorizedException('Refresh token has been revoked')
       }

@@ -94,7 +94,7 @@ describe('LogOutUseCase', () => {
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
             userId: userId,
-            entityType: EntityType.TOKEN,
+            entityType: EntityType.USER,
             action: AuditAction.USER_LOGOUT,
             changes: {
               reason: 'refresh_token_revoke_successful',
@@ -193,7 +193,7 @@ describe('LogOutUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Failed to revoke all refresh tokens for user during logout',
           error,
-          { userId }
+          { targetUserId: userId, actorUserId: contextWithUser.userId }
         )
       })
 
@@ -212,7 +212,7 @@ describe('LogOutUseCase', () => {
         // Audit call on failure (catch): refresh_token_revoke_failed
         const catchAudit = vi.mocked(mockAuditLog.log).mock.calls[0][0]
         expect(catchAudit.userId).toBe(userId)
-        expect(catchAudit.entityType).toBe(EntityType.TOKEN)
+        expect(catchAudit.entityType).toBe(EntityType.USER)
         expect(catchAudit.action).toBe(AuditAction.USER_LOGOUT)
         expect(catchAudit.changes).toEqual({ reason: 'refresh_token_revoke_failed' })
       })
@@ -231,7 +231,7 @@ describe('LogOutUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Failed to revoke all refresh tokens for user during logout',
           error,
-          { userId }
+          { targetUserId: userId, actorUserId: contextWithUser.userId }
         )
       })
 
@@ -248,7 +248,7 @@ describe('LogOutUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Failed to revoke all refresh tokens for user during logout',
           expect.objectContaining({ message: 'string error' }),
-          { userId }
+          { targetUserId: userId, actorUserId: contextWithUser.userId }
         )
       })
 
@@ -265,7 +265,7 @@ describe('LogOutUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Failed to revoke all refresh tokens for user during logout',
           expect.objectContaining({ message: 'null' }),
-          { userId }
+          { targetUserId: userId, actorUserId: contextWithUser.userId }
         )
       })
 
@@ -282,7 +282,7 @@ describe('LogOutUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Failed to revoke all refresh tokens for user during logout',
           expect.objectContaining({ message: 'undefined' }),
-          { userId }
+          { targetUserId: userId, actorUserId: contextWithUser.userId }
         )
       })
 
@@ -328,7 +328,7 @@ describe('LogOutUseCase', () => {
         expect(auditCall).toHaveProperty('ipAddress')
       })
 
-      it('should use EntityType.TOKEN for entity type', async () => {
+      it('should use EntityType.USER for entity type', async () => {
         const userId = createUserId()
         const contextWithUser = { ...auditContext, userId }
 
@@ -336,7 +336,7 @@ describe('LogOutUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledWith(
           expect.objectContaining({
-            entityType: EntityType.TOKEN,
+            entityType: EntityType.USER,
           })
         )
       })
