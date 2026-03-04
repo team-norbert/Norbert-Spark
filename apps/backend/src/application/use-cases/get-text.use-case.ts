@@ -69,6 +69,7 @@ export class GetTextUseCase {
       if (error instanceof z.ZodError) {
         throw new TypeException(
           `Invalid file extension for "${fileName}". Supported extensions are: .txt, .csv, .json, .toon, .onnx, .safetensors, .pt, .py, .gguf`,
+          undefined,
           { cause: error }
         )
       }
