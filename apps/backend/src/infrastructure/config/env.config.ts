@@ -60,6 +60,7 @@ export class EnvConfig {
   static readonly ENCRYPTION_KEY = obscured.make(process.env.ENCRYPTION_KEY) || ''
   static readonly REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION || '604800' // 7 days in seconds
   static readonly ACCESS_TOKEN_BUFFER = process.env.ACCESS_TOKEN_BUFFER || '300' // 5 minutes in seconds
+  static readonly SERVICE_NAME = process.env.SERVICE_NAME || 'norberts-spark-backend'
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !Reflect.get(process.env, key))
 

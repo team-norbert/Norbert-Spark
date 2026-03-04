@@ -43,6 +43,11 @@ export class PinoLoggerService implements LoggerPort {
 
     this.logger = pino({
       level: EnvConfig.LOG_LEVEL,
+      base: {
+        service: EnvConfig.SERVICE_NAME,
+        env: EnvConfig.NODE_ENV,
+        version: EnvConfig.API_VERSION,
+      },
       ...(isDevelopment && {
         transport: {
           target: 'pino-pretty',
