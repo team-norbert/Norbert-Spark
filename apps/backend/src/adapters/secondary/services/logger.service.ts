@@ -138,7 +138,7 @@ export class PinoLoggerService implements LoggerPort {
    * @example
    * ```typescript
    * const reqLogger = logger.child({ requestId: request.id, userId: request.user?.sub })
-   * reqLogger.info('chat started') // emits { requestId: '...', userId: '...', message: 'chat started' }
+   * reqLogger.info('chat started') // emits { requestId: '...', userId: '...', msg: 'chat started' }
    * ```
    */
   child(bindings: Record<string, any>): LoggerPort {
