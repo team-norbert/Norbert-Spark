@@ -31,6 +31,8 @@ import { authMiddleware } from '../../../infrastructure/http/middleware/auth.mid
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
+import type { auditContextType } from '../../../shared/types/index.js'
+import { createAuditContext } from '../../../shared/types/index.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 
 export class AIController {
@@ -120,11 +122,34 @@ export class AIController {
     // Note: manually test various failure modes
 
     // Extract audit context from request
-    const auditContext = {
+    // @ts-ignore
+    const auditContext: auditContextType = createAuditContext({
       userId: request.user?.sub ?? null,
       ipAddress: safelyMaskIp(request.ip),
       userAgent: request.headers['user-agent'] ?? null,
-    }
+      level: EnvConfig.LOG_LEVEL,
+      env: EnvConfig.NODE_ENV,
+    })
+
+    /**
+     * export type auditContextType = {
+     *   userId: UserIdType | null
+     *   ipAddress: string | null
+     *   userAgent: string | null
+     *   level: string
+     *   time: number
+     *   event: string
+     *   requestId: UUIDType | null
+     *   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS'
+     *   route: string
+     *   statusCode: number
+     *   durationMs: number
+     *   service: string
+     *   env: string
+     *   version: string
+     *   additionalInfo?: Record<string, unknown>
+     * }
+     */
 
     let messages: UIMessage[]
     let id: ChatIdType
