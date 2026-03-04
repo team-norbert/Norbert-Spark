@@ -1,6 +1,24 @@
 import type { NextConfig } from 'next'
 import path from 'path'
 
+/**
+ * NOTE:
+ * - Start with Report-Only in production to avoid breaking the site.
+ * - Once you’ve validated it, switch to Content-Security-Policy.
+ */
+const csp = [
+  "default-src 'self'",
+  // If you can, avoid 'unsafe-inline' long-term. It's included here as a safe starting point for many Next apps.
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ')
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   reactCompiler: true,
@@ -20,10 +38,10 @@ const nextConfig: NextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload',
-          },
+          // OPTION A: Start with Report-Only (recommended first step)
+          { key: 'Content-Security-Policy-Report-Only', value: csp },
+          // OPTION B: Enforce CSP (turn this on after you validate)
+          // { key: 'Content-Security-Policy', value: csp },
         ],
       },
     ]
