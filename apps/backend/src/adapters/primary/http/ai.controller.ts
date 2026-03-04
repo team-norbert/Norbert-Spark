@@ -130,7 +130,7 @@ export class AIController {
       route: request.routeOptions.url,
       statusCode: reply.statusCode,
       method: request.method,
-      requestId: request.id as UUIDType
+      requestId: request.id as UUIDType,
     })
 
     let messages: UIMessage[]

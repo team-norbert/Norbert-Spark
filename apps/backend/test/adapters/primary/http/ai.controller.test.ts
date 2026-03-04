@@ -159,7 +159,7 @@ describe('AIController', () => {
       query: {},
       ip: '127.0.0.1',
       method: 'POST',
-      route: '/ai/chat',
+      routeOptions: { url: '/ai/chat' },
       headers: {
         'user-agent': 'test-user-agent',
       },
