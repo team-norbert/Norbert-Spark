@@ -451,15 +451,7 @@ The `apps/backend/src/domain/audit/redact-sensitive-data.ts` module defines a `S
 ```typescript
 this.logger = pino({
   redact: {
-    paths: [
-      'email',
-      'password',
-      'token',
-      'accessToken',
-      'refreshToken',
-      'resetToken',
-      'ip',
-    ],
+    paths: ['email', 'password', 'token', 'accessToken', 'refreshToken', 'resetToken', 'ip'],
     censor: '[REDACTED]',
   },
   // ...
