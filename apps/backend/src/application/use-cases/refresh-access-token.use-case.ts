@@ -127,6 +127,19 @@ export class RefreshAccessTokenUseCase {
         throw new UnauthorizedException('Invalid refresh token')
       }
       if (record.isRevoked()) {
+        const auditEntry: CreateAuditLogDTO = {
+          userId: record.getUserId(),
+          entityType: EntityType.TOKEN,
+          entityId: new Uuid(record.getTokenFamily()).getValue(),
+          action: AuditAction.REFRESH_TOKEN_REPLAY_DETECTED,
+          changes: {
+            reason: 'refresh_token_replay_detected',
+          },
+          ipAddress: auditContext.ipAddress ?? undefined,
+          userAgent: auditContext.userAgent ?? undefined,
+        }
+        // AuditLogPort.log() never throws per contract
+        await this.auditLog.log(auditEntry)
         try {
           // Store the refresh token in the database
           await this.refreshTokenRepo.revokeFamily(record.getTokenFamily())
