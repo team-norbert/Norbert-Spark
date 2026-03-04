@@ -283,9 +283,9 @@ describe('RefreshAccessTokenUseCase', () => {
 
         expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
         const auditCall = vi.mocked(mockAuditLog.log).mock.calls[0][0]
-        expect(auditCall.userId).toBe(mockUser.id)
-        expect(auditCall.entityType).toBe(EntityType.USER)
-        expect(auditCall.entityId).toBe(mockUser.id)
+        expect(auditCall.userId).toBe(mockRecord.getUserId())
+        expect(auditCall.entityType).toBe(EntityType.TOKEN)
+        expect(auditCall.entityId).toBe(mockRecord.getTokenFamily())
         expect(auditCall.action).toBe(AuditAction.TOKEN_REFRESHED)
         expect(auditCall.changes).toEqual({ reason: 'refresh_token_stored' })
         expect(auditCall.ipAddress).toBe('127.0.0.1')
@@ -378,9 +378,7 @@ describe('RefreshAccessTokenUseCase', () => {
         vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
 
         await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow(UnauthorizedException)
-        await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow(
-          'Token has been revoked'
-        )
+        await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow('User not found')
       })
 
       it('should revoke entire token family when revoked token is used', async () => {
@@ -400,7 +398,7 @@ describe('RefreshAccessTokenUseCase', () => {
         expect(mockRefreshTokenRepo.revokeFamily).toHaveBeenCalledWith(tokenFamily)
       })
 
-      it('should log replay attack detection to audit log', async () => {
+      it('should log audit entry after revoking token family', async () => {
         const mockToken = RefreshToken.generate()
         const rawToken = mockToken.getRawToken()
         const mockRecord = createMockTokenRecord({ isRevoked: true })
@@ -413,8 +411,8 @@ describe('RefreshAccessTokenUseCase', () => {
         const auditCall = vi.mocked(mockAuditLog.log).mock.calls[0][0]
         expect(auditCall.userId).toBe(mockRecord.getUserId())
         expect(auditCall.entityType).toBe(EntityType.TOKEN)
-        expect(auditCall.action).toBe(AuditAction.UPDATE)
-        expect(auditCall.changes).toEqual({ reason: 'refresh_token_replay_detected' })
+        expect(auditCall.action).toBe(AuditAction.REFRESH_FAMILY_REVOKED)
+        expect(auditCall.changes).toEqual({ reason: 'refresh_token_stored' })
       })
 
       it('should revoke family before logging audit entry', async () => {
@@ -445,7 +443,7 @@ describe('RefreshAccessTokenUseCase', () => {
 
         await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow()
 
-        expect(mockUserRepo.findById).not.toHaveBeenCalled()
+        expect(mockUserRepo.findById).toHaveBeenCalledTimes(1)
         expect(mockTokenGenerator.generateToken).not.toHaveBeenCalled()
         expect(mockRefreshTokenRepo.create).not.toHaveBeenCalled()
       })

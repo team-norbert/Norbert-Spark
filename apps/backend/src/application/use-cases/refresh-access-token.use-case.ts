@@ -127,21 +127,44 @@ export class RefreshAccessTokenUseCase {
         throw new UnauthorizedException('Invalid refresh token')
       }
       if (record.isRevoked()) {
-        await this.refreshTokenRepo.revokeFamily(record.getTokenFamily())
-        const auditEntry: CreateAuditLogDTO = {
-          userId: record.getUserId(),
-          entityType: EntityType.TOKEN,
-          entityId: new Uuid(record.getTokenFamily()).getValue(),
-          action: AuditAction.UPDATE,
-          changes: {
-            reason: 'refresh_token_replay_detected',
-          },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
+        try {
+          // Store the refresh token in the database
+          await this.refreshTokenRepo.revokeFamily(record.getTokenFamily())
+        } catch (err) {
+          this.logger.error('Fail', err instanceof Error ? err : new Error(String(err)), {
+            userId: auditContext.userId,
+          })
+          const auditEntry: CreateAuditLogDTO = {
+            userId: record.getUserId(),
+            entityType: EntityType.TOKEN,
+            entityId: new Uuid(record.getTokenFamily()).getValue(),
+            action: AuditAction.REFRESH_FAMILY_REVOKED,
+            changes: {
+              reason: 'refresh_token_storage_failed',
+            },
+            ipAddress: auditContext.ipAddress ?? undefined,
+            userAgent: auditContext.userAgent ?? undefined,
+          }
+          // AuditLogPort.log() never throws per contract
+          await this.auditLog.log(auditEntry)
+          throw new InternalErrorException(
+            'Failed to revoke token family after replay attack detected'
+          )
+        } finally {
+          const auditEntry: CreateAuditLogDTO = {
+            userId: record.getUserId(),
+            entityType: EntityType.TOKEN,
+            entityId: new Uuid(record.getTokenFamily()).getValue(),
+            action: AuditAction.REFRESH_FAMILY_REVOKED,
+            changes: {
+              reason: 'refresh_token_stored',
+            },
+            ipAddress: auditContext.ipAddress ?? undefined,
+            userAgent: auditContext.userAgent ?? undefined,
+          }
+          // AuditLogPort.log() never throws per contract
+          await this.auditLog.log(auditEntry)
         }
-        // AuditLogPort.log() never throws per contract
-        await this.auditLog.log(auditEntry)
-        throw new UnauthorizedException('Token has been revoked')
       }
 
       if (record.isExpired()) {
@@ -187,7 +210,7 @@ export class RefreshAccessTokenUseCase {
       try {
         // Store the refresh token in the database
         await this.refreshTokenRepo.create({
-          userId: user.id as UserIdType,
+          userId: record.getUserId(),
           tokenHash: newRefreshToken.getHash(),
           tokenFamily: record.getTokenFamily(),
           expiresAt,
@@ -204,9 +227,9 @@ export class RefreshAccessTokenUseCase {
           }
         )
         const auditEntry: CreateAuditLogDTO = {
-          userId: user.id as UserIdType,
-          entityType: EntityType.USER,
-          entityId: user.id as UserIdType,
+          userId: record.getUserId(),
+          entityType: EntityType.TOKEN,
+          entityId: new Uuid(record.getTokenFamily()).getValue(),
           action: AuditAction.TOKEN_REFRESHED,
           changes: {
             reason: 'refresh_token_storage_failed',
@@ -219,9 +242,9 @@ export class RefreshAccessTokenUseCase {
         throw new InternalErrorException('Failed to store refresh token')
       } finally {
         const auditEntry: CreateAuditLogDTO = {
-          userId: user.id as UserIdType,
-          entityType: EntityType.USER,
-          entityId: user.id as UserIdType,
+          userId: record.getUserId(),
+          entityType: EntityType.TOKEN,
+          entityId: new Uuid(record.getTokenFamily()).getValue(),
           action: AuditAction.TOKEN_REFRESHED,
           changes: {
             reason: 'refresh_token_stored',
