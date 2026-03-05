@@ -1,4 +1,5 @@
 import type { PaginatedUsersResponse, User } from '@/domain/user/user.js'
+import { clientEnv } from '@/env/index.js'
 import { UnifiedLogger } from '@/infrastructure/logging/logger.js'
 
 export interface FindAllUsersParams {
@@ -23,7 +24,7 @@ const logger = new UnifiedLogger({ prefix: '[find-all-users]' })
  */
 export async function findAllUsers(params: FindAllUsersParams): Promise<FindAllUsersResult> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://localhost:4321'
+    const baseUrl = clientEnv.NEXT_PUBLIC_BASE_URL
     const { limit, offset, signal } = params
 
     const response = await fetch(`${baseUrl}/api/users?limit=${limit}&offset=${offset}`, {

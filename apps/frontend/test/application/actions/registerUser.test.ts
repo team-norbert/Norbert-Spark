@@ -2,10 +2,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { registerUser } from '@/application/actions/registerUser.js'
 
+// Mock the env module — createEnv captures values at import time so mutating
+// process.env afterwards has no effect. A getter-based mock re-reads process.env
+// on every property access, so per-test process.env overrides still work.
+vi.mock('@/env/index.js', () => ({
+  get clientEnv() {
+    return { NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL }
+  },
+  env: {},
+  serverEnv: {},
+}))
+
 describe('registerUser', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     global.fetch = vi.fn()
+    process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000'
   })
 
   describe('Successful Registration', () => {
