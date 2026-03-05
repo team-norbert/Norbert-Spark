@@ -35,6 +35,11 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     logger: {
       redact: ['req.headers.authorization'],
       level: EnvConfig.LOG_LEVEL,
+      base: {
+        service: EnvConfig.SERVICE_NAME,
+        env: EnvConfig.NODE_ENV,
+        version: EnvConfig.APP_VERSION,
+      },
       serializers: {
         req(req) {
           return {
