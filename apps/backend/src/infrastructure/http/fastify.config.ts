@@ -34,7 +34,7 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     genReqId: () => uuidv7(),
     logger: {
       redact: ['req.headers.authorization'],
-      level: 'info',
+      level: EnvConfig.LOG_LEVEL,
       serializers: {
         req(req) {
           return {
