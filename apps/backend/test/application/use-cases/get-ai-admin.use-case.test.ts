@@ -9,6 +9,7 @@ import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { Uuid } from '../../../src/domain/value-objects/uuid.js'
 import type { DBChatAiOptions } from '../../../src/infrastructure/database/schema.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('GetAIAdminUseCase', () => {
   let useCase: GetAIAdminUseCase
@@ -20,12 +21,7 @@ describe('GetAIAdminUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

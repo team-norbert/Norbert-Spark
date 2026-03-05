@@ -7,6 +7,7 @@ import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { GetChatDetailsUseCase } from '../../../src/application/use-cases/get-chat-details.use-case.js'
 import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import type { DBChatType } from '../../../src/infrastructure/database/schema.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 // Mock the SEO utility
 vi.mock('../../shared/utils/SEO.util.js', () => ({
@@ -35,12 +36,7 @@ describe('GetChatDetailsUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

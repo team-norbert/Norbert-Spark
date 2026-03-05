@@ -7,6 +7,7 @@ import { PresignedUploadUrlUseCase } from '../../../src/application/use-cases/pr
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 // Mock EnvConfig
 vi.mock('../../../src/infrastructure/config/env.config.js', () => ({
@@ -33,12 +34,7 @@ describe('PresignedUploadUrlUseCase', () => {
     vi.restoreAllMocks()
 
     // Create mock implementations
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

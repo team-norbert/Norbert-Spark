@@ -13,6 +13,7 @@ import {
   validateFileExtension,
   validateMimeType,
 } from '../../../../src/shared/utils/security-validation.util.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Mock the security validation utilities
 vi.mock('../../../../src/shared/utils/security-validation.util.js', () => ({
@@ -81,12 +82,7 @@ describe('AIExtractDataController', () => {
     } as any
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     // Create mock ExtractDataUseCase
     mockExtractDataUseCase = {

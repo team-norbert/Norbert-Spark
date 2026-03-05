@@ -15,6 +15,7 @@ import type {
 import { NotFoundException } from '../../../../src/shared/exceptions/not-found.exception.js'
 import { UnauthorizedException } from '../../../../src/shared/exceptions/unauthorized.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 describe('CompanyController', () => {
   let controller: CompanyController
@@ -29,12 +30,7 @@ describe('CompanyController', () => {
     vi.clearAllMocks()
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    } as any
+    mockLogger = createMockLogger()
 
     // Create mock use case
     mockGetCompanyDetailsUseCase = {

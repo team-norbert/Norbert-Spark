@@ -14,6 +14,7 @@ import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { HttpStatus } from '../../../../src/shared/constants/http-status.js'
 import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Helper function to create mock user with proper UserIdType
 function createMockUser(
@@ -84,12 +85,7 @@ describe('UserController', () => {
     } as any
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    } as any
+    mockLogger = createMockLogger()
 
     // Create controller instance with mocked use case
     controller = new UserController(

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AIRAGRepository } from '../../../../src/adapters/secondary/repositories/ai-rag.repository.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Mock the database module
 vi.mock('../../../../src/infrastructure/database/index.js', () => ({
@@ -18,12 +19,7 @@ describe('AIRAGRepository', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     repository = new AIRAGRepository(mockLogger)
   })

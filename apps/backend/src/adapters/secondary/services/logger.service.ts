@@ -23,14 +23,22 @@ export class PinoLoggerService implements LoggerPort {
   private logger: pino.Logger
 
   /**
-   * Creates an instance of PinoLoggerService
+   * Creates an instance of PinoLoggerService.
    *
-   * Configures the logger based on environment:
+   * Accepts either no arguments (creates a fresh Pino instance configured from
+   * the environment) or an existing `pino.Logger` (used internally by `child()`
+   * to wrap the child Pino instance in a properly-typed `PinoLoggerService`).
+   *
    * - Development: Uses pino-pretty for colorized console output
    * - Production: Outputs structured JSON logs
    * - Log level: Determined by LOG_LEVEL environment variable
    */
-  constructor() {
+  constructor(existingLogger?: pino.Logger) {
+    if (existingLogger) {
+      this.logger = existingLogger
+      return
+    }
+
     const isDevelopment = EnvConfig.NODE_ENV !== 'production'
 
     this.logger = pino({
@@ -116,5 +124,24 @@ export class PinoLoggerService implements LoggerPort {
    */
   debug(message: string, context?: Record<string, any>): void {
     this.logger.debug(context, message)
+  }
+
+  /**
+   * Returns a new logger with the given fields pre-merged into every log line.
+   *
+   * Pino serialises the bindings once at construction time, so there is no
+   * per-call overhead. Useful for attaching `requestId`, `userId`, etc. to all
+   * logs emitted within a single request lifecycle.
+   *
+   * @param {Record<string, any>} bindings - Fields to merge into every log record
+   * @returns {LoggerPort} A new `PinoLoggerService` wrapping a Pino child logger
+   * @example
+   * ```typescript
+   * const reqLogger = logger.child({ requestId: request.id, userId: request.user?.sub })
+   * reqLogger.info('chat started') // emits { requestId: '...', userId: '...', msg: 'chat started' }
+   * ```
+   */
+  child(bindings: Record<string, any>): LoggerPort {
+    return new PinoLoggerService(this.logger.child(bindings))
   }
 }

@@ -11,6 +11,7 @@ import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.e
 import { UserId } from '../../../src/domain/value-objects/userID.js'
 import { Uuid } from '../../../src/domain/value-objects/uuid.js'
 import type { DBChatAiOptions } from '../../../src/infrastructure/database/schema.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('PostAIAdminUseCase', () => {
   let useCase: PostAIAdminUseCase
@@ -22,12 +23,7 @@ describe('PostAIAdminUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

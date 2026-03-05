@@ -14,6 +14,7 @@ import { UserId } from '../../../src/domain/value-objects/userID.js'
 import type { DBChatType } from '../../../src/infrastructure/database/schema.js'
 import { SEO } from '../../../src/shared/utils/SEO.util.js'
 import { Uuid7Util } from '../../../src/shared/utils/uuid7.util.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('PostChatTypesUseCase', () => {
   let useCase: PostChatTypesUseCase
@@ -36,12 +37,7 @@ describe('PostChatTypesUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

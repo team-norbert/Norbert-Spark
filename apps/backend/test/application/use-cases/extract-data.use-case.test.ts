@@ -8,6 +8,7 @@ import { ExtractDataUseCase } from '../../../src/application/use-cases/extract-d
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { UnprocessableEntityException } from '../../../src/shared/exceptions/unprocessable-entity.exception.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('ExtractDataUseCase', () => {
   let useCase: ExtractDataUseCase
@@ -44,12 +45,7 @@ describe('ExtractDataUseCase', () => {
     vi.restoreAllMocks()
 
     // Create mock implementations
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

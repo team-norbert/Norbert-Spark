@@ -11,6 +11,7 @@ import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
 import { Uuid } from '../../../src/domain/value-objects/uuid.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('PutChatDetailsUseCase', () => {
   let useCase: PutChatDetailsUseCase
@@ -22,12 +23,7 @@ describe('PutChatDetailsUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

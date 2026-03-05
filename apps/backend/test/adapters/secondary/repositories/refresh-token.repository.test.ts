@@ -7,6 +7,7 @@ import { RefreshTokenRecord } from '../../../../src/domain/entities/refresh-toke
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { Uuid } from '../../../../src/domain/value-objects/uuid.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Mock the database module
 vi.mock('../../../../src/infrastructure/database/index.js', () => ({
@@ -29,12 +30,7 @@ describe('RefreshTokenRepository', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     repository = new RefreshTokenRepository(mockLogger)
   })

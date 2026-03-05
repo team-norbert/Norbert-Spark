@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ResendService } from '../../../../src/adapters/secondary/services/email.service.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import { ExternalServiceException } from '../../../../src/shared/exceptions/external-service.exception.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Create mock emails.send function
 const mockEmailsSend = vi.fn()
@@ -36,12 +37,7 @@ describe('ResendService', () => {
     vi.clearAllMocks()
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     // Create obscured API key
     mockApiKey = obscured.make('test_api_key_12345')

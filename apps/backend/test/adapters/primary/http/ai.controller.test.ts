@@ -21,6 +21,7 @@ import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { ConflictException } from '../../../../src/shared/exceptions/conflict.exception.js'
 import { InternalErrorException } from '../../../../src/shared/exceptions/internal-error.exception.js'
 import { NotFoundException } from '../../../../src/shared/exceptions/not-found.exception.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Mock the AI SDK modules
 vi.mock('ai', () => ({
@@ -122,12 +123,7 @@ describe('AIController', () => {
     } as any
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     // Create controller instance with mocked dependencies
     controller = new AIController(

@@ -13,6 +13,7 @@ import type {
   DBMessageSelect,
   MyDBUIMessagePartSelect,
 } from '../../../src/infrastructure/database/schema.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('GetChatContentByChatIdUseCase', () => {
   let useCase: GetChatContentByChatIdUseCase
@@ -32,12 +33,7 @@ describe('GetChatContentByChatIdUseCase', () => {
   let auditContext: AuditContext
 
   beforeEach(() => {
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),

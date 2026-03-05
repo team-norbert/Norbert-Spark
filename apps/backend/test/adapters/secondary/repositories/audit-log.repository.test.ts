@@ -7,6 +7,7 @@ import type { LoggerPort } from '../../../../src/application/ports/logger.port.j
 import { AuditLog } from '../../../../src/domain/audit/audit-log.entity.js'
 import { AuditAction, EntityType } from '../../../../src/domain/audit/entity-type.enum.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Mock the database module
 vi.mock('../../../../src/infrastructure/database/index.js', () => ({
@@ -24,12 +25,7 @@ describe('AuditLogRepository', () => {
     vi.clearAllMocks()
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     repository = new AuditLogRepository(mockLogger)
   })
