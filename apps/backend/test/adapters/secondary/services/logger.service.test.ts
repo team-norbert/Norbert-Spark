@@ -18,8 +18,8 @@ vi.mock('../../../../src/infrastructure/config/env.config.js', () => ({
   EnvConfig: {
     NODE_ENV: 'development',
     LOG_LEVEL: 'info', // Default for tests
-    SERVICE_NAME: undefined,
-    APP_VERSION: undefined,
+    SERVICE_NAME: 'norberts-spark-backend',
+    APP_VERSION: '1.0.0',
   },
 }))
 
@@ -39,8 +39,8 @@ describe('PinoLoggerService', () => {
       EnvConfig: {
         NODE_ENV: 'development',
         LOG_LEVEL: logLevel ?? 'info',
-        SERVICE_NAME: undefined,
-        APP_VERSION: undefined,
+        SERVICE_NAME: 'norberts-spark-backend',
+        APP_VERSION: '1.0.0',
       },
     }))
 
@@ -81,9 +81,9 @@ describe('PinoLoggerService', () => {
         base: {
           pid: expect.any(Number),
           hostname: expect.any(String),
-          service: undefined,
+          service: 'norberts-spark-backend',
           env: 'development',
-          version: undefined,
+          version: '1.0.0',
         },
         transport: {
           target: 'pino-pretty',
@@ -103,9 +103,9 @@ describe('PinoLoggerService', () => {
         base: {
           pid: expect.any(Number),
           hostname: expect.any(String),
-          service: undefined,
+          service: 'norberts-spark-backend',
           env: 'development',
-          version: undefined,
+          version: '1.0.0',
         },
         transport: {
           target: 'pino-pretty',
