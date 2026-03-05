@@ -79,6 +79,8 @@ describe('PinoLoggerService', () => {
       expect(pino).toHaveBeenCalledWith({
         level: 'info',
         base: {
+          pid: expect.any(Number),
+          hostname: expect.any(String),
           service: undefined,
           env: 'development',
           version: undefined,
@@ -99,6 +101,8 @@ describe('PinoLoggerService', () => {
       expect(pino).toHaveBeenCalledWith({
         level: 'debug',
         base: {
+          pid: expect.any(Number),
+          hostname: expect.any(String),
           service: undefined,
           env: 'development',
           version: undefined,
