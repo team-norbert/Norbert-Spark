@@ -1077,7 +1077,10 @@ describe('AuthController', () => {
 
         await controller.refresh(mockRequest, mockReply)
 
-        expect(mockLogger.error).toHaveBeenCalledWith('Error in refresh handler', expect.any(Error))
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in refresh handler',
+          expect.any(Error)
+        )
       })
     })
 
@@ -1137,7 +1140,10 @@ describe('AuthController', () => {
 
         await controller.refresh(mockRequest, mockReply)
 
-        expect(mockLogger.error).toHaveBeenCalledWith('Error in refresh handler', expect.any(Error))
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in refresh handler',
+          expect.any(Error)
+        )
       })
 
       it('should return safe error message for DrizzleQueryError', async () => {
@@ -1341,7 +1347,10 @@ describe('AuthController', () => {
 
         await controller.logout(mockRequest, mockReply)
 
-        expect(mockLogger.error).toHaveBeenCalledWith('Error in logout handler', expect.any(Error))
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in logout handler',
+          expect.any(Error)
+        )
       })
 
       it('should return safe error message for DrizzleQueryError', async () => {

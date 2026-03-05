@@ -152,6 +152,12 @@ export class AuthController {
    * @see {@link authMiddleware} for JWT verification
    */
   async logout(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const reqLogger = this.logger.child({
+      requestId: request.id,
+      method: request.method,
+      route: request.routeOptions?.url ?? request.url,
+    })
+
     try {
       // Extract audit context from request
       const auditContext = {
@@ -170,7 +176,7 @@ export class AuthController {
         },
       })
     } catch (error) {
-      this.logger.error(
+      reqLogger.error(
         'Error in logout handler',
         error instanceof Error ? error : new Error(String(error))
       )
@@ -252,6 +258,12 @@ export class AuthController {
    * @see {@link RefreshAccessTokenUseCase.execute} for token rotation logic
    */
   async refresh(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const reqLogger = this.logger.child({
+      requestId: request.id,
+      method: request.method,
+      route: request.routeOptions?.url ?? request.url,
+    })
+
     try {
       // Extract audit context from request
       const auditContext = {
@@ -275,7 +287,7 @@ export class AuthController {
         },
       })
     } catch (error) {
-      this.logger.error(
+      reqLogger.error(
         'Error in refresh handler',
         error instanceof Error ? error : new Error(String(error))
       )
@@ -473,6 +485,12 @@ export class AuthController {
    * @see {@link oauthSyncAuthMiddleware} for authentication implementation
    */
   async oauthSync(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const reqLogger = this.logger.child({
+      requestId: request.id,
+      method: request.method,
+      route: request.routeOptions?.url ?? request.url,
+    })
+
     try {
       request.log.info({ body: request.body }, 'OAuth sync request received')
 
@@ -501,7 +519,7 @@ export class AuthController {
         },
       })
     } catch (error) {
-      this.logger.error(
+      reqLogger.error(
         'Error in OAuth sync handler',
         error instanceof Error ? error : new Error(String(error))
       )
