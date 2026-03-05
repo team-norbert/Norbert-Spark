@@ -1,5 +1,13 @@
+import { fileURLToPath } from 'node:url'
+
+import { createJiti } from 'jiti'
 import type { NextConfig } from 'next'
 import path from 'path'
+
+const jiti = createJiti(fileURLToPath(import.meta.url))
+
+// Import env here to validate during build. Using jiti@^1 we can import .ts files :)
+jiti('./src/env')
 
 /**
  * NOTE:
@@ -21,6 +29,7 @@ const csp = [
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  transpilePackages: ['@t3-oss/env-nextjs', '@t3-oss/env-core'],
   reactCompiler: true,
   reactStrictMode: true,
   // Optimize for production
