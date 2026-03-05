@@ -1,3 +1,4 @@
+import os from 'os'
 import pino from 'pino'
 
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
@@ -43,6 +44,13 @@ export class PinoLoggerService implements LoggerPort {
 
     this.logger = pino({
       level: EnvConfig.LOG_LEVEL,
+      base: {
+        pid: process.pid,
+        hostname: os.hostname(),
+        service: EnvConfig.SERVICE_NAME,
+        env: EnvConfig.NODE_ENV,
+        version: EnvConfig.APP_VERSION,
+      },
       ...(isDevelopment && {
         transport: {
           target: 'pino-pretty',
