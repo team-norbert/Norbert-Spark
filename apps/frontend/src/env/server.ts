@@ -2,6 +2,7 @@ import { createEnv } from '@t3-oss/env-nextjs'
 import { z } from 'zod'
 
 export const env = createEnv({
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   server: {
     DEFAULT_RATE_LIMIT_WINDOW: z.coerce.number().default(60), // 1 minute
     DEFAULT_RATE_LIMIT_MAX: z.coerce.number().default(100), // 100 requests per window

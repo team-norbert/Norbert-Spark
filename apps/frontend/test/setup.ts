@@ -6,6 +6,11 @@ import { vi } from 'vitest'
 // Set timezone to UTC for consistent date formatting across CI runners
 process.env.TZ = 'UTC'
 
+// Disable @t3-oss/env-nextjs validation in tests — Vitest runs in jsdom which has
+// `window` defined, causing server env imports to throw "Attempted to access a
+// server-side environment variable on the client" before any test can run.
+process.env.SKIP_ENV_VALIDATION = '1'
+
 // Set required environment variables for tests
 process.env.GOOGLE_ID = 'test-google-id'
 process.env.GOOGLE_SECRET = 'test-google-secret'

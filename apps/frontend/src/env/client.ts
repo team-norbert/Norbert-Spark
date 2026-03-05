@@ -2,6 +2,7 @@ import { createEnv } from '@t3-oss/env-nextjs'
 import { z } from 'zod'
 
 export const env = createEnv({
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   client: {
     NEXT_PUBLIC_POST_AI_CALLBACK_URL: z.url(),
     NEXT_PUBLIC_BASE_URL: z.url(),

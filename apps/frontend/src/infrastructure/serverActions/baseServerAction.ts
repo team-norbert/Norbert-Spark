@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation.js'
 import { getServerSession } from 'next-auth'
 
+import { env } from '@/env/index.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { authOptions } from '@/lib/auth/auth-config.js'
 
@@ -136,7 +137,7 @@ async function handle401<T>(
 }
 
 export async function backendRequest<T>(options: BackendRequestOptions): Promise<T> {
-  const apiUrl = process.env.BACKEND_AI_CALLBACK_URL
+  const apiUrl = env.BACKEND_AI_CALLBACK_URL
   if (!apiUrl)
     throw new Error(
       'Backend API URL not configured (NEXT_PUBLIC_BACKEND_URL / BACKEND_URL / BACKEND_AI_CALLBACK_URL)'
