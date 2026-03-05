@@ -19,7 +19,7 @@ vi.mock('../../../../src/infrastructure/config/env.config.js', () => ({
     NODE_ENV: 'development',
     LOG_LEVEL: 'info', // Default for tests
     SERVICE_NAME: undefined,
-    API_VERSION: undefined,
+    APP_VERSION: undefined,
   },
 }))
 
@@ -40,7 +40,7 @@ describe('PinoLoggerService', () => {
         NODE_ENV: 'development',
         LOG_LEVEL: logLevel ?? 'info',
         SERVICE_NAME: undefined,
-        API_VERSION: undefined,
+        APP_VERSION: undefined,
       },
     }))
 

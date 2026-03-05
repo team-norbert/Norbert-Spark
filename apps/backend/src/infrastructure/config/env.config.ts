@@ -1,6 +1,10 @@
 import dotenv from 'dotenv'
 import { obscured } from 'obscured'
 
+import packageJson from '../../../../../package.json' with { type: 'json' }
+
+const { version } = packageJson
+
 dotenv.config()
 
 const requiredEnvs: string[] = [
@@ -61,6 +65,7 @@ export class EnvConfig {
   static readonly REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION || '604800' // 7 days in seconds
   static readonly ACCESS_TOKEN_BUFFER = process.env.ACCESS_TOKEN_BUFFER || '300' // 5 minutes in seconds
   static readonly SERVICE_NAME = process.env.SERVICE_NAME || 'norberts-spark-backend'
+  static readonly APP_VERSION = version
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !Reflect.get(process.env, key))
 

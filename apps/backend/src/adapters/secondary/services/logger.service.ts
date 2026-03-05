@@ -46,7 +46,7 @@ export class PinoLoggerService implements LoggerPort {
       base: {
         service: EnvConfig.SERVICE_NAME,
         env: EnvConfig.NODE_ENV,
-        version: EnvConfig.API_VERSION,
+        version: EnvConfig.APP_VERSION,
       },
       ...(isDevelopment && {
         transport: {
