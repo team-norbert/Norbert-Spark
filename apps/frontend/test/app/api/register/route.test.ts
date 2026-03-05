@@ -17,6 +17,19 @@ vi.mock('../../../../src/application/services/logger.service.test.js', () => ({
   })),
 }))
 
+// Mock the env module — createEnv captures values at import time so mutating
+// process.env afterwards has no effect. A getter-based mock re-reads process.env
+// on every property access, so per-test process.env overrides still work.
+vi.mock('@/env/index.js', () => ({
+  get env() {
+    return { BACKEND_AI_CALLBACK_URL: process.env.BACKEND_AI_CALLBACK_URL }
+  },
+  clientEnv: {},
+  get serverEnv() {
+    return { BACKEND_AI_CALLBACK_URL: process.env.BACKEND_AI_CALLBACK_URL }
+  },
+}))
+
 describe('POST /api/register', () => {
   const mockEnv = {
     BACKEND_AI_CALLBACK_URL: 'https://api.example.com',
