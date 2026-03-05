@@ -59,10 +59,15 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     done()
   })
 
-  // Register CORS with permissive policy for development
+  // Register CORS - use specific origins rather than permissive wildcard
+  const allowedOrigins =
+    EnvConfig.NODE_ENV === 'production'
+      ? (process.env.ALLOWED_ORIGINS?.split(',') ?? [])
+      : ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://localhost:3000']
+
   fastify.register(cors, {
-    origin: true, // Allow all origins
-    credentials: true, // Allow credentials
+    origin: allowedOrigins,
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
