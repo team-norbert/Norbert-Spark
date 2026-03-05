@@ -1,5 +1,8 @@
 FROM node:24-slim AS builder
 
+ARG APP_VERSION=unknown
+ENV APP_VERSION=${APP_VERSION}
+
 RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
 
 WORKDIR /app
@@ -35,6 +38,7 @@ COPY apps/backend/package.json ./apps/backend/
 
 ENV HUSKY=0
 ENV CI=1
+ENV APP_VERSION=${APP_VERSION}
 
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 

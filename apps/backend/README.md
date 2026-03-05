@@ -415,6 +415,22 @@ Builds a Docker image named `norberts-spark-backend` using `apps/backend/Dockerf
 - Runs as non-root user (built-in `node` user) for security
 - Exposes port 3001
 
+#### Injecting `APP_VERSION` at build time
+
+The image accepts an optional `APP_VERSION` build argument (defaults to `unknown`). Inject it from the current git commit SHA or the `package.json` version:
+
+```bash
+# From git commit SHA (short)
+docker build --build-arg APP_VERSION=$(git rev-parse --short HEAD) \
+  -t norberts-spark-backend apps/backend
+
+# From package.json version
+docker build --build-arg APP_VERSION=$(node -p "require('./package.json').version") \
+  -t norberts-spark-backend apps/backend
+```
+
+The value is exposed inside the container as the `APP_VERSION` environment variable, which is read by `EnvConfig.APP_VERSION` and included in every structured log line.
+
 ### Running the Container
 
 ```bash

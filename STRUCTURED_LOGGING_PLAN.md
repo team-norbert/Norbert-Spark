@@ -379,7 +379,7 @@ static readonly APP_VERSION  = process.env.APP_VERSION  || 'unknown'
 
 ```bash
 # In Dockerfile
-ARG APP_VERSION=unknown
+ARG APP_VERSION=unknowns
 ENV APP_VERSION=${APP_VERSION}
 
 # In CI pipeline or local shell (build-time argument)
