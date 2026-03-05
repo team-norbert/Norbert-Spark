@@ -10,6 +10,7 @@ import { RefreshAccessTokenUseCase } from '../../../../src/application/use-cases
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { UnauthorizedException } from '../../../../src/shared/exceptions/unauthorized.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Helper function to create mock auth result with proper UserIdType
 function createMockAuthResult(email: string, token: string, roles: string[], userId?: string) {
@@ -58,12 +59,7 @@ describe('AuthController', () => {
       execute: vi.fn(),
     } as any
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     // Create controller instance with mocked use case
     controller = new AuthController(
@@ -97,7 +93,7 @@ describe('AuthController', () => {
       const mockRegisterUseCase = { execute: vi.fn() } as any
       const mockRefreshUseCase = { execute: vi.fn() } as any
       const mockLogoutUseCase = { execute: vi.fn() } as any
-      const mockLogger = { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() } as any
+      const mockLogger = createMockLogger()
       const instance = new AuthController(
         mockLogger,
         mockLoginUserUseCase,
@@ -114,7 +110,7 @@ describe('AuthController', () => {
       const mockRegisterUseCase = { execute: vi.fn() } as any
       const mockRefreshUseCase = { execute: vi.fn() } as any
       const mockLogoutUseCase = { execute: vi.fn() } as any
-      const mockLogger = { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() } as any
+      const mockLogger = createMockLogger()
       const instance = new AuthController(
         mockLogger,
         mockLoginUserUseCase,

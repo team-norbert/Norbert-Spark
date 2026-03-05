@@ -5,6 +5,7 @@ import { AIChatOptionsRepository } from '../../../../src/adapters/secondary/repo
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import { ChatId } from '../../../../src/domain/value-objects/chatID.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
+import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
 // Mock the database module
 vi.mock('../../../../src/infrastructure/database/index.js', () => ({
@@ -21,12 +22,7 @@ describe('AIChatOptionsRepository', () => {
     vi.clearAllMocks()
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     repository = new AIChatOptionsRepository(mockLogger)
   })

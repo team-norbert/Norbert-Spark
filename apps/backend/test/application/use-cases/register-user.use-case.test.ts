@@ -13,6 +13,7 @@ import { User } from '../../../src/domain/entities/user.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { ConflictException } from '../../../src/shared/exceptions/conflict.exception.js'
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 // Helper function to create mock UserIdType from UUID string
 function createMockUserId(uuid?: string): UserIdType {
@@ -50,12 +51,7 @@ describe('RegisterUserUseCase', () => {
       sendPasswordResetEmail: vi.fn(),
     }
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockTokenGenerator = {
       generateToken: vi.fn().mockReturnValue('mock-jwt-token'),

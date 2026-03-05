@@ -9,6 +9,7 @@ import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('LogOutUseCase', () => {
   let useCase: LogOutUseCase
@@ -32,12 +33,7 @@ describe('LogOutUseCase', () => {
     vi.clearAllMocks()
 
     // Create mock logger
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     // Create mock audit log
     mockAuditLog = {

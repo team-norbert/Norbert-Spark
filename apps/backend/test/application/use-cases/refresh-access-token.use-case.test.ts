@@ -18,6 +18,7 @@ import { Role } from '../../../src/domain/value-objects/role.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { Uuid, type UUIDType } from '../../../src/domain/value-objects/uuid.js'
 import { UnauthorizedException } from '../../../src/shared/exceptions/unauthorized.exception.js'
+import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 describe('RefreshAccessTokenUseCase', () => {
   let useCase: RefreshAccessTokenUseCase
@@ -99,12 +100,7 @@ describe('RefreshAccessTokenUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    }
+    mockLogger = createMockLogger()
 
     mockAuditLog = {
       log: vi.fn().mockResolvedValue(undefined),
