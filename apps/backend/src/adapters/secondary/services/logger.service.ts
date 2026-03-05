@@ -2,6 +2,7 @@ import os from 'os'
 import pino from 'pino'
 
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { SENSITIVE_FIELDS } from '../../../domain/audit/redact-sensitive-data.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 
 /**
@@ -44,6 +45,10 @@ export class PinoLoggerService implements LoggerPort {
 
     this.logger = pino({
       level: EnvConfig.LOG_LEVEL,
+      redact: {
+        paths: [...SENSITIVE_FIELDS],
+        censor: '[REDACTED]',
+      },
       base: {
         pid: process.pid,
         hostname: os.hostname(),
