@@ -11,6 +11,7 @@ import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 import Fastify from 'fastify'
 import { uuidv7 } from 'uuidv7'
 
+import { ErrorCode } from '../../shared/constants/error-codes.js'
 import { BaseException } from '../../shared/exceptions/base.exception.js'
 import { EnvConfig } from '../config/env.config.js'
 
@@ -90,6 +91,15 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
   })
 
   fastify.addHook('onError', (request, reply, error, done) => {
+    const statusCode = error instanceof BaseException ? error.statusCode : reply.statusCode
+
+    // Only emit http.request.error for server-side errors (5xx)
+    // 4xx client errors are handled by onResponse as http.request.completed
+    if (statusCode < 500) {
+      done()
+      return
+    }
+
     const durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
 
     request.log.error(
@@ -99,9 +109,9 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
         userId: request.user?.sub ?? undefined,
         method: request.method,
         route: request.routeOptions?.url ?? request.url,
-        statusCode: reply.statusCode,
+        statusCode,
         durationMs,
-        errorCode: error instanceof BaseException ? error.code : 'INTERNAL_ERROR',
+        errorCode: error instanceof BaseException ? error.code : ErrorCode.INTERNAL_ERROR,
         err: error,
       },
       'request error'

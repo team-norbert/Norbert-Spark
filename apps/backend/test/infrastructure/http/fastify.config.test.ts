@@ -1,8 +1,12 @@
+import { Writable } from 'node:stream'
+
 import type { FastifyInstance } from 'fastify'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
 import { createFastifyApp } from '../../../src/infrastructure/http/fastify.config.js'
+import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
+import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 
 describe('Fastify request identity and timing', () => {
   let app: FastifyInstance
@@ -77,5 +81,74 @@ describe('Fastify logger base fields', () => {
     expect(bindings['service']).toBe(EnvConfig.SERVICE_NAME)
     expect(bindings['env']).toBe(EnvConfig.NODE_ENV)
     expect(bindings['version']).toBe(EnvConfig.APP_VERSION)
+  })
+})
+
+describe('Fastify lifecycle hook logging', () => {
+  let app: FastifyInstance
+  const logLines: string[] = []
+
+  beforeAll(async () => {
+    const stream = new Writable({
+      write(chunk, _encoding, callback) {
+        logLines.push(chunk.toString().trim())
+        callback()
+      },
+    })
+
+    app = createFastifyApp({ logger: { stream, level: 'info' } })
+
+    app.get('/test-2xx', async () => ({ ok: true }))
+    app.get('/test-4xx', async () => {
+      throw new ValidationException('bad input')
+    })
+    app.get('/test-5xx', async () => {
+      throw new InternalErrorException('server boom')
+    })
+
+    await app.ready()
+  })
+
+  afterAll(async () => {
+    await app.close()
+  })
+
+  beforeEach(() => {
+    logLines.length = 0
+  })
+
+  function parseEvents(): Record<string, unknown>[] {
+    return logLines.flatMap((line) => {
+      try {
+        const parsed = JSON.parse(line) as Record<string, unknown>
+        return parsed.event ? [parsed] : []
+      } catch {
+        return []
+      }
+    })
+  }
+
+  it('should log http.request.completed (not http.request.error) for 2xx responses', async () => {
+    await app.inject({ method: 'GET', url: '/test-2xx' })
+    const events = parseEvents()
+
+    expect(events.filter((e) => e.event === 'http.request.completed')).toHaveLength(1)
+    expect(events.filter((e) => e.event === 'http.request.error')).toHaveLength(0)
+  })
+
+  it('should log http.request.completed (not http.request.error) for 4xx client errors', async () => {
+    await app.inject({ method: 'GET', url: '/test-4xx' })
+    const events = parseEvents()
+
+    expect(events.filter((e) => e.event === 'http.request.completed')).toHaveLength(1)
+    expect(events.filter((e) => e.event === 'http.request.error')).toHaveLength(0)
+  })
+
+  it('should log http.request.error (not http.request.completed) for 5xx server errors', async () => {
+    await app.inject({ method: 'GET', url: '/test-5xx' })
+    const events = parseEvents()
+
+    expect(events.filter((e) => e.event === 'http.request.error')).toHaveLength(1)
+    expect(events.filter((e) => e.event === 'http.request.completed')).toHaveLength(0)
   })
 })
