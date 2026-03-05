@@ -161,11 +161,11 @@ export const authOptions: NextAuthOptions = {
       // Sync OAuth users to backend database
       if (account?.provider !== 'credentials' && profile?.email && account) {
         try {
-          if (!process.env.OAUTH_SYNC_SECRET) {
+          if (!env.OAUTH_SYNC_SECRET) {
             throw new Error('Missing OAUTH_SYNC_SECRET environment variable')
           }
 
-          const oauthSyncSecret = process.env.OAUTH_SYNC_SECRET
+          const oauthSyncSecret = env.OAUTH_SYNC_SECRET
 
           const headers = new Headers()
           headers.append('Content-Type', 'application/json')
@@ -368,6 +368,6 @@ export const authOptions: NextAuthOptions = {
   jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === 'development',
+  secret: env.NEXTAUTH_SECRET,
+  debug: env.NODE_ENV === 'development',
 }
