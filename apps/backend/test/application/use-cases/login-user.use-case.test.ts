@@ -181,7 +181,7 @@ describe('LoginUserUseCase', () => {
         await useCase.execute(dto, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('User login attempt', {
-          email: 'john@example.com',
+          event: 'user.login.attempt',
         })
       })
 
@@ -194,8 +194,8 @@ describe('LoginUserUseCase', () => {
         await useCase.execute(dto, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('User logged in successfully', {
+          event: 'user.login.success',
           userId: mockUser.id,
-          email: 'john@example.com',
         })
       })
 
@@ -294,7 +294,8 @@ describe('LoginUserUseCase', () => {
         await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
 
         expect(mockLogger.warn).toHaveBeenCalledWith('Login failed: User not found', {
-          email: 'nonexistent@example.com',
+          event: 'user.login.failed',
+          reason: 'user_not_found',
         })
       })
 
@@ -355,7 +356,8 @@ describe('LoginUserUseCase', () => {
         await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
 
         expect(mockLogger.warn).toHaveBeenCalledWith('Login failed: Invalid password', {
-          email: 'john@example.com',
+          event: 'user.login.failed',
+          reason: 'invalid_password',
           userId: mockUser.id,
         })
       })
@@ -523,7 +525,7 @@ describe('LoginUserUseCase', () => {
         // Verify security audit logs are created
         expect(mockLogger.info).toHaveBeenCalledWith(
           'User login attempt',
-          expect.objectContaining({ email: 'john@example.com' })
+          expect.objectContaining({ event: 'user.login.attempt' })
         )
         expect(mockLogger.info).toHaveBeenCalledWith(
           'User logged in successfully',
@@ -539,7 +541,8 @@ describe('LoginUserUseCase', () => {
         await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
 
         expect(mockLogger.warn).toHaveBeenCalledWith('Login failed: User not found', {
-          email: 'attacker@example.com',
+          event: 'user.login.failed',
+          reason: 'user_not_found',
         })
       })
     })
@@ -795,8 +798,8 @@ describe('LoginUserUseCase', () => {
           'Failed to store refresh token',
           expect.any(Error),
           expect.objectContaining({
+            event: 'token.store.failed',
             userId: mockUser.id,
-            email: 'john@example.com',
           })
         )
 

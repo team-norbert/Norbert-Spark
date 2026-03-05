@@ -134,6 +134,7 @@ describe('PresignedUploadUrlUseCase', () => {
         await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockLogger.info).toHaveBeenCalledWith('Presigned URLs generated successfully', {
+          event: 'presigned_url.generate.success',
           fileCount: 2,
         })
       })
@@ -223,7 +224,9 @@ describe('PresignedUploadUrlUseCase', () => {
         )
 
         expect(mockLogger.error).toHaveBeenCalledWith(
-          'BUCKET environment variable is not configured'
+          'BUCKET environment variable is not configured',
+          undefined,
+          { event: 'presigned_url.config.missing' }
         )
       })
 
@@ -421,6 +424,7 @@ describe('PresignedUploadUrlUseCase', () => {
         await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockLogger.info).toHaveBeenCalledWith('Presigned URLs generated successfully', {
+          event: 'presigned_url.generate.success',
           fileCount: 5,
         })
       })

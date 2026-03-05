@@ -60,11 +60,16 @@ export class SaveChatUseCase {
     auditContext: AuditContext
   ): Promise<string> {
     // Placeholder implementation
-    this.logger.info(`Saving chat ${chatId} for user ${userId} with ${messages.length} messages.`)
-    this.logger.info('Messages:', messages)
+    this.logger.info('Saving chat', {
+      event: 'chat.save.attempt',
+      chatId,
+      userId,
+      messageCount: messages.length,
+    })
+    this.logger.debug('Messages to save', { chatId, messages })
 
     const savedChatId = await this.aiRepository.createChat(chatId, userId, chatTypeId, messages)
-    this.logger.info(`Chat saved with ID: ${savedChatId}`)
+    this.logger.info('Chat saved', { event: 'chat.created', chatId: savedChatId })
 
     const auditEntry: CreateAuditLogDTO = {
       userId: auditContext.userId,

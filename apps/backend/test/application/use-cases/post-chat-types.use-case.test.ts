@@ -135,7 +135,8 @@ describe('PostChatTypesUseCase', () => {
 
       await useCase.execute(mockAuditContext, data)
 
-      expect(mockLogger.info).toHaveBeenCalledWith('Executing PostChatTypesUseCase with data', {
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing PostChatTypesUseCase', {
+        event: 'chat_type.create.attempt',
         data,
       })
     })

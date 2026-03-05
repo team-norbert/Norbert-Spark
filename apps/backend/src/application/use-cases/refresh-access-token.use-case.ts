@@ -1,5 +1,3 @@
-import crypto from 'node:crypto'
-
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { User } from '../../domain/entities/user.js'
@@ -118,7 +116,7 @@ export class RefreshAccessTokenUseCase {
     auditContext: AuditContext
   ): Promise<{ accessToken: string; refreshToken: string; expiresInSeconds: number }> {
     this.logger.info('Executing RefreshAccessTokenUseCase', {
-      tokenHash: crypto.createHash('sha256').update(rawRefreshToken).digest('hex'),
+      event: 'token.refresh.attempt',
     })
     try {
       const token = RefreshToken.fromRaw(rawRefreshToken)
@@ -161,9 +159,9 @@ export class RefreshAccessTokenUseCase {
             'Failed to revoke refresh token family after replay attack',
             err instanceof Error ? err : new Error(String(err)),
             {
+              event: 'token.family_revoke.failed',
               userId: record.getUserId(),
               tokenFamily: record.getTokenFamily(),
-              auditUserId: auditContext.userId ?? undefined,
             }
           )
           const revokeFailureAuditEntry: CreateAuditLogDTO = {
@@ -253,8 +251,8 @@ export class RefreshAccessTokenUseCase {
           'Failed to store refresh token',
           err instanceof Error ? err : new Error(String(err)),
           {
+            event: 'token.store.failed',
             userId: user.id as UserIdType,
-            email: user.getEmail(),
           }
         )
         const auditEntry: CreateAuditLogDTO = {
@@ -282,7 +280,7 @@ export class RefreshAccessTokenUseCase {
       this.logger.error(
         'Failed to refresh access token',
         error instanceof Error ? error : new Error(String(error)),
-        { tokenHash: crypto.createHash('sha256').update(rawRefreshToken).digest('hex') }
+        { event: 'token.refresh.failed' }
       )
       throw error
     }

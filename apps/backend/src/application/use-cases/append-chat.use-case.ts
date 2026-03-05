@@ -64,14 +64,18 @@ export class AppendedChatUseCase {
   ): Promise<AppendedChatResult | null> {
     const chatIdString = chatId
     if (!chatIdString) {
-      this.logger.info('Invalid chatId value received in AppendedChatUseCase', { chatId })
+      this.logger.info('Invalid chatId value received in AppendedChatUseCase', {
+        event: 'chat.append.invalid_id',
+        chatId,
+      })
       return null
     }
     this.logger.info('Appending chat messages', {
+      event: 'chat.append.attempt',
       chatId: chatIdString,
       messageCount: messages.length,
     })
-    this.logger.debug('Appended chat', { chatId: chatIdString, messages })
+    this.logger.debug('Appended chat', { event: 'chat.appended', chatId: chatIdString, messages })
     await this.aiService.appendToChatMessages(chatIdString, messages)
 
     const auditEntry: CreateAuditLogDTO = {

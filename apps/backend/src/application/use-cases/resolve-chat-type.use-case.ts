@@ -25,15 +25,22 @@ export class ResolveChatTypeUseCase {
    * @returns The UUID id of the matching chat type, or null if not found
    */
   async execute(param: string, auditContext: AuditContext): Promise<string | null> {
-    this.logger.info(`Resolving chat type by param: ${param}`)
+    this.logger.info('Resolving chat type by param', { event: 'chat_type.resolve.attempt', param })
 
     try {
       const resolvedId = await this.aiContentRepository.resolveChatTypeByParam(param)
 
       if (resolvedId) {
-        this.logger.info(`Chat type resolved: ${param} → ${resolvedId}`)
+        this.logger.info('Chat type resolved', {
+          event: 'chat_type.resolve.success',
+          param,
+          resolvedId,
+        })
       } else {
-        this.logger.warn(`Chat type not found for param: ${param}`)
+        this.logger.warn('Chat type not found for param', {
+          event: 'chat_type.resolve.not_found',
+          param,
+        })
       }
 
       const auditEntry: CreateAuditLogDTO = {
@@ -54,7 +61,10 @@ export class ResolveChatTypeUseCase {
 
       return resolvedId
     } catch (error) {
-      this.logger.error('Error resolving chat type', error as Error, { param })
+      this.logger.error('Error resolving chat type', error as Error, {
+        event: 'chat_type.resolve.failed',
+        param,
+      })
       throw error
     }
   }

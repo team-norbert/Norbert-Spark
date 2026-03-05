@@ -113,7 +113,10 @@ describe('DeleteUsersUseCase', () => {
         await useCase.execute(userIds, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledTimes(1)
-        expect(mockLogger.info).toHaveBeenCalledWith('Deleting users', { userIds })
+        expect(mockLogger.info).toHaveBeenCalledWith('Deleting users', {
+          event: 'user.delete.attempt',
+          userIds,
+        })
       })
 
       it('should log with correct user IDs', async () => {
@@ -123,7 +126,10 @@ describe('DeleteUsersUseCase', () => {
 
         await useCase.execute(userIds, auditContext)
 
-        expect(mockLogger.info).toHaveBeenCalledWith('Deleting users', { userIds })
+        expect(mockLogger.info).toHaveBeenCalledWith('Deleting users', {
+          event: 'user.delete.attempt',
+          userIds,
+        })
       })
 
       it('should not log error when deletion is successful', async () => {
@@ -276,7 +282,10 @@ describe('DeleteUsersUseCase', () => {
           // Expected to throw
         }
 
-        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', dbError, { userIds })
+        expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', dbError, {
+          event: 'user.delete.failed',
+          userIds,
+        })
       })
 
       it('should not create audit log if deletion fails', async () => {
@@ -309,6 +318,7 @@ describe('DeleteUsersUseCase', () => {
 
         await expect(useCase.execute(userIds, auditContext)).rejects.toThrow(genericError)
         expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', genericError, {
+          event: 'user.delete.failed',
           userIds,
         })
       })

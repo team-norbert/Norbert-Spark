@@ -236,9 +236,12 @@ describe('SaveChatUseCase', () => {
 
       await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        `Saving chat ${testChatId} for user ${testUserId} with ${messages.length} messages.`
-      )
+      expect(mockLogger.info).toHaveBeenCalledWith('Saving chat', {
+        event: 'chat.save.attempt',
+        chatId: testChatId,
+        userId: testUserId,
+        messageCount: messages.length,
+      })
     })
 
     it('should log info message after successfully saving chat', async () => {
@@ -248,7 +251,10 @@ describe('SaveChatUseCase', () => {
 
       await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(`Chat saved with ID: ${testChatId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith('Chat saved', {
+        event: 'chat.created',
+        chatId: testChatId,
+      })
     })
 
     it('should log correct message count', async () => {
@@ -258,7 +264,10 @@ describe('SaveChatUseCase', () => {
 
       await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('with 10 messages'))
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        'Saving chat',
+        expect.objectContaining({ messageCount: 10 })
+      )
     })
 
     it('should log correct chat ID and user ID', async () => {
@@ -268,8 +277,14 @@ describe('SaveChatUseCase', () => {
 
       await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining(`chat ${testChatId}`))
-      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining(`user ${testUserId}`))
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        'Saving chat',
+        expect.objectContaining({ chatId: testChatId })
+      )
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        'Saving chat',
+        expect.objectContaining({ userId: testUserId })
+      )
     })
 
     it('should log twice - before and after save', async () => {
@@ -279,7 +294,7 @@ describe('SaveChatUseCase', () => {
 
       await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
 
-      expect(mockLogger.info).toHaveBeenCalledTimes(3) // Before save, messages log, after save
+      expect(mockLogger.info).toHaveBeenCalledTimes(2) // Before save + after save (debug is separate)
     })
 
     it('should log with empty messages array', async () => {
@@ -289,7 +304,10 @@ describe('SaveChatUseCase', () => {
 
       await useCase.execute(testChatId, testUserId, testChatTypeId, messages, auditContext)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('with 0 messages'))
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        'Saving chat',
+        expect.objectContaining({ messageCount: 0 })
+      )
     })
   })
 
@@ -339,10 +357,8 @@ describe('SaveChatUseCase', () => {
         // Expected to throw
       }
 
-      expect(mockLogger.info).toHaveBeenCalledTimes(2) // Initial log and messages log only
-      expect(mockLogger.info).not.toHaveBeenCalledWith(
-        expect.stringContaining('Chat saved with ID:')
-      )
+      expect(mockLogger.info).toHaveBeenCalledTimes(1) // Initial log only
+      expect(mockLogger.info).not.toHaveBeenCalledWith('Chat saved', expect.any(Object))
     })
 
     it('should handle repository returning null or undefined', async () => {
@@ -476,7 +492,7 @@ describe('SaveChatUseCase', () => {
       expect(result).toBe(expectedChatId)
 
       // Verify logging
-      expect(mockLogger.info).toHaveBeenCalledTimes(3) // Before save, messages log, after save
+      expect(mockLogger.info).toHaveBeenCalledTimes(2) // Before save + after save (debug is separate)
     })
 
     it('should handle rapid sequential saves', async () => {
@@ -544,7 +560,10 @@ describe('SaveChatUseCase', () => {
       )
 
       expect(result).toBe(expectedChatId)
-      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('with 1000 messages'))
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        'Saving chat',
+        expect.objectContaining({ messageCount: 1000 })
+      )
     })
 
     it('should handle messages with complex nested structures', async () => {

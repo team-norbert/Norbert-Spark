@@ -117,7 +117,7 @@ export class RegisterUserWithProviderUseCase {
     expiresInSeconds: number
     roles: string[]
   }> {
-    this.logger.info('Starting user registration', { email: dto.email })
+    this.logger.info('Starting user registration', { event: 'user.oauth_registration.attempt' })
 
     // Create domain objects
     const email = new Email(dto.email).getValue()
@@ -148,7 +148,10 @@ export class RegisterUserWithProviderUseCase {
       userId = result.userId
       isNewUser = result.isNewUser
     } catch (error) {
-      this.logger.error('Failed to save user', error as Error, { email: dto.email })
+      this.logger.error('Failed to save user', error as Error, {
+        event: 'user.oauth_registration.failed',
+        reason: 'save_failed',
+      })
       if (DatabaseUtil.isDuplicateKeyError(error)) {
         // For failed registration: entityId = email (no user entity created yet)
         const auditEntry: CreateAuditLogDTO = {
@@ -188,14 +191,15 @@ export class RegisterUserWithProviderUseCase {
         await this.emailService.sendWelcomeEmail(dto.email, dto.name)
       } catch (error) {
         this.logger.error('Failed to send welcome email', error as Error, {
+          event: 'user.welcome_email.failed',
           userId: userId,
-          email: dto.email,
         })
         // Don't fail registration if email fails
       }
     }
 
     this.logger.info(isNewUser ? 'User registered successfully' : 'Returning user signed in', {
+      event: isNewUser ? 'user.registered' : 'user.oauth_login.success',
       userId: userId,
     })
 
@@ -244,8 +248,8 @@ export class RegisterUserWithProviderUseCase {
         'Failed to store refresh token',
         err instanceof Error ? err : new Error(String(err)),
         {
+          event: 'token.store.failed',
           userId,
-          email: user.getEmail(),
         }
       )
       const auditEntry: CreateAuditLogDTO = {

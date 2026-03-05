@@ -136,14 +136,14 @@ export class GetCompanyDetailsUseCase {
     company: DBCompanySelect | null
     keyPerson: DBKeyPersonSelect | null
   }> {
-    this.logger.info('Fetching company details')
+    this.logger.info('Fetching company details', { event: 'company.fetch.attempt' })
 
     const [company, keyPerson] = await Promise.all([
       this.companyDetailsRepo.getCompanyDetails(),
       this.companyDetailsRepo.getKeyPersonDetails(),
     ])
 
-    this.logger.info('Company details fetched successfully')
+    this.logger.info('Company details fetched successfully', { event: 'company.fetch.success' })
     return { company, keyPerson }
   }
 }

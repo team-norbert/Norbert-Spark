@@ -91,7 +91,10 @@ describe('GetChatDetailsUseCase', () => {
       const result = await useCase.execute(mockAuditContext)
 
       expect(mockAiChatContent.fetchChatContent).toHaveBeenCalledTimes(1)
-      expect(mockLogger.info).toHaveBeenCalledWith('Fetched 2 chat types from AIContentPort')
+      expect(mockLogger.info).toHaveBeenCalledWith('Fetched chat types from AIContentPort', {
+        event: 'chat_types.fetch.success',
+        count: 2,
+      })
       expect(result).toHaveLength(2)
       expect(result[0]!.seoFriendlyId).toBe('general-assistant')
       expect(result[0]!.seoFriendlyBase64Id).toBe('AbCdEfGhIjKlMnOpQrStUv')
@@ -119,7 +122,10 @@ describe('GetChatDetailsUseCase', () => {
 
       expect(result).toHaveLength(1)
       expect(result[0]!.seoFriendlyId).toBe('test-chat-type')
-      expect(mockLogger.info).toHaveBeenCalledWith('Fetched 1 chat types from AIContentPort')
+      expect(mockLogger.info).toHaveBeenCalledWith('Fetched chat types from AIContentPort', {
+        event: 'chat_types.fetch.success',
+        count: 1,
+      })
     })
 
     it('should generate seoFriendlyBase64Id when missing', async () => {
@@ -178,7 +184,10 @@ describe('GetChatDetailsUseCase', () => {
       const result = await useCase.execute(mockAuditContext)
 
       expect(mockAiChatContent.fetchChatContent).toHaveBeenCalledTimes(1)
-      expect(mockLogger.info).toHaveBeenCalledWith('Fetched 0 chat types from AIContentPort')
+      expect(mockLogger.info).toHaveBeenCalledWith('Fetched chat types from AIContentPort', {
+        event: 'chat_types.fetch.success',
+        count: 0,
+      })
       expect(result).toEqual([])
     })
 

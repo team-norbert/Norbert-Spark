@@ -227,7 +227,7 @@ describe('RegisterUserWithProviderUseCase', () => {
         await useCase.execute(dto, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('Starting user registration', {
-          email: 'john@example.com',
+          event: 'user.oauth_registration.attempt',
         })
       })
 
@@ -243,6 +243,7 @@ describe('RegisterUserWithProviderUseCase', () => {
         const result = await useCase.execute(dto, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('User registered successfully', {
+          event: 'user.registered',
           userId: result.userId,
         })
       })
@@ -420,7 +421,8 @@ describe('RegisterUserWithProviderUseCase', () => {
         await expect(useCase.execute(dto, auditContext)).rejects.toThrow(ConflictException)
 
         expect(mockLogger.error).toHaveBeenCalledWith('Failed to save user', duplicateKeyError, {
-          email: 'existing@example.com',
+          event: 'user.oauth_registration.failed',
+          reason: 'save_failed',
         })
       })
     })
@@ -457,8 +459,8 @@ describe('RegisterUserWithProviderUseCase', () => {
         await useCase.execute(dto, auditContext)
 
         expect(mockLogger.error).toHaveBeenCalledWith('Failed to send welcome email', emailError, {
+          event: 'user.welcome_email.failed',
           userId: mockUserId,
-          email: 'john@example.com',
         })
       })
     })
@@ -472,7 +474,8 @@ describe('RegisterUserWithProviderUseCase', () => {
 
         await expect(useCase.execute(dto, auditContext)).rejects.toThrow('Connection timeout')
         expect(mockLogger.error).toHaveBeenCalledWith('Failed to save user', dbError, {
-          email: 'john@example.com',
+          event: 'user.oauth_registration.failed',
+          reason: 'save_failed',
         })
       })
 

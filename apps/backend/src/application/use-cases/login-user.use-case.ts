@@ -153,7 +153,7 @@ export class LoginUserUseCase {
     expiresInSeconds: number
     roles: string[]
   }> {
-    this.logger.info('User login attempt', { email: dto.email })
+    this.logger.info('User login attempt', { event: 'user.login.attempt' })
 
     const user = await this.userRepository.findByEmail(dto.email)
 
@@ -173,14 +173,17 @@ export class LoginUserUseCase {
       // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
 
-      this.logger.warn('Login failed: User not found', { email: dto.email })
+      this.logger.warn('Login failed: User not found', {
+        event: 'user.login.failed',
+        reason: 'user_not_found',
+      })
       throw new UnauthorizedException('Invalid email or password')
     }
 
     if (!user.id) {
       this.logger.error('User found but has no ID', new InternalErrorException('Missing user ID'), {
-        email: dto.email,
-        user,
+        event: 'user.login.failed',
+        reason: 'missing_user_id',
       })
       throw new InternalErrorException('User found but has no ID', {
         email: dto.email,
@@ -204,11 +207,18 @@ export class LoginUserUseCase {
       }
       // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
-      this.logger.warn('Login failed: Invalid password', { email: dto.email, userId: user.id })
+      this.logger.warn('Login failed: Invalid password', {
+        event: 'user.login.failed',
+        reason: 'invalid_password',
+        userId: user.id,
+      })
       throw new UnauthorizedException('Invalid email or password')
     }
 
-    this.logger.info('User logged in successfully', { userId: user.id, email: dto.email })
+    this.logger.info('User logged in successfully', {
+      event: 'user.login.success',
+      userId: user.id,
+    })
 
     // Generate JWT access token
     const accessToken = this.tokenGenerator.generateToken({
@@ -269,8 +279,8 @@ export class LoginUserUseCase {
         'Failed to store refresh token',
         err instanceof Error ? err : new Error(String(err)),
         {
+          event: 'token.store.failed',
           userId: user.id,
-          email: user.getEmail(),
         }
       )
       const auditEntry: CreateAuditLogDTO = {

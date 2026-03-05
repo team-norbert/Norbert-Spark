@@ -90,6 +90,7 @@ export class ExtractDataUseCase {
    */
   async execute(GetObjectCommandKeys: ExtractDataDto, auditContext: AuditContext) {
     this.logger.info('Starting data extraction from file', {
+      event: 'data_extraction.attempt',
       fileKey: GetObjectCommandKeys.fileKey,
     })
 
@@ -113,6 +114,7 @@ export class ExtractDataUseCase {
       }
 
       this.logger.info('File type detected', {
+        event: 'data_extraction.file_type_detected',
         fileKey: GetObjectCommandKeys.fileKey,
         fileType,
       })
@@ -133,7 +135,8 @@ export class ExtractDataUseCase {
     } catch (error) {
       this.logger.error(
         'Error during data extraction',
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
+        { event: 'data_extraction.failed' }
       )
 
       const auditEntry: CreateAuditLogDTO = {

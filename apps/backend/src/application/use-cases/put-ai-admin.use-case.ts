@@ -63,7 +63,7 @@ export class PutAIAdminUseCase {
     dto: PutAIAdminDTO,
     auditContext: AuditContext
   ): Promise<DBChatAiOptions | null> {
-    this.logger.info(`Executing PutAIAdminUseCase for ID: ${id}`)
+    this.logger.info('Executing PutAIAdminUseCase', { event: 'ai_admin.update.attempt', id })
 
     try {
       const result = await this.aiAdminPort.putChatAIOptions(id, dto)

@@ -89,7 +89,9 @@ export class PresignedUploadUrlUseCase {
 
     try {
       if (!bucketName) {
-        this.logger.error('BUCKET environment variable is not configured')
+        this.logger.error('BUCKET environment variable is not configured', undefined, {
+          event: 'presigned_url.config.missing',
+        })
         throw new InternalErrorException('Bucket configuration is missing')
       }
 
@@ -99,6 +101,7 @@ export class PresignedUploadUrlUseCase {
         const fileKey = `${flow}/${fileId}/${file.filename}`
 
         this.logger.info('Generating presigned URL for file', {
+          event: 'presigned_url.generate.attempt',
           filename: file.filename,
           fileKey,
           mimetype: file.mimetype,
@@ -134,12 +137,14 @@ export class PresignedUploadUrlUseCase {
       await this.auditLog.log(auditEntry)
 
       this.logger.info('Presigned URLs generated successfully', {
+        event: 'presigned_url.generate.success',
         fileCount: uploadUrls.length,
       })
 
       return { uploadUrls }
     } catch (error) {
       this.logger.error('Error generating presigned URLs', error as Error, {
+        event: 'presigned_url.generate.failed',
         userId: auditContext.userId,
         fileCount: files.length,
       })

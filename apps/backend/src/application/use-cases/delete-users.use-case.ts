@@ -109,7 +109,7 @@ export class DeleteUsersUseCase {
    * ```
    */
   async execute(userIds: UserIdType[], auditContext: AuditContext): Promise<boolean> {
-    this.logger.info('Deleting users', { userIds })
+    this.logger.info('Deleting users', { event: 'user.delete.attempt', userIds })
 
     try {
       // Chat records are deleted by a database cascade constraint on the chats table.
@@ -117,7 +117,10 @@ export class DeleteUsersUseCase {
       // redundant operations and potential race conditions with the cascade.
       await this.userRepository.deleteUsers(userIds)
     } catch (error) {
-      this.logger.error('Error deleting users', error as Error, { userIds })
+      this.logger.error('Error deleting users', error as Error, {
+        event: 'user.delete.failed',
+        userIds,
+      })
       throw error
     }
 

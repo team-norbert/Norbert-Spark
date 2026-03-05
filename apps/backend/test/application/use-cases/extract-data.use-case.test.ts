@@ -113,6 +113,7 @@ describe('ExtractDataUseCase', () => {
         await useCase.execute(dto, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('Starting data extraction from file', {
+          event: 'data_extraction.attempt',
           fileKey: 'path/to/file.pdf',
         })
       })
@@ -125,6 +126,7 @@ describe('ExtractDataUseCase', () => {
         await useCase.execute(dto, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('File type detected', {
+          event: 'data_extraction.file_type_detected',
           fileKey: 'path/to/file.pdf',
           fileType: 'pdf',
         })
@@ -219,6 +221,7 @@ describe('ExtractDataUseCase', () => {
         await useCase.execute(dto, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('File type detected', {
+          event: 'data_extraction.file_type_detected',
           fileKey: 'path/to/archive.zip',
           fileType: 'zip',
         })
@@ -286,7 +289,8 @@ describe('ExtractDataUseCase', () => {
 
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error during data extraction',
-          expect.any(Error)
+          expect.any(Error),
+          { event: 'data_extraction.failed' }
         )
       })
 
@@ -349,7 +353,8 @@ describe('ExtractDataUseCase', () => {
 
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error during data extraction',
-          expect.any(Error)
+          expect.any(Error),
+          { event: 'data_extraction.failed' }
         )
       })
 
@@ -396,7 +401,9 @@ describe('ExtractDataUseCase', () => {
           // Expected error
         }
 
-        expect(mockLogger.error).toHaveBeenCalledWith('Error during data extraction', bucketError)
+        expect(mockLogger.error).toHaveBeenCalledWith('Error during data extraction', bucketError, {
+          event: 'data_extraction.failed',
+        })
       })
 
       it('should handle non-Error exceptions', async () => {
@@ -411,7 +418,8 @@ describe('ExtractDataUseCase', () => {
 
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error during data extraction',
-          expect.any(Error)
+          expect.any(Error),
+          { event: 'data_extraction.failed' }
         )
       })
 

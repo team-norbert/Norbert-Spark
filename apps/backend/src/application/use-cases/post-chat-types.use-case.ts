@@ -59,7 +59,7 @@ export class PostChatTypesUseCase {
    * @throws {ConflictException} If a unique constraint is violated (duplicate name or identifiers).
    */
   async execute(auditContext: AuditContext, data: PostChatTypesData): Promise<DBChatType> {
-    this.logger.info('Executing PostChatTypesUseCase with data', { data })
+    this.logger.info('Executing PostChatTypesUseCase', { event: 'chat_type.create.attempt', data })
 
     const { description, name, rag } = data
 

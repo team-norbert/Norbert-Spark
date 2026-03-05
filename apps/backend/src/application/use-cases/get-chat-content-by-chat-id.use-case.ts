@@ -17,7 +17,10 @@ export class GetChatContentByChatIdUseCase {
     chatId: ChatIdType,
     auditContext: AuditContext
   ): Promise<ChatResponseResult | null> {
-    this.logger.info('GetChatContentByChatIdUseCase.execute', chatId)
+    this.logger.info('Fetching chat content by chat ID', {
+      event: 'chat_content.fetch.attempt',
+      chatId,
+    })
     const chatContent = await this.aiService.getAIChatByChatId(chatId)
 
     const auditEntry: CreateAuditLogDTO = {

@@ -64,13 +64,14 @@ export class GetChatUseCase {
     messages: MessageSchemaType[] = [],
     auditContext: AuditContext
   ): Promise<ChatResponseResult | null> {
-    this.logger.info('Getting chat', { chatID })
+    this.logger.info('Getting chat', { event: 'chat.fetch.attempt', chatID })
 
     // Retrieve chat data from DB
     const chatData = await this.aiService.getChatResponse(chatID)
 
     if (chatData && chatData.length > 0) {
       this.logger.info('Chat data retrieved successfully', {
+        event: 'chat.fetch.success',
         chatID,
         messageCount: chatData.length,
       })
@@ -90,7 +91,7 @@ export class GetChatUseCase {
       // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
     } else {
-      this.logger.info('No chat data found for user', { chatID })
+      this.logger.info('No chat data found for user', { event: 'chat.fetch.not_found', chatID })
       return null
     }
 

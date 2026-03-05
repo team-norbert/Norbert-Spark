@@ -125,7 +125,7 @@ export class LogOutUseCase {
    * ```
    */
   async execute(userId: UserIdType, auditContext: AuditContext): Promise<void> {
-    this.logger.info(`Executing LogOutUseCase for user ID: ${userId}`)
+    this.logger.info('Executing LogOutUseCase', { event: 'user.logout.attempt', userId })
 
     try {
       // Revoke all refresh tokens for the user (log out from all devices)
@@ -148,6 +148,7 @@ export class LogOutUseCase {
         'Failed to revoke all refresh tokens for user during logout',
         err instanceof Error ? err : new Error(String(err)),
         {
+          event: 'user.logout.failed',
           // targetUserId is the user being logged out; actorUserId is who initiated the logout
           // (they differ in admin-initiated logout scenarios)
           targetUserId: userId,

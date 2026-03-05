@@ -42,7 +42,7 @@ export class GetAIAdminUseCase {
    * // options?.prompt — the system prompt configured for this chat type
    */
   async execute(id: UUIDType, auditContext: AuditContext): Promise<DBChatAiOptions | null> {
-    this.logger.info('Executing GetAIAdminUseCase')
+    this.logger.info('Executing GetAIAdminUseCase', { event: 'ai_admin.fetch.attempt', id })
 
     const result: DBChatAiOptions | null = await this.aiAdminPort.getAllChatAIOptions(id)
 
