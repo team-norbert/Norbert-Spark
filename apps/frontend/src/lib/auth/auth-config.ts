@@ -1,9 +1,9 @@
 import type { components } from '@norberts-spark/shared/openapi-types'
 import { type NextAuthOptions, type User } from 'next-auth'
-import type { JWT } from 'next-auth/jwt'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 
+import { env } from '@/env/index.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = createLogger({ prefix: '[auth-config]' })
@@ -99,8 +99,8 @@ export const authOptions: NextAuthOptions = {
   providers: [
     // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
     GoogleProvider({
-      clientId: process.env.GOOGLE_ID,
-      clientSecret: process.env.GOOGLE_SECRET,
+      clientId: env.GOOGLE_ID,
+      clientSecret: env.GOOGLE_SECRET,
     }),
     // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
     CredentialsProvider({
