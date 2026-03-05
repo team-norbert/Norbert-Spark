@@ -33,9 +33,26 @@ describe('extractDataByFileIdAction', () => {
       })),
     }))
 
+    // Mock the env module — createEnv captures values at import time so mutating
+    // process.env afterwards has no effect. A getter-based mock re-reads process.env
+    // on every property access, so per-test process.env overrides still work.
+    vi.doMock('@/env/index.js', () => ({
+      get env() {
+        return { BACKEND_URL: process.env.BACKEND_URL }
+      },
+      clientEnv: {},
+      get serverEnv() {
+        return { BACKEND_URL: process.env.BACKEND_URL }
+      },
+    }))
+
     // Mock global fetch
     mockFetch = vi.fn()
     global.fetch = mockFetch as any
+  })
+
+  beforeEach(() => {
+    process.env.BACKEND_URL = 'https://127.0.0.1:3001'
   })
 
   afterEach(() => {
@@ -133,28 +150,17 @@ describe('extractDataByFileIdAction', () => {
 
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)
 
-      const mockReader = {
-        read: vi.fn().mockResolvedValueOnce({ done: true, value: undefined }),
-        releaseLock: vi.fn(),
-      }
-
-      mockFetch.mockResolvedValue({
-        ok: true,
-        status: 200,
-        body: {
-          getReader: () => mockReader,
-        },
-      })
+      // When BACKEND_URL is unset the getter returns undefined, so the URL becomes
+      // "undefined/api/v1/..." — fetch is called with that broken URL and throws,
+      // causing the action to catch and return a failure result.
+      mockFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'))
 
       const { extractDataByFileIdAction } =
         await import('@/infrastructure/serverActions/extractDataByFileId.server.js')
 
-      await extractDataByFileIdAction(TEST_FILE_KEY)
+      const result = await extractDataByFileIdAction(TEST_FILE_KEY)
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        `https://127.0.0.1:3001/api/v1/ai/extract-data/${encodeURIComponent(TEST_FILE_KEY)}`,
-        expect.any(Object)
-      )
+      expect(result.success).toBe(false)
     })
 
     it('should properly encode fileKey in URL', async () => {

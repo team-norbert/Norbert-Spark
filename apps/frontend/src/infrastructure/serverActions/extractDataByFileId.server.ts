@@ -3,6 +3,7 @@
 import type { pdfSchema } from '@norberts-spark/shared'
 import type { z } from 'zod'
 
+import { env } from '@/env/index.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { getAuthToken } from '@/lib/auth/auth.js'
 
@@ -65,7 +66,7 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
 
     logger.info('Calling extract data endpoint', { fileKey })
 
-    const backendUrl = process.env.BACKEND_URL || 'https://127.0.0.1:3001'
+    const backendUrl = env.BACKEND_URL
     const url = `${backendUrl}/api/v1/ai/extract-data/${encodeURIComponent(fileKey)}`
 
     const response = await fetch(url, {
