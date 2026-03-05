@@ -372,6 +372,12 @@ export class AuthController {
    * @see {@link LoginUserUseCase.execute} for authentication logic
    */
   async login(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const reqLogger = this.logger.child({
+      requestId: request.id,
+      method: request.method,
+      route: request.routeOptions?.url ?? request.url,
+    })
+
     try {
       const body = request.body as components['schemas']['UserLoginRequest']
       // Convert HTTP request to DTO
@@ -400,7 +406,7 @@ export class AuthController {
         },
       })
     } catch (error) {
-      this.logger.error(
+      reqLogger.error(
         'Error in login handler',
         error instanceof Error ? error : new Error(String(error))
       )

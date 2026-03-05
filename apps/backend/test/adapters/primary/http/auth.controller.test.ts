@@ -36,7 +36,9 @@ describe('AuthController', () => {
     error: ReturnType<typeof vi.fn>
     warn: ReturnType<typeof vi.fn>
     debug: ReturnType<typeof vi.fn>
+    child: ReturnType<typeof vi.fn>
   }
+  let mockChildLogger: typeof mockLogger
 
   beforeEach(() => {
     // Reset all mocks before each test
@@ -59,7 +61,9 @@ describe('AuthController', () => {
       execute: vi.fn(),
     } as any
 
-    mockLogger = createMockLogger()
+    mockChildLogger = createMockLogger() as typeof mockLogger
+    mockLogger = createMockLogger() as typeof mockLogger
+    mockLogger.child.mockReturnValue(mockChildLogger)
 
     // Create controller instance with mocked use case
     controller = new AuthController(
@@ -78,10 +82,12 @@ describe('AuthController', () => {
 
     // Create mock Fastify request
     mockRequest = {
+      id: uuidv7(),
       body: {},
       params: {},
       query: {},
       ip: '127.0.0.1',
+      url: '/auth/login',
       headers: {
         'user-agent': 'test-user-agent',
       },
@@ -614,7 +620,10 @@ describe('AuthController', () => {
         await controller.login(mockRequest, mockReply)
 
         expect(mockReply.code).toHaveBeenCalledWith(500)
-        expect(mockLogger.error).toHaveBeenCalledWith('Error in login handler', expect.any(Error))
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in login handler',
+          expect.any(Error)
+        )
       })
 
       it('should return error message for unexpected errors', async () => {
@@ -633,7 +642,10 @@ describe('AuthController', () => {
           success: false,
           error: 'Unexpected error occurred',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error in login handler', expect.any(Error))
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in login handler',
+          expect.any(Error)
+        )
       })
 
       it('should use BaseException statusCode when available', async () => {
@@ -666,7 +678,10 @@ describe('AuthController', () => {
           success: false,
           error: 'Failed to authenticate user due to a database error',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error in login handler', expect.any(Error))
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in login handler',
+          expect.any(Error)
+        )
       })
 
       it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
@@ -685,7 +700,10 @@ describe('AuthController', () => {
           success: false,
           error: 'Failed to authenticate user due to a database error',
         })
-        expect(mockLogger.error).toHaveBeenCalledWith('Error in login handler', expect.any(Error))
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in login handler',
+          expect.any(Error)
+        )
       })
 
       it('should include success property set to false on error', async () => {
@@ -706,7 +724,10 @@ describe('AuthController', () => {
         expect(sentData.success).toBe(false)
         expect(sentData).toHaveProperty('error')
         expect(sentData).not.toHaveProperty('data')
-        expect(mockLogger.error).toHaveBeenCalledWith('Error in login handler', expect.any(Error))
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in login handler',
+          expect.any(Error)
+        )
       })
     })
 
