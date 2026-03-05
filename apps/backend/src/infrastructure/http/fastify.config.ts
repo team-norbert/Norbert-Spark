@@ -11,7 +11,10 @@ import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 import Fastify from 'fastify'
 import { uuidv7 } from 'uuidv7'
 
+import { ErrorCode } from '../../shared/constants/error-codes.js'
+import { BaseException } from '../../shared/exceptions/base.exception.js'
 import { EnvConfig } from '../config/env.config.js'
+
 /**
  * Creates and configures a Fastify server instance with CORS, Swagger, and OpenAPI support.
  *
@@ -32,7 +35,12 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     genReqId: () => uuidv7(),
     logger: {
       redact: ['req.headers.authorization'],
-      level: 'info',
+      level: EnvConfig.LOG_LEVEL,
+      base: {
+        service: EnvConfig.SERVICE_NAME,
+        env: EnvConfig.NODE_ENV,
+        version: EnvConfig.APP_VERSION,
+      },
       serializers: {
         req(req) {
           return {
@@ -50,12 +58,65 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
   })
 
   fastify.addHook('onRequest', (request, _reply, done) => {
+    // Attach request start time for duration calculation
     request.startTime = Date.now()
     done()
   })
 
-  fastify.addHook('onResponse', (request, _reply, done) => {
-    request.durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
+  fastify.addHook('onResponse', (request, reply, done) => {
+    // Skip logging here for server errors — onError already emitted http.request.error for those
+    if (reply.statusCode >= 500) {
+      done()
+      return
+    }
+
+    const durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
+    request.durationMs = durationMs
+    const userId = request.user?.sub ?? undefined
+
+    request.log.info(
+      {
+        event: 'http.request.completed',
+        requestId: request.id,
+        userId,
+        method: request.method,
+        route: request.routeOptions?.url ?? request.url,
+        statusCode: reply.statusCode,
+        durationMs,
+      },
+      'request completed'
+    )
+
+    done()
+  })
+
+  fastify.addHook('onError', (request, reply, error, done) => {
+    const statusCode = error instanceof BaseException ? error.statusCode : reply.statusCode
+
+    // Only emit http.request.error for server-side errors (5xx)
+    // 4xx client errors are handled by onResponse as http.request.completed
+    if (statusCode < 500) {
+      done()
+      return
+    }
+
+    const durationMs = request.startTime != null ? Math.round(Date.now() - request.startTime) : -1
+
+    request.log.error(
+      {
+        event: 'http.request.error',
+        requestId: request.id,
+        userId: request.user?.sub ?? undefined,
+        method: request.method,
+        route: request.routeOptions?.url ?? request.url,
+        statusCode,
+        durationMs,
+        errorCode: error instanceof BaseException ? error.code : ErrorCode.INTERNAL_ERROR,
+        err: error,
+      },
+      'request error'
+    )
+
     done()
   })
 
