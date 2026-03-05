@@ -53,6 +53,11 @@
     "node": ">=22 <25",
     "pnpm": ">=10"
   },
+  "pnpm": {
+    "overrides": {
+      "eslint-plugin-jsx-a11y>minimatch": "^3.1.2"
+    }
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
