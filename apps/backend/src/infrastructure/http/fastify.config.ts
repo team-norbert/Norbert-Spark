@@ -60,11 +60,24 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
   })
 
   // Register CORS - use specific origins rather than permissive wildcard
-  const allowedOrigins =
-    EnvConfig.NODE_ENV === 'production'
-      ? (process.env.ALLOWED_ORIGINS?.split(',') ?? [])
-      : ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://localhost:3000']
+  const isProduction = EnvConfig.NODE_ENV === 'production'
+  let allowedOrigins: string[]
 
+  if (isProduction) {
+    const rawAllowedOrigins = process.env.ALLOWED_ORIGINS
+
+    if (!rawAllowedOrigins) {
+      fastify.log.warn(
+        'ALLOWED_ORIGINS is not set in production; CORS will reject all cross-origin requests. ' +
+          'Set ALLOWED_ORIGINS to a comma-separated list of allowed origins.'
+      )
+      allowedOrigins = []
+    } else {
+      allowedOrigins = rawAllowedOrigins.split(',')
+    }
+  } else {
+    allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://localhost:3000']
+  }
   fastify.register(cors, {
     origin: allowedOrigins,
     credentials: true,
