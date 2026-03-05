@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
+import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
 import { createFastifyApp } from '../../../src/infrastructure/http/fastify.config.js'
 
 describe('Fastify request identity and timing', () => {
@@ -55,5 +56,26 @@ describe('Fastify request identity and timing', () => {
     expect(response.statusCode).toBe(200)
     expect(capturedDurationMs).toBeDefined()
     expect(capturedDurationMs).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('Fastify logger base fields', () => {
+  let app: FastifyInstance
+
+  beforeAll(async () => {
+    app = createFastifyApp()
+    await app.ready()
+  })
+
+  afterAll(async () => {
+    await app.close()
+  })
+
+  it('should bind service, env, and version to every log record via the logger base config', () => {
+    const bindings = app.log.bindings()
+
+    expect(bindings['service']).toBe(EnvConfig.SERVICE_NAME)
+    expect(bindings['env']).toBe(EnvConfig.NODE_ENV)
+    expect(bindings['version']).toBe(EnvConfig.APP_VERSION)
   })
 })
