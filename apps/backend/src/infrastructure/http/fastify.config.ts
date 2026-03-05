@@ -73,7 +73,10 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
       )
       allowedOrigins = []
     } else {
-      allowedOrigins = rawAllowedOrigins.split(',')
+      allowedOrigins = rawAllowedOrigins
+        .split(',')
+        .map((o) => o.trim())
+        .filter(Boolean)
     }
   } else {
     allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://localhost:3000']
