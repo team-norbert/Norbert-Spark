@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  eslint-plugin-jsx-a11y>minimatch: ^3.1.2
+  eslint-plugin-jsx-a11y>minimatch: ^3.1.3
 
 importers:
 
