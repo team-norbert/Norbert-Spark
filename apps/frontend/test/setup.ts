@@ -11,6 +11,11 @@ process.env.GOOGLE_ID = 'test-google-id'
 process.env.GOOGLE_SECRET = 'test-google-secret'
 process.env.NEXTAUTH_SECRET = 'test-nextauth-secret'
 
+// Set required NEXT_PUBLIC client-side env vars validated by @t3-oss/env-nextjs at import time
+process.env.NEXT_PUBLIC_POST_AI_CALLBACK_URL = 'http://localhost:3001/api/ai/callback'
+process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000'
+process.env.NEXT_PUBLIC_BACKEND_URL = 'http://localhost:3001'
+
 // Suppress MUI Popover/Select `anchorEl` layout warning in JSDOM.
 // MUI's Select uses a Popover internally and warns when its anchor element has
 // no layout dimensions — which is always the case in JSDOM since it has no
