@@ -64,7 +64,8 @@
       "redoc@<2.4.0": ">=2.4.0",
       "rollup@<2.80.0": ">=2.80.0",
       "underscore@<1.13.8": ">=1.13.8",
-      "serialize-javascript@<7.0.3": ">=7.0.3"
+      "serialize-javascript@<7.0.3": ">=7.0.3",
+      "tar@<7.5.10": ">=7.5.10"
     }
   },
   "workspaces": [
