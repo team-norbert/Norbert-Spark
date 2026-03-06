@@ -80,8 +80,15 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(testUserId)
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledTimes(1)
       expect(mockLogger.info).toHaveBeenCalledTimes(2)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${testUserId}`)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 3 chats for user ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith('Getting chats for user', {
+        event: 'chat.fetch_by_user.attempt',
+        userId: testUserId,
+      })
+      expect(mockLogger.info).toHaveBeenCalledWith('Retrieved chats for user', {
+        event: 'chat.fetch_by_user.success',
+        userId: testUserId,
+        count: 3,
+      })
     })
 
     it('should return empty array when user has no chats', async () => {
@@ -94,7 +101,11 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(result).toEqual([])
       expect(result).toHaveLength(0)
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(testUserId)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 0 chats for user ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith('Retrieved chats for user', {
+        event: 'chat.fetch_by_user.success',
+        userId: testUserId,
+        count: 0,
+      })
     })
 
     it('should return single chat when user has one chat', async () => {
@@ -113,7 +124,11 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(result).toEqual(mockChats)
       expect(result).toHaveLength(1)
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(testUserId)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 1 chat for user ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith('Retrieved chats for user', {
+        event: 'chat.fetch_by_user.success',
+        userId: testUserId,
+        count: 1,
+      })
     })
 
     it('should handle large number of chats', async () => {
@@ -130,7 +145,11 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(result).toEqual(mockChats)
       expect(result).toHaveLength(100)
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(testUserId)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 100 chats for user ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith('Retrieved chats for user', {
+        event: 'chat.fetch_by_user.success',
+        userId: testUserId,
+        count: 100,
+      })
     })
 
     it('should call logger with correct userId', async () => {
@@ -141,10 +160,15 @@ describe('GetChatsByUserIdUseCase', () => {
 
       await useCase.execute(specificUserId, auditContext)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${specificUserId}`)
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        `Retrieved 0 chats for user ID: ${specificUserId}`
-      )
+      expect(mockLogger.info).toHaveBeenCalledWith('Getting chats for user', {
+        event: 'chat.fetch_by_user.attempt',
+        userId: specificUserId,
+      })
+      expect(mockLogger.info).toHaveBeenCalledWith('Retrieved chats for user', {
+        event: 'chat.fetch_by_user.success',
+        userId: specificUserId,
+        count: 0,
+      })
     })
   })
 
@@ -164,7 +188,10 @@ describe('GetChatsByUserIdUseCase', () => {
       await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow(
         'Failed to retrieve chats'
       )
-      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith('Getting chats for user', {
+        event: 'chat.fetch_by_user.attempt',
+        userId: testUserId,
+      })
     })
 
     it('should handle network errors gracefully', async () => {
@@ -188,11 +215,15 @@ describe('GetChatsByUserIdUseCase', () => {
 
       await useCase.execute(testUserId, auditContext)
 
-      expect(mockLogger.info).toHaveBeenNthCalledWith(1, `Getting chats for user ID: ${testUserId}`)
-      expect(mockLogger.info).toHaveBeenNthCalledWith(
-        2,
-        `Retrieved 1 chat for user ID: ${testUserId}`
-      )
+      expect(mockLogger.info).toHaveBeenNthCalledWith(1, 'Getting chats for user', {
+        event: 'chat.fetch_by_user.attempt',
+        userId: testUserId,
+      })
+      expect(mockLogger.info).toHaveBeenNthCalledWith(2, 'Retrieved chats for user', {
+        event: 'chat.fetch_by_user.success',
+        userId: testUserId,
+        count: 1,
+      })
     })
 
     it('should only log initial message when error occurs', async () => {
@@ -202,7 +233,10 @@ describe('GetChatsByUserIdUseCase', () => {
       await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow()
 
       expect(mockLogger.info).toHaveBeenCalledTimes(1)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith('Getting chats for user', {
+        event: 'chat.fetch_by_user.attempt',
+        userId: testUserId,
+      })
     })
 
     it('should call error logger on repository failure', async () => {
@@ -212,6 +246,7 @@ describe('GetChatsByUserIdUseCase', () => {
       await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow()
 
       expect(mockLogger.error).toHaveBeenCalledWith('Error retrieving chats for user', error, {
+        event: 'chat.fetch_by_user.failed',
         userId: testUserId,
       })
     })

@@ -115,9 +115,13 @@ describe('GetChatUseCase', () => {
       expect(mockAIRepository.getChatResponse).toHaveBeenCalledWith(testChatId)
       expect(mockAIRepository.getChatResponse).toHaveBeenCalledTimes(1)
       expect(mockLogger.info).toHaveBeenCalledTimes(2)
-      expect(mockLogger.info).toHaveBeenCalledWith('Getting chat', { chatID: testChatId })
+      expect(mockLogger.info).toHaveBeenCalledWith('Getting chat', {
+        event: 'chat.fetch.attempt',
+        chatId: testChatId,
+      })
       expect(mockLogger.info).toHaveBeenCalledWith('Chat data retrieved successfully', {
-        chatID: testChatId,
+        event: 'chat.fetch.success',
+        chatId: testChatId,
         messageCount: 3,
       })
     })
@@ -133,7 +137,8 @@ describe('GetChatUseCase', () => {
       expect(result).toHaveLength(1)
       expect(mockAIRepository.getChatResponse).toHaveBeenCalledWith(testChatId)
       expect(mockLogger.info).toHaveBeenCalledWith('Chat data retrieved successfully', {
-        chatID: testChatId,
+        event: 'chat.fetch.success',
+        chatId: testChatId,
         messageCount: 1,
       })
     })
@@ -149,7 +154,8 @@ describe('GetChatUseCase', () => {
       expect(result).toHaveLength(50)
       expect(mockAIRepository.getChatResponse).toHaveBeenCalledWith(testChatId)
       expect(mockLogger.info).toHaveBeenCalledWith('Chat data retrieved successfully', {
-        chatID: testChatId,
+        event: 'chat.fetch.success',
+        chatId: testChatId,
         messageCount: 50,
       })
     })
@@ -162,7 +168,8 @@ describe('GetChatUseCase', () => {
       expect(result).toBeNull()
       expect(mockAIRepository.getChatResponse).toHaveBeenCalledWith(testChatId)
       expect(mockLogger.info).toHaveBeenCalledWith('No chat data found for user', {
-        chatID: testChatId,
+        event: 'chat.fetch.not_found',
+        chatId: testChatId,
       })
       expect(mockAuditLog.log).not.toHaveBeenCalled()
     })
@@ -175,7 +182,8 @@ describe('GetChatUseCase', () => {
       expect(result).toBeNull()
       expect(mockAIRepository.getChatResponse).toHaveBeenCalledWith(testChatId)
       expect(mockLogger.info).toHaveBeenCalledWith('No chat data found for user', {
-        chatID: testChatId,
+        event: 'chat.fetch.not_found',
+        chatId: testChatId,
       })
       expect(mockAuditLog.log).not.toHaveBeenCalled()
     })
@@ -208,7 +216,10 @@ describe('GetChatUseCase', () => {
       await useCase.execute(specificChatId, [], auditContext)
 
       expect(mockAIRepository.getChatResponse).toHaveBeenCalledWith(specificChatId)
-      expect(mockLogger.info).toHaveBeenCalledWith('Getting chat', { chatID: specificChatId })
+      expect(mockLogger.info).toHaveBeenCalledWith('Getting chat', {
+        event: 'chat.fetch.attempt',
+        chatId: specificChatId,
+      })
     })
   })
 
@@ -342,9 +353,13 @@ describe('GetChatUseCase', () => {
 
       await useCase.execute(testChatId, [], auditContext)
 
-      expect(mockLogger.info).toHaveBeenNthCalledWith(1, 'Getting chat', { chatID: testChatId })
+      expect(mockLogger.info).toHaveBeenNthCalledWith(1, 'Getting chat', {
+        event: 'chat.fetch.attempt',
+        chatId: testChatId,
+      })
       expect(mockLogger.info).toHaveBeenNthCalledWith(2, 'Chat data retrieved successfully', {
-        chatID: testChatId,
+        event: 'chat.fetch.success',
+        chatId: testChatId,
         messageCount: 5,
       })
     })
@@ -355,7 +370,8 @@ describe('GetChatUseCase', () => {
       await useCase.execute(testChatId, [], auditContext)
 
       expect(mockLogger.info).toHaveBeenCalledWith('No chat data found for user', {
-        chatID: testChatId,
+        event: 'chat.fetch.not_found',
+        chatId: testChatId,
       })
     })
 

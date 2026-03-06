@@ -101,12 +101,16 @@ export class GetChatAiOptionsUseCase {
         })
       } catch (error) {
         this.logger.error('Error logging audit for chat retrieval', error as Error, {
+          event: 'chat_options.audit.failed',
           userId: auditContext.userId,
         })
       }
       return result ?? null
     } catch (error) {
-      this.logger.error('Error in GetChatAiOptionsUseCase.execute', error as Error, { chatTypeId })
+      this.logger.error('Error in GetChatAiOptionsUseCase.execute', error as Error, {
+        event: 'chat_options.fetch.failed',
+        chatTypeId,
+      })
       await this.auditLog.log({
         userId: auditContext.userId,
         entityType: EntityType.AI_OPTIONS,

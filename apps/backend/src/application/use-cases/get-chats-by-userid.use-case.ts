@@ -54,13 +54,14 @@ export class GetChatsByUserIdUseCase {
    * // chats[0].chatType — associated chat-type details
    */
   async execute(userId: UserIdType, auditContext: AuditContext): Promise<ChatWithType[]> {
-    this.logger.info(`Getting chats for user ID: ${userId}`)
+    this.logger.info('Getting chats for user', { event: 'chat.fetch_by_user.attempt', userId })
 
     let chats: ChatWithType[]
     try {
       chats = await this.aiRepository.getChatsByUserId(userId)
     } catch (error) {
       this.logger.error('Error retrieving chats for user', error as Error, {
+        event: 'chat.fetch_by_user.failed',
         userId,
       })
 
@@ -82,9 +83,11 @@ export class GetChatsByUserIdUseCase {
       throw error
     }
 
-    this.logger.info(
-      `Retrieved ${chats.length} chat${chats.length === 1 ? '' : 's'} for user ID: ${userId}`
-    )
+    this.logger.info('Retrieved chats for user', {
+      event: 'chat.fetch_by_user.success',
+      userId,
+      count: chats.length,
+    })
 
     const auditEntry: CreateAuditLogDTO = {
       userId: auditContext.userId,

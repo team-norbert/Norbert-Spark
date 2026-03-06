@@ -189,7 +189,10 @@ describe('GetAllUsersUseCase', () => {
       const params: PaginationParams = { limit: 20, offset: 5 }
       await useCase.execute(params)
 
-      expect(mockLogger.info).toHaveBeenCalledWith('Fetching all users', { params })
+      expect(mockLogger.info).toHaveBeenCalledWith('Fetching all users', {
+        event: 'user.fetch_all.attempt',
+        params,
+      })
     })
 
     it('should log after successfully fetching users', async () => {
@@ -208,6 +211,7 @@ describe('GetAllUsersUseCase', () => {
       await useCase.execute()
 
       expect(mockLogger.info).toHaveBeenCalledWith('Successfully fetched all users', {
+        event: 'user.fetch_all.success',
         count: 2,
         total: 50,
       })
@@ -223,7 +227,10 @@ describe('GetAllUsersUseCase', () => {
 
       await useCase.execute()
 
-      expect(mockLogger.info).toHaveBeenCalledWith('Fetching all users', { params: undefined })
+      expect(mockLogger.info).toHaveBeenCalledWith('Fetching all users', {
+        event: 'user.fetch_all.attempt',
+        params: undefined,
+      })
     })
 
     it('should log correct count even with pagination', async () => {
@@ -243,6 +250,7 @@ describe('GetAllUsersUseCase', () => {
       await useCase.execute({ limit: 3, offset: 0 })
 
       expect(mockLogger.info).toHaveBeenCalledWith('Successfully fetched all users', {
+        event: 'user.fetch_all.success',
         count: 3,
         total: 100,
       })
@@ -310,7 +318,9 @@ describe('GetAllUsersUseCase', () => {
         // Expected error
       }
 
-      expect(mockLogger.error).toHaveBeenCalledWith('Failed to fetch all users', repositoryError)
+      expect(mockLogger.error).toHaveBeenCalledWith('Failed to fetch all users', repositoryError, {
+        event: 'user.fetch_all.failed',
+      })
     })
 
     it('should rethrow the original error from repository', async () => {

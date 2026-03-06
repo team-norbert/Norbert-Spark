@@ -7,6 +7,7 @@ import { PresignedUploadUrlUseCase } from '../../../src/application/use-cases/pr
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
+import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
 import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 // Mock EnvConfig
@@ -134,6 +135,7 @@ describe('PresignedUploadUrlUseCase', () => {
         await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockLogger.info).toHaveBeenCalledWith('Presigned URLs generated successfully', {
+          event: 'presigned_url.generate.success',
           fileCount: 2,
         })
       })
@@ -223,7 +225,9 @@ describe('PresignedUploadUrlUseCase', () => {
         )
 
         expect(mockLogger.error).toHaveBeenCalledWith(
-          'BUCKET environment variable is not configured'
+          'BUCKET environment variable is not configured',
+          expect.any(InternalErrorException),
+          { event: 'presigned_url.config.missing' }
         )
       })
 
@@ -421,6 +425,7 @@ describe('PresignedUploadUrlUseCase', () => {
         await useCase.execute(files, auditContext, 'data-extraction')
 
         expect(mockLogger.info).toHaveBeenCalledWith('Presigned URLs generated successfully', {
+          event: 'presigned_url.generate.success',
           fileCount: 5,
         })
       })

@@ -83,9 +83,10 @@ describe('PostAIAdminUseCase', () => {
 
       const result = await useCase.execute(chatTypeId, dto, mockAuditContext)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        `Executing PostAIAdminUseCase for ID: ${chatTypeId}`
-      )
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing PostAIAdminUseCase', {
+        event: 'ai_admin.create.attempt',
+        id: chatTypeId,
+      })
       expect(mockAiAdminPort.createChatAIOptions).toHaveBeenCalledTimes(1)
       expect(mockAiAdminPort.createChatAIOptions).toHaveBeenCalledWith(chatTypeId, dto)
       expect(result).toEqual(mockCreatedOptions)
@@ -377,9 +378,10 @@ describe('PostAIAdminUseCase', () => {
       await useCase.execute(chatTypeId, dto, mockAuditContext)
 
       expect(mockLogger.info).toHaveBeenCalledTimes(1)
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        `Executing PostAIAdminUseCase for ID: ${chatTypeId}`
-      )
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing PostAIAdminUseCase', {
+        event: 'ai_admin.create.attempt',
+        id: chatTypeId,
+      })
     })
 
     it('should not call logger.error on a successful execution', async () => {

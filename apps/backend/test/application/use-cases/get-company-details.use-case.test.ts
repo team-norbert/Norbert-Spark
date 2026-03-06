@@ -91,8 +91,12 @@ describe('GetCompanyDetailsUseCase', () => {
       })
       expect(mockCompanyDetailsRepo.getCompanyDetails).toHaveBeenCalledTimes(1)
       expect(mockCompanyDetailsRepo.getKeyPersonDetails).toHaveBeenCalledTimes(1)
-      expect(mockLogger.info).toHaveBeenCalledWith('Fetching company details')
-      expect(mockLogger.info).toHaveBeenCalledWith('Company details fetched successfully')
+      expect(mockLogger.info).toHaveBeenCalledWith('Fetching company details', {
+        event: 'company.fetch.attempt',
+      })
+      expect(mockLogger.info).toHaveBeenCalledWith('Company details fetched successfully', {
+        event: 'company.fetch.success',
+      })
     })
 
     it('should handle null company and key person', async () => {
@@ -221,7 +225,9 @@ describe('GetCompanyDetailsUseCase', () => {
       vi.mocked(mockCompanyDetailsRepo.getKeyPersonDetails).mockResolvedValue(null)
 
       await expect(useCase.execute(auditContext)).rejects.toThrow('Database connection failed')
-      expect(mockLogger.info).toHaveBeenCalledWith('Fetching company details')
+      expect(mockLogger.info).toHaveBeenCalledWith('Fetching company details', {
+        event: 'company.fetch.attempt',
+      })
     })
 
     it('should throw error when key person repository fails', async () => {
@@ -247,8 +253,12 @@ describe('GetCompanyDetailsUseCase', () => {
 
       await expect(useCase.execute(auditContext)).rejects.toThrow()
 
-      expect(mockLogger.info).toHaveBeenCalledWith('Fetching company details')
-      expect(mockLogger.info).not.toHaveBeenCalledWith('Company details fetched successfully')
+      expect(mockLogger.info).toHaveBeenCalledWith('Fetching company details', {
+        event: 'company.fetch.attempt',
+      })
+      expect(mockLogger.info).not.toHaveBeenCalledWith('Company details fetched successfully', {
+        event: 'company.fetch.success',
+      })
     })
   })
 
@@ -260,8 +270,12 @@ describe('GetCompanyDetailsUseCase', () => {
       await useCase.execute(auditContext)
 
       expect(mockLogger.info).toHaveBeenCalledTimes(2)
-      expect(mockLogger.info).toHaveBeenNthCalledWith(1, 'Fetching company details')
-      expect(mockLogger.info).toHaveBeenNthCalledWith(2, 'Company details fetched successfully')
+      expect(mockLogger.info).toHaveBeenNthCalledWith(1, 'Fetching company details', {
+        event: 'company.fetch.attempt',
+      })
+      expect(mockLogger.info).toHaveBeenNthCalledWith(2, 'Company details fetched successfully', {
+        event: 'company.fetch.success',
+      })
     })
 
     it('should only log initial message when error occurs', async () => {
@@ -271,7 +285,9 @@ describe('GetCompanyDetailsUseCase', () => {
       await expect(useCase.execute(auditContext)).rejects.toThrow()
 
       expect(mockLogger.info).toHaveBeenCalledTimes(1)
-      expect(mockLogger.info).toHaveBeenCalledWith('Fetching company details')
+      expect(mockLogger.info).toHaveBeenCalledWith('Fetching company details', {
+        event: 'company.fetch.attempt',
+      })
     })
   })
 

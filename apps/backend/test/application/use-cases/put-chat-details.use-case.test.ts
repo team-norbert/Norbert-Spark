@@ -71,12 +71,14 @@ describe('PutChatDetailsUseCase', () => {
 
       const result = await useCase.execute(mockAuditContext, dto)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        `Executing PutChatDetailsUseCase for id: ${chatTypeId}`
-      )
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        `Received details to update: ${JSON.stringify(dto)}`
-      )
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing PutChatDetailsUseCase', {
+        event: 'chat_type.update.attempt',
+        id: chatTypeId,
+      })
+      expect(mockLogger.debug).toHaveBeenCalledWith('Received details to update', {
+        event: 'chat_type.update.details',
+        details: dto,
+      })
       expect(mockAiChatContent.putChatTypeDetails).toHaveBeenCalledTimes(1)
       expect(mockAiChatContent.putChatTypeDetails).toHaveBeenCalledWith(dto)
       expect(result).toEqual(mockResult)
@@ -234,9 +236,10 @@ describe('PutChatDetailsUseCase', () => {
 
       const result = await useCase.execute(mockAuditContext, dto)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        `Executing PutChatDetailsUseCase for id: ${chatTypeId}`
-      )
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing PutChatDetailsUseCase', {
+        event: 'chat_type.update.attempt',
+        id: chatTypeId,
+      })
       expect(mockAiChatContent.putChatTypeDetails).toHaveBeenCalledWith(dto)
       expect(result).toBeNull()
       expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
@@ -376,12 +379,14 @@ describe('PutChatDetailsUseCase', () => {
 
       await useCase.execute(mockAuditContext, dto)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        `Executing PutChatDetailsUseCase for id: ${chatTypeId}`
-      )
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        `Received details to update: ${JSON.stringify(dto)}`
-      )
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing PutChatDetailsUseCase', {
+        event: 'chat_type.update.attempt',
+        id: chatTypeId,
+      })
+      expect(mockLogger.debug).toHaveBeenCalledWith('Received details to update', {
+        event: 'chat_type.update.details',
+        details: dto,
+      })
     })
   })
 })

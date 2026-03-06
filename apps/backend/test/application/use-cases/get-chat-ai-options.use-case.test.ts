@@ -106,7 +106,7 @@ describe('GetChatAiOptionsUseCase', () => {
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error in GetChatAiOptionsUseCase.execute',
         repositoryError,
-        { chatTypeId }
+        { event: 'chat_options.fetch.failed', chatTypeId }
       )
     })
 
@@ -134,7 +134,7 @@ describe('GetChatAiOptionsUseCase', () => {
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error in GetChatAiOptionsUseCase.execute',
         timeoutError,
-        { chatTypeId }
+        { event: 'chat_options.fetch.failed', chatTypeId }
       )
     })
   })

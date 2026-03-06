@@ -66,7 +66,10 @@ export class GetChatDetailsUseCase {
    */
   public async execute(_auditContext: AuditContext): Promise<DBChatType[]> {
     const result = await this.aiChatContent.fetchChatContent()
-    this.logger.info(`Fetched ${result.length} chat types from AIContentPort`)
+    this.logger.info('Fetched chat types from AIContentPort', {
+      event: 'chat_types.fetch.success',
+      count: result.length,
+    })
     return result.map((chatType: DBChatType) => {
       let seoFriendlyId = chatType.seoFriendlyId
       let seoFriendlyBase64Id = chatType.seoFriendlyBase64Id
@@ -77,10 +80,12 @@ export class GetChatDetailsUseCase {
       if (!seoFriendlyBase64Id && chatType.id) {
         const base64Id = Uuid7Util.toBase64(chatType.id)
         if (!base64Id) {
-          this.logger.error(
-            `Failed to generate seoFriendlyBase64Id from chatType.id=${chatType.id}`
-          )
-          throw new Error('Failed to generate seoFriendlyBase64Id from chat type ID')
+          const error = new Error('Failed to generate seoFriendlyBase64Id from chat type ID')
+          this.logger.error('Failed to generate seoFriendlyBase64Id', error, {
+            event: 'chat_types.base64_generation.failed',
+            chatTypeId: chatType.id,
+          })
+          throw error
         }
         seoFriendlyBase64Id = base64Id
       }

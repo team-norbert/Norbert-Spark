@@ -76,9 +76,10 @@ describe('LogOutUseCase', () => {
 
         await useCase.execute(userId, contextWithUser)
 
-        expect(mockLogger.info).toHaveBeenCalledWith(
-          `Executing LogOutUseCase for user ID: ${userId}`
-        )
+        expect(mockLogger.info).toHaveBeenCalledWith('Executing LogOutUseCase', {
+          event: 'user.logout.attempt',
+          userId,
+        })
       })
 
       it('should create audit log entry with correct action', async () => {
@@ -189,7 +190,7 @@ describe('LogOutUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Failed to revoke all refresh tokens for user during logout',
           error,
-          { targetUserId: userId, actorUserId: contextWithUser.userId }
+          { event: 'user.logout.failed', targetUserId: userId, actorUserId: contextWithUser.userId }
         )
       })
 
@@ -227,7 +228,7 @@ describe('LogOutUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Failed to revoke all refresh tokens for user during logout',
           error,
-          { targetUserId: userId, actorUserId: contextWithUser.userId }
+          { event: 'user.logout.failed', targetUserId: userId, actorUserId: contextWithUser.userId }
         )
       })
 
@@ -244,7 +245,7 @@ describe('LogOutUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Failed to revoke all refresh tokens for user during logout',
           expect.objectContaining({ message: 'string error' }),
-          { targetUserId: userId, actorUserId: contextWithUser.userId }
+          { event: 'user.logout.failed', targetUserId: userId, actorUserId: contextWithUser.userId }
         )
       })
 
@@ -261,7 +262,7 @@ describe('LogOutUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Failed to revoke all refresh tokens for user during logout',
           expect.objectContaining({ message: 'null' }),
-          { targetUserId: userId, actorUserId: contextWithUser.userId }
+          { event: 'user.logout.failed', targetUserId: userId, actorUserId: contextWithUser.userId }
         )
       })
 
@@ -278,7 +279,7 @@ describe('LogOutUseCase', () => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Failed to revoke all refresh tokens for user during logout',
           expect.objectContaining({ message: 'undefined' }),
-          { targetUserId: userId, actorUserId: contextWithUser.userId }
+          { event: 'user.logout.failed', targetUserId: userId, actorUserId: contextWithUser.userId }
         )
       })
 

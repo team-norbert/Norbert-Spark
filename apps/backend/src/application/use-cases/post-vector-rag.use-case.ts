@@ -18,7 +18,8 @@ export class PostVectorRagUseCase {
     } catch (error) {
       this.logger.error(
         'Error in PostVectorRagUseCase',
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
+        { event: 'rag_vector.create.failed' }
       )
     }
   }

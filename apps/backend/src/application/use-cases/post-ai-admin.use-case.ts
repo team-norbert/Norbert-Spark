@@ -57,7 +57,7 @@ export class PostAIAdminUseCase {
     dto: PostAIAdminDTO,
     auditContext: AuditContext
   ): Promise<DBChatAiOptions | null> {
-    this.logger.info(`Executing PostAIAdminUseCase for ID: ${id}`)
+    this.logger.info('Executing PostAIAdminUseCase', { event: 'ai_admin.create.attempt', id })
 
     try {
       const result = await this.aiAdminPort.createChatAIOptions(id, dto)

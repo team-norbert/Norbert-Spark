@@ -86,12 +86,12 @@ export class GetUserByIdUseCase {
    * ```
    */
   async execute(userId: UserIdType, _auditContext: AuditContext): Promise<User | null> {
-    this.logger.info(`Executing GetUserByIdUseCase for userId: ${userId}`)
+    this.logger.info('Executing GetUserByIdUseCase', { event: 'user.fetch.attempt', userId })
 
     const user = await this.userRepository.findById(userId)
 
     if (!user) {
-      this.logger.warn(`User with ID ${userId} not found`)
+      this.logger.warn('User not found', { event: 'user.fetch.not_found', userId })
       return null
     }
 

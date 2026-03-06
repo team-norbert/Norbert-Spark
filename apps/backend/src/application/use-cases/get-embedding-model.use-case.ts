@@ -36,7 +36,7 @@ export class GetEmbeddingModelUseCase {
    *   records.
    */
   public async execute(): Promise<DBEmbeddingModelSelect[]> {
-    this.logger.info('GetEmbeddingModelUseCase.execute', {})
+    this.logger.info('Fetching embedding models', { event: 'embedding_model.fetch.attempt' })
     return this.aiRagRepository.getAllEmbeddingModels()
   }
 }

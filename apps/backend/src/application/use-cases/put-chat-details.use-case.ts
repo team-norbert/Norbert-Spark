@@ -80,8 +80,11 @@ export class PutChatDetailsUseCase {
    * ```
    */
   async execute(auditContext: AuditContext, details: PutChatTypeDto): Promise<QueryResult | null> {
-    this.logger.info(`Executing PutChatDetailsUseCase for id: ${details.id}`)
-    this.logger.debug(`Received details to update: ${JSON.stringify(details)}`)
+    this.logger.info('Executing PutChatDetailsUseCase', {
+      event: 'chat_type.update.attempt',
+      id: details.id,
+    })
+    this.logger.debug('Received details to update', { event: 'chat_type.update.details', details })
 
     const result = await this.aiChatContent.putChatTypeDetails(details)
 

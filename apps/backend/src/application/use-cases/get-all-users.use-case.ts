@@ -70,7 +70,7 @@ export class GetAllUsersUseCase {
    * ```
    */
   async execute(params?: PaginationParams): Promise<PaginatedUsersDto> {
-    this.logger.info('Fetching all users', { params })
+    this.logger.info('Fetching all users', { event: 'user.fetch_all.attempt', params })
 
     try {
       const result = await this.userRepository.findAll(params)
@@ -93,6 +93,7 @@ export class GetAllUsersUseCase {
       })
 
       this.logger.info('Successfully fetched all users', {
+        event: 'user.fetch_all.success',
         count: userDtos.length,
         total: result.total,
       })
@@ -104,7 +105,9 @@ export class GetAllUsersUseCase {
         offset: result.offset,
       }
     } catch (error) {
-      this.logger.error('Failed to fetch all users', error as Error)
+      this.logger.error('Failed to fetch all users', error as Error, {
+        event: 'user.fetch_all.failed',
+      })
       throw error
     }
   }

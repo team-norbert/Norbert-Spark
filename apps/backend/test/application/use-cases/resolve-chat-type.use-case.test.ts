@@ -57,8 +57,15 @@ describe('ResolveChatTypeUseCase', () => {
 
         expect(result).toBe(resolvedId)
         expect(mockAIContentRepository.resolveChatTypeByParam).toHaveBeenCalledWith(param)
-        expect(mockLogger.info).toHaveBeenCalledWith(`Resolving chat type by param: ${param}`)
-        expect(mockLogger.info).toHaveBeenCalledWith(`Chat type resolved: ${param} → ${resolvedId}`)
+        expect(mockLogger.info).toHaveBeenCalledWith('Resolving chat type by param', {
+          event: 'chat_type.resolve.attempt',
+          param,
+        })
+        expect(mockLogger.info).toHaveBeenCalledWith('Chat type resolved', {
+          event: 'chat_type.resolve.success',
+          param,
+          resolvedId,
+        })
       })
 
       it('should log audit entry for successful UUID resolution', async () => {
@@ -96,8 +103,15 @@ describe('ResolveChatTypeUseCase', () => {
 
         expect(result).toBe(resolvedId)
         expect(mockAIContentRepository.resolveChatTypeByParam).toHaveBeenCalledWith(param)
-        expect(mockLogger.info).toHaveBeenCalledWith(`Resolving chat type by param: ${param}`)
-        expect(mockLogger.info).toHaveBeenCalledWith(`Chat type resolved: ${param} → ${resolvedId}`)
+        expect(mockLogger.info).toHaveBeenCalledWith('Resolving chat type by param', {
+          event: 'chat_type.resolve.attempt',
+          param,
+        })
+        expect(mockLogger.info).toHaveBeenCalledWith('Chat type resolved', {
+          event: 'chat_type.resolve.success',
+          param,
+          resolvedId,
+        })
       })
 
       it('should log audit entry for successful seoFriendlyId resolution', async () => {
@@ -135,8 +149,15 @@ describe('ResolveChatTypeUseCase', () => {
 
         expect(result).toBe(resolvedId)
         expect(mockAIContentRepository.resolveChatTypeByParam).toHaveBeenCalledWith(param)
-        expect(mockLogger.info).toHaveBeenCalledWith(`Resolving chat type by param: ${param}`)
-        expect(mockLogger.info).toHaveBeenCalledWith(`Chat type resolved: ${param} → ${resolvedId}`)
+        expect(mockLogger.info).toHaveBeenCalledWith('Resolving chat type by param', {
+          event: 'chat_type.resolve.attempt',
+          param,
+        })
+        expect(mockLogger.info).toHaveBeenCalledWith('Chat type resolved', {
+          event: 'chat_type.resolve.success',
+          param,
+          resolvedId,
+        })
       })
 
       it('should log audit entry for successful seoFriendlyBase64Id resolution', async () => {
@@ -173,7 +194,10 @@ describe('ResolveChatTypeUseCase', () => {
       const result = await useCase.execute(param, mockAuditContext)
 
       expect(result).toBeNull()
-      expect(mockLogger.warn).toHaveBeenCalledWith(`Chat type not found for param: ${param}`)
+      expect(mockLogger.warn).toHaveBeenCalledWith('Chat type not found for param', {
+        event: 'chat_type.resolve.not_found',
+        param,
+      })
     })
 
     it('should log audit entry with FETCH_FAILED action when not found', async () => {
@@ -206,7 +230,10 @@ describe('ResolveChatTypeUseCase', () => {
       const result = await useCase.execute(param, mockAuditContext)
 
       expect(result).toBeNull()
-      expect(mockLogger.warn).toHaveBeenCalledWith(`Chat type not found for param: ${param}`)
+      expect(mockLogger.warn).toHaveBeenCalledWith('Chat type not found for param', {
+        event: 'chat_type.resolve.not_found',
+        param,
+      })
     })
 
     it('should return null for UUID that does not exist in database', async () => {
@@ -217,7 +244,10 @@ describe('ResolveChatTypeUseCase', () => {
       const result = await useCase.execute(param, mockAuditContext)
 
       expect(result).toBeNull()
-      expect(mockLogger.warn).toHaveBeenCalledWith(`Chat type not found for param: ${param}`)
+      expect(mockLogger.warn).toHaveBeenCalledWith('Chat type not found for param', {
+        event: 'chat_type.resolve.not_found',
+        param,
+      })
     })
   })
 
@@ -242,6 +272,7 @@ describe('ResolveChatTypeUseCase', () => {
       await expect(useCase.execute(param, mockAuditContext)).rejects.toThrow('Query timeout')
 
       expect(mockLogger.error).toHaveBeenCalledWith('Error resolving chat type', dbError, {
+        event: 'chat_type.resolve.failed',
         param,
       })
     })
@@ -330,11 +361,15 @@ describe('ResolveChatTypeUseCase', () => {
       await useCase.execute(param, mockAuditContext)
 
       expect(mockLogger.info).toHaveBeenCalledTimes(2)
-      expect(mockLogger.info).toHaveBeenNthCalledWith(1, `Resolving chat type by param: ${param}`)
-      expect(mockLogger.info).toHaveBeenNthCalledWith(
-        2,
-        `Chat type resolved: ${param} → ${resolvedId}`
-      )
+      expect(mockLogger.info).toHaveBeenNthCalledWith(1, 'Resolving chat type by param', {
+        event: 'chat_type.resolve.attempt',
+        param,
+      })
+      expect(mockLogger.info).toHaveBeenNthCalledWith(2, 'Chat type resolved', {
+        event: 'chat_type.resolve.success',
+        param,
+        resolvedId,
+      })
     })
   })
 
@@ -368,7 +403,10 @@ describe('ResolveChatTypeUseCase', () => {
 
       await useCase.execute(param, mockAuditContext)
 
-      expect(mockLogger.warn).toHaveBeenCalledWith(`Chat type not found for param: ${param}`)
+      expect(mockLogger.warn).toHaveBeenCalledWith('Chat type not found for param', {
+        event: 'chat_type.resolve.not_found',
+        param,
+      })
     })
 
     it('should log info message at start even when not found', async () => {
@@ -378,7 +416,10 @@ describe('ResolveChatTypeUseCase', () => {
 
       await useCase.execute(param, mockAuditContext)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(`Resolving chat type by param: ${param}`)
+      expect(mockLogger.info).toHaveBeenCalledWith('Resolving chat type by param', {
+        event: 'chat_type.resolve.attempt',
+        param,
+      })
     })
   })
 })

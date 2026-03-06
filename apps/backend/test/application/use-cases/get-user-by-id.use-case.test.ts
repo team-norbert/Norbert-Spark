@@ -108,9 +108,10 @@ describe('GetUserByIdUseCase', () => {
 
         await useCase.execute(testUserId, auditContext)
 
-        expect(mockLogger.info).toHaveBeenCalledWith(
-          expect.stringContaining(`Executing GetUserByIdUseCase for userId: ${testUserId}`)
-        )
+        expect(mockLogger.info).toHaveBeenCalledWith('Executing GetUserByIdUseCase', {
+          event: 'user.fetch.attempt',
+          userId: testUserId,
+        })
       })
 
       it('should handle different user types (admin)', async () => {
@@ -181,7 +182,8 @@ describe('GetUserByIdUseCase', () => {
         await useCase.execute(testUserId, auditContext)
 
         expect(mockLogger.warn).toHaveBeenCalledWith(
-          expect.stringContaining(`User with ID ${testUserId} not found`)
+          'User not found',
+          expect.objectContaining({ userId: testUserId })
         )
       })
 
@@ -218,7 +220,8 @@ describe('GetUserByIdUseCase', () => {
         await expect(useCase.execute(testUserId, auditContext)).rejects.toThrow()
 
         expect(mockLogger.info).toHaveBeenCalledWith(
-          expect.stringContaining(`Executing GetUserByIdUseCase for userId: ${testUserId}`)
+          'Executing GetUserByIdUseCase',
+          expect.objectContaining({ userId: testUserId })
         )
       })
 
@@ -307,8 +310,14 @@ describe('GetUserByIdUseCase', () => {
 
         await useCase.execute(testUserId, auditContext)
 
-        expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining(testUserId))
-        expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining(testUserId))
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          'Executing GetUserByIdUseCase',
+          expect.objectContaining({ userId: testUserId })
+        )
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          'User not found',
+          expect.objectContaining({ userId: testUserId })
+        )
       })
     })
 
@@ -457,7 +466,10 @@ describe('GetUserByIdUseCase', () => {
         const result = await useCase.execute(longUserId, auditContext)
 
         expect(result).toBe(testUser)
-        expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining(longUserId))
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          'Executing GetUserByIdUseCase',
+          expect.objectContaining({ userId: longUserId })
+        )
       })
 
       it('should handle repository returning undefined (returns null)', async () => {

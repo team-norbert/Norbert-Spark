@@ -83,9 +83,10 @@ describe('PutAIAdminUseCase', () => {
 
       const result = await useCase.execute(chatTypeId, dto, mockAuditContext)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        `Executing PutAIAdminUseCase for ID: ${chatTypeId}`
-      )
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing PutAIAdminUseCase', {
+        event: 'ai_admin.update.attempt',
+        id: chatTypeId,
+      })
       expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledTimes(1)
       expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledWith(chatTypeId, dto)
       expect(result).toEqual(mockUpdatedOptions)
@@ -297,9 +298,10 @@ describe('PutAIAdminUseCase', () => {
       )
 
       expect(mockAiAdminPort.putChatAIOptions).toHaveBeenCalledWith(chatTypeId, dto)
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        `Executing PutAIAdminUseCase for ID: ${chatTypeId}`
-      )
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing PutAIAdminUseCase', {
+        event: 'ai_admin.update.attempt',
+        id: chatTypeId,
+      })
       // Audit log should be called for failed operations
       expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
       expect(mockAuditLog.log).toHaveBeenCalledWith({
@@ -461,9 +463,10 @@ describe('PutAIAdminUseCase', () => {
       await useCase.execute(chatTypeId, dto, mockAuditContext)
 
       expect(mockLogger.info).toHaveBeenCalledTimes(1)
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        `Executing PutAIAdminUseCase for ID: ${chatTypeId}`
-      )
+      expect(mockLogger.info).toHaveBeenCalledWith('Executing PutAIAdminUseCase', {
+        event: 'ai_admin.update.attempt',
+        id: chatTypeId,
+      })
     })
 
     it('should not log error when audit succeeds', async () => {

@@ -153,7 +153,7 @@ describe('RegisterUserUseCase', () => {
         await useCase.execute(dto, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('Starting user registration', {
-          email: 'john@example.com',
+          event: 'user.registration.attempt',
         })
       })
 
@@ -166,6 +166,7 @@ describe('RegisterUserUseCase', () => {
         const result = await useCase.execute(dto, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('User registered successfully', {
+          event: 'user.registered',
           userId: result.userId,
         })
       })
@@ -309,8 +310,8 @@ describe('RegisterUserUseCase', () => {
 
         expect(mockLogger.error).toHaveBeenCalledTimes(1)
         expect(mockLogger.error).toHaveBeenCalledWith('Failed to send welcome email', emailError, {
+          event: 'user.welcome_email.failed',
           userId: result.userId,
-          email: 'john@example.com',
         })
       })
 
