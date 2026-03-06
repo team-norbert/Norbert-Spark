@@ -28,7 +28,7 @@ Evolve the existing `UnifiedLogger` to emit **structured, machine-readable log o
 | **No external logging library** | Next.js bundles server and client code together; conditionally importing a Node-only library (Pino, Winston) causes build-time errors or inflated client bundles. The `UnifiedLogger` approach avoids this entirely.   |
 | **Synchronous logging only**    | Because the logger must work in both server (Node/Edge) and client (browser) runtimes, async transports, file writes, or network calls are out of scope. `console.*` delegates to the runtime's built-in log handling. |
 | **Production performance**      | `trace`, `info`, and `debug` are no-ops in production. Only `warn` and `error` execute, and these should fire rarely. The overhead of building a structured object per warn/error call is negligible.                  |
-| **GDPR compliance**             | Same rules as the backend: never log email, IP, name, phone, tokens, or cookies. Only log opaque UUIDs (`userId`, `sessionId`).                                                                                        |
+| **GDPR compliance**             | Same rules as the backend: never log email, IP, name, phone, tokens, cookies, or session identifiers. Only log opaque, non-secret internal IDs (for example, `userId`, `requestId`, `correlationId`).                |
 
 ---
 
@@ -45,13 +45,12 @@ Evolve the existing `UnifiedLogger` to emit **structured, machine-readable log o
   "service": "norberts-spark-frontend",
   "env": "production",
   "version": "1.2.0",
-  "context": "backendRequest",
+  "loggerContext": "backendRequest",
   "statusCode": 502,
   "endpoint": "/api/v1/ai/chats",
   "durationMs": 1200,
   "err": {
-    "name": "Error",
-    "message": "Bad Gateway"
+    "name": "Error"
   }
 }
 ```
@@ -66,10 +65,9 @@ Evolve the existing `UnifiedLogger` to emit **structured, machine-readable log o
   "message": "Chat transport error",
   "service": "norberts-spark-frontend",
   "env": "production",
-  "context": "useAIChat",
+  "loggerContext": "useAIChat",
   "err": {
-    "name": "Error",
-    "message": "Network request failed"
+    "name": "Error"
   }
 }
 ```
@@ -84,7 +82,7 @@ Evolve the existing `UnifiedLogger` to emit **structured, machine-readable log o
 | ----------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | `level`     | The log method called (`trace` / `debug` / `info` / `warn` / `error`) | Lowercase string, matches `LogLevel` enum                                 |
 | `timestamp` | `new Date().toISOString()`                                            | ISO 8601, already present                                                 |
-| `event`     | Caller-supplied via `context` parameter                               | Stable, dot-separated machine-readable event name (see Event Names below) |
+| `event`     | Caller-supplied via a per-call metadata argument (for example, `fields.event`) | Stable, dot-separated machine-readable event name (see Event Names below) |
 | `message`   | First argument to every log method                                    | Human-readable description                                                |
 
 ### Group 2 — Service metadata (injected automatically)
@@ -92,20 +90,20 @@ Evolve the existing `UnifiedLogger` to emit **structured, machine-readable log o
 | Field     | Source                                                                | Notes                                                |
 | --------- | --------------------------------------------------------------------- | ---------------------------------------------------- |
 | `service` | `process.env.NEXT_PUBLIC_SERVICE_NAME \|\| 'norberts-spark-frontend'` | Identifies the app in a multi-service log aggregator |
-| `env`     | `process.env.NEXT_PUBLIC_NODE_ENV \|\| process.env.NODE_ENV`          | `production` / `development`                         |
+| `env`     | `process.env.NODE_ENV`                                                | `production` / `development`                         |
 | `version` | `process.env.NEXT_PUBLIC_APP_VERSION \|\| 'unknown'`                  | Correlates log spikes with deployments               |
 
 ### Group 3 — Logger identity
 
 | Field     | Source                                              | Notes                                                                                                         |
 | --------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `context` | The `prefix` option from `createLogger({ prefix })` | Identifies the module/component that emitted the log. Renamed from `prefix` for consistency with the backend. |
+| `loggerContext` | The `prefix` option from `createLogger({ prefix })` | Identifies the module/component that emitted the log. Renamed from `prefix` for consistency with the backend. |
 
 ### Group 4 — Error details (when applicable)
 
 | Field       | Source                                              | Notes                                                                                                                               |
 | ----------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `err`       | Serialised `Error` object                           | Extract `name`, `message`, and `stack` (stack only in non-production). Never log the raw Error — it may contain PII in its message. |
+| `err`       | Serialised `Error` object                           | Extract `name` and `stack` (stack only in non-production). Omit `message` as it may contain PII. Never log the raw Error. |
 | `errorCode` | Application-specific code from custom error classes | e.g. `UNAUTHORIZED`, `NETWORK_ERROR`, `VALIDATION_FAILED`                                                                           |
 
 ### Group 5 — Request context (server-side only, optional)
@@ -221,11 +219,11 @@ export interface StructuredLogEntry {
   /** Application version */
   version: string
   /** Logger context/module name (formerly 'prefix') */
-  context?: string
+  loggerContext?: string
   /** Stable, dot-separated event name for machine filtering */
   event?: string
-  /** Serialised error details */
-  err?: { name: string; message: string; stack?: string }
+  /** Serialised error details (message omitted — may contain PII) */
+  err?: { name: string; stack?: string }
   /** Application-specific error code */
   errorCode?: string
   /** Additional structured fields */
@@ -241,9 +239,9 @@ Keep `FormattedLogMessage` as a deprecated type alias for backward compatibility
 
 **File:** `apps/frontend/src/application/ports/logger.port.ts`
 
-The current signature uses `context?: Record<string, unknown>` — this is already flexible enough. No change to the port interface is required. The structured fields (including `event`) are passed via the existing `context` parameter.
+The port interface requires two additions: `trace()` (to match the existing `UnifiedLogger` implementation) and `child()` (for binding persistent context such as a `requestId` from middleware). The per-call structured fields (including `event`) continue to be passed via the existing `context` argument.
 
-If you want a `child()` method for binding persistent context (e.g. a `requestId` from middleware):
+Updated interface:
 
 ```typescript
 export interface LoggerPort {
@@ -257,8 +255,6 @@ export interface LoggerPort {
 }
 ```
 
-Adding `trace` to the port brings it in line with the `UnifiedLogger` implementation which already has `trace()`.
-
 ---
 
 ### Step 4 — Refactor `UnifiedLogger.formatMessage()` to emit `StructuredLogEntry`
@@ -271,7 +267,7 @@ The core change: `formatMessage` builds a `StructuredLogEntry` instead of a `For
 private static readonly SERVICE_NAME =
   process.env.NEXT_PUBLIC_SERVICE_NAME || 'norberts-spark-frontend'
 private static readonly ENV =
-  process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV || 'development'
+  process.env.NODE_ENV || 'development'
 private static readonly VERSION =
   process.env.NEXT_PUBLIC_APP_VERSION || 'unknown'
 
@@ -290,17 +286,28 @@ private formatMessage(
   }
 
   if (this.prefix) {
-    entry.context = this.prefix
+    entry.loggerContext = this.prefix
   }
+
+  // Reserved core fields that must not be overwritten by bindings or per-call fields
+  const RESERVED = new Set(['level', 'timestamp', 'message', 'service', 'env', 'version', 'loggerContext'])
 
   // Merge bound context from child() loggers
   if (this.bindings) {
-    Object.assign(entry, this.bindings)
+    for (const [k, v] of Object.entries(this.bindings)) {
+      if (!RESERVED.has(k)) {
+        ;(entry as Record<string, unknown>)[k] = v
+      }
+    }
   }
 
-  // Merge per-call context
+  // Merge per-call fields
   if (context) {
-    Object.assign(entry, context)
+    for (const [k, v] of Object.entries(context)) {
+      if (!RESERVED.has(k)) {
+        ;(entry as Record<string, unknown>)[k] = v
+      }
+    }
   }
 
   return entry
@@ -316,14 +323,13 @@ private formatMessage(
 Update each method signature and body. The key changes:
 
 1. Replace `...args: unknown[]` with an optional `context?: Record<string, unknown>` parameter (aligning with `LoggerPort`).
-2. For `error()`, accept an `Error` as the second argument and serialise it into `err: { name, message, stack? }`.
+2. For `error()`, accept an `Error` as the second argument and serialise it into a GDPR-safe `err` object (`{ name, stack? }`), omitting `error.message` which may contain PII.
 3. Strip `stack` from error serialisation in production to reduce log volume.
 
 ```typescript
-private serializeError(error: Error): { name: string; message: string; stack?: string } {
-  const serialized: { name: string; message: string; stack?: string } = {
+private serializeError(error: Error): { name: string; stack?: string } {
+  const serialized: { name: string; stack?: string } = {
     name: error.name,
-    message: error.message,
   }
   if (process.env.NODE_ENV !== 'production') {
     serialized.stack = error.stack
@@ -528,7 +534,7 @@ Do a project-wide search in `apps/frontend/src/` for the following patterns:
 | `ip` or `remoteAddress` in log context | IP is PII under UK GDPR                    |
 | `req.headers` in log context           | May leak auth tokens or cookies            |
 
-The backend has a `SENSITIVE_FIELDS` constant in `src/domain/audit/redact-sensitive-data.ts`. Consider importing or mirroring this list for client-side awareness, though the primary defence is to never pass PII to the logger in the first place.
+The backend has a `SENSITIVE_FIELDS` constant in `apps/backend/src/domain/audit/redact-sensitive-data.ts`. Consider importing or mirroring this list for client-side awareness, though the primary defence is to never pass PII to the logger in the first place.
 
 ---
 
@@ -539,8 +545,8 @@ The backend has a `SENSITIVE_FIELDS` constant in `src/domain/audit/redact-sensit
 | Test case                                          | Assertion                                                                                      |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `formatMessage` returns `StructuredLogEntry` shape | Check all required fields: `level`, `timestamp`, `message`, `service`, `env`, `version`        |
-| `prefix` maps to `context` field                   | `createLogger({ prefix: 'Foo' })` → entry has `context: 'Foo'`                                 |
-| `error()` serialises Error into `err`              | `logger.error('msg', new Error('boom'))` → entry has `err: { name: 'Error', message: 'boom' }` |
+| `prefix` maps to `loggerContext` field             | `createLogger({ prefix: 'Foo' })` → entry has `loggerContext: 'Foo'`                           |
+| `error()` serialises Error into `err`              | `logger.error('msg', new Error('boom'))` → entry has `err: { name: 'Error' }` and no `err.message` |
 | `child()` merges bindings                          | `logger.child({ requestId: 'abc' }).warn('msg')` → entry has `requestId: 'abc'`                |
 | `child()` bindings don't mutate parent             | Parent logger entries must not contain child bindings                                          |
 | `event` field passes through                       | `logger.warn('msg', { event: 'foo.bar' })` → entry has `event: 'foo.bar'`                      |
