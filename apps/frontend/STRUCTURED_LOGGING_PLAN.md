@@ -28,7 +28,7 @@ Evolve the existing `UnifiedLogger` to emit **structured, machine-readable log o
 | **No external logging library** | Next.js bundles server and client code together; conditionally importing a Node-only library (Pino, Winston) causes build-time errors or inflated client bundles. The `UnifiedLogger` approach avoids this entirely.   |
 | **Synchronous logging only**    | Because the logger must work in both server (Node/Edge) and client (browser) runtimes, async transports, file writes, or network calls are out of scope. `console.*` delegates to the runtime's built-in log handling. |
 | **Production performance**      | `trace`, `info`, and `debug` are no-ops in production. Only `warn` and `error` execute, and these should fire rarely. The overhead of building a structured object per warn/error call is negligible.                  |
-| **GDPR compliance**             | Same rules as the backend: never log email, IP, name, phone, tokens, cookies, or session identifiers. Only log opaque, non-secret internal IDs (for example, `userId`, `requestId`, `correlationId`).                |
+| **GDPR compliance**             | Same rules as the backend: never log email, IP, name, phone, tokens, cookies, or session identifiers. Only log opaque, non-secret internal IDs (for example, `userId`, `requestId`, `correlationId`).                  |
 
 ---
 
@@ -78,12 +78,12 @@ Evolve the existing `UnifiedLogger` to emit **structured, machine-readable log o
 
 ### Group 1 — Core fields (every log line)
 
-| Field       | Source                                                                | Notes                                                                     |
-| ----------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `level`     | The log method called (`trace` / `debug` / `info` / `warn` / `error`) | Lowercase string, matches `LogLevel` enum                                 |
-| `timestamp` | `new Date().toISOString()`                                            | ISO 8601, already present                                                 |
+| Field       | Source                                                                         | Notes                                                                     |
+| ----------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `level`     | The log method called (`trace` / `debug` / `info` / `warn` / `error`)          | Lowercase string, matches `LogLevel` enum                                 |
+| `timestamp` | `new Date().toISOString()`                                                     | ISO 8601, already present                                                 |
 | `event`     | Caller-supplied via a per-call metadata argument (for example, `fields.event`) | Stable, dot-separated machine-readable event name (see Event Names below) |
-| `message`   | First argument to every log method                                    | Human-readable description                                                |
+| `message`   | First argument to every log method                                             | Human-readable description                                                |
 
 ### Group 2 — Service metadata (injected automatically)
 
@@ -95,16 +95,16 @@ Evolve the existing `UnifiedLogger` to emit **structured, machine-readable log o
 
 ### Group 3 — Logger identity
 
-| Field     | Source                                              | Notes                                                                                                         |
-| --------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Field           | Source                                              | Notes                                                                                                         |
+| --------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `loggerContext` | The `prefix` option from `createLogger({ prefix })` | Identifies the module/component that emitted the log. Renamed from `prefix` for consistency with the backend. |
 
 ### Group 4 — Error details (when applicable)
 
-| Field       | Source                                              | Notes                                                                                                                               |
-| ----------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Field       | Source                                              | Notes                                                                                                                     |
+| ----------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `err`       | Serialised `Error` object                           | Extract `name` and `stack` (stack only in non-production). Omit `message` as it may contain PII. Never log the raw Error. |
-| `errorCode` | Application-specific code from custom error classes | e.g. `UNAUTHORIZED`, `NETWORK_ERROR`, `VALIDATION_FAILED`                                                                           |
+| `errorCode` | Application-specific code from custom error classes | e.g. `UNAUTHORIZED`, `NETWORK_ERROR`, `VALIDATION_FAILED`                                                                 |
 
 ### Group 5 — Request context (server-side only, optional)
 
@@ -542,17 +542,17 @@ The backend has a `SENSITIVE_FIELDS` constant in `apps/backend/src/domain/audit/
 
 **File:** `apps/frontend/test/infrastructure/logging/logger.test.ts` (new or update existing)
 
-| Test case                                          | Assertion                                                                                      |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `formatMessage` returns `StructuredLogEntry` shape | Check all required fields: `level`, `timestamp`, `message`, `service`, `env`, `version`        |
-| `prefix` maps to `loggerContext` field             | `createLogger({ prefix: 'Foo' })` → entry has `loggerContext: 'Foo'`                           |
+| Test case                                          | Assertion                                                                                          |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `formatMessage` returns `StructuredLogEntry` shape | Check all required fields: `level`, `timestamp`, `message`, `service`, `env`, `version`            |
+| `prefix` maps to `loggerContext` field             | `createLogger({ prefix: 'Foo' })` → entry has `loggerContext: 'Foo'`                               |
 | `error()` serialises Error into `err`              | `logger.error('msg', new Error('boom'))` → entry has `err: { name: 'Error' }` and no `err.message` |
-| `child()` merges bindings                          | `logger.child({ requestId: 'abc' }).warn('msg')` → entry has `requestId: 'abc'`                |
-| `child()` bindings don't mutate parent             | Parent logger entries must not contain child bindings                                          |
-| `event` field passes through                       | `logger.warn('msg', { event: 'foo.bar' })` → entry has `event: 'foo.bar'`                      |
-| Production filtering                               | With `NODE_ENV=production`, `info/debug/trace` do not call `console.*`                         |
-| `warn` and `error` log in production               | With `NODE_ENV=production`, `warn` and `error` still emit                                      |
-| Error stack excluded in production                 | With `NODE_ENV=production`, `err.stack` is undefined                                           |
+| `child()` merges bindings                          | `logger.child({ requestId: 'abc' }).warn('msg')` → entry has `requestId: 'abc'`                    |
+| `child()` bindings don't mutate parent             | Parent logger entries must not contain child bindings                                              |
+| `event` field passes through                       | `logger.warn('msg', { event: 'foo.bar' })` → entry has `event: 'foo.bar'`                          |
+| Production filtering                               | With `NODE_ENV=production`, `info/debug/trace` do not call `console.*`                             |
+| `warn` and `error` log in production               | With `NODE_ENV=production`, `warn` and `error` still emit                                          |
+| Error stack excluded in production                 | With `NODE_ENV=production`, `err.stack` is undefined                                               |
 
 ---
 
