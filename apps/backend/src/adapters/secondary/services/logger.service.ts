@@ -46,7 +46,13 @@ export class PinoLoggerService implements LoggerPort {
     this.logger = pino({
       level: EnvConfig.LOG_LEVEL,
       redact: {
-        paths: [...SENSITIVE_FIELDS],
+        paths: SENSITIVE_FIELDS.flatMap((field) => [
+          field,
+          `*.${field}`,
+          `*.*.${field}`,
+          `*.record.${field}`,
+          `*.record.*.${field}`,
+        ]),
         censor: '[REDACTED]',
       },
       base: {
