@@ -31,30 +31,50 @@ import { EnvConfig } from '../config/env.config.js'
  * - Reads files from disk and may throw if files are missing or invalid.
  */
 export function createFastifyApp(options?: FastifyServerOptions): FastifyInstance {
-  const fastify = Fastify({
-    genReqId: () => uuidv7(),
-    logger: {
-      redact: ['req.headers.authorization'],
-      level: EnvConfig.LOG_LEVEL,
-      base: {
-        service: EnvConfig.SERVICE_NAME,
-        env: EnvConfig.NODE_ENV,
-        version: EnvConfig.APP_VERSION,
-      },
-      serializers: {
-        req(req) {
-          return {
-            method: req.method,
-            url: req.url,
-            headers: req.headers,
-            hostname: req.hostname,
-            remoteAddress: req.ip,
-            remotePort: req.socket?.remotePort,
-          }
-        },
+  const defaultLoggerOptions = {
+    redact: ['req.headers.authorization'],
+    level: EnvConfig.LOG_LEVEL,
+    base: {
+      service: EnvConfig.SERVICE_NAME,
+      env: EnvConfig.NODE_ENV,
+      version: EnvConfig.APP_VERSION,
+    },
+    serializers: {
+      req(req: { method: string; routeOptions?: { url?: string }; url: string }) {
+        return {
+          method: req.method,
+          url: req.routeOptions?.url ?? req.url.split('?')[0],
+          // remoteAddress and remotePort intentionally omitted — IP is PII under UK GDPR.
+          // IP is retained in the audit_log table under a separate retention policy.
+        }
       },
     },
+  }
+
+  // Merge caller-supplied logger options over the defaults so that the GDPR-safe
+  // serializers are always active, even when a custom stream/level is injected
+  // (e.g. in tests).  A boolean logger value (true/false) is used as-is.
+  // Serializers are explicitly merged so a caller adding extra serializers does
+  // not accidentally remove the req serializer.
+  const resolvedLogger =
+    options?.logger == null || typeof options.logger === 'boolean'
+      ? (options?.logger ?? defaultLoggerOptions)
+      : (() => {
+          const callerLogger = options.logger as Record<string, unknown>
+          return {
+            ...defaultLoggerOptions,
+            ...callerLogger,
+            serializers: {
+              ...defaultLoggerOptions.serializers,
+              ...((callerLogger['serializers'] as Record<string, unknown> | undefined) ?? {}),
+            },
+          }
+        })()
+
+  const fastify = Fastify({
+    genReqId: () => uuidv7(),
     ...options,
+    logger: resolvedLogger,
   })
 
   fastify.addHook('onRequest', (request, _reply, done) => {
