@@ -41,7 +41,7 @@ export const env = createEnv({
     BACKEND_URL: process.env.BACKEND_URL,
     OAUTH_SYNC_SECRET: process.env.OAUTH_SYNC_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-    SERVICE_NAME: process.env.NEXT_PUBLIC_SERVICE_NAME,
+    SERVICE_NAME: process.env.SERVICE_NAME,
     APP_VERSION: version,
   },
 })
