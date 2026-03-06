@@ -18,6 +18,7 @@ export const env = createEnv({
     BACKEND_AI_CALLBACK_URL: z.url(),
     BACKEND_URL: z.url(),
     OAUTH_SYNC_SECRET: z.string(),
+    NEXTAUTH_URL: z.url(),
   },
   runtimeEnv: {
     DEFAULT_RATE_LIMIT_WINDOW: process.env.DEFAULT_RATE_LIMIT_WINDOW,
@@ -33,5 +34,6 @@ export const env = createEnv({
     BACKEND_AI_CALLBACK_URL: process.env.BACKEND_AI_CALLBACK_URL,
     BACKEND_URL: process.env.BACKEND_URL,
     OAUTH_SYNC_SECRET: process.env.OAUTH_SYNC_SECRET,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   },
 })
