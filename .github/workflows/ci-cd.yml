@@ -63,4 +63,5 @@ jobs:
         BACKEND_URL: http://localhost:3001
         BACKEND_AI_CALLBACK_URL: http://localhost:3001/api/ai/callback
         OAUTH_SYNC_SECRET: ci-placeholder-oauth-sync-secret
+        NEXTAUTH_URL: http://localhost:3000
       run: pnpm run build
