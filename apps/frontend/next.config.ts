@@ -6,7 +6,7 @@ import path from 'node:path'
 
 const jiti = createJiti(fileURLToPath(import.meta.url))
 
-// Import env here to validate during build. Using jiti@^1 we can import .ts files :)
+// Import env here to validate during build. Using jiti we can import .ts files :)
 jiti('./src/env')
 
 /**
