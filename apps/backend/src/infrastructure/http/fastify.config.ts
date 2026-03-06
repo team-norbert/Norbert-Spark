@@ -45,7 +45,7 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
         req(req) {
           return {
             method: req.method,
-            url: req.url,
+            url: req.routeOptions?.url ?? req.url.split('?')[0],
             // remoteAddress and remotePort intentionally omitted — IP is PII under UK GDPR.
             // IP is retained in the audit_log table under a separate retention policy.
           }
