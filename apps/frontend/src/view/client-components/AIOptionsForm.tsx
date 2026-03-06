@@ -1,14 +1,6 @@
 'use client'
 
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Container,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Alert, Box, Button, CircularProgress, Container, TextField } from '@mui/material'
 import { useEffect, useState } from 'react'
 
 import { getAIChatSettingsById } from '@/infrastructure/serverActions/getAIChatSettingsById.server.js'
