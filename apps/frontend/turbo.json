@@ -28,10 +28,7 @@
         "NODE_ENV",
         "NEXT_PUBLIC_NODE_ENV",
         "SKIP_ENV_VALIDATION",
-        "RATE_LIMITER_TYPE",
-        "DEFAULT_RATE_LIMIT_WINDOW",
-        "DEFAULT_RATE_LIMIT_MAX",
-        "BACKEND_AI_CALLBACK_URL"
+        "RATE_LIMITER_TYPE"
       ]
     }
   }
