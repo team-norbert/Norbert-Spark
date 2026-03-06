@@ -6,7 +6,7 @@ export const vectorEmbeddingsText = `These settings control how your documents w
             embedding. The recommended distance metric is usually "cosine", but it depends
             on your specific use case and the embedding model you choose. If you're unsure,
             check the documentation for your embedding model or experiment with different metrics to
-            see which gives better results for your data.`
+            see which gives better results for your data. The chunk size and overlap settings can also have a significant impact on the quality of your embeddings and the performance of your vector store, so it's important to experiment with these values to find the right balance for your specific use case and data characteristics. For now, the only choice permitted is "cosine", but we aim to allow other options in in the future. `
 
 export const chunkSizeText = `Chunk Size controls how large each text chunk will be when splitting
             documents for embedding. A smaller chunk size means more, smaller pieces, which can

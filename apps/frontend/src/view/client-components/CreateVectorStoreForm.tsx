@@ -127,7 +127,8 @@ export function CreateVectorStoreForm({
   // vectorEmbeddings
   const [distanceMetric, setDistanceMetric] = useState<
     CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric'] | ''
-  >('')
+  >('cosine')
+  const [distanceMetricError, setDistanceMetricError] = useState<string | null>(null)
   const [chunkSize, setChunkSize] = useState('')
   const [chunkOverlap, setChunkOverlap] = useState('')
 
@@ -146,7 +147,7 @@ export function CreateVectorStoreForm({
     e.preventDefault()
 
     if (!selectedModelId && dimension === '') return
-    if (distanceMetric === '') return
+    if (distanceMetric === '' || distanceMetricError) return
 
     const embeddingModels =
       selectedModelId !== ''
@@ -316,6 +317,9 @@ export function CreateVectorStoreForm({
             sx={{ mb: 2 }}
             data-test-id="embedding-models-model-provider-input"
           />
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Examples: openai, google</strong>
+          </Typography>
           <Divider sx={{ my: 2 }} />
           <FormControl fullWidth required sx={{ mb: 2 }}>
             <InputLabel id="dimension-label" shrink>
@@ -343,6 +347,10 @@ export function CreateVectorStoreForm({
             </Select>
           </FormControl>
 
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>This selects the database table to use</strong>
+          </Typography>
+
           <Divider sx={{ my: 2 }} />
 
           {/* Vector Embeddings */}
@@ -364,13 +372,19 @@ export function CreateVectorStoreForm({
               value={distanceMetric}
               displayEmpty
               data-test-id="vector-embeddings-distance-metric-select"
-              onChange={(e) =>
-                setDistanceMetric(
-                  e.target.value as
-                    | CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']
-                    | ''
-                )
-              }
+              onChange={(e) => {
+                const value = e.target.value as
+                  | CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']
+                  | ''
+                setDistanceMetric(value)
+                if (value !== 'cosine' && value !== '') {
+                  setDistanceMetricError(
+                    `"${value}" is not currently supported. Only "cosine" is permitted.`
+                  )
+                } else {
+                  setDistanceMetricError(null)
+                }
+              }}
             >
               <MenuItem value="">
                 <em>— choose a distance metric —</em>
@@ -378,10 +392,21 @@ export function CreateVectorStoreForm({
               {DISTANCE_METRICS.map((metric) => (
                 <MenuItem key={metric} value={metric}>
                   {metric}
+                  {metric !== 'cosine' ? ' (not currently supported)' : ''}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+          {distanceMetricError && (
+            <Typography
+              variant="body2"
+              color="error"
+              sx={{ mb: 2, mt: -1 }}
+              data-test-id="distance-metric-error"
+            >
+              {distanceMetricError}
+            </Typography>
+          )}
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent header="Read Chunk Size" body={chunkSizeText} />
