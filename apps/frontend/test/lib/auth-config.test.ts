@@ -153,11 +153,11 @@ describe('authOptions Configuration', () => {
       expect(options.headers.get('Content-Type')).toBe('application/json')
     })
 
-    // TODO: Fix test - BACKEND_AI_CALLBACK_URL_DEV is undefined in test environment
-    it.todo('should use BACKEND_AI_CALLBACK_URL_DEV environment variable', async () => {
+    // TODO: Fix test - BACKEND_AI_CALLBACK_URL is undefined or not correctly loaded in test environment
+    it.todo('should use BACKEND_AI_CALLBACK_URL environment variable', async () => {
       const customBackendUrl = 'https://api.example.com'
-      const originalEnv = process.env.BACKEND_AI_CALLBACK_URL_DEV
-      process.env.BACKEND_AI_CALLBACK_URL_DEV = customBackendUrl
+      const originalEnv = process.env.BACKEND_AI_CALLBACK_URL
+      process.env.BACKEND_AI_CALLBACK_URL = customBackendUrl
 
       // Re-import with new env var
       vi.resetModules()
@@ -194,7 +194,7 @@ describe('authOptions Configuration', () => {
         expect.any(Object)
       )
 
-      process.env.BACKEND_AI_CALLBACK_URL_DEV = originalEnv
+      process.env.BACKEND_AI_CALLBACK_URL = originalEnv
     })
 
     it('should throw error when backend returns error', async () => {

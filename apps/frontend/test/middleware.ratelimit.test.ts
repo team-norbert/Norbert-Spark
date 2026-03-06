@@ -96,54 +96,92 @@ describe('Middleware Rate Limiting', () => {
     expect(res.headers.get('X-RateLimit-Reset')).toBeTruthy()
   })
 
-  it('removes expired keys from rateMap to prevent memory bloat', () => {
-    // Set a very short window for testing
-    process.env.RATE_LIMIT_WINDOW = '2'
-    process.env.RATE_LIMIT_MAX = '5'
+  describe('key expiry and memory cleanup', () => {
+    // Explicit window and max so the test does not rely on env defaults.
+    // Using a 10 s window keeps the time-advancement values small and readable.
+    const TEST_WINDOW = 10
+    const TEST_MAX = 5
+    let mod: typeof import('@/middleware.js')
 
-    const testKey = 'test:key:cleanup'
-    let currentTime = Math.floor(Date.now() / 1000)
+    beforeEach(async () => {
+      // Install fake timers before the module loads so that the cleanup
+      // setTimeout scheduled at module evaluation time is under our control.
+      vi.useFakeTimers()
+      vi.setSystemTime(Date.now())
+      // Clear the module registry so the next import picks up our env overrides.
+      vi.resetModules()
+      process.env.DEFAULT_RATE_LIMIT_WINDOW = String(TEST_WINDOW)
+      process.env.DEFAULT_RATE_LIMIT_MAX = String(TEST_MAX)
+      // Re-register the env mock after vi.resetModules() clears the mock registry.
+      // Using a getter so every property access re-reads process.env, matching the
+      // pattern used in middleware.scheduleCleanup.test.ts.
+      // Only the rate-limit env vars are needed: this test exercises checkAndUpdateRate,
+      // which reads RATE_LIMIT_WINDOW and RATE_LIMIT_MAX at module evaluation time.
+      // TRUSTED_PROXIES and NEXTAUTH_SECRET are only used by the middleware() handler,
+      // which is not called here.
+      vi.doMock('@/env/index.js', () => ({
+        get env() {
+          return {
+            DEFAULT_RATE_LIMIT_WINDOW: process.env.DEFAULT_RATE_LIMIT_WINDOW,
+            DEFAULT_RATE_LIMIT_MAX: process.env.DEFAULT_RATE_LIMIT_MAX,
+          }
+        },
+        clientEnv: {},
+        serverEnv: {},
+      }))
+      mod = await import('@/middleware.js')
+      // Stop the background cleanup timer so advancing time in the test does
+      // not accidentally trigger the periodic pruning job.
+      mod.__stopRateMapCleanup()
+      mod.__resetRateLimiter()
+    })
 
-    // Mock nowSeconds to return controlled time
-    const nowSecondsSpy = vi.spyOn(middlewareModule, 'nowSeconds')
-    nowSecondsSpy.mockReturnValue(currentTime)
+    afterEach(() => {
+      vi.useRealTimers()
+      // Belt-and-suspenders cleanup: the outer afterEach already restores
+      // process.env = origEnv, but deleting here keeps the inner scope tidy
+      // in case the outer hook ordering ever changes.
+      delete process.env.DEFAULT_RATE_LIMIT_WINDOW
+      delete process.env.DEFAULT_RATE_LIMIT_MAX
+    })
 
-    // Make a request to add entry to rateMap
-    const result1 = middlewareModule.checkAndUpdateRate(testKey)
-    expect(result1.success).toBe(true)
-    expect(__getRateLimiterSize()).toBe(1)
+    it('removes expired keys from rateMap and resets remaining to RATE_LIMIT_MAX - 1 after window expires', () => {
+      const testKey = 'test:key:cleanup'
 
-    // Advance time by 3 seconds (past the 2-second window)
-    currentTime += 3
-    nowSecondsSpy.mockReturnValue(currentTime)
+      // Make a request to add an entry to rateMap.
+      const result1 = mod.checkAndUpdateRate(testKey)
+      expect(result1.success).toBe(true)
+      expect(result1.remaining).toBe(TEST_MAX - 1)
+      expect(mod.__getRateLimiterSize()).toBe(1)
 
-    // Make another request - the old timestamp should be filtered out
-    // and since filtered array is empty, the key should be deleted before adding new entry
-    const result2 = middlewareModule.checkAndUpdateRate(testKey)
-    expect(result2.success).toBe(true)
+      // Advance Date.now() past the configured window via fake timers.
+      // This makes nowSeconds() return a value TEST_WINDOW + 1 seconds later,
+      // so the previous timestamp falls outside the sliding window and is pruned.
+      vi.advanceTimersByTime((TEST_WINDOW + 1) * 1000)
 
-    // After cleanup and adding new entry, we should have 1 entry in the map
-    expect(__getRateLimiterSize()).toBe(1)
+      // The stale timestamp is filtered out; remaining resets to TEST_MAX - 1,
+      // confirming the pruning branch executed (observable side-effect of cleanup).
+      const result2 = mod.checkAndUpdateRate(testKey)
+      expect(result2.success).toBe(true)
+      expect(result2.remaining).toBe(TEST_MAX - 1)
+      // Key was deleted when its timestamp array became empty, then re-added.
+      expect(mod.__getRateLimiterSize()).toBe(1)
 
-    // Advance time again by 3 seconds
-    currentTime += 3
-    nowSecondsSpy.mockReturnValue(currentTime)
+      // Advance time again and add a second key.
+      vi.advanceTimersByTime((TEST_WINDOW + 1) * 1000)
 
-    // Make a request to a different key
-    const result3 = middlewareModule.checkAndUpdateRate('test:key:different')
-    expect(result3.success).toBe(true)
-    expect(__getRateLimiterSize()).toBe(2)
+      const result3 = mod.checkAndUpdateRate('test:key:different')
+      expect(result3.success).toBe(true)
+      expect(mod.__getRateLimiterSize()).toBe(2)
 
-    // Advance time by 3 more seconds
-    currentTime += 3
-    nowSecondsSpy.mockReturnValue(currentTime)
+      // Advance time once more so testKey's entry expires again.
+      vi.advanceTimersByTime((TEST_WINDOW + 1) * 1000)
 
-    // Access the first key again - it should be cleaned up and recreated
-    const result4 = middlewareModule.checkAndUpdateRate(testKey)
-    expect(result4.success).toBe(true)
-    expect(__getRateLimiterSize()).toBe(2)
-
-    // Restore the spy
-    nowSecondsSpy.mockRestore()
+      // testKey is pruned and recreated; remaining resets, confirming window reset.
+      const result4 = mod.checkAndUpdateRate(testKey)
+      expect(result4.success).toBe(true)
+      expect(result4.remaining).toBe(TEST_MAX - 1)
+      expect(mod.__getRateLimiterSize()).toBe(2)
+    })
   })
 })
