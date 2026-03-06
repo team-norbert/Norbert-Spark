@@ -48,18 +48,19 @@ jobs:
 
     - name: Build project
       env:
-        # Required by @t3-oss/env-nextjs validation in next.config.ts at build time.
-        # These are placeholder values — the real values are injected at deploy time.
-        NEXT_PUBLIC_POST_AI_CALLBACK_URL: ${{ secrets.NEXT_PUBLIC_POST_AI_CALLBACK_URL || 'http://localhost:3001/api/ai/callback' }}
-        NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' }}
-        NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001' }}
-        # Server-side vars also validated at build time
-        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-build-secret-placeholder' }}
-        GOOGLE_ID: ${{ secrets.GOOGLE_ID || 'ci-google-id-placeholder' }}
-        GOOGLE_SECRET: ${{ secrets.GOOGLE_SECRET || 'ci-google-secret-placeholder' }}
-        UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL || 'http://localhost:6379' }}
-        UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN || 'ci-redis-token-placeholder' }}
-        BACKEND_URL: ${{ secrets.BACKEND_URL || 'http://localhost:3001' }}
-        BACKEND_AI_CALLBACK_URL: ${{ secrets.BACKEND_AI_CALLBACK_URL || 'http://localhost:3001/api/ai/callback' }}
-        OAUTH_SYNC_SECRET: ${{ secrets.OAUTH_SYNC_SECRET || 'ci-oauth-sync-secret-placeholder' }}
+        # Placeholder values required by @t3-oss/env-nextjs Zod validation in next.config.ts.
+        # The build only needs these to satisfy schema constraints — real values are
+        # injected at deploy time. If a GitHub Secret exists for any of these, set it
+        # in repo Settings → Secrets and override the placeholder here via ${{ secrets.X }}.
+        NEXT_PUBLIC_POST_AI_CALLBACK_URL: http://localhost:3001/api/ai/callback
+        NEXT_PUBLIC_BASE_URL: http://localhost:3000
+        NEXT_PUBLIC_BACKEND_URL: http://localhost:3001
+        NEXTAUTH_SECRET: ci-placeholder-nextauth-secret-min32chars
+        GOOGLE_ID: ci-placeholder-google-id
+        GOOGLE_SECRET: ci-placeholder-google-secret
+        UPSTASH_REDIS_REST_URL: https://placeholder.upstash.io
+        UPSTASH_REDIS_REST_TOKEN: ci-placeholder-upstash-token
+        BACKEND_URL: http://localhost:3001
+        BACKEND_AI_CALLBACK_URL: http://localhost:3001/api/ai/callback
+        OAUTH_SYNC_SECRET: ci-placeholder-oauth-sync-secret
       run: pnpm run build
