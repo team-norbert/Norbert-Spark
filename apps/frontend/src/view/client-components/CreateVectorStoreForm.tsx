@@ -374,7 +374,7 @@ export function CreateVectorStoreForm({
             Vector Embeddings
           </Typography>
           <AccordionComponent
-            header="Read information on Vector Embeddings distance metrics"
+            header="Information on Vector Embeddings distance metrics"
             body={vectorEmbeddingsText}
           />
           <Divider sx={{ my: 2 }} />
@@ -424,7 +424,7 @@ export function CreateVectorStoreForm({
           />
 
           <Divider sx={{ my: 2 }} />
-          <AccordionComponent header="Read information on ChunkOverlap" body={chunkOverlapText} />
+          <AccordionComponent header="Information on ChunkOverlap" body={chunkOverlapText} />
           <Divider sx={{ my: 2 }} />
 
           <TextField
@@ -469,7 +469,7 @@ export function CreateVectorStoreForm({
           />
 
           <Divider sx={{ my: 2 }} />
-          <AccordionComponent header="Read information on Max Tokens" body={maxTokensText} />
+          <AccordionComponent header="Information on Max Tokens" body={maxTokensText} />
           <Divider sx={{ my: 2 }} />
 
           <TextField
@@ -502,7 +502,7 @@ export function CreateVectorStoreForm({
           />
 
           <Divider sx={{ my: 2 }} />
-          <AccordionComponent header="Read information on Top P settings" body={topPText} />
+          <AccordionComponent header="Information on Top P settings" body={topPText} />
           <Divider sx={{ my: 2 }} />
 
           <TextField
@@ -518,7 +518,7 @@ export function CreateVectorStoreForm({
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
-            header="Read information on Frequency Penalty settings"
+            header="Information on Frequency Penalty settings"
             body={frequencyPenaltyText}
           />
           <Divider sx={{ my: 2 }} />
@@ -536,7 +536,7 @@ export function CreateVectorStoreForm({
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
-            header="Read information on Presence Penalty settings"
+            header="Information on Presence Penalty settings"
             body={presencePenaltyText}
           />
           <Divider sx={{ my: 2 }} />
@@ -554,7 +554,7 @@ export function CreateVectorStoreForm({
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
-            header="Read information on Stop Sequences settings"
+            header="Information on Stop Sequences settings"
             body={stopSequencesText}
           />
           <Divider sx={{ my: 2 }} />
@@ -585,7 +585,7 @@ export function CreateVectorStoreForm({
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
-            header="Read information on Max Retries settings"
+            header="Information on Max Retries settings"
             body={maxRetriesText}
           />
           <Divider sx={{ my: 2 }} />
