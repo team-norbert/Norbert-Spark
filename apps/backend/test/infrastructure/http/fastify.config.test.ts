@@ -84,6 +84,59 @@ describe('Fastify logger base fields', () => {
   })
 })
 
+describe('Fastify request log serializer (GDPR compliance)', () => {
+  let app: FastifyInstance
+  const logLines: string[] = []
+
+  beforeAll(async () => {
+    const stream = new Writable({
+      write(chunk, _encoding, callback) {
+        logLines.push(chunk.toString().trim())
+        callback()
+      },
+    })
+
+    app = createFastifyApp({ logger: { stream, level: 'info' } })
+    await app.ready()
+  })
+
+  afterAll(async () => {
+    await app.close()
+  })
+
+  beforeEach(() => {
+    logLines.length = 0
+  })
+
+  it('should omit headers, remoteAddress, remotePort, and ip from built-in request log lines', async () => {
+    await app.inject({ method: 'GET', url: '/health' })
+
+    const requestLogLine = logLines
+      .map((line) => {
+        try {
+          return JSON.parse(line) as Record<string, unknown>
+        } catch {
+          return null
+        }
+      })
+      .filter((record): record is Record<string, unknown> => record !== null && 'req' in record)
+      .at(0)
+
+    expect(requestLogLine).toBeDefined()
+
+    const req = requestLogLine!['req'] as Record<string, unknown>
+
+    expect(req).not.toHaveProperty('headers')
+    expect(req).not.toHaveProperty('remoteAddress')
+    expect(req).not.toHaveProperty('remotePort')
+    expect(req).not.toHaveProperty('ip')
+
+    // Confirm expected fields are still present
+    expect(req).toHaveProperty('method', 'GET')
+    expect(req).toHaveProperty('url')
+  })
+})
+
 describe('Fastify lifecycle hook logging', () => {
   let app: FastifyInstance
   const logLines: string[] = []
