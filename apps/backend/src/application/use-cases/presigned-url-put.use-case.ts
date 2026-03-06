@@ -89,10 +89,11 @@ export class PresignedUploadUrlUseCase {
 
     try {
       if (!bucketName) {
-        this.logger.error('BUCKET environment variable is not configured', undefined, {
+        const error = new InternalErrorException('Bucket configuration is missing')
+        this.logger.error('BUCKET environment variable is not configured', error, {
           event: 'presigned_url.config.missing',
         })
-        throw new InternalErrorException('Bucket configuration is missing')
+        throw error
       }
 
       // Generate presigned URLs for each file

@@ -75,7 +75,11 @@ export class AppendedChatUseCase {
       chatId: chatIdString,
       messageCount: messages.length,
     })
-    this.logger.debug('Appended chat', { event: 'chat.appended', chatId: chatIdString, messages })
+    this.logger.debug('Appended chat', {
+      event: 'chat.appended',
+      chatId: chatIdString,
+      messageCount: messages.length,
+    })
     await this.aiService.appendToChatMessages(chatIdString, messages)
 
     const auditEntry: CreateAuditLogDTO = {
