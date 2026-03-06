@@ -1,5 +1,5 @@
 import type { PaginatedUsersResponse, User } from '@/domain/user/user.js'
-import { clientEnv } from '@/env/index.js'
+import { clientEnv } from '@/env/client.js'
 import { UnifiedLogger } from '@/infrastructure/logging/logger.js'
 
 export interface FindAllUsersParams {

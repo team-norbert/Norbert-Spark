@@ -11,8 +11,9 @@ describe('scheduleRateMapCleanup', () => {
     // Ensure module cache is cleared so module-level scheduling uses our env and fake timers
     vi.resetModules()
     // Keys match the @t3-oss/env-nextjs schema names in src/env/server.ts.
-    // Note: due to a copy-paste in middleware.ts, RATE_LIMIT_WINDOW is computed from
-    // DEFAULT_RATE_LIMIT_MAX, so both are set to '2' to achieve a 2s window → 4s cleanup interval.
+    // RATE_LIMIT_WINDOW is derived from env.DEFAULT_RATE_LIMIT_WINDOW; setting it to '2'
+    // gives a 2s window → 4s cleanup interval. DEFAULT_RATE_LIMIT_MAX is also set to '2'
+    // to keep the test configuration consistent with the default env shape.
     process.env = { ...origEnv, DEFAULT_RATE_LIMIT_WINDOW: '2', DEFAULT_RATE_LIMIT_MAX: '2' }
     // Re-register the env mock after vi.resetModules() clears the mock registry.
     vi.doMock('@/env/index.js', () => ({

@@ -10,8 +10,8 @@ export const env = createEnv({
     // Comma-separated list of trusted proxy IPs (e.g., "127.0.0.1,::1")
     TRUSTED_PROXIES: z.string().default('127.0.0.1,::1'),
     NEXTAUTH_SECRET: z.string(),
-    UPSTASH_REDIS_REST_URL: z.url(),
-    UPSTASH_REDIS_REST_TOKEN: z.string(),
+    UPSTASH_REDIS_REST_URL: z.url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
     GOOGLE_ID: z.string(),
     GOOGLE_SECRET: z.string(),
     NODE_ENV: z.string().default('development'),

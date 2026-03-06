@@ -1,4 +1,3 @@
-export { env as clientEnv } from './client.js'
 export { env as serverEnv } from './server.js'
 
 // Re-export the server env as the default 'env' for convenience

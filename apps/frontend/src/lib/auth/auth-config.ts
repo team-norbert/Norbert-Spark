@@ -8,7 +8,7 @@ import { createLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = createLogger({ prefix: '[auth-config]' })
 
-const backendUrl = process.env.BACKEND_AI_CALLBACK_URL
+const backendUrl = env.BACKEND_AI_CALLBACK_URL
 
 interface BackendLoginResponse {
   success: boolean

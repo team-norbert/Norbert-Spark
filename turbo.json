@@ -17,7 +17,12 @@
         "NEXTAUTH_URL",
         "NEXT_PUBLIC_POST_AI_CALLBACK_URL",
         "NEXT_PUBLIC_BASE_URL",
-        "NEXT_PUBLIC_BACKEND_URL"
+        "NEXT_PUBLIC_BACKEND_URL",
+        "DEFAULT_RATE_LIMIT_WINDOW",
+        "DEFAULT_RATE_LIMIT_MAX",
+        "TRUSTED_PROXIES",
+        "NODE_ENV",
+        "NEXT_PUBLIC_NODE_ENV"
       ]
     },
     "dev": {

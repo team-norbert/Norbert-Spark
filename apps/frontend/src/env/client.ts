@@ -16,3 +16,5 @@ export const env = createEnv({
     NEXT_PUBLIC_NODE_ENV: process.env.NEXT_PUBLIC_NODE_ENV,
   },
 })
+
+export { env as clientEnv }

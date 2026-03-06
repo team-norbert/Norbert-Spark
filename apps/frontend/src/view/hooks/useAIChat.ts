@@ -7,7 +7,7 @@ import { uuidv7 } from 'uuidv7'
 import { isValidUUID, uuidVersionValidation } from 'uuidv7-utilities'
 
 import { fileToDataURL } from '@/application/services/fileToDataURL.service.js'
-import { clientEnv } from '@/env/index.js'
+import { clientEnv } from '@/env/client.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { useUserChats } from '@/view/hooks/useUserChats.js'
 
