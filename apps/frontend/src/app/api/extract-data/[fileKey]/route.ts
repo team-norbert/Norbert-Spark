@@ -23,7 +23,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
     }
 
     logger.info('Proxying extraction request to backend', { fileKey })
-    // 'https://127.0.0.1:3001'
     const backendUrl = env.BACKEND_URL
     const url = `${backendUrl}/api/v1/ai/extract-data/${encodeURIComponent(fileKey)}`
 
