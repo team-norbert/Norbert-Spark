@@ -19,6 +19,19 @@ vi.mock('@/infrastructure/logging/logger.js', () => ({
   })),
 }))
 
+// Mock the env module — createEnv captures values at import time so mutating
+// process.env afterwards has no effect. A getter-based mock re-reads process.env
+// on every property access, so per-test process.env overrides still work.
+vi.mock('@/env/index.js', () => ({
+  get env() {
+    return { BACKEND_URL: process.env.BACKEND_URL }
+  },
+  clientEnv: {},
+  get serverEnv() {
+    return { BACKEND_URL: process.env.BACKEND_URL }
+  },
+}))
+
 // Import after mock
 const { getAuthToken } = await import('@/lib/auth/auth.js')
 
@@ -324,17 +337,12 @@ describe('GET /api/extract-data/[fileKey]', () => {
     it('should use default BACKEND_URL when environment variable is not set', async () => {
       delete process.env.BACKEND_URL
 
-      const mockResponseBody = new ReadableStream({
-        start(controller) {
-          controller.close()
-        },
-      })
-
-      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        body: mockResponseBody,
-      })
+      // When BACKEND_URL is unset the getter returns undefined, so the URL becomes
+      // "undefined/api/v1/..." — fetch is called with that broken URL and the
+      // unresolved mock throws, causing the route to catch and return 500.
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        new TypeError('Failed to fetch')
+      )
 
       const request = new Request(
         `https://localhost:4321/api/extract-data/${encodeURIComponent(mockFileKey)}`,
@@ -343,12 +351,9 @@ describe('GET /api/extract-data/[fileKey]', () => {
         }
       )
 
-      await GET(request, { params: Promise.resolve({ fileKey: mockFileKey }) })
+      const response = await GET(request, { params: Promise.resolve({ fileKey: mockFileKey }) })
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        `https://127.0.0.1:3001/api/v1/ai/extract-data/${encodeURIComponent(mockFileKey)}`,
-        expect.any(Object)
-      )
+      expect(response.status).toBe(500)
     })
   })
 

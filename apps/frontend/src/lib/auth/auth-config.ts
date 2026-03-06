@@ -1,14 +1,14 @@
 import type { components } from '@norberts-spark/shared/openapi-types'
 import { type NextAuthOptions, type User } from 'next-auth'
-import type { JWT } from 'next-auth/jwt'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 
+import { env } from '@/env/index.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = createLogger({ prefix: '[auth-config]' })
 
-const backendUrl = process.env.BACKEND_AI_CALLBACK_URL
+const backendUrl = env.BACKEND_AI_CALLBACK_URL
 
 interface BackendLoginResponse {
   success: boolean
@@ -99,8 +99,8 @@ export const authOptions: NextAuthOptions = {
   providers: [
     // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
     GoogleProvider({
-      clientId: process.env.GOOGLE_ID,
-      clientSecret: process.env.GOOGLE_SECRET,
+      clientId: env.GOOGLE_ID,
+      clientSecret: env.GOOGLE_SECRET,
     }),
     // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
     CredentialsProvider({
@@ -161,11 +161,11 @@ export const authOptions: NextAuthOptions = {
       // Sync OAuth users to backend database
       if (account?.provider !== 'credentials' && profile?.email && account) {
         try {
-          if (!process.env.OAUTH_SYNC_SECRET) {
+          if (!env.OAUTH_SYNC_SECRET) {
             throw new Error('Missing OAUTH_SYNC_SECRET environment variable')
           }
 
-          const oauthSyncSecret = process.env.OAUTH_SYNC_SECRET
+          const oauthSyncSecret = env.OAUTH_SYNC_SECRET
 
           const headers = new Headers()
           headers.append('Content-Type', 'application/json')
@@ -368,6 +368,6 @@ export const authOptions: NextAuthOptions = {
   jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === 'development',
+  secret: env.NEXTAUTH_SECRET,
+  debug: env.NODE_ENV === 'development',
 }

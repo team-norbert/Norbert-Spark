@@ -1,4 +1,5 @@
 import type { PaginatedUsersResponse } from '@/domain/user/user.js'
+import { env } from '@/env/index.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { getAuthToken } from '@/lib/auth/auth.js'
 
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
       )
     }
 
-    const apiUrl = process.env.BACKEND_AI_CALLBACK_URL
+    const apiUrl = env.BACKEND_AI_CALLBACK_URL
 
     if (!apiUrl) {
       return Response.json(

@@ -1,26 +1,28 @@
 import { NextResponse } from 'next/server.js'
 import { getToken } from 'next-auth/jwt'
 
+import { env } from '@/env/index.js'
+
 import { AUTH_ROUTES, PROTECTED_ROUTES } from './shared/constants/routes.js'
 
 // In-memory sliding-window rate limiter (hybrid keying: user-id when available, else IP)
 const DEFAULT_RATE_LIMIT_WINDOW = 10 // seconds
 const DEFAULT_RATE_LIMIT_MAX = 10
 const RATE_LIMIT_WINDOW =
-  Number.isFinite(Number(process.env.RATE_LIMIT_WINDOW)) &&
-  Number(process.env.RATE_LIMIT_WINDOW) > 0
-    ? Number(process.env.RATE_LIMIT_WINDOW)
+  Number.isFinite(Number(env.DEFAULT_RATE_LIMIT_WINDOW)) &&
+  Number(env.DEFAULT_RATE_LIMIT_WINDOW) > 0
+    ? Number(env.DEFAULT_RATE_LIMIT_WINDOW)
     : DEFAULT_RATE_LIMIT_WINDOW
 const RATE_LIMIT_MAX =
-  Number.isFinite(Number(process.env.RATE_LIMIT_MAX)) && Number(process.env.RATE_LIMIT_MAX) > 0
-    ? Number(process.env.RATE_LIMIT_MAX)
+  Number.isFinite(Number(env.DEFAULT_RATE_LIMIT_MAX)) && Number(env.DEFAULT_RATE_LIMIT_MAX) > 0
+    ? Number(env.DEFAULT_RATE_LIMIT_MAX)
     : DEFAULT_RATE_LIMIT_MAX
 const rateMap = new Map<string, number[]>()
 
 // Trusted proxy IPs for secure X-Forwarded-For validation
 // Parse comma-separated list from environment variable, default to localhost if not set
-const TRUSTED_PROXIES = process.env.TRUSTED_PROXIES
-  ? process.env.TRUSTED_PROXIES.split(',').map((ip) => ip.trim())
+const TRUSTED_PROXIES = env.TRUSTED_PROXIES
+  ? env.TRUSTED_PROXIES.split(',').map((ip) => ip.trim())
   : ['127.0.0.1', '::1']
 
 // Periodic cleanup to prevent unbounded growth of `rateMap`.
@@ -267,7 +269,7 @@ export async function middleware(request: Request) {
   // to bypass this type mismatch, as documented in the middleware README and NextAuth docs.
   let token
   try {
-    token = await getToken({ req: request as never, secret: process.env.NEXTAUTH_SECRET })
+    token = await getToken({ req: request as never, secret: env.NEXTAUTH_SECRET })
   } catch (error) {
     // If JWT decryption fails (e.g., invalid token), treat as unauthenticated but log for debugging
     console.error('Failed to retrieve auth token in middleware:', error)

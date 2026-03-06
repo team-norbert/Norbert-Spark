@@ -1,4 +1,5 @@
 import type { RegisterUserData, RegisterUserResponse } from '@/domain/schemas/index.js'
+import { env } from '@/env/index.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = createLogger({ minLevel: 'info', prefix: '[register:route]' })
@@ -7,7 +8,7 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as RegisterUserData
 
-    const apiUrl = process.env.BACKEND_AI_CALLBACK_URL
+    const apiUrl = env.BACKEND_AI_CALLBACK_URL
 
     if (!apiUrl) {
       return Response.json(

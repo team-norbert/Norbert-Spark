@@ -38,6 +38,12 @@ vi.mock('@/view/hooks/useUserChats.js', () => ({
   useUserChats: vi.fn(),
 }))
 
+vi.mock('@/env/client.js', () => ({
+  clientEnv: {
+    NEXT_PUBLIC_POST_AI_CALLBACK_URL: 'https://localhost:3001/api/v1/ai/chat',
+  },
+}))
+
 describe('processUserUUID', () => {
   describe('valid UUIDv7', () => {
     it('should return true for a valid UUIDv7 string', () => {

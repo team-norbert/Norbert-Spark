@@ -6,10 +6,20 @@ import { vi } from 'vitest'
 // Set timezone to UTC for consistent date formatting across CI runners
 process.env.TZ = 'UTC'
 
+// Disable @t3-oss/env-nextjs validation in tests — Vitest runs in jsdom which has
+// `window` defined, causing server env imports to throw "Attempted to access a
+// server-side environment variable on the client" before any test can run.
+process.env.SKIP_ENV_VALIDATION = '1'
+
 // Set required environment variables for tests
 process.env.GOOGLE_ID = 'test-google-id'
 process.env.GOOGLE_SECRET = 'test-google-secret'
 process.env.NEXTAUTH_SECRET = 'test-nextauth-secret'
+
+// Set required NEXT_PUBLIC client-side env vars validated by @t3-oss/env-nextjs at import time
+process.env.NEXT_PUBLIC_POST_AI_CALLBACK_URL = 'http://localhost:3001/api/ai/callback'
+process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000'
+process.env.NEXT_PUBLIC_BACKEND_URL = 'http://localhost:3001'
 
 // Suppress MUI Popover/Select `anchorEl` layout warning in JSDOM.
 // MUI's Select uses a Popover internally and warns when its anchor element has

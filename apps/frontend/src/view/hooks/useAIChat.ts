@@ -7,6 +7,7 @@ import { uuidv7 } from 'uuidv7'
 import { isValidUUID, uuidVersionValidation } from 'uuidv7-utilities'
 
 import { fileToDataURL } from '@/application/services/fileToDataURL.service.js'
+import { clientEnv } from '@/env/client.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { useUserChats } from '@/view/hooks/useUserChats.js'
 
@@ -93,7 +94,7 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
     id: id,
     messages: initialMessages,
     transport: new DefaultChatTransport({
-      api: process.env.NEXT_PUBLIC_POST_AI_CALLBACK_URL,
+      api: clientEnv.NEXT_PUBLIC_POST_AI_CALLBACK_URL,
       ...(chatTypeParam ? { body: { chatTypeParam } } : {}),
       fetch: (url, options) => {
         const accessToken = session?.accessToken

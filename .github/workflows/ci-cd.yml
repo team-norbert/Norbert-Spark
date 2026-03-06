@@ -47,4 +47,21 @@ jobs:
       run: pnpm run test
 
     - name: Build project
+      env:
+        # Placeholder values required by @t3-oss/env-nextjs Zod validation in next.config.ts.
+        # The build only needs these to satisfy schema constraints — real values are
+        # injected at deploy time. If a GitHub Secret exists for any of these, set it
+        # in repo Settings → Secrets and override the placeholder here via ${{ secrets.X }}.
+        NEXT_PUBLIC_POST_AI_CALLBACK_URL: http://localhost:3001/api/ai/callback
+        NEXT_PUBLIC_BASE_URL: http://localhost:3000
+        NEXT_PUBLIC_BACKEND_URL: http://localhost:3001
+        NEXTAUTH_SECRET: ci-placeholder-nextauth-secret-min32chars
+        GOOGLE_ID: ci-placeholder-google-id
+        GOOGLE_SECRET: ci-placeholder-google-secret
+        UPSTASH_REDIS_REST_URL: https://placeholder.upstash.io
+        UPSTASH_REDIS_REST_TOKEN: ci-placeholder-upstash-token
+        BACKEND_URL: http://localhost:3001
+        BACKEND_AI_CALLBACK_URL: http://localhost:3001/api/ai/callback
+        OAUTH_SYNC_SECRET: ci-placeholder-oauth-sync-secret
+        NEXTAUTH_URL: http://localhost:3000
       run: pnpm run build

@@ -10,6 +10,22 @@ vi.mock('next-auth/jwt', () => ({
   getToken: vi.fn(),
 }))
 
+// Mock the env module — createEnv captures values at import time so mutating
+// process.env afterwards has no effect. A getter-based mock re-reads process.env
+// on every property access, so per-test process.env overrides (NEXTAUTH_SECRET etc.) work.
+vi.mock('@/env/index.js', () => ({
+  get env() {
+    return {
+      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+      DEFAULT_RATE_LIMIT_WINDOW: process.env.DEFAULT_RATE_LIMIT_WINDOW,
+      DEFAULT_RATE_LIMIT_MAX: process.env.DEFAULT_RATE_LIMIT_MAX,
+      TRUSTED_PROXIES: process.env.TRUSTED_PROXIES,
+    }
+  },
+  clientEnv: {},
+  serverEnv: {},
+}))
+
 describe('Middleware', () => {
   const baseUrl = 'http://localhost:3000'
   const mockEnv = process.env

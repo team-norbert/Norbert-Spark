@@ -1,11 +1,12 @@
 import type { RegisterUserData, RegisterUserResponse } from '@/domain/schemas/index.js'
+import { clientEnv } from '@/env/client.js'
 import { UnifiedLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = new UnifiedLogger({ prefix: '[registerUser]' })
 
 export async function registerUser(data: RegisterUserData): Promise<RegisterUserResponse> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://localhost:4321'
+    const baseUrl = clientEnv.NEXT_PUBLIC_BASE_URL
 
     // Only send the expected fields to the server, ignoring any extra properties on data
     const payload = {

@@ -1,5 +1,17 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+import { createJiti } from 'jiti'
 import type { NextConfig } from 'next'
-import path from 'path'
+
+const jiti = createJiti(fileURLToPath(import.meta.url))
+
+// Validate env vars at build time using jiti to support .ts imports.
+// Runs in all environments by default (including CI) so misconfigurations are caught early.
+// To explicitly disable this behavior, set SKIP_ENV_VALIDATION=true in the environment.
+if (!process.env.SKIP_ENV_VALIDATION) {
+  jiti('./src/env')
+}
 
 /**
  * NOTE:
@@ -21,6 +33,7 @@ const csp = [
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  transpilePackages: ['@t3-oss/env-nextjs', '@t3-oss/env-core'],
   reactCompiler: true,
   reactStrictMode: true,
   // Optimize for production

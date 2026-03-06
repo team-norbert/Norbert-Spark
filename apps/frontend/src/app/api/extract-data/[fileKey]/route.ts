@@ -1,3 +1,4 @@
+import { env } from '@/env/index.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { getAuthToken } from '@/lib/auth/auth.js'
 
@@ -22,8 +23,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
     }
 
     logger.info('Proxying extraction request to backend', { fileKey })
-
-    const backendUrl = process.env.BACKEND_URL || 'https://127.0.0.1:3001'
+    const backendUrl = env.BACKEND_URL
     const url = `${backendUrl}/api/v1/ai/extract-data/${encodeURIComponent(fileKey)}`
 
     const response = await fetch(url, {
