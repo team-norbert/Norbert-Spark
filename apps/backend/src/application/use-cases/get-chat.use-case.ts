@@ -91,7 +91,10 @@ export class GetChatUseCase {
       // AuditLogPort.log() never throws per contract
       await this.auditLog.log(auditEntry)
     } else {
-      this.logger.info('No chat data found for user', { event: 'chat.fetch.not_found', chatId: chatID })
+      this.logger.info('No chat data found for user', {
+        event: 'chat.fetch.not_found',
+        chatId: chatID,
+      })
       return null
     }
 
