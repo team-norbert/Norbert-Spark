@@ -431,7 +431,7 @@ docker build --build-arg APP_VERSION=$(node -p "require('./package.json').versio
   -t norberts-spark-backend .
 ```
 
-The value is exposed inside the container as the `APP_VERSION` environment variable, which is read by `EnvConfig.APP_VERSION` and included in every structured log line.
+The value is exposed inside the container as the `APP_VERSION` environment variable and can be used by runtime configuration. Note that `EnvConfig.APP_VERSION` currently derives its value from the root `package.json` version, so changing `APP_VERSION` will not affect the `version` field in structured logs.
 
 ### Running the Container
 
