@@ -5,11 +5,9 @@ import { describe, expect, it } from 'vitest'
 
 const { like } = MatchersV3
 
-const PACT_BROKER_URL = process.env.PACT_BROKER_URL ?? 'http://localhost:9292'
 const PACT_DIR = path.resolve(process.cwd(), 'pacts')
 const CONSUMER = 'FrontendWebsite'
 const PROVIDER = 'BackendAPI'
-const CONSUMER_VERSION = '1.0.0'
 
 /**
  * CONSUMER CONTRACT TEST (Frontend → Backend)
