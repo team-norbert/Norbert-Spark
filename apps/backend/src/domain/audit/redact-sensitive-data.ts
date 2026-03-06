@@ -1,8 +1,11 @@
 /**
  * List of sensitive field names that should be redacted in audit logs
- * to comply with security and privacy requirements (GDPR, PCI-DSS, etc.)
+ * to comply with security and privacy requirements (GDPR, PCI-DSS, etc.).
+ *
+ * This list is also used by the Pino logger's `redact` option so that
+ * sensitive values are automatically censored in every structured log line.
  */
-const SENSITIVE_FIELDS = [
+export const SENSITIVE_FIELDS = [
   // Authentication & Authorization
   'password',
   'passwordHash',
@@ -13,6 +16,7 @@ const SENSITIVE_FIELDS = [
   'token',
   'accessToken',
   'refreshToken',
+  'resetToken',
   'oldToken',
   'newToken',
   'apiKey',
@@ -36,6 +40,8 @@ const SENSITIVE_FIELDS = [
   'swift',
 
   // Personal Identifiable Information (PII)
+  'email',
+  'ip',
   'ssn',
   'socialSecurityNumber',
   'taxId',

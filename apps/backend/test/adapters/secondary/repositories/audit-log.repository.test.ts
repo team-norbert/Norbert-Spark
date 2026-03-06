@@ -211,12 +211,12 @@ describe('AuditLogRepository', () => {
           action: entry.action,
           changes: {
             before: {
-              email: 'old@example.com',
+              email: '[REDACTED]',
               password: '[REDACTED]',
               name: 'Old Name',
             },
             after: {
-              email: 'new@example.com',
+              email: '[REDACTED]',
               password: '[REDACTED]',
               name: 'New Name',
             },
@@ -291,7 +291,7 @@ describe('AuditLogRepository', () => {
       expect(mockValues).toHaveBeenCalledWith(
         expect.objectContaining({
           changes: {
-            email: 'user@example.com',
+            email: '[REDACTED]',
             password: '[REDACTED]',
             reason: 'invalid_credentials',
           },
@@ -398,7 +398,22 @@ describe('AuditLogRepository', () => {
 
       expect(mockValues).toHaveBeenCalledWith(
         expect.objectContaining({
-          changes: entry.changes,
+          changes: {
+            before: {
+              name: 'Old Name',
+              email: '[REDACTED]',
+              profile: {
+                address: { city: 'Old City' },
+              },
+            },
+            after: {
+              name: 'New Name',
+              email: '[REDACTED]',
+              profile: {
+                address: { city: 'New City' },
+              },
+            },
+          },
         })
       )
     })

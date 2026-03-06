@@ -40,7 +40,7 @@ describe('redactSensitiveData', () => {
 
       const result = redactSensitiveData(data) as typeof data
 
-      expect(result.email).toBe('user@example.com')
+      expect(result.email).toBe('[REDACTED]')
       expect(result.password).toBe('[REDACTED]')
     })
 
@@ -126,7 +126,7 @@ describe('redactSensitiveData', () => {
       const result = redactSensitiveData(data) as typeof data
 
       expect(result.user.name).toBe('John')
-      expect(result.user.email).toBe('john@example.com')
+      expect(result.user.email).toBe('[REDACTED]')
       expect(result.user.password).toBe('[REDACTED]')
       expect(result.profile.bio).toBe('Developer')
       expect(result.profile.ssn).toBe('[REDACTED]')
@@ -234,10 +234,10 @@ describe('redactSensitiveData', () => {
       const result = redactSensitiveData(data) as typeof data
 
       expect(result.before.name).toBe('Old Name')
-      expect(result.before.email).toBe('old@example.com')
+      expect(result.before.email).toBe('[REDACTED]')
       expect(result.before.password).toBe('[REDACTED]')
       expect(result.after.name).toBe('New Name')
-      expect(result.after.email).toBe('new@example.com')
+      expect(result.after.email).toBe('[REDACTED]')
       expect(result.after.password).toBe('[REDACTED]')
     })
   })
@@ -319,9 +319,9 @@ describe('redactAuditLogEntry', () => {
     expect(result.ipAddress).toBe('192.168.1.1')
 
     const changes = result.changes as any
-    expect(changes.before.email).toBe('old@example.com')
+    expect(changes.before.email).toBe('[REDACTED]')
     expect(changes.before.password).toBe('[REDACTED]')
-    expect(changes.after.email).toBe('new@example.com')
+    expect(changes.after.email).toBe('[REDACTED]')
     expect(changes.after.password).toBe('[REDACTED]')
   })
 
@@ -395,7 +395,7 @@ describe('redactAuditLogEntry', () => {
     const result = redactAuditLogEntry(entry)
 
     const changes = result.changes as any
-    expect(changes.email).toBe('user@example.com')
+    expect(changes.email).toBe('[REDACTED]')
     expect(changes.password).toBe('[REDACTED]')
     expect(changes.reason).toBe('invalid_password')
   })
@@ -447,9 +447,9 @@ describe('redactCreateAuditLogDTO', () => {
     const changes = result.changes as Record<string, unknown>
     const before = changes.before as Record<string, unknown>
     const after = changes.after as Record<string, unknown>
-    expect(before.email).toBe('old@example.com')
+    expect(before.email).toBe('[REDACTED]')
     expect(before.password).toBe('[REDACTED]')
-    expect(after.email).toBe('new@example.com')
+    expect(after.email).toBe('[REDACTED]')
     expect(after.password).toBe('[REDACTED]')
   })
 

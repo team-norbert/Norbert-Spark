@@ -78,6 +78,21 @@ describe('PinoLoggerService', () => {
 
       expect(pino).toHaveBeenCalledWith({
         level: 'info',
+        redact: {
+          paths: expect.arrayContaining([
+            'email',
+            'password',
+            'token',
+            'accessToken',
+            'refreshToken',
+            'ip',
+            '*.email',
+            '*.ip',
+            '*.record.ip',
+            '*.record.token',
+          ]),
+          censor: '[REDACTED]',
+        },
         base: {
           pid: expect.any(Number),
           hostname: expect.any(String),
@@ -100,6 +115,17 @@ describe('PinoLoggerService', () => {
 
       expect(pino).toHaveBeenCalledWith({
         level: 'debug',
+        redact: {
+          paths: expect.arrayContaining([
+            'email',
+            'password',
+            'token',
+            'accessToken',
+            'refreshToken',
+            'ip',
+          ]),
+          censor: '[REDACTED]',
+        },
         base: {
           pid: expect.any(Number),
           hostname: expect.any(String),
