@@ -881,5 +881,27 @@ describe('CreateVectorStoreForm', () => {
       expect((screen.getByLabelText(/^model name/i) as HTMLInputElement).value).toBe('')
       expect((screen.getByLabelText(/^model provider/i) as HTMLInputElement).value).toBe('')
     })
+
+    it('selecting a pre-seeded model does NOT autopopulate model name, model provider, or dimension', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      // All manual fields start empty
+      expect((screen.getByLabelText(/^model name/i) as HTMLInputElement).value).toBe('')
+      expect((screen.getByLabelText(/^model provider/i) as HTMLInputElement).value).toBe('')
+      const dimensionSelect = document.querySelector(
+        '[data-test-id="embedding-models-dimension-select"]'
+      ) as HTMLElement
+      const dimensionCombobox = (dimensionSelect.querySelector('[role="combobox"]') ??
+        dimensionSelect) as HTMLElement
+      expect(dimensionCombobox).toHaveTextContent('— choose a dimension —')
+
+      // Select the pre-seeded model from the dropdown
+      selectEmbeddingModelFromDropdown()
+
+      // Manual fields must remain empty — dropdown and manual entry are mutually exclusive
+      expect((screen.getByLabelText(/^model name/i) as HTMLInputElement).value).toBe('')
+      expect((screen.getByLabelText(/^model provider/i) as HTMLInputElement).value).toBe('')
+      expect(dimensionCombobox).toHaveTextContent('— choose a dimension —')
+    })
   })
 })
