@@ -66,7 +66,11 @@ export class SaveChatUseCase {
       userId,
       messageCount: messages.length,
     })
-    this.logger.debug('Messages to save', { chatId, messages })
+    this.logger.debug('Messages to save (metadata)', {
+      event: 'chat.save.messages.debug',
+      chatId,
+      messageCount: messages.length,
+    })
 
     const savedChatId = await this.aiRepository.createChat(chatId, userId, chatTypeId, messages)
     this.logger.info('Chat saved', { event: 'chat.created', chatId: savedChatId })
