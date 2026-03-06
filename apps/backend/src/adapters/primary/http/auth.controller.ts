@@ -495,7 +495,7 @@ export class AuthController {
     })
 
     try {
-      request.log.info({ body: request.body }, 'OAuth sync request received')
+      reqLogger.info('OAuth sync request received', { body: request.body })
 
       // Extract audit context from request
       const auditContext = {
