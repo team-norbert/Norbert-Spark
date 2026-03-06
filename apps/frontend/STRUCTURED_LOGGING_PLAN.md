@@ -8,27 +8,27 @@ Evolve the existing `UnifiedLogger` to emit **structured, machine-readable log o
 
 ## Current State
 
-| Area | Current behaviour |
-|---|---|
+| Area                      | Current behaviour                                                                                                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Logger implementation** | `UnifiedLogger` class in `src/infrastructure/logging/logger.ts` (312 lines). Wraps `console.trace/debug/info/warn/error`. Returns a `FormattedLogMessage` object (timestamp, prefix, method, message). |
-| **LoggerPort** | 4-method interface (`info`, `warn`, `error`, `debug`) in `src/application/ports/logger.port.ts`. No `child()`, no structured context. |
-| **Production filtering** | `trace`, `debug`, and `info` are silenced in production via `process.env.NODE_ENV !== 'production'` checks. Only `warn` and `error` reach production logs. |
-| **Adoption** | ~25 call sites across all DDD layers use `createLogger({ prefix })`. 2 application actions import `UnifiedLogger` directly. |
-| **Raw `console.*` leaks** | `middleware.ts` (`console.error`), `useAIAdminPage.ts` (`console.log`), `useAIChat.ts` (`console.error` via `.catch(console.error)`). |
-| **Log shape** | `FormattedLogMessage` is a flat object with `timestamp`, `prefix`, `method`, `message`. No `event` field, no correlation ID, no `service`/`env`/`version` metadata. |
-| **Context propagation** | None. Each logger instance has a static `prefix` string only. No per-request or per-session context. |
-| **Env vars for logging** | None (`LOG_LEVEL`, `LOG_FORMAT` not defined). The logger defaults to `debug` min level. |
+| **LoggerPort**            | 4-method interface (`info`, `warn`, `error`, `debug`) in `src/application/ports/logger.port.ts`. No `child()`, no structured context.                                                                  |
+| **Production filtering**  | `trace`, `debug`, and `info` are silenced in production via `process.env.NODE_ENV !== 'production'` checks. Only `warn` and `error` reach production logs.                                             |
+| **Adoption**              | ~25 call sites across all DDD layers use `createLogger({ prefix })`. 2 application actions import `UnifiedLogger` directly.                                                                            |
+| **Raw `console.*` leaks** | `middleware.ts` (`console.error`), `useAIAdminPage.ts` (`console.log`), `useAIChat.ts` (`console.error` via `.catch(console.error)`).                                                                  |
+| **Log shape**             | `FormattedLogMessage` is a flat object with `timestamp`, `prefix`, `method`, `message`. No `event` field, no correlation ID, no `service`/`env`/`version` metadata.                                    |
+| **Context propagation**   | None. Each logger instance has a static `prefix` string only. No per-request or per-session context.                                                                                                   |
+| **Env vars for logging**  | None (`LOG_LEVEL`, `LOG_FORMAT` not defined). The logger defaults to `debug` min level.                                                                                                                |
 
 ---
 
 ## Design Constraints
 
-| Constraint | Rationale |
-|---|---|
-| **No external logging library** | Next.js bundles server and client code together; conditionally importing a Node-only library (Pino, Winston) causes build-time errors or inflated client bundles. The `UnifiedLogger` approach avoids this entirely. |
-| **Synchronous logging only** | Because the logger must work in both server (Node/Edge) and client (browser) runtimes, async transports, file writes, or network calls are out of scope. `console.*` delegates to the runtime's built-in log handling. |
-| **Production performance** | `trace`, `info`, and `debug` are no-ops in production. Only `warn` and `error` execute, and these should fire rarely. The overhead of building a structured object per warn/error call is negligible. |
-| **GDPR compliance** | Same rules as the backend: never log email, IP, name, phone, tokens, or cookies. Only log opaque UUIDs (`userId`, `sessionId`). |
+| Constraint                      | Rationale                                                                                                                                                                                                              |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No external logging library** | Next.js bundles server and client code together; conditionally importing a Node-only library (Pino, Winston) causes build-time errors or inflated client bundles. The `UnifiedLogger` approach avoids this entirely.   |
+| **Synchronous logging only**    | Because the logger must work in both server (Node/Edge) and client (browser) runtimes, async transports, file writes, or network calls are out of scope. `console.*` delegates to the runtime's built-in log handling. |
+| **Production performance**      | `trace`, `info`, and `debug` are no-ops in production. Only `warn` and `error` execute, and these should fire rarely. The overhead of building a structured object per warn/error call is negligible.                  |
+| **GDPR compliance**             | Same rules as the backend: never log email, IP, name, phone, tokens, or cookies. Only log opaque UUIDs (`userId`, `sessionId`).                                                                                        |
 
 ---
 
@@ -80,41 +80,41 @@ Evolve the existing `UnifiedLogger` to emit **structured, machine-readable log o
 
 ### Group 1 — Core fields (every log line)
 
-| Field | Source | Notes |
-|---|---|---|
-| `level` | The log method called (`trace` / `debug` / `info` / `warn` / `error`) | Lowercase string, matches `LogLevel` enum |
-| `timestamp` | `new Date().toISOString()` | ISO 8601, already present |
-| `event` | Caller-supplied via `context` parameter | Stable, dot-separated machine-readable event name (see Event Names below) |
-| `message` | First argument to every log method | Human-readable description |
+| Field       | Source                                                                | Notes                                                                     |
+| ----------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `level`     | The log method called (`trace` / `debug` / `info` / `warn` / `error`) | Lowercase string, matches `LogLevel` enum                                 |
+| `timestamp` | `new Date().toISOString()`                                            | ISO 8601, already present                                                 |
+| `event`     | Caller-supplied via `context` parameter                               | Stable, dot-separated machine-readable event name (see Event Names below) |
+| `message`   | First argument to every log method                                    | Human-readable description                                                |
 
 ### Group 2 — Service metadata (injected automatically)
 
-| Field | Source | Notes |
-|---|---|---|
+| Field     | Source                                                                | Notes                                                |
+| --------- | --------------------------------------------------------------------- | ---------------------------------------------------- |
 | `service` | `process.env.NEXT_PUBLIC_SERVICE_NAME \|\| 'norberts-spark-frontend'` | Identifies the app in a multi-service log aggregator |
-| `env` | `process.env.NEXT_PUBLIC_NODE_ENV \|\| process.env.NODE_ENV` | `production` / `development` |
-| `version` | `process.env.NEXT_PUBLIC_APP_VERSION \|\| 'unknown'` | Correlates log spikes with deployments |
+| `env`     | `process.env.NEXT_PUBLIC_NODE_ENV \|\| process.env.NODE_ENV`          | `production` / `development`                         |
+| `version` | `process.env.NEXT_PUBLIC_APP_VERSION \|\| 'unknown'`                  | Correlates log spikes with deployments               |
 
 ### Group 3 — Logger identity
 
-| Field | Source | Notes |
-|---|---|---|
+| Field     | Source                                              | Notes                                                                                                         |
+| --------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `context` | The `prefix` option from `createLogger({ prefix })` | Identifies the module/component that emitted the log. Renamed from `prefix` for consistency with the backend. |
 
 ### Group 4 — Error details (when applicable)
 
-| Field | Source | Notes |
-|---|---|---|
-| `err` | Serialised `Error` object | Extract `name`, `message`, and `stack` (stack only in non-production). Never log the raw Error — it may contain PII in its message. |
-| `errorCode` | Application-specific code from custom error classes | e.g. `UNAUTHORIZED`, `NETWORK_ERROR`, `VALIDATION_FAILED` |
+| Field       | Source                                              | Notes                                                                                                                               |
+| ----------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `err`       | Serialised `Error` object                           | Extract `name`, `message`, and `stack` (stack only in non-production). Never log the raw Error — it may contain PII in its message. |
+| `errorCode` | Application-specific code from custom error classes | e.g. `UNAUTHORIZED`, `NETWORK_ERROR`, `VALIDATION_FAILED`                                                                           |
 
 ### Group 5 — Request context (server-side only, optional)
 
-| Field | Source | Notes |
-|---|---|---|
-| `statusCode` | HTTP status from backend response or Next.js API route | Only for server actions / API routes |
-| `endpoint` | The backend endpoint called | Parameterised path preferred over resolved URL |
-| `durationMs` | `Date.now() - startTime` | Round to integer |
+| Field        | Source                                                 | Notes                                          |
+| ------------ | ------------------------------------------------------ | ---------------------------------------------- |
+| `statusCode` | HTTP status from backend response or Next.js API route | Only for server actions / API routes           |
+| `endpoint`   | The backend endpoint called                            | Parameterised path preferred over resolved URL |
+| `durationMs` | `Date.now() - startTime`                               | Round to integer                               |
 
 ---
 
@@ -124,59 +124,59 @@ Use dot-separated namespacing. The first segment identifies the domain area; the
 
 ### Server Actions (`src/infrastructure/serverActions/`)
 
-| Event | When |
-|---|---|
-| `server-action.backend-request.completed` | Successful backend fetch (2xx) |
-| `server-action.backend-request.failed` | Backend returned non-2xx or fetch threw |
-| `server-action.backend-request.timeout` | Request exceeded `timeoutMs` |
-| `server-action.backend-request.retry` | 401 retry triggered |
-| `server-action.login.success` | Login server action succeeded |
-| `server-action.login.failed` | Login server action failed |
-| `server-action.logout.completed` | Logout server action completed |
+| Event                                     | When                                    |
+| ----------------------------------------- | --------------------------------------- |
+| `server-action.backend-request.completed` | Successful backend fetch (2xx)          |
+| `server-action.backend-request.failed`    | Backend returned non-2xx or fetch threw |
+| `server-action.backend-request.timeout`   | Request exceeded `timeoutMs`            |
+| `server-action.backend-request.retry`     | 401 retry triggered                     |
+| `server-action.login.success`             | Login server action succeeded           |
+| `server-action.login.failed`              | Login server action failed              |
+| `server-action.logout.completed`          | Logout server action completed          |
 
 ### API Routes (`src/app/api/`)
 
-| Event | When |
-|---|---|
-| `api-route.register.completed` | User registration route succeeded |
-| `api-route.register.failed` | User registration route failed |
-| `api-route.users.fetched` | Users list fetched |
-| `api-route.extract-data.completed` | Data extraction route succeeded |
-| `api-route.extract-data.failed` | Data extraction route failed |
+| Event                              | When                              |
+| ---------------------------------- | --------------------------------- |
+| `api-route.register.completed`     | User registration route succeeded |
+| `api-route.register.failed`        | User registration route failed    |
+| `api-route.users.fetched`          | Users list fetched                |
+| `api-route.extract-data.completed` | Data extraction route succeeded   |
+| `api-route.extract-data.failed`    | Data extraction route failed      |
 
 ### Auth & Middleware (`src/middleware.ts`, `src/lib/auth/`)
 
-| Event | When |
-|---|---|
-| `middleware.auth-token.failed` | `getToken()` threw in middleware |
+| Event                            | When                                        |
+| -------------------------------- | ------------------------------------------- |
+| `middleware.auth-token.failed`   | `getToken()` threw in middleware            |
 | `middleware.rate-limit.exceeded` | Rate limiter blocked request (when enabled) |
-| `auth.session.created` | NextAuth session callback fired |
-| `auth.session.error` | NextAuth error callback fired |
+| `auth.session.created`           | NextAuth session callback fired             |
+| `auth.session.error`             | NextAuth error callback fired               |
 
 ### Client Hooks (`src/view/hooks/`)
 
-| Event | When |
-|---|---|
-| `chat.transport.error` | AI chat stream error |
-| `chat.stream.aborted` | User cancelled AI stream |
-| `chat.message.sent` | User sent a message |
-| `file-upload.started` | File upload initiated |
-| `file-upload.completed` | File upload succeeded |
-| `file-upload.failed` | File upload failed |
+| Event                    | When                                          |
+| ------------------------ | --------------------------------------------- |
+| `chat.transport.error`   | AI chat stream error                          |
+| `chat.stream.aborted`    | User cancelled AI stream                      |
+| `chat.message.sent`      | User sent a message                           |
+| `file-upload.started`    | File upload initiated                         |
+| `file-upload.completed`  | File upload succeeded                         |
+| `file-upload.failed`     | File upload failed                            |
 | `session-guard.redirect` | Session guard redirected unauthenticated user |
-| `signin.submitted` | Sign-in form submitted |
-| `signin.failed` | Sign-in attempt failed |
-| `registration.submitted` | Registration form submitted |
-| `registration.failed` | Registration attempt failed |
+| `signin.submitted`       | Sign-in form submitted                        |
+| `signin.failed`          | Sign-in attempt failed                        |
+| `registration.submitted` | Registration form submitted                   |
+| `registration.failed`    | Registration attempt failed                   |
 
 ### Application Actions (`src/application/actions/`)
 
-| Event | When |
-|---|---|
-| `action.register-user.completed` | `registerUser` action succeeded |
-| `action.register-user.failed` | `registerUser` action failed |
+| Event                             | When                            |
+| --------------------------------- | ------------------------------- |
+| `action.register-user.completed`  | `registerUser` action succeeded |
+| `action.register-user.failed`     | `registerUser` action failed    |
 | `action.find-all-users.completed` | `findAllUsers` action succeeded |
-| `action.find-all-users.failed` | `findAllUsers` action failed |
+| `action.find-all-users.failed`    | `findAllUsers` action failed    |
 
 ---
 
@@ -399,11 +399,11 @@ child(bindings: Record<string, unknown>): UnifiedLogger {
 
 **Files to update:**
 
-| File | Current | Replacement |
-|---|---|---|
-| `src/middleware.ts` (line ~275) | `console.error('Failed to retrieve auth token in middleware:', error)` | `logger.error('Failed to retrieve auth token in middleware', error instanceof Error ? error : new Error(String(error)), { event: 'middleware.auth-token.failed' })` |
-| `src/view/hooks/useAIAdminPage.ts` (line ~35) | `console.log('chatTypes in useAIAdminPage', chatTypes)` | `logger.debug('Chat types loaded', { event: 'admin.chat-types.loaded', count: chatTypes?.length })` — or remove entirely (debug logging) |
-| `src/view/hooks/useAIChat.ts` (line ~119) | `void stop().catch(console.error)` | `void stop().catch((err: Error) => logger.error('Failed to stop chat stream', err, { event: 'chat.stream.stop-failed' }))` |
+| File                                          | Current                                                                | Replacement                                                                                                                                                         |
+| --------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/middleware.ts` (line ~275)               | `console.error('Failed to retrieve auth token in middleware:', error)` | `logger.error('Failed to retrieve auth token in middleware', error instanceof Error ? error : new Error(String(error)), { event: 'middleware.auth-token.failed' })` |
+| `src/view/hooks/useAIAdminPage.ts` (line ~35) | `console.log('chatTypes in useAIAdminPage', chatTypes)`                | `logger.debug('Chat types loaded', { event: 'admin.chat-types.loaded', count: chatTypes?.length })` — or remove entirely (debug logging)                            |
+| `src/view/hooks/useAIChat.ts` (line ~119)     | `void stop().catch(console.error)`                                     | `void stop().catch((err: Error) => logger.error('Failed to stop chat stream', err, { event: 'chat.stream.stop-failed' }))`                                          |
 
 ---
 
@@ -483,15 +483,15 @@ Currently prefixes are inconsistent — some use brackets `[prefix]`, some don't
 
 **Convention:** Use unbracketed `PascalCase:layer` format matching the backend's approach:
 
-| Current prefix | New prefix |
-|---|---|
-| `backendRequest` | `BackendRequest` |
+| Current prefix                  | New prefix                          |
+| ------------------------------- | ----------------------------------- |
+| `backendRequest`                | `BackendRequest`                    |
 | `[updateCompanyDetails:action]` | `UpdateCompanyDetails:ServerAction` |
-| `[login:action]` | `Login:ServerAction` |
-| `[useAIChat]` | `UseAIChat:Hook` |
-| `[auth-config]` | `AuthConfig` |
-| `UsersAPI` | `Users:ApiRoute` |
-| `[register:route]` | `Register:ApiRoute` |
+| `[login:action]`                | `Login:ServerAction`                |
+| `[useAIChat]`                   | `UseAIChat:Hook`                    |
+| `[auth-config]`                 | `AuthConfig`                        |
+| `UsersAPI`                      | `Users:ApiRoute`                    |
+| `[register:route]`              | `Register:ApiRoute`                 |
 
 This is a **low-priority** cosmetic change. It can be done incrementally alongside Step 8 without a dedicated pass.
 
@@ -519,14 +519,14 @@ const logger = createLogger({ prefix: 'RegisterUser:Action' })
 
 Do a project-wide search in `apps/frontend/src/` for the following patterns:
 
-| Pattern to search for | Risk |
-|---|---|
-| `email` inside a `logger.` call | Email is PII — remove or never log |
-| `password` inside a `logger.` call | Critical — must never be logged |
-| `token` inside a `logger.` call | Access/refresh tokens must never be logged |
-| `cookie` inside a `logger.` call | Session cookies must never be logged |
-| `ip` or `remoteAddress` in log context | IP is PII under UK GDPR |
-| `req.headers` in log context | May leak auth tokens or cookies |
+| Pattern to search for                  | Risk                                       |
+| -------------------------------------- | ------------------------------------------ |
+| `email` inside a `logger.` call        | Email is PII — remove or never log         |
+| `password` inside a `logger.` call     | Critical — must never be logged            |
+| `token` inside a `logger.` call        | Access/refresh tokens must never be logged |
+| `cookie` inside a `logger.` call       | Session cookies must never be logged       |
+| `ip` or `remoteAddress` in log context | IP is PII under UK GDPR                    |
+| `req.headers` in log context           | May leak auth tokens or cookies            |
 
 The backend has a `SENSITIVE_FIELDS` constant in `src/domain/audit/redact-sensitive-data.ts`. Consider importing or mirroring this list for client-side awareness, though the primary defence is to never pass PII to the logger in the first place.
 
@@ -536,37 +536,37 @@ The backend has a `SENSITIVE_FIELDS` constant in `src/domain/audit/redact-sensit
 
 **File:** `apps/frontend/test/infrastructure/logging/logger.test.ts` (new or update existing)
 
-| Test case | Assertion |
-|---|---|
-| `formatMessage` returns `StructuredLogEntry` shape | Check all required fields: `level`, `timestamp`, `message`, `service`, `env`, `version` |
-| `prefix` maps to `context` field | `createLogger({ prefix: 'Foo' })` → entry has `context: 'Foo'` |
-| `error()` serialises Error into `err` | `logger.error('msg', new Error('boom'))` → entry has `err: { name: 'Error', message: 'boom' }` |
-| `child()` merges bindings | `logger.child({ requestId: 'abc' }).warn('msg')` → entry has `requestId: 'abc'` |
-| `child()` bindings don't mutate parent | Parent logger entries must not contain child bindings |
-| `event` field passes through | `logger.warn('msg', { event: 'foo.bar' })` → entry has `event: 'foo.bar'` |
-| Production filtering | With `NODE_ENV=production`, `info/debug/trace` do not call `console.*` |
-| `warn` and `error` log in production | With `NODE_ENV=production`, `warn` and `error` still emit |
-| Error stack excluded in production | With `NODE_ENV=production`, `err.stack` is undefined |
+| Test case                                          | Assertion                                                                                      |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `formatMessage` returns `StructuredLogEntry` shape | Check all required fields: `level`, `timestamp`, `message`, `service`, `env`, `version`        |
+| `prefix` maps to `context` field                   | `createLogger({ prefix: 'Foo' })` → entry has `context: 'Foo'`                                 |
+| `error()` serialises Error into `err`              | `logger.error('msg', new Error('boom'))` → entry has `err: { name: 'Error', message: 'boom' }` |
+| `child()` merges bindings                          | `logger.child({ requestId: 'abc' }).warn('msg')` → entry has `requestId: 'abc'`                |
+| `child()` bindings don't mutate parent             | Parent logger entries must not contain child bindings                                          |
+| `event` field passes through                       | `logger.warn('msg', { event: 'foo.bar' })` → entry has `event: 'foo.bar'`                      |
+| Production filtering                               | With `NODE_ENV=production`, `info/debug/trace` do not call `console.*`                         |
+| `warn` and `error` log in production               | With `NODE_ENV=production`, `warn` and `error` still emit                                      |
+| Error stack excluded in production                 | With `NODE_ENV=production`, `err.stack` is undefined                                           |
 
 ---
 
 ## Files Changed (Summary)
 
-| # | File | Action |
-|---|---|---|
-| 1 | `apps/frontend/.env` | Add `NEXT_PUBLIC_SERVICE_NAME`, `NEXT_PUBLIC_APP_VERSION` |
-| 2 | `apps/frontend/src/infrastructure/logging/logger.ts` | Replace `FormattedLogMessage` with `StructuredLogEntry`; refactor `formatMessage`; update method signatures; add `child()`; add `serializeError()`; add static service metadata |
-| 3 | `apps/frontend/src/application/ports/logger.port.ts` | Add `trace()` and `child()` to `LoggerPort` interface |
-| 4 | `apps/frontend/src/middleware.ts` | Replace `console.error` with structured logger call |
-| 5 | `apps/frontend/src/view/hooks/useAIAdminPage.ts` | Replace `console.log` with structured logger or remove |
-| 6 | `apps/frontend/src/view/hooks/useAIChat.ts` | Replace `.catch(console.error)` with structured logger |
-| 7 | `apps/frontend/src/application/actions/registerUser.ts` | Switch from `new UnifiedLogger()` to `createLogger()` |
-| 8 | `apps/frontend/src/application/actions/findAllUsers.ts` | Switch from `new UnifiedLogger()` to `createLogger()` |
-| 9 | All server actions in `src/infrastructure/serverActions/` | Add `event` fields to existing log calls |
-| 10 | All hooks in `src/view/hooks/` that use the logger | Add `event` fields to existing log calls |
-| 11 | `src/lib/auth/auth-config.ts` | Add `event` fields to existing log calls |
-| 12 | `src/app/api/*/route.ts` | Add `event` fields to existing log calls |
-| 13 | `apps/frontend/test/infrastructure/logging/logger.test.ts` | New or updated test file |
+| #   | File                                                       | Action                                                                                                                                                                          |
+| --- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `apps/frontend/.env`                                       | Add `NEXT_PUBLIC_SERVICE_NAME`, `NEXT_PUBLIC_APP_VERSION`                                                                                                                       |
+| 2   | `apps/frontend/src/infrastructure/logging/logger.ts`       | Replace `FormattedLogMessage` with `StructuredLogEntry`; refactor `formatMessage`; update method signatures; add `child()`; add `serializeError()`; add static service metadata |
+| 3   | `apps/frontend/src/application/ports/logger.port.ts`       | Add `trace()` and `child()` to `LoggerPort` interface                                                                                                                           |
+| 4   | `apps/frontend/src/middleware.ts`                          | Replace `console.error` with structured logger call                                                                                                                             |
+| 5   | `apps/frontend/src/view/hooks/useAIAdminPage.ts`           | Replace `console.log` with structured logger or remove                                                                                                                          |
+| 6   | `apps/frontend/src/view/hooks/useAIChat.ts`                | Replace `.catch(console.error)` with structured logger                                                                                                                          |
+| 7   | `apps/frontend/src/application/actions/registerUser.ts`    | Switch from `new UnifiedLogger()` to `createLogger()`                                                                                                                           |
+| 8   | `apps/frontend/src/application/actions/findAllUsers.ts`    | Switch from `new UnifiedLogger()` to `createLogger()`                                                                                                                           |
+| 9   | All server actions in `src/infrastructure/serverActions/`  | Add `event` fields to existing log calls                                                                                                                                        |
+| 10  | All hooks in `src/view/hooks/` that use the logger         | Add `event` fields to existing log calls                                                                                                                                        |
+| 11  | `src/lib/auth/auth-config.ts`                              | Add `event` fields to existing log calls                                                                                                                                        |
+| 12  | `src/app/api/*/route.ts`                                   | Add `event` fields to existing log calls                                                                                                                                        |
+| 13  | `apps/frontend/test/infrastructure/logging/logger.test.ts` | New or updated test file                                                                                                                                                        |
 
 ---
 
@@ -587,10 +587,10 @@ The backend has a `SENSITIVE_FIELDS` constant in `src/domain/audit/redact-sensit
 
 ## Non-Goals (Explicitly Out of Scope)
 
-| Item | Reason |
-|---|---|
-| **Async log transport** | Incompatible with the dual server/client runtime constraint. `console.*` delegates to the platform. |
-| **Log shipping from the browser** | Would require a network transport (e.g. `fetch` to a log endpoint). Out of scope for this plan; can be added later as a separate feature. |
+| Item                                               | Reason                                                                                                                                                                                                      |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Async log transport**                            | Incompatible with the dual server/client runtime constraint. `console.*` delegates to the platform.                                                                                                         |
+| **Log shipping from the browser**                  | Would require a network transport (e.g. `fetch` to a log endpoint). Out of scope for this plan; can be added later as a separate feature.                                                                   |
 | **Request-scoped context via `AsyncLocalStorage`** | Next.js App Router's server component model makes `AsyncLocalStorage` usage complex. The `child()` method provides an explicit alternative for server actions and API routes that need per-request context. |
-| **Replacing `console.*` in third-party code** | Only application code is in scope. Framework-level logs (Next.js, React) are left as-is. |
-| **Log levels via env var** | The current `minLevel` default of `debug` with the production guard (`NODE_ENV !== 'production'`) is sufficient. A `LOG_LEVEL` env var can be added later if finer control is needed. |
+| **Replacing `console.*` in third-party code**      | Only application code is in scope. Framework-level logs (Next.js, React) are left as-is.                                                                                                                    |
+| **Log levels via env var**                         | The current `minLevel` default of `debug` with the production guard (`NODE_ENV !== 'production'`) is sufficient. A `LOG_LEVEL` env var can be added later if finer control is needed.                       |
