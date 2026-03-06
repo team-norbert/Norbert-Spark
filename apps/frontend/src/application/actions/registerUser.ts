@@ -1,5 +1,5 @@
 import type { RegisterUserData, RegisterUserResponse } from '@/domain/schemas/index.js'
-import { clientEnv } from '@/env/index.js'
+import { clientEnv } from '@/env/client.js'
 import { UnifiedLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = new UnifiedLogger({ prefix: '[registerUser]' })

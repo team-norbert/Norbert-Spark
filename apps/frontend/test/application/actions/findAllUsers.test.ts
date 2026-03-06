@@ -5,12 +5,10 @@ import { findAllUsers } from '@/application/actions/findAllUsers.js'
 // Mock the env module — createEnv captures values at import time so mutating
 // process.env afterwards has no effect. A getter-based mock re-reads process.env
 // on every property access, so per-test process.env overrides still work.
-vi.mock('@/env/index.js', () => ({
+vi.mock('@/env/client.js', () => ({
   get clientEnv() {
     return { NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL }
   },
-  env: {},
-  serverEnv: {},
 }))
 
 describe('findAllUsers', () => {
@@ -193,7 +191,7 @@ describe('findAllUsers', () => {
       delete process.env.NEXT_PUBLIC_BASE_URL
     })
 
-    it('should use default base URL when NEXT_PUBLIC_BASE_URL is not set', async () => {
+    it('should still call fetch when NEXT_PUBLIC_BASE_URL is not set (undefined base URL)', async () => {
       delete process.env.NEXT_PUBLIC_BASE_URL
 
       // When NEXT_PUBLIC_BASE_URL is unset the getter returns undefined, so the

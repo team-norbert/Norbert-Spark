@@ -5,12 +5,10 @@ import { registerUser } from '@/application/actions/registerUser.js'
 // Mock the env module — createEnv captures values at import time so mutating
 // process.env afterwards has no effect. A getter-based mock re-reads process.env
 // on every property access, so per-test process.env overrides still work.
-vi.mock('@/env/index.js', () => ({
+vi.mock('@/env/client.js', () => ({
   get clientEnv() {
     return { NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL }
   },
-  env: {},
-  serverEnv: {},
 }))
 
 describe('registerUser', () => {
