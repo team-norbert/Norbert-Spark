@@ -191,7 +191,7 @@ export function CreateVectorStoreForm({
   return (
     <Card elevation={3} sx={{ mt: 3 }}>
       <CardContent>
-        <Typography variant="h6" gutterBottom>
+        <Typography id="create-vector-store-heading" variant="h6" gutterBottom>
           Create Vector Store
         </Typography>
 
@@ -584,10 +584,7 @@ export function CreateVectorStoreForm({
           />
 
           <Divider sx={{ my: 2 }} />
-          <AccordionComponent
-            header="Information on Max Retries settings"
-            body={maxRetriesText}
-          />
+          <AccordionComponent header="Information on Max Retries settings" body={maxRetriesText} />
           <Divider sx={{ my: 2 }} />
 
           <TextField

@@ -20,6 +20,7 @@ import {
   Typography,
 } from '@mui/material'
 import type { pdfSchema } from '@norberts-spark/shared'
+import { useEffect } from 'react'
 import type { z } from 'zod'
 
 import type { UploadedFile } from '@/view/hooks/useFileUpload.js'
@@ -121,6 +122,18 @@ export function FileUploadPage({
   text,
   uploadedFiles,
 }: FileUploadPageProps) {
+  useEffect(() => {
+    if (showRagForm) {
+      // Allow the form to render before scrolling
+      const id = setTimeout(() => {
+        document
+          .getElementById('create-vector-store-heading')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 50)
+      return () => clearTimeout(id)
+    }
+  }, [showRagForm])
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes'
     const k = 1024
@@ -338,10 +351,7 @@ export function FileUploadPage({
           </form>
         </CardContent>
       </Card>
-
-      {/* {flow === 'rag' && showRagForm && (*/}
-
-      {flow === 'rag' && (
+      {flow === 'rag' && showRagForm && (
         <CreateVectorStoreForm
           fileKeys={ragFileKeys ?? []}
           initialChatTypeId={chatTypeId}
