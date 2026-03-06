@@ -126,9 +126,18 @@ export function FileUploadPage({
     if (showRagForm) {
       // Allow the form to render before scrolling
       const id = setTimeout(() => {
-        document
-          .getElementById('create-vector-store-heading')
-          ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        const heading = document.getElementById('create-vector-store-heading')
+        if (!heading) return
+
+        const prefersReducedMotion =
+          typeof window !== 'undefined' &&
+          typeof window.matchMedia === 'function' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+        heading.scrollIntoView({
+          behavior: prefersReducedMotion ? 'auto' : 'smooth',
+          block: 'start',
+        })
       }, 50)
       return () => clearTimeout(id)
     }

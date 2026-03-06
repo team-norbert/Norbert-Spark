@@ -8,6 +8,7 @@ import {
   CircularProgress,
   Divider,
   FormControl,
+  FormHelperText,
   InputLabel,
   MenuItem,
   Select,
@@ -362,7 +363,7 @@ export function CreateVectorStoreForm({
             body={vectorEmbeddingsText}
           />
           <Divider sx={{ my: 2 }} />
-          <FormControl fullWidth required sx={{ mb: 2 }}>
+          <FormControl fullWidth required sx={{ mb: 2 }} error={Boolean(distanceMetricError)}>
             <InputLabel id="distance-metric-label" shrink>
               Distance Metric
             </InputLabel>
@@ -396,17 +397,12 @@ export function CreateVectorStoreForm({
                 </MenuItem>
               ))}
             </Select>
+            {distanceMetricError && (
+              <FormHelperText data-test-id="distance-metric-error">
+                {distanceMetricError}
+              </FormHelperText>
+            )}
           </FormControl>
-          {distanceMetricError && (
-            <Typography
-              variant="body2"
-              color="error"
-              sx={{ mb: 2, mt: -1 }}
-              data-test-id="distance-metric-error"
-            >
-              {distanceMetricError}
-            </Typography>
-          )}
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent header="Read Chunk Size" body={chunkSizeText} />
