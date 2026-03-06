@@ -4,7 +4,21 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "packages/shared/dist/**"]
+      "outputs": ["dist/**", ".next/**", "packages/shared/dist/**"],
+      "env": [
+        "NEXTAUTH_SECRET",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "GOOGLE_ID",
+        "GOOGLE_SECRET",
+        "BACKEND_AI_CALLBACK_URL",
+        "BACKEND_URL",
+        "OAUTH_SYNC_SECRET",
+        "NEXTAUTH_URL",
+        "NEXT_PUBLIC_POST_AI_CALLBACK_URL",
+        "NEXT_PUBLIC_BASE_URL",
+        "NEXT_PUBLIC_BACKEND_URL"
+      ]
     },
     "dev": {
       "cache": false,
