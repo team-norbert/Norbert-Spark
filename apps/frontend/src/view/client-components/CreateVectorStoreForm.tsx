@@ -321,7 +321,7 @@ export function CreateVectorStoreForm({
             <strong>Examples: openai, google</strong>
           </Typography>
           <Divider sx={{ my: 2 }} />
-          <FormControl fullWidth required sx={{ mb: 2 }}>
+          <FormControl fullWidth required={selectedModelId === ''} sx={{ mb: 2 }}>
             <InputLabel id="dimension-label" shrink>
               Dimension
             </InputLabel>

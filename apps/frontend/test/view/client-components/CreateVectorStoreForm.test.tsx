@@ -218,8 +218,13 @@ describe('CreateVectorStoreForm', () => {
         expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe('')
       })
 
-      it('distanceMetric Select shows "— choose a distance metric —" placeholder by default', () => {
-        expect(screen.getByText('— choose a distance metric —')).toBeInTheDocument()
+      it('distanceMetric Select defaults to "cosine"', () => {
+        const selectRoot = document.querySelector(
+          '[data-test-id="vector-embeddings-distance-metric-select"]'
+        ) as HTMLElement
+        const combobox = (selectRoot.querySelector('[role="combobox"]') ??
+          selectRoot) as HTMLElement
+        expect(combobox).toHaveTextContent('cosine')
       })
 
       it('dimension shows "— choose a dimension —" placeholder by default', () => {
@@ -336,13 +341,14 @@ describe('CreateVectorStoreForm', () => {
       expect(typeof vectorEmbeddings.chunkOverlap).toBe('number')
     })
 
-    it('includes distanceMetric in vectorEmbeddings', () => {
+    it('blocks submission when an unsupported distanceMetric is selected', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      fillRequiredFields({ distanceMetric: 'euclidean' })
+      fillRequiredFields()
+      selectDistanceMetric('euclidean')
       submitForm()
 
-      expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('euclidean')
+      expect(mockOnSubmit).not.toHaveBeenCalled()
     })
 
     it('submits distanceMetric "cosine" when cosine is selected', () => {
@@ -571,28 +577,74 @@ describe('CreateVectorStoreForm', () => {
   // ── Distance Metric Select ────────────────────────────────────────────────────
 
   describe('Distance Metric Select', () => {
-    it('selecting euclidean updates distanceMetric in the submitted data', () => {
+    it('selecting euclidean shows a "not currently supported" error', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields()
 
       selectDistanceMetric('euclidean')
 
-      submitForm()
-
-      expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('euclidean')
+      const errorEl = document.querySelector('[data-test-id="distance-metric-error"]')
+      expect(errorEl).not.toBeNull()
+      expect(errorEl).toHaveTextContent(/not currently supported/i)
     })
 
-    it('selecting dot_product updates distanceMetric in the submitted data', () => {
+    it('blocks form submission when euclidean is selected', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields()
+      selectDistanceMetric('euclidean')
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('selecting dot_product shows a "not currently supported" error', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       selectDistanceMetric('dot_product')
 
+      const errorEl = document.querySelector('[data-test-id="distance-metric-error"]')
+      expect(errorEl).not.toBeNull()
+      expect(errorEl).toHaveTextContent(/not currently supported/i)
+    })
+
+    it('blocks form submission when dot_product is selected', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields()
+      selectDistanceMetric('dot_product')
       submitForm()
 
-      expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('dot_product')
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('clears the error when cosine is re-selected after an unsupported metric', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      selectDistanceMetric('euclidean')
+      expect(document.querySelector('[data-test-id="distance-metric-error"]')).not.toBeNull()
+
+      selectDistanceMetric('cosine')
+      expect(document.querySelector('[data-test-id="distance-metric-error"]')).toBeNull()
+    })
+
+    it('euclidean and dot_product options show "(not currently supported)" in the dropdown', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      const selectRoot = document.querySelector(
+        '[data-test-id="vector-embeddings-distance-metric-select"]'
+      ) as HTMLElement
+      const trigger = (selectRoot.querySelector('[role="combobox"]') ?? selectRoot) as HTMLElement
+      fireEvent.mouseDown(trigger)
+
+      expect(document.querySelector('li[role="option"][data-value="euclidean"]')).toHaveTextContent(
+        /not currently supported/i
+      )
+      expect(
+        document.querySelector('li[role="option"][data-value="dot_product"]')
+      ).toHaveTextContent(/not currently supported/i)
+      expect(
+        document.querySelector('li[role="option"][data-value="cosine"]')
+      ).not.toHaveTextContent(/not currently supported/i)
     })
   })
 
@@ -701,7 +753,7 @@ describe('CreateVectorStoreForm', () => {
       ).not.toBeInTheDocument()
     })
 
-    it('shows a conflict error when a dropdown model is selected and then modelName is typed', () => {
+    it('typing in modelName after dropdown selection clears the dropdown selection', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       selectEmbeddingModelFromDropdown()
@@ -709,12 +761,19 @@ describe('CreateVectorStoreForm', () => {
         target: { value: 'custom-override' },
       })
 
+      // No conflict error — typing in a manual field deselects the dropdown instead
       expect(
-        screen.getByText(/please use either the dropdown or manual entry/i)
-      ).toBeInTheDocument()
+        screen.queryByText(/please use either the dropdown or manual entry/i)
+      ).not.toBeInTheDocument()
+      // The dropdown combobox should no longer show the selected model name
+      const select = document.querySelector(
+        '[data-test-id="embedding-models-select"]'
+      ) as HTMLElement
+      const combobox = (select.querySelector('[role="combobox"]') ?? select) as HTMLElement
+      expect(combobox).not.toHaveTextContent('text-embedding-ada-002')
     })
 
-    it('shows a conflict error when a dropdown model is selected and then modelProvider is typed', () => {
+    it('typing in modelProvider after dropdown selection clears the dropdown selection', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       selectEmbeddingModelFromDropdown()
@@ -722,20 +781,23 @@ describe('CreateVectorStoreForm', () => {
         target: { value: 'custom-provider' },
       })
 
+      // No conflict error — typing in a manual field deselects the dropdown instead
       expect(
-        screen.getByText(/please use either the dropdown or manual entry/i)
-      ).toBeInTheDocument()
+        screen.queryByText(/please use either the dropdown or manual entry/i)
+      ).not.toBeInTheDocument()
     })
 
-    it('blocks form submission when both dropdown and manual entry are used', () => {
+    it('blocks form submission when dimension is missing after switching from dropdown to manual entry', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields()
+      // Selecting from dropdown clears dimension (mutual exclusion)
       selectEmbeddingModelFromDropdown()
-      // Typing into modelName after dropdown selection creates the conflict
+      // Typing into modelName clears selectedModelId — leaving dimension empty
       fireEvent.change(screen.getByLabelText(/^model name/i), {
         target: { value: 'custom-override' },
       })
+      // Both selectedModelId='' and dimension='' → form cannot be submitted
 
       submitForm()
 
@@ -787,7 +849,7 @@ describe('CreateVectorStoreForm', () => {
       fireEvent.change(screen.getAllByLabelText(/^source/i)[0]!, {
         target: { value: 'https://example.com' },
       })
-      selectDistanceMetric('cosine')
+      // distanceMetric already defaults to 'cosine' in React state — no DOM interaction needed
       fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: '512' } })
       fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: '50' } })
       fireEvent.change(screen.getByLabelText(/^chat type id/i), {
@@ -802,25 +864,22 @@ describe('CreateVectorStoreForm', () => {
       expect(embeddingModels).not.toHaveProperty('dimension')
     })
 
-    it('clears the conflict error when the dropdown selection is cleared', () => {
+    it('selecting a model from the dropdown clears the manual entry fields', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      selectEmbeddingModelFromDropdown()
+      // Enter manual values first
       fireEvent.change(screen.getByLabelText(/^model name/i), {
-        target: { value: 'custom-override' },
+        target: { value: 'custom-model' },
       })
-      expect(
-        screen.getByText(/please use either the dropdown or manual entry/i)
-      ).toBeInTheDocument()
+      fireEvent.change(screen.getByLabelText(/^model provider/i), {
+        target: { value: 'custom-provider' },
+      })
 
-      // Selecting the empty option clears selectedModelId → no conflict possible
-      openEmbeddingModelsDropdown()
-      // Empty data-value = the "— choose a model —" placeholder option
-      fireEvent.click(document.querySelector('li[role="option"][data-value=""]') as HTMLElement)
+      // Picking from the dropdown clears the manual fields
+      selectEmbeddingModelFromDropdown()
 
-      expect(
-        screen.queryByText(/please use either the dropdown or manual entry/i)
-      ).not.toBeInTheDocument()
+      expect((screen.getByLabelText(/^model name/i) as HTMLInputElement).value).toBe('')
+      expect((screen.getByLabelText(/^model provider/i) as HTMLInputElement).value).toBe('')
     })
   })
 })
