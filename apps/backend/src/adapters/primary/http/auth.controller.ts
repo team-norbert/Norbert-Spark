@@ -151,13 +151,16 @@ export class AuthController {
    * @see {@link LogOutUseCase.execute} for token revocation logic
    * @see {@link authMiddleware} for JWT verification
    */
-  async logout(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const reqLogger = this.logger.child({
+  private createRequestLogger(request: FastifyRequest) {
+    return this.logger.child({
       requestId: request.id,
       method: request.method,
       route: request.routeOptions?.url ?? request.url,
     })
+  }
 
+  async logout(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const reqLogger = this.createRequestLogger(request)
     try {
       // Extract audit context from request
       const auditContext = {
