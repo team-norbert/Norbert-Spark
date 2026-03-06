@@ -78,6 +78,14 @@ export class AuthController {
     private readonly logOutUseCase: LogOutUseCase
   ) {}
 
+  private createRequestLogger(request: FastifyRequest): LoggerPort {
+    return this.logger.child({
+      requestId: request.id,
+      method: request.method,
+      route: request.routeOptions?.url ?? request.url,
+    })
+  }
+
   /**
    * Registers all authentication routes with the Fastify application.
    *
@@ -151,16 +159,9 @@ export class AuthController {
    * @see {@link LogOutUseCase.execute} for token revocation logic
    * @see {@link authMiddleware} for JWT verification
    */
-  private createRequestLogger(request: FastifyRequest) {
-    return this.logger.child({
-      requestId: request.id,
-      method: request.method,
-      route: request.routeOptions?.url ?? request.url,
-    })
-  }
-
   async logout(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const reqLogger = this.createRequestLogger(request)
+
     try {
       // Extract audit context from request
       const auditContext = {
@@ -261,11 +262,7 @@ export class AuthController {
    * @see {@link RefreshAccessTokenUseCase.execute} for token rotation logic
    */
   async refresh(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const reqLogger = this.logger.child({
-      requestId: request.id,
-      method: request.method,
-      route: request.routeOptions?.url ?? request.url,
-    })
+    const reqLogger = this.createRequestLogger(request)
 
     try {
       // Extract audit context from request
@@ -387,11 +384,7 @@ export class AuthController {
    * @see {@link LoginUserUseCase.execute} for authentication logic
    */
   async login(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const reqLogger = this.logger.child({
-      requestId: request.id,
-      method: request.method,
-      route: request.routeOptions?.url ?? request.url,
-    })
+    const reqLogger = this.createRequestLogger(request)
 
     try {
       const body = request.body as components['schemas']['UserLoginRequest']
@@ -488,11 +481,7 @@ export class AuthController {
    * @see {@link oauthSyncAuthMiddleware} for authentication implementation
    */
   async oauthSync(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const reqLogger = this.logger.child({
-      requestId: request.id,
-      method: request.method,
-      route: request.routeOptions?.url ?? request.url,
-    })
+    const reqLogger = this.createRequestLogger(request)
 
     try {
       reqLogger.info('OAuth sync request received', { body: request.body })
