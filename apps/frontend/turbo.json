@@ -1,0 +1,38 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "outputs": ["dist/**", ".next/**"],
+      "env": [
+        "NEXTAUTH_SECRET",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "DATABASE_URL",
+        "CI",
+        "TZ",
+        "GOOGLE_ID",
+        "TEST_DATABASE_URL",
+        "GOOGLE_SECRET",
+        "BACKEND_AI_CALLBACK_URL",
+        "BACKEND_URL",
+        "OAUTH_SYNC_SECRET",
+        "PACT_BROKER_URL",
+        "NEXTAUTH_URL",
+        "NEXT_PUBLIC_POST_AI_CALLBACK_URL",
+        "NEXT_PUBLIC_BASE_URL",
+        "NEXT_PUBLIC_BACKEND_URL",
+        "DEFAULT_RATE_LIMIT_WINDOW",
+        "DEFAULT_RATE_LIMIT_MAX",
+        "TRUSTED_PROXIES",
+        "NODE_ENV",
+        "NEXT_PUBLIC_NODE_ENV",
+        "SKIP_ENV_VALIDATION",
+        "RATE_LIMITER_TYPE",
+        "DEFAULT_RATE_LIMIT_WINDOW",
+        "DEFAULT_RATE_LIMIT_MAX",
+        "BACKEND_AI_CALLBACK_URL"
+      ]
+    }
+  }
+}

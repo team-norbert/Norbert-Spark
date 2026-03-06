@@ -98,8 +98,8 @@ describe('Middleware Rate Limiting', () => {
 
   it('removes expired keys from rateMap to prevent memory bloat', () => {
     // Set a very short window for testing
-    process.env.RATE_LIMIT_WINDOW = '2'
-    process.env.RATE_LIMIT_MAX = '5'
+    process.env.DEFAULT_RATE_LIMIT_WINDOW = '2'
+    process.env.DEFAULT_RATE_LIMIT_MAX = '5'
 
     const testKey = 'test:key:cleanup'
     let currentTime = Math.floor(Date.now() / 1000)
