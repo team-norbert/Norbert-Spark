@@ -1,10 +1,6 @@
 import { createEnv } from '@t3-oss/env-nextjs'
 import { z } from 'zod'
 
-import packageJson from '../../../../package.json' with { type: 'json' }
-
-const { version } = packageJson
-
 export const env = createEnv({
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   server: {
@@ -42,6 +38,6 @@ export const env = createEnv({
     OAUTH_SYNC_SECRET: process.env.OAUTH_SYNC_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     SERVICE_NAME: process.env.SERVICE_NAME,
-    APP_VERSION: version,
+    APP_VERSION: process.env.APP_VERSION,
   },
 })
