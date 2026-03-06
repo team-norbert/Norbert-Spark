@@ -422,11 +422,13 @@ The image accepts an optional `APP_VERSION` build argument (defaults to `unknown
 ```bash
 # From git commit SHA (short)
 docker build --build-arg APP_VERSION=$(git rev-parse --short HEAD) \
-  -t norberts-spark-backend apps/backend
+  -f apps/backend/Dockerfile \
+  -t norberts-spark-backend .
 
 # From package.json version
 docker build --build-arg APP_VERSION=$(node -p "require('./package.json').version") \
-  -t norberts-spark-backend apps/backend
+  -f apps/backend/Dockerfile \
+  -t norberts-spark-backend .
 ```
 
 The value is exposed inside the container as the `APP_VERSION` environment variable, which is read by `EnvConfig.APP_VERSION` and included in every structured log line.
