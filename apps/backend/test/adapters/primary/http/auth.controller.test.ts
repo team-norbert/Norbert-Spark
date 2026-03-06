@@ -750,6 +750,22 @@ describe('AuthController', () => {
           expect.any(Error)
         )
       })
+
+      it('should create request-scoped child logger with requestId, method, and route bindings', async () => {
+        mockRequest.body = {
+          email: 'user@example.com',
+          password: 'SecurePass123!',
+        }
+        vi.mocked(mockLoginUserUseCase.execute).mockRejectedValue(new Error('test'))
+
+        await controller.login(mockRequest, mockReply)
+
+        expect(mockLogger.child).toHaveBeenCalledWith({
+          requestId: mockRequest.id,
+          method: 'POST',
+          route: '/auth/login',
+        })
+      })
     })
 
     describe('integration with route registration', () => {
@@ -928,6 +944,14 @@ describe('AuthController', () => {
       refreshToken: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2',
       expiresInSeconds: 604800,
     }
+
+    beforeEach(() => {
+      mockRequest = {
+        ...mockRequest,
+        url: '/auth/refresh',
+        routeOptions: { url: '/auth/refresh' },
+      } as any
+    })
 
     describe('successful refresh', () => {
       it('should return 200 with new tokens for a valid refresh token', async () => {
@@ -1232,6 +1256,19 @@ describe('AuthController', () => {
 
         expect(mockReply.code).toHaveBeenCalledWith(401)
       })
+
+      it('should create request-scoped child logger with requestId, method, and route bindings', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue(new Error('test'))
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockLogger.child).toHaveBeenCalledWith({
+          requestId: mockRequest.id,
+          method: 'POST',
+          route: '/auth/refresh',
+        })
+      })
     })
 
     describe('route registration', () => {
@@ -1282,6 +1319,8 @@ describe('AuthController', () => {
         ...mockRequest,
         user: { sub: LOGOUT_USER_ID },
         ip: '127.0.0.1',
+        url: '/auth/logout',
+        routeOptions: { url: '/auth/logout' },
         headers: { 'user-agent': 'test-user-agent' },
       } as any
       vi.mocked(mockLogOutUseCase.execute).mockResolvedValue(undefined)
@@ -1444,6 +1483,18 @@ describe('AuthController', () => {
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: 'Session not found',
+        })
+      })
+
+      it('should create request-scoped child logger with requestId, method, and route bindings', async () => {
+        vi.mocked(mockLogOutUseCase.execute).mockRejectedValue(new Error('test'))
+
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockLogger.child).toHaveBeenCalledWith({
+          requestId: mockRequest.id,
+          method: 'POST',
+          route: '/auth/logout',
         })
       })
     })
