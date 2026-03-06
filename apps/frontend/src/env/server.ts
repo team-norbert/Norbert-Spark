@@ -1,6 +1,10 @@
 import { createEnv } from '@t3-oss/env-nextjs'
 import { z } from 'zod'
 
+import packageJson from '../../../../package.json' with { type: 'json' }
+
+const { version } = packageJson
+
 export const env = createEnv({
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   server: {
@@ -19,6 +23,8 @@ export const env = createEnv({
     BACKEND_URL: z.url(),
     OAUTH_SYNC_SECRET: z.string(),
     NEXTAUTH_URL: z.url(),
+    SERVICE_NAME: z.string().default('norberts-spark-frontend'),
+    APP_VERSION: z.string(),
   },
   runtimeEnv: {
     DEFAULT_RATE_LIMIT_WINDOW: process.env.DEFAULT_RATE_LIMIT_WINDOW,
@@ -35,5 +41,7 @@ export const env = createEnv({
     BACKEND_URL: process.env.BACKEND_URL,
     OAUTH_SYNC_SECRET: process.env.OAUTH_SYNC_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    SERVICE_NAME: process.env.NEXT_PUBLIC_SERVICE_NAME,
+    APP_VERSION: version,
   },
 })
