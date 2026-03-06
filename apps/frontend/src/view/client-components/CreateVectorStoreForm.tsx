@@ -106,30 +106,23 @@ export function CreateVectorStoreForm({
   const [selectedModelId, setSelectedModelId] = useState('')
   const [modelName, setModelName] = useState('')
   const [modelProvider, setModelProvider] = useState('')
-  const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384 | ''>(``)
-  // true when the user has typed directly into the name/provider fields
-  const [isManualEntry, setIsManualEntry] = useState(false)
+  const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384 | ''>('')
 
+  // Selecting a pre-seeded model clears the manual fields (mutually exclusive modes)
   const handleModelSelect = (modelId: string) => {
     setSelectedModelId(modelId)
-    const model = embeddingModels.find((m) => m.id === modelId)
-    if (model) {
-      setModelName(model.name)
-      setModelProvider(model.provider)
-      setDimension(model.dimension)
-      setIsManualEntry(false)
-    } else {
-      // When the selection is cleared or does not match any model, reset fields
-      setModelName('')
-      setModelProvider('')
-      setDimension('')
-      setIsManualEntry(false)
-    }
+    setModelName('')
+    setModelProvider('')
+    setDimension('')
   }
 
-  // True when the user has BOTH selected from the dropdown AND typed into a manual field.
-  // The two entry modes are mutually exclusive — choosing both is invalid.
-  const embeddingModelConflict = selectedModelId !== '' && isManualEntry
+  // Typing into a manual field deselects the dropdown (mutually exclusive modes)
+  const handleManualModelChange =
+    (setter: React.Dispatch<React.SetStateAction<string>>) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setter(e.target.value)
+      setSelectedModelId('')
+    }
 
   // vectorEmbeddings
   const [distanceMetric, setDistanceMetric] = useState<
@@ -152,12 +145,11 @@ export function CreateVectorStoreForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (embeddingModelConflict) return
     if (!selectedModelId && dimension === '') return
     if (distanceMetric === '') return
 
     const embeddingModels =
-      selectedModelId !== '' && !isManualEntry
+      selectedModelId !== ''
         ? { existingModelId: selectedModelId }
         : { modelName, modelProvider, dimension: dimension as 3072 | 1536 | 1024 | 768 | 384 }
 
@@ -298,16 +290,6 @@ export function CreateVectorStoreForm({
               ))}
             </Select>
           </FormControl>
-          {embeddingModelConflict && (
-            <Typography
-              variant="body2"
-              color="error"
-              sx={{ mb: 2 }}
-              data-test-id="embedding-model-conflict-error"
-            >
-              Please use either the dropdown or manual entry, not both.
-            </Typography>
-          )}
           <Divider sx={{ my: 2 }} />
           <Typography variant="body1" color="text.secondary" sx={{ mb: 1.5 }}>
             <strong>OR</strong> add new embedding model details manually:
@@ -316,10 +298,7 @@ export function CreateVectorStoreForm({
           <TextField
             label="Model Name"
             value={modelName}
-            onChange={(e) => {
-              setModelName(e.target.value)
-              setIsManualEntry(true)
-            }}
+            onChange={handleManualModelChange(setModelName)}
             fullWidth
             sx={{ mb: 2 }}
             data-test-id="embedding-models-model-name-input"
@@ -332,10 +311,7 @@ export function CreateVectorStoreForm({
           <TextField
             label="Model Provider"
             value={modelProvider}
-            onChange={(e) => {
-              setModelProvider(e.target.value)
-              setIsManualEntry(true)
-            }}
+            onChange={handleManualModelChange(setModelProvider)}
             fullWidth
             sx={{ mb: 2 }}
             data-test-id="embedding-models-model-provider-input"
@@ -353,7 +329,7 @@ export function CreateVectorStoreForm({
               data-test-id="embedding-models-dimension-select"
               onChange={(e) => {
                 setDimension(e.target.value as 3072 | 1536 | 1024 | 768 | 384 | '')
-                setIsManualEntry(true)
+                setSelectedModelId('')
               }}
             >
               <MenuItem value="">
