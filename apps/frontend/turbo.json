@@ -5,6 +5,10 @@
     "build": {
       "outputs": ["dist/**", ".next/**"],
       "env": [
+        "NEXT_PUBLIC_APP_VERSION",
+        "APP_VERSION",
+        "NEXT_PUBLIC_SERVICE_NAME",
+        "SERVICE_NAME",
         "NEXTAUTH_SECRET",
         "UPSTASH_REDIS_REST_URL",
         "UPSTASH_REDIS_REST_TOKEN",

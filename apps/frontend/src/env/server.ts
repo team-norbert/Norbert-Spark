@@ -19,6 +19,8 @@ export const env = createEnv({
     BACKEND_URL: z.url(),
     OAUTH_SYNC_SECRET: z.string(),
     NEXTAUTH_URL: z.url(),
+    SERVICE_NAME: z.string().default('norberts-spark-frontend'),
+    APP_VERSION: z.string(),
   },
   runtimeEnv: {
     DEFAULT_RATE_LIMIT_WINDOW: process.env.DEFAULT_RATE_LIMIT_WINDOW,
@@ -35,5 +37,7 @@ export const env = createEnv({
     BACKEND_URL: process.env.BACKEND_URL,
     OAUTH_SYNC_SECRET: process.env.OAUTH_SYNC_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    SERVICE_NAME: process.env.SERVICE_NAME,
+    APP_VERSION: process.env.APP_VERSION,
   },
 })

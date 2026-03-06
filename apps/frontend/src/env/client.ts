@@ -8,12 +8,16 @@ export const env = createEnv({
     NEXT_PUBLIC_BASE_URL: z.url(),
     NEXT_PUBLIC_BACKEND_URL: z.url(),
     NEXT_PUBLIC_NODE_ENV: z.string().default('development'),
+    NEXT_PUBLIC_SERVICE_NAME: z.string().default('norberts-spark-frontend'),
+    NEXT_PUBLIC_APP_VERSION: z.string(),
   },
   runtimeEnv: {
     NEXT_PUBLIC_POST_AI_CALLBACK_URL: process.env.NEXT_PUBLIC_POST_AI_CALLBACK_URL,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
     NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
     NEXT_PUBLIC_NODE_ENV: process.env.NEXT_PUBLIC_NODE_ENV,
+    NEXT_PUBLIC_SERVICE_NAME: process.env.NEXT_PUBLIC_SERVICE_NAME,
+    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
   },
 })
 
