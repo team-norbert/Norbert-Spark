@@ -6,8 +6,13 @@ import type { NextConfig } from 'next'
 
 const jiti = createJiti(fileURLToPath(import.meta.url))
 
-// Import env here to validate during build. Using jiti we can import .ts files :)
-jiti('./src/env')
+// Validate env vars at build time using jiti to support .ts imports.
+// Skipped in CI (CI=true is set automatically by GitHub Actions) because the
+// build uses placeholder values that satisfy schema types but aren't real — the
+// actual values are injected at deploy time.
+if (!process.env.CI) {
+  jiti('./src/env')
+}
 
 /**
  * NOTE:
