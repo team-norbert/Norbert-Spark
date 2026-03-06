@@ -7,6 +7,7 @@ import { AuthController } from '../../../../src/adapters/primary/http/auth.contr
 import { LogOutUseCase } from '../../../../src/application/use-cases/log-out.use-case.js'
 import { LoginUserUseCase } from '../../../../src/application/use-cases/login-user.use-case.js'
 import { RefreshAccessTokenUseCase } from '../../../../src/application/use-cases/refresh-access-token.use-case.js'
+import { RegisterUserWithProviderUseCase } from '../../../../src/application/use-cases/register-user-with-provider.use-case.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { UnauthorizedException } from '../../../../src/shared/exceptions/unauthorized.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
@@ -27,6 +28,7 @@ function createMockAuthResult(email: string, token: string, roles: string[], use
 describe('AuthController', () => {
   let controller: AuthController
   let mockLoginUserUseCase: LoginUserUseCase
+  let mockRegisterUserWithProviderUseCase: RegisterUserWithProviderUseCase
   let mockRefreshAccessTokenUseCase: RefreshAccessTokenUseCase
   let mockLogOutUseCase: LogOutUseCase
   let mockRequest: FastifyRequest
@@ -49,7 +51,7 @@ describe('AuthController', () => {
       execute: vi.fn(),
     } as any
 
-    const mockRegisterUserWithProviderUseCase = {
+    mockRegisterUserWithProviderUseCase = {
       execute: vi.fn(),
     } as any
 
@@ -87,7 +89,9 @@ describe('AuthController', () => {
       params: {},
       query: {},
       ip: '127.0.0.1',
+      method: 'POST',
       url: '/auth/login',
+      routeOptions: { url: '/auth/login' },
       headers: {
         'user-agent': 'test-user-agent',
       },
@@ -607,6 +611,23 @@ describe('AuthController', () => {
     })
 
     describe('error handling', () => {
+      it('should create a request-scoped logger with correct bindings', async () => {
+        mockRequest.body = {
+          email: 'user@example.com',
+          password: 'SecurePass123!',
+        }
+
+        vi.mocked(mockLoginUserUseCase.execute).mockRejectedValue(new Error('Test error'))
+
+        await controller.login(mockRequest, mockReply)
+
+        expect(mockLogger.child).toHaveBeenCalledWith({
+          requestId: mockRequest.id,
+          method: mockRequest.method,
+          route: mockRequest.routeOptions?.url ?? mockRequest.url,
+        })
+      })
+
       it('should handle unexpected errors with 500 status', async () => {
         mockRequest.body = {
           email: 'user@example.com',
@@ -728,6 +749,22 @@ describe('AuthController', () => {
           'Error in login handler',
           expect.any(Error)
         )
+      })
+
+      it('should create request-scoped child logger with requestId, method, and route bindings', async () => {
+        mockRequest.body = {
+          email: 'user@example.com',
+          password: 'SecurePass123!',
+        }
+        vi.mocked(mockLoginUserUseCase.execute).mockRejectedValue(new Error('test'))
+
+        await controller.login(mockRequest, mockReply)
+
+        expect(mockLogger.child).toHaveBeenCalledWith({
+          requestId: mockRequest.id,
+          method: 'POST',
+          route: '/auth/login',
+        })
       })
     })
 
@@ -908,6 +945,14 @@ describe('AuthController', () => {
       expiresInSeconds: 604800,
     }
 
+    beforeEach(() => {
+      mockRequest = {
+        ...mockRequest,
+        url: '/auth/refresh',
+        routeOptions: { url: '/auth/refresh' },
+      } as any
+    })
+
     describe('successful refresh', () => {
       it('should return 200 with new tokens for a valid refresh token', async () => {
         mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
@@ -1077,7 +1122,10 @@ describe('AuthController', () => {
 
         await controller.refresh(mockRequest, mockReply)
 
-        expect(mockLogger.error).toHaveBeenCalledWith('Error in refresh handler', expect.any(Error))
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in refresh handler',
+          expect.any(Error)
+        )
       })
     })
 
@@ -1114,6 +1162,19 @@ describe('AuthController', () => {
     })
 
     describe('error handling', () => {
+      it('should create a request-scoped logger with correct bindings', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue(new Error('Test error'))
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockLogger.child).toHaveBeenCalledWith({
+          requestId: mockRequest.id,
+          method: mockRequest.method,
+          route: mockRequest.routeOptions?.url ?? mockRequest.url,
+        })
+      })
+
       it('should return 500 for unexpected errors', async () => {
         mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
         vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue(
@@ -1137,7 +1198,10 @@ describe('AuthController', () => {
 
         await controller.refresh(mockRequest, mockReply)
 
-        expect(mockLogger.error).toHaveBeenCalledWith('Error in refresh handler', expect.any(Error))
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in refresh handler',
+          expect.any(Error)
+        )
       })
 
       it('should return safe error message for DrizzleQueryError', async () => {
@@ -1192,6 +1256,19 @@ describe('AuthController', () => {
 
         expect(mockReply.code).toHaveBeenCalledWith(401)
       })
+
+      it('should create request-scoped child logger with requestId, method, and route bindings', async () => {
+        mockRequest.body = { refreshToken: VALID_REFRESH_TOKEN }
+        vi.mocked(mockRefreshAccessTokenUseCase.execute).mockRejectedValue(new Error('test'))
+
+        await controller.refresh(mockRequest, mockReply)
+
+        expect(mockLogger.child).toHaveBeenCalledWith({
+          requestId: mockRequest.id,
+          method: 'POST',
+          route: '/auth/refresh',
+        })
+      })
     })
 
     describe('route registration', () => {
@@ -1242,6 +1319,8 @@ describe('AuthController', () => {
         ...mockRequest,
         user: { sub: LOGOUT_USER_ID },
         ip: '127.0.0.1',
+        url: '/auth/logout',
+        routeOptions: { url: '/auth/logout' },
         headers: { 'user-agent': 'test-user-agent' },
       } as any
       vi.mocked(mockLogOutUseCase.execute).mockResolvedValue(undefined)
@@ -1327,8 +1406,20 @@ describe('AuthController', () => {
     })
 
     describe('error handling', () => {
+      it('should create a request-scoped logger with correct bindings', async () => {
+        vi.mocked(mockLogOutUseCase.execute).mockRejectedValue(new Error('Test error'))
+
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockLogger.child).toHaveBeenCalledWith({
+          requestId: mockRequest.id,
+          method: mockRequest.method,
+          route: mockRequest.routeOptions?.url ?? mockRequest.url,
+        })
+      })
+
       it('should return 500 for unexpected errors', async () => {
-        vi.mocked(mockLogOutUseCase.execute).mockRejectedValue(new Error('Unexpected failure'))
+        vi.mocked(mockLogOutUseCase.execute).mockRejectedValue(new Error('Unexpected server error'))
 
         await controller.logout(mockRequest, mockReply)
 
@@ -1341,7 +1432,10 @@ describe('AuthController', () => {
 
         await controller.logout(mockRequest, mockReply)
 
-        expect(mockLogger.error).toHaveBeenCalledWith('Error in logout handler', expect.any(Error))
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in logout handler',
+          expect.any(Error)
+        )
       })
 
       it('should return safe error message for DrizzleQueryError', async () => {
@@ -1391,6 +1485,18 @@ describe('AuthController', () => {
           error: 'Session not found',
         })
       })
+
+      it('should create request-scoped child logger with requestId, method, and route bindings', async () => {
+        vi.mocked(mockLogOutUseCase.execute).mockRejectedValue(new Error('test'))
+
+        await controller.logout(mockRequest, mockReply)
+
+        expect(mockLogger.child).toHaveBeenCalledWith({
+          requestId: mockRequest.id,
+          method: 'POST',
+          route: '/auth/logout',
+        })
+      })
     })
 
     describe('route registration', () => {
@@ -1429,6 +1535,216 @@ describe('AuthController', () => {
         await logoutHandler(mockRequest, mockReply)
 
         expect(mockLogOutUseCase.execute).toHaveBeenCalled()
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+    })
+  })
+
+  describe('oauthSync()', () => {
+    const OAUTH_SYNC_REQUEST = {
+      provider: 'google',
+      providerId: 'google-user-123',
+      email: 'oauthuser@example.com',
+      name: 'OAuth User',
+    }
+
+    const mockOAuthResult = createMockAuthResult('oauthuser@example.com', 'oauth.jwt.token', [
+      'user',
+    ])
+
+    beforeEach(() => {
+      mockRequest.url = '/auth/oauth-sync'
+      mockRequest.routeOptions = { url: '/auth/oauth-sync' }
+      mockRequest.body = OAUTH_SYNC_REQUEST
+    })
+
+    describe('successful sync', () => {
+      it('should return 200 with tokens for a valid OAuth sync request', async () => {
+        vi.mocked(mockRegisterUserWithProviderUseCase.execute).mockResolvedValue(mockOAuthResult)
+
+        await controller.oauthSync(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockOAuthResult,
+        })
+      })
+
+      it('should call use case with dto and audit context', async () => {
+        vi.mocked(mockRegisterUserWithProviderUseCase.execute).mockResolvedValue(mockOAuthResult)
+
+        await controller.oauthSync(mockRequest, mockReply)
+
+        expect(mockRegisterUserWithProviderUseCase.execute).toHaveBeenCalledTimes(1)
+        expect(mockRegisterUserWithProviderUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({
+            provider: OAUTH_SYNC_REQUEST.provider,
+            providerId: OAUTH_SYNC_REQUEST.providerId,
+            email: OAUTH_SYNC_REQUEST.email,
+          }),
+          expect.objectContaining({
+            ipAddress: expect.any(String),
+            userAgent: 'test-user-agent',
+          })
+        )
+      })
+
+      it('should log the sync request via the request-scoped logger', async () => {
+        vi.mocked(mockRegisterUserWithProviderUseCase.execute).mockResolvedValue(mockOAuthResult)
+
+        await controller.oauthSync(mockRequest, mockReply)
+
+        expect(mockChildLogger.info).toHaveBeenCalledWith('OAuth sync request received', {
+          body: mockRequest.body,
+        })
+      })
+
+      it('should create a request-scoped logger with correct bindings', async () => {
+        vi.mocked(mockRegisterUserWithProviderUseCase.execute).mockResolvedValue(mockOAuthResult)
+
+        await controller.oauthSync(mockRequest, mockReply)
+
+        expect(mockLogger.child).toHaveBeenCalledWith({
+          requestId: mockRequest.id,
+          method: mockRequest.method,
+          route: mockRequest.routeOptions?.url ?? mockRequest.url,
+        })
+      })
+    })
+
+    describe('validation errors', () => {
+      it('should return 400 when required fields are missing', async () => {
+        mockRequest.body = { email: 'oauthuser@example.com' }
+
+        await controller.oauthSync(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: expect.any(String),
+        })
+      })
+
+      it('should return 400 when email is invalid', async () => {
+        mockRequest.body = { ...OAUTH_SYNC_REQUEST, email: 'not-an-email' }
+
+        await controller.oauthSync(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: expect.any(String),
+        })
+      })
+    })
+
+    describe('error handling', () => {
+      it('should return 500 for unexpected errors', async () => {
+        vi.mocked(mockRegisterUserWithProviderUseCase.execute).mockRejectedValue(
+          new Error('Database connection lost')
+        )
+
+        await controller.oauthSync(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'OAuth sync failed',
+        })
+      })
+
+      it('should log errors via the request-scoped child logger on failure', async () => {
+        vi.mocked(mockRegisterUserWithProviderUseCase.execute).mockRejectedValue(
+          new Error('Something went wrong')
+        )
+
+        await controller.oauthSync(mockRequest, mockReply)
+
+        expect(mockChildLogger.error).toHaveBeenCalledWith(
+          'Error in OAuth sync handler',
+          expect.any(Error)
+        )
+      })
+
+      it('should return safe error message for DrizzleQueryError', async () => {
+        const dbError = new DrizzleQueryError('SELECT * FROM users', [])
+        vi.mocked(mockRegisterUserWithProviderUseCase.execute).mockRejectedValue(dbError)
+
+        await controller.oauthSync(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Failed to sync OAuth user due to a database error',
+        })
+      })
+
+      it('should use BaseException statusCode and message when available', async () => {
+        const unauthorizedError = new UnauthorizedException('Invalid sync secret')
+        vi.mocked(mockRegisterUserWithProviderUseCase.execute).mockRejectedValue(unauthorizedError)
+
+        await controller.oauthSync(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(unauthorizedError.statusCode)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid sync secret',
+        })
+      })
+
+      it('should create a request-scoped logger with correct bindings on error', async () => {
+        vi.mocked(mockRegisterUserWithProviderUseCase.execute).mockRejectedValue(
+          new Error('Test error')
+        )
+
+        await controller.oauthSync(mockRequest, mockReply)
+
+        expect(mockLogger.child).toHaveBeenCalledWith({
+          requestId: mockRequest.id,
+          method: mockRequest.method,
+          route: mockRequest.routeOptions?.url ?? mockRequest.url,
+        })
+      })
+    })
+
+    describe('route registration', () => {
+      it('should register POST /auth/oauth-sync route with preHandler', () => {
+        const mockApp = {
+          post: vi.fn(),
+        } as unknown as FastifyInstance
+
+        controller.registerRoutes(mockApp)
+
+        expect(mockApp.post).toHaveBeenCalledWith(
+          '/auth/oauth-sync',
+          expect.objectContaining({ preHandler: expect.any(Function) }),
+          expect.any(Function)
+        )
+      })
+
+      it('should invoke oauthSync handler when route is called', async () => {
+        const mockApp = {
+          post: vi.fn(),
+        } as unknown as FastifyInstance
+
+        controller.registerRoutes(mockApp)
+
+        const oauthSyncCall = vi
+          .mocked(mockApp.post)
+          .mock.calls.find((call) => call[0] === '/auth/oauth-sync')
+        expect(oauthSyncCall).toBeDefined()
+
+        const oauthSyncHandler = oauthSyncCall![2] as unknown as (
+          req: FastifyRequest,
+          reply: FastifyReply
+        ) => Promise<void>
+
+        vi.mocked(mockRegisterUserWithProviderUseCase.execute).mockResolvedValue(mockOAuthResult)
+
+        await oauthSyncHandler(mockRequest, mockReply)
+
+        expect(mockRegisterUserWithProviderUseCase.execute).toHaveBeenCalled()
         expect(mockReply.code).toHaveBeenCalledWith(200)
       })
     })
