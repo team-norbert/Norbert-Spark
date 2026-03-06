@@ -1,8 +1,8 @@
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { createJiti } from 'jiti'
 import type { NextConfig } from 'next'
-import path from 'node:path'
 
 const jiti = createJiti(fileURLToPath(import.meta.url))
 

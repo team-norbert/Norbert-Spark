@@ -9,7 +9,8 @@ import { AUTH_ROUTES, PROTECTED_ROUTES } from './shared/constants/routes.js'
 const DEFAULT_RATE_LIMIT_WINDOW = 10 // seconds
 const DEFAULT_RATE_LIMIT_MAX = 10
 const RATE_LIMIT_WINDOW =
-  Number.isFinite(Number(env.DEFAULT_RATE_LIMIT_WINDOW)) && Number(env.DEFAULT_RATE_LIMIT_WINDOW) > 0
+  Number.isFinite(Number(env.DEFAULT_RATE_LIMIT_WINDOW)) &&
+  Number(env.DEFAULT_RATE_LIMIT_WINDOW) > 0
     ? Number(env.DEFAULT_RATE_LIMIT_WINDOW)
     : DEFAULT_RATE_LIMIT_WINDOW
 const RATE_LIMIT_MAX =
