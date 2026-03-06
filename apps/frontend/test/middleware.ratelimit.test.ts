@@ -97,9 +97,8 @@ describe('Middleware Rate Limiting', () => {
   })
 
   it('removes expired keys from rateMap to prevent memory bloat', () => {
-    // Set a very short window for testing
-    process.env.DEFAULT_RATE_LIMIT_WINDOW = '2'
-    process.env.DEFAULT_RATE_LIMIT_MAX = '5'
+    // The default RATE_LIMIT_WINDOW is 10 seconds; advance time by 11 seconds
+    // to guarantee entries fall outside the sliding window and are pruned.
 
     const testKey = 'test:key:cleanup'
     let currentTime = Math.floor(Date.now() / 1000)
@@ -113,8 +112,8 @@ describe('Middleware Rate Limiting', () => {
     expect(result1.success).toBe(true)
     expect(__getRateLimiterSize()).toBe(1)
 
-    // Advance time by 3 seconds (past the 2-second window)
-    currentTime += 3
+    // Advance time by 11 seconds (past the default 10-second window)
+    currentTime += 11
     nowSecondsSpy.mockReturnValue(currentTime)
 
     // Make another request - the old timestamp should be filtered out
@@ -125,8 +124,8 @@ describe('Middleware Rate Limiting', () => {
     // After cleanup and adding new entry, we should have 1 entry in the map
     expect(__getRateLimiterSize()).toBe(1)
 
-    // Advance time again by 3 seconds
-    currentTime += 3
+    // Advance time again by 11 seconds
+    currentTime += 11
     nowSecondsSpy.mockReturnValue(currentTime)
 
     // Make a request to a different key
@@ -134,8 +133,8 @@ describe('Middleware Rate Limiting', () => {
     expect(result3.success).toBe(true)
     expect(__getRateLimiterSize()).toBe(2)
 
-    // Advance time by 3 more seconds
-    currentTime += 3
+    // Advance time by 11 more seconds
+    currentTime += 11
     nowSecondsSpy.mockReturnValue(currentTime)
 
     // Access the first key again - it should be cleaned up and recreated
