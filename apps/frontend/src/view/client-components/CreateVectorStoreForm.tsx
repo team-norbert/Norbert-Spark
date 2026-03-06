@@ -8,6 +8,7 @@ import {
   CircularProgress,
   Divider,
   FormControl,
+  FormHelperText,
   InputLabel,
   MenuItem,
   Select,
@@ -106,35 +107,29 @@ export function CreateVectorStoreForm({
   const [selectedModelId, setSelectedModelId] = useState('')
   const [modelName, setModelName] = useState('')
   const [modelProvider, setModelProvider] = useState('')
-  const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384 | ''>(``)
-  // true when the user has typed directly into the name/provider fields
-  const [isManualEntry, setIsManualEntry] = useState(false)
+  const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384 | ''>('')
 
+  // Selecting a pre-seeded model clears the manual fields (mutually exclusive modes)
   const handleModelSelect = (modelId: string) => {
     setSelectedModelId(modelId)
-    const model = embeddingModels.find((m) => m.id === modelId)
-    if (model) {
-      setModelName(model.name)
-      setModelProvider(model.provider)
-      setDimension(model.dimension)
-      setIsManualEntry(false)
-    } else {
-      // When the selection is cleared or does not match any model, reset fields
-      setModelName('')
-      setModelProvider('')
-      setDimension('')
-      setIsManualEntry(false)
-    }
+    setModelName('')
+    setModelProvider('')
+    setDimension('')
   }
 
-  // True when the user has BOTH selected from the dropdown AND typed into a manual field.
-  // The two entry modes are mutually exclusive — choosing both is invalid.
-  const embeddingModelConflict = selectedModelId !== '' && isManualEntry
+  // Typing into a manual field deselects the dropdown (mutually exclusive modes)
+  const handleManualModelChange =
+    (setter: React.Dispatch<React.SetStateAction<string>>) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setter(e.target.value)
+      setSelectedModelId('')
+    }
 
   // vectorEmbeddings
   const [distanceMetric, setDistanceMetric] = useState<
     CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric'] | ''
-  >('')
+  >('cosine')
+  const [distanceMetricError, setDistanceMetricError] = useState<string | null>(null)
   const [chunkSize, setChunkSize] = useState('')
   const [chunkOverlap, setChunkOverlap] = useState('')
 
@@ -152,12 +147,11 @@ export function CreateVectorStoreForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (embeddingModelConflict) return
     if (!selectedModelId && dimension === '') return
-    if (distanceMetric === '') return
+    if (distanceMetric === '' || distanceMetricError) return
 
     const embeddingModels =
-      selectedModelId !== '' && !isManualEntry
+      selectedModelId !== ''
         ? { existingModelId: selectedModelId }
         : { modelName, modelProvider, dimension: dimension as 3072 | 1536 | 1024 | 768 | 384 }
 
@@ -191,7 +185,7 @@ export function CreateVectorStoreForm({
   return (
     <Card elevation={3} sx={{ mt: 3 }}>
       <CardContent>
-        <Typography variant="h6" gutterBottom>
+        <Typography id="create-vector-store-heading" variant="h6" gutterBottom>
           Create Vector Store
         </Typography>
 
@@ -298,16 +292,6 @@ export function CreateVectorStoreForm({
               ))}
             </Select>
           </FormControl>
-          {embeddingModelConflict && (
-            <Typography
-              variant="body2"
-              color="error"
-              sx={{ mb: 2 }}
-              data-test-id="embedding-model-conflict-error"
-            >
-              Please use either the dropdown or manual entry, not both.
-            </Typography>
-          )}
           <Divider sx={{ my: 2 }} />
           <Typography variant="body1" color="text.secondary" sx={{ mb: 1.5 }}>
             <strong>OR</strong> add new embedding model details manually:
@@ -316,10 +300,7 @@ export function CreateVectorStoreForm({
           <TextField
             label="Model Name"
             value={modelName}
-            onChange={(e) => {
-              setModelName(e.target.value)
-              setIsManualEntry(true)
-            }}
+            onChange={handleManualModelChange(setModelName)}
             fullWidth
             sx={{ mb: 2 }}
             data-test-id="embedding-models-model-name-input"
@@ -332,16 +313,16 @@ export function CreateVectorStoreForm({
           <TextField
             label="Model Provider"
             value={modelProvider}
-            onChange={(e) => {
-              setModelProvider(e.target.value)
-              setIsManualEntry(true)
-            }}
+            onChange={handleManualModelChange(setModelProvider)}
             fullWidth
             sx={{ mb: 2 }}
             data-test-id="embedding-models-model-provider-input"
           />
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Examples: openai, google</strong>
+          </Typography>
           <Divider sx={{ my: 2 }} />
-          <FormControl fullWidth required sx={{ mb: 2 }}>
+          <FormControl fullWidth required={selectedModelId === ''} sx={{ mb: 2 }}>
             <InputLabel id="dimension-label" shrink>
               Dimension
             </InputLabel>
@@ -353,7 +334,7 @@ export function CreateVectorStoreForm({
               data-test-id="embedding-models-dimension-select"
               onChange={(e) => {
                 setDimension(e.target.value as 3072 | 1536 | 1024 | 768 | 384 | '')
-                setIsManualEntry(true)
+                setSelectedModelId('')
               }}
             >
               <MenuItem value="">
@@ -367,6 +348,10 @@ export function CreateVectorStoreForm({
             </Select>
           </FormControl>
 
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>This selects the database table to use</strong>
+          </Typography>
+
           <Divider sx={{ my: 2 }} />
 
           {/* Vector Embeddings */}
@@ -374,11 +359,11 @@ export function CreateVectorStoreForm({
             Vector Embeddings
           </Typography>
           <AccordionComponent
-            header="Read information on Vector Embeddings distance metrics"
+            header="Information on Vector Embeddings distance metrics"
             body={vectorEmbeddingsText}
           />
           <Divider sx={{ my: 2 }} />
-          <FormControl fullWidth required sx={{ mb: 2 }}>
+          <FormControl fullWidth required sx={{ mb: 2 }} error={Boolean(distanceMetricError)}>
             <InputLabel id="distance-metric-label" shrink>
               Distance Metric
             </InputLabel>
@@ -388,13 +373,19 @@ export function CreateVectorStoreForm({
               value={distanceMetric}
               displayEmpty
               data-test-id="vector-embeddings-distance-metric-select"
-              onChange={(e) =>
-                setDistanceMetric(
-                  e.target.value as
-                    | CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']
-                    | ''
-                )
-              }
+              onChange={(e) => {
+                const value = e.target.value as
+                  | CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']
+                  | ''
+                setDistanceMetric(value)
+                if (value !== 'cosine' && value !== '') {
+                  setDistanceMetricError(
+                    `"${value}" is not currently supported. Only "cosine" is permitted.`
+                  )
+                } else {
+                  setDistanceMetricError(null)
+                }
+              }}
             >
               <MenuItem value="">
                 <em>— choose a distance metric —</em>
@@ -402,9 +393,15 @@ export function CreateVectorStoreForm({
               {DISTANCE_METRICS.map((metric) => (
                 <MenuItem key={metric} value={metric}>
                   {metric}
+                  {metric !== 'cosine' ? ' (not currently supported)' : ''}
                 </MenuItem>
               ))}
             </Select>
+            {distanceMetricError && (
+              <FormHelperText data-test-id="distance-metric-error">
+                {distanceMetricError}
+              </FormHelperText>
+            )}
           </FormControl>
 
           <Divider sx={{ my: 2 }} />
@@ -424,7 +421,7 @@ export function CreateVectorStoreForm({
           />
 
           <Divider sx={{ my: 2 }} />
-          <AccordionComponent header="Read information on ChunkOverlap" body={chunkOverlapText} />
+          <AccordionComponent header="Information on ChunkOverlap" body={chunkOverlapText} />
           <Divider sx={{ my: 2 }} />
 
           <TextField
@@ -469,7 +466,7 @@ export function CreateVectorStoreForm({
           />
 
           <Divider sx={{ my: 2 }} />
-          <AccordionComponent header="Read information on Max Tokens" body={maxTokensText} />
+          <AccordionComponent header="Information on Max Tokens" body={maxTokensText} />
           <Divider sx={{ my: 2 }} />
 
           <TextField
@@ -502,7 +499,7 @@ export function CreateVectorStoreForm({
           />
 
           <Divider sx={{ my: 2 }} />
-          <AccordionComponent header="Read information on Top P settings" body={topPText} />
+          <AccordionComponent header="Information on Top P settings" body={topPText} />
           <Divider sx={{ my: 2 }} />
 
           <TextField
@@ -518,7 +515,7 @@ export function CreateVectorStoreForm({
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
-            header="Read information on Frequency Penalty settings"
+            header="Information on Frequency Penalty settings"
             body={frequencyPenaltyText}
           />
           <Divider sx={{ my: 2 }} />
@@ -536,7 +533,7 @@ export function CreateVectorStoreForm({
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
-            header="Read information on Presence Penalty settings"
+            header="Information on Presence Penalty settings"
             body={presencePenaltyText}
           />
           <Divider sx={{ my: 2 }} />
@@ -554,7 +551,7 @@ export function CreateVectorStoreForm({
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
-            header="Read information on Stop Sequences settings"
+            header="Information on Stop Sequences settings"
             body={stopSequencesText}
           />
           <Divider sx={{ my: 2 }} />
@@ -584,10 +581,7 @@ export function CreateVectorStoreForm({
           />
 
           <Divider sx={{ my: 2 }} />
-          <AccordionComponent
-            header="Read information on Max Retries settings"
-            body={maxRetriesText}
-          />
+          <AccordionComponent header="Information on Max Retries settings" body={maxRetriesText} />
           <Divider sx={{ my: 2 }} />
 
           <TextField
