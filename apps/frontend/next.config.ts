@@ -7,10 +7,9 @@ import type { NextConfig } from 'next'
 const jiti = createJiti(fileURLToPath(import.meta.url))
 
 // Validate env vars at build time using jiti to support .ts imports.
-// Skipped in CI (CI=true is set automatically by GitHub Actions) because the
-// build uses placeholder values that satisfy schema types but aren't real — the
-// actual values are injected at deploy time.
-if (!process.env.CI) {
+// Runs in all environments by default (including CI) so misconfigurations are caught early.
+// To explicitly disable this behavior, set SKIP_ENV_VALIDATION=true in the environment.
+if (!process.env.SKIP_ENV_VALIDATION) {
   jiti('./src/env')
 }
 
