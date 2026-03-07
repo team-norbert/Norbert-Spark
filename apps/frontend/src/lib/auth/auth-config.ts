@@ -359,7 +359,11 @@ export const authOptions: NextAuthOptions = {
           return target.toString()
         }
       } catch (error) {
-        logger.error('Invalid redirect URL', undefined, { url, baseUrl })
+        logger.error(
+          'Invalid redirect URL',
+          error instanceof Error ? error : new Error(String(error)),
+          { url, baseUrl },
+        )
       }
       // Fallback: redirect to a safe default on the base origin
       return `${baseUrl}/dashboard`
