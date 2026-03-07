@@ -550,7 +550,7 @@ describe('UnifiedLogger', () => {
 
       const entry = consoleErrorSpy.mock.calls[0][0]
       expect(typeof entry.err?.stack).toBe('string')
-      expect(entry.err?.stack).toContain('Error')
+      expect(entry.err?.stack).toContain('at ')
     })
 
     it('should exclude err.stack when process.env.NODE_ENV is production', async () => {
