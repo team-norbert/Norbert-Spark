@@ -30,7 +30,7 @@ export function useSessionGuard(): void {
           logger.error(
             'Failed to logout user on backend',
             error instanceof Error ? error : new Error(String(error)),
-            { event: 'session-guard.redirect' }
+            { event: 'session-guard.logout.failed' }
           )
         } finally {
           await signOut({ callbackUrl: '/signin?error=session_expired' })

@@ -41,7 +41,7 @@ function parseNDJSONLine(line: string): ExtractedInvoiceData | null {
     logger.error(
       'Failed to parse NDJSON line',
       parseError instanceof Error ? parseError : new Error(String(parseError)),
-      { event: 'server-action.extract-data.failed', line }
+      { event: 'server-action.extract-data.failed', lineLength: line.length }
     )
   }
   return null
