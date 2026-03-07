@@ -1100,7 +1100,7 @@ export const chatAiOptions = pgTable(
     seed: integer('seed'),
     maxRetries: integer('max_retries'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     chatTypeIdIdx: uniqueIndex('chat_ai_options_chat_type_id_idx').on(table.chatTypeId),
