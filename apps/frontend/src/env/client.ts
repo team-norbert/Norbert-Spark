@@ -1,6 +1,11 @@
 import { createEnv } from '@t3-oss/env-nextjs'
 import { z } from 'zod'
 
+import packageJson from '../../package.json' with { type: 'json' }
+
+// Using ??= so that an explicit env var in the environment always wins.
+process.env.NEXT_PUBLIC_APP_VERSION ??= packageJson.version
+
 export const env = createEnv({
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   client: {
