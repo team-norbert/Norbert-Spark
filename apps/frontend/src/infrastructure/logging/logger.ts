@@ -107,7 +107,7 @@ export interface StructuredLogEntry {
  *   }
  * }
  *
- * backend server log shape
+ * client-side log shape
  * {
  *   "level": "error",
  *   "timestamp": "2026-03-06T12:00:05.000Z",
