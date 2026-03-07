@@ -185,7 +185,7 @@ export class UnifiedLogger implements LoggerPort {
     if (this.bindings) {
       for (const [k, v] of Object.entries(this.bindings)) {
         if (!UnifiedLogger.RESERVED_FIELDS.has(k) && !UnifiedLogger.BLOCKED_FIELDS.has(k)) {
-          entry[k] = v
+          Object.assign(entry, { [k]: v })
         }
       }
     }
@@ -194,7 +194,7 @@ export class UnifiedLogger implements LoggerPort {
     if (context) {
       for (const [k, v] of Object.entries(context)) {
         if (!UnifiedLogger.RESERVED_FIELDS.has(k) && !UnifiedLogger.BLOCKED_FIELDS.has(k)) {
-          entry[k] = v
+          Object.assign(entry, { [k]: v })
         }
       }
     }
