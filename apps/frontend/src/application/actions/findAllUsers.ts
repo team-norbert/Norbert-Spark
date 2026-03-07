@@ -79,6 +79,7 @@ export async function findAllUsers(params: FindAllUsersParams): Promise<FindAllU
       throw error
     }
     logger.warn('Error fetching users', {
+      event: 'action.find-all-users.failed',
       error: error instanceof Error ? error.message : String(error),
     })
     return {

@@ -68,8 +68,14 @@ describe('deleteUsersAction', () => {
         },
         timeoutMs: 10000,
       })
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 1 })
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Users deleted successfully', { count: 1 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', {
+        event: 'server-action.delete-users.started',
+        count: 1,
+      })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Users deleted successfully', {
+        event: 'server-action.delete-users.completed',
+        count: 1,
+      })
       expect(mockLoggerError).not.toHaveBeenCalled()
     })
 
@@ -97,8 +103,14 @@ describe('deleteUsersAction', () => {
         },
         timeoutMs: 10000,
       })
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 2 })
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Users deleted successfully', { count: 2 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', {
+        event: 'server-action.delete-users.started',
+        count: 2,
+      })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Users deleted successfully', {
+        event: 'server-action.delete-users.completed',
+        count: 2,
+      })
     })
 
     it('should handle deleting three users with correct pluralization', async () => {
@@ -116,7 +128,10 @@ describe('deleteUsersAction', () => {
         message: 'Successfully deleted 3 users',
         status: 200,
       })
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 3 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', {
+        event: 'server-action.delete-users.started',
+        count: 3,
+      })
     })
 
     it('should handle UUID formatted user IDs', async () => {
@@ -159,7 +174,10 @@ describe('deleteUsersAction', () => {
         message: 'Successfully deleted 10 users',
         status: 200,
       })
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 10 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', {
+        event: 'server-action.delete-users.started',
+        count: 10,
+      })
     })
 
     it('should use DELETE method for the request', async () => {
@@ -243,7 +261,9 @@ describe('deleteUsersAction', () => {
         message: 'Authentication required',
         status: 401,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found')
+      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found', undefined, {
+        event: 'server-action.delete-users.failed',
+      })
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
 
@@ -260,7 +280,9 @@ describe('deleteUsersAction', () => {
         message: 'Authentication required',
         status: 401,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found')
+      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found', undefined, {
+        event: 'server-action.delete-users.failed',
+      })
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
 
@@ -277,7 +299,9 @@ describe('deleteUsersAction', () => {
         message: 'Authentication required',
         status: 401,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found')
+      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found', undefined, {
+        event: 'server-action.delete-users.failed',
+      })
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
 
@@ -290,7 +314,10 @@ describe('deleteUsersAction', () => {
       await deleteUsersAction(TEST_USER_IDS)
 
       expect(mockBackendRequest).not.toHaveBeenCalled()
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 2 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', {
+        event: 'server-action.delete-users.started',
+        count: 2,
+      })
       expect(mockLoggerInfo).not.toHaveBeenCalledWith(
         'Users deleted successfully',
         expect.anything()
@@ -318,6 +345,7 @@ describe('deleteUsersAction', () => {
         status: 401,
       })
       expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        event: 'server-action.delete-users.failed',
         statusCode: 401,
         body: mockError.body,
       })
@@ -342,6 +370,7 @@ describe('deleteUsersAction', () => {
         status: 403,
       })
       expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        event: 'server-action.delete-users.failed',
         statusCode: 403,
         body: mockError.body,
       })
@@ -366,6 +395,7 @@ describe('deleteUsersAction', () => {
         status: 404,
       })
       expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        event: 'server-action.delete-users.failed',
         statusCode: 404,
         body: mockError.body,
       })
@@ -390,6 +420,7 @@ describe('deleteUsersAction', () => {
         status: 500,
       })
       expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        event: 'server-action.delete-users.failed',
         statusCode: 500,
         body: mockError.body,
       })
@@ -471,6 +502,7 @@ describe('deleteUsersAction', () => {
         status: 500,
       })
       expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        event: 'server-action.delete-users.failed',
         statusCode: undefined,
         body: undefined,
       })
@@ -564,7 +596,10 @@ describe('deleteUsersAction', () => {
         message: 'Successfully deleted 0 users',
         status: 200,
       })
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 0 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', {
+        event: 'server-action.delete-users.started',
+        count: 0,
+      })
     })
 
     it('should log correct count for single user', async () => {
@@ -577,8 +612,14 @@ describe('deleteUsersAction', () => {
 
       await deleteUsersAction(singleUser)
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 1 })
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Users deleted successfully', { count: 1 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', {
+        event: 'server-action.delete-users.started',
+        count: 1,
+      })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Users deleted successfully', {
+        event: 'server-action.delete-users.completed',
+        count: 1,
+      })
     })
 
     it('should log correct count for multiple users', async () => {
@@ -591,8 +632,14 @@ describe('deleteUsersAction', () => {
 
       await deleteUsersAction(fiveUsers)
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 5 })
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Users deleted successfully', { count: 5 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', {
+        event: 'server-action.delete-users.started',
+        count: 5,
+      })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Users deleted successfully', {
+        event: 'server-action.delete-users.completed',
+        count: 5,
+      })
     })
 
     it('should handle very long user ID strings', async () => {
@@ -647,6 +694,7 @@ describe('deleteUsersAction', () => {
       await deleteUsersAction(TEST_USER_IDS)
 
       expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        event: 'server-action.delete-users.failed',
         statusCode: 503,
         body: { details: 'Service temporarily unavailable' },
       })
@@ -663,6 +711,7 @@ describe('deleteUsersAction', () => {
       await deleteUsersAction(TEST_USER_IDS)
 
       expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        event: 'server-action.delete-users.failed',
         statusCode: undefined,
         body: undefined,
       })
@@ -677,7 +726,10 @@ describe('deleteUsersAction', () => {
 
       await deleteUsersAction(TEST_USER_IDS)
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 2 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', {
+        event: 'server-action.delete-users.started',
+        count: 2,
+      })
     })
 
     it('should log successful completion with count', async () => {
@@ -689,7 +741,10 @@ describe('deleteUsersAction', () => {
 
       await deleteUsersAction(TEST_USER_IDS)
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Users deleted successfully', { count: 2 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Users deleted successfully', {
+        event: 'server-action.delete-users.completed',
+        count: 2,
+      })
     })
 
     it('should not log success when authentication fails', async () => {
@@ -700,12 +755,17 @@ describe('deleteUsersAction', () => {
 
       await deleteUsersAction(TEST_USER_IDS)
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 2 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', {
+        event: 'server-action.delete-users.started',
+        count: 2,
+      })
       expect(mockLoggerInfo).not.toHaveBeenCalledWith(
         'Users deleted successfully',
         expect.anything()
       )
-      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found')
+      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found', undefined, {
+        event: 'server-action.delete-users.failed',
+      })
     })
 
     it('should not log success when backend request fails', async () => {
@@ -718,7 +778,10 @@ describe('deleteUsersAction', () => {
 
       await deleteUsersAction(TEST_USER_IDS)
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', { count: 2 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Deleting users', {
+        event: 'server-action.delete-users.started',
+        count: 2,
+      })
       expect(mockLoggerInfo).not.toHaveBeenCalledWith(
         'Users deleted successfully',
         expect.anything()

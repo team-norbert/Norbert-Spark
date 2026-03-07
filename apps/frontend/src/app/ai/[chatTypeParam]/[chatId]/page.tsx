@@ -27,12 +27,13 @@ export default function AIChatPage({
 }) {
   const { chatId, chatTypeParam } = use(params)
 
-  logger.debug('Rendering AIChatPage', { chatTypeParam, chatId })
+  logger.debug('Rendering AIChatPage', { event: 'chat.page.render', chatTypeParam, chatId })
 
   // Fetch the chat data from the backend
   const { data: chatData, isError: isFetchError, isLoading: isFetchingChat } = useFetchChat(chatId)
 
   logger.debug('Fetch state', {
+    event: 'chat.page.render',
     isLoading: isFetchingChat,
     isFetchError,
     messageCount: chatData?.messages?.length,
@@ -64,7 +65,10 @@ export default function AIChatPage({
     status,
   } = useAIChat({ id: chatId, chatTypeParam, initialMessages: chatData?.messages })
 
-  logger.debug('Rendering AIChatPage', { messageCount: messages?.length })
+  logger.debug('Rendering AIChatPage', {
+    event: 'chat.page.render',
+    messageCount: messages?.length,
+  })
 
   return (
     <AIChatView

@@ -142,7 +142,8 @@ describe('getChatsByUserIdAction', () => {
 
       expect(result).toEqual({ success: false, data: [] })
       expect(mockLoggerWarn).toHaveBeenCalledWith(
-        'No auth token available in getChatsByUserIdAction'
+        'No auth token available in getChatsByUserIdAction',
+        { event: 'server-action.get-chats.failed' }
       )
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
@@ -186,7 +187,9 @@ describe('getChatsByUserIdAction', () => {
       const result = await getChatsByUserIdAction(TEST_USER_ID)
 
       expect(result).toEqual({ success: false, data: [] })
-      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', mockError)
+      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', mockError, {
+        event: 'server-action.get-chats.failed',
+      })
     })
 
     it('should handle 401 unauthorized error', async () => {
@@ -203,7 +206,9 @@ describe('getChatsByUserIdAction', () => {
       const result = await getChatsByUserIdAction(TEST_USER_ID)
 
       expect(result).toEqual({ success: false, data: [] })
-      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', mockError)
+      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', mockError, {
+        event: 'server-action.get-chats.failed',
+      })
     })
 
     it('should handle 404 not found error', async () => {
@@ -237,7 +242,9 @@ describe('getChatsByUserIdAction', () => {
       const result = await getChatsByUserIdAction(TEST_USER_ID)
 
       expect(result).toEqual({ success: false, data: [] })
-      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', mockError)
+      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', mockError, {
+        event: 'server-action.get-chats.failed',
+      })
     })
 
     it('should handle timeout error', async () => {
@@ -253,7 +260,9 @@ describe('getChatsByUserIdAction', () => {
       const result = await getChatsByUserIdAction(TEST_USER_ID)
 
       expect(result).toEqual({ success: false, data: [] })
-      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', mockError)
+      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', mockError, {
+        event: 'server-action.get-chats.failed',
+      })
     })
 
     it('should handle network error without status', async () => {
@@ -267,7 +276,9 @@ describe('getChatsByUserIdAction', () => {
       const result = await getChatsByUserIdAction(TEST_USER_ID)
 
       expect(result).toEqual({ success: false, data: [] })
-      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', mockError)
+      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', mockError, {
+        event: 'server-action.get-chats.failed',
+      })
     })
   })
 
@@ -398,7 +409,9 @@ describe('getChatsByUserIdAction', () => {
       const result = await getChatsByUserIdAction(TEST_USER_ID)
 
       expect(result).toEqual({ success: false, data: [] })
-      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', authError)
+      expect(mockLoggerError).toHaveBeenCalledWith('getChatsByUserIdAction error', authError, {
+        event: 'server-action.get-chats.failed',
+      })
     })
 
     it('should handle very long chat ID arrays', async () => {

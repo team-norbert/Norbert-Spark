@@ -69,8 +69,12 @@ describe('logoutUserAction', () => {
         timeoutMs: 10000,
         redirectOn401: false,
       })
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user')
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Logout successful')
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user', {
+        event: 'server-action.logout.started',
+      })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Logout successful', {
+        event: 'server-action.logout.completed',
+      })
       expect(mockLoggerError).not.toHaveBeenCalled()
     })
 
@@ -211,7 +215,9 @@ describe('logoutUserAction', () => {
         message: 'Authentication required',
         status: 401,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found')
+      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found', undefined, {
+        event: 'server-action.logout.failed',
+      })
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
 
@@ -228,7 +234,9 @@ describe('logoutUserAction', () => {
         message: 'Authentication required',
         status: 401,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found')
+      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found', undefined, {
+        event: 'server-action.logout.failed',
+      })
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
 
@@ -245,7 +253,9 @@ describe('logoutUserAction', () => {
         message: 'Authentication required',
         status: 401,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found')
+      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found', undefined, {
+        event: 'server-action.logout.failed',
+      })
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
 
@@ -258,7 +268,9 @@ describe('logoutUserAction', () => {
       await logoutUserAction()
 
       expect(mockBackendRequest).not.toHaveBeenCalled()
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user')
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user', {
+        event: 'server-action.logout.started',
+      })
       expect(mockLoggerInfo).not.toHaveBeenCalledWith('Logout successful')
     })
   })
@@ -285,6 +297,7 @@ describe('logoutUserAction', () => {
       expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', mockError, {
         statusCode: 401,
         body: { error: 'Invalid token' },
+        event: 'server-action.logout.failed',
       })
     })
 
@@ -309,6 +322,7 @@ describe('logoutUserAction', () => {
       expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', mockError, {
         statusCode: 500,
         body: { error: 'Database connection failed' },
+        event: 'server-action.logout.failed',
       })
     })
 
@@ -388,6 +402,7 @@ describe('logoutUserAction', () => {
       expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', mockError, {
         statusCode: undefined,
         body: undefined,
+        event: 'server-action.logout.failed',
       })
     })
   })
@@ -480,6 +495,7 @@ describe('logoutUserAction', () => {
       expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', mockError, {
         statusCode: 503,
         body: { error: 'Service temporarily unavailable' },
+        event: 'server-action.logout.failed',
       })
     })
 
@@ -496,6 +512,7 @@ describe('logoutUserAction', () => {
       expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', mockError, {
         statusCode: undefined,
         body: undefined,
+        event: 'server-action.logout.failed',
       })
     })
 
@@ -508,7 +525,9 @@ describe('logoutUserAction', () => {
 
       await logoutUserAction()
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user')
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user', {
+        event: 'server-action.logout.started',
+      })
     })
 
     it('should log successful completion', async () => {
@@ -520,7 +539,9 @@ describe('logoutUserAction', () => {
 
       await logoutUserAction()
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Logout successful')
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Logout successful', {
+        event: 'server-action.logout.completed',
+      })
     })
 
     it('should not log success when authentication fails', async () => {
@@ -531,9 +552,13 @@ describe('logoutUserAction', () => {
 
       await logoutUserAction()
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user')
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user', {
+        event: 'server-action.logout.started',
+      })
       expect(mockLoggerInfo).not.toHaveBeenCalledWith('Logout successful')
-      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found')
+      expect(mockLoggerError).toHaveBeenCalledWith('No auth token found', undefined, {
+        event: 'server-action.logout.failed',
+      })
     })
 
     it('should not log success when backend request fails', async () => {
@@ -546,7 +571,9 @@ describe('logoutUserAction', () => {
 
       await logoutUserAction()
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user')
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Logging out user', {
+        event: 'server-action.logout.started',
+      })
       expect(mockLoggerInfo).not.toHaveBeenCalledWith('Logout successful')
       expect(mockLoggerError).toHaveBeenCalled()
     })

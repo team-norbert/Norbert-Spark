@@ -195,7 +195,12 @@ describe('fetchChatByIdAction', () => {
       const result = await fetchChatByIdAction(TEST_CHAT_ID)
 
       expect(result).toEqual({ success: false, data: { id: TEST_CHAT_ID, messages: [] } })
-      expect(mockLoggerWarn).toHaveBeenCalledWith('No auth token available in fetchChatByIdAction')
+      expect(mockLoggerWarn).toHaveBeenCalledWith(
+        'No auth token available in fetchChatByIdAction',
+        {
+          event: 'server-action.fetch-chat.failed',
+        }
+      )
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
 
@@ -238,7 +243,9 @@ describe('fetchChatByIdAction', () => {
       const result = await fetchChatByIdAction(TEST_CHAT_ID)
 
       expect(result).toEqual({ success: false, data: { id: TEST_CHAT_ID, messages: [] } })
-      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError)
+      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError, {
+        event: 'server-action.fetch-chat.failed',
+      })
     })
 
     it('should handle 401 unauthorized error', async () => {
@@ -255,7 +262,9 @@ describe('fetchChatByIdAction', () => {
       const result = await fetchChatByIdAction(TEST_CHAT_ID)
 
       expect(result).toEqual({ success: false, data: { id: TEST_CHAT_ID, messages: [] } })
-      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError)
+      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError, {
+        event: 'server-action.fetch-chat.failed',
+      })
     })
 
     it('should handle 403 forbidden error', async () => {
@@ -272,7 +281,9 @@ describe('fetchChatByIdAction', () => {
       const result = await fetchChatByIdAction(TEST_CHAT_ID)
 
       expect(result).toEqual({ success: false, data: { id: TEST_CHAT_ID, messages: [] } })
-      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError)
+      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError, {
+        event: 'server-action.fetch-chat.failed',
+      })
     })
 
     it('should handle 404 not found error', async () => {
@@ -306,7 +317,9 @@ describe('fetchChatByIdAction', () => {
       const result = await fetchChatByIdAction(TEST_CHAT_ID)
 
       expect(result).toEqual({ success: false, data: { id: TEST_CHAT_ID, messages: [] } })
-      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError)
+      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError, {
+        event: 'server-action.fetch-chat.failed',
+      })
     })
 
     it('should handle timeout error', async () => {
@@ -322,7 +335,9 @@ describe('fetchChatByIdAction', () => {
       const result = await fetchChatByIdAction(TEST_CHAT_ID)
 
       expect(result).toEqual({ success: false, data: { id: TEST_CHAT_ID, messages: [] } })
-      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError)
+      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError, {
+        event: 'server-action.fetch-chat.failed',
+      })
     })
 
     it('should handle network error without status', async () => {
@@ -336,7 +351,9 @@ describe('fetchChatByIdAction', () => {
       const result = await fetchChatByIdAction(TEST_CHAT_ID)
 
       expect(result).toEqual({ success: false, data: { id: TEST_CHAT_ID, messages: [] } })
-      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError)
+      expect(mockLoggerError).toHaveBeenCalledWith('fetchChatByIdAction error', mockError, {
+        event: 'server-action.fetch-chat.failed',
+      })
     })
   })
 

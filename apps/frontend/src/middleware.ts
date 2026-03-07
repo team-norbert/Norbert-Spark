@@ -277,7 +277,8 @@ export async function middleware(request: Request) {
     // If JWT decryption fails (e.g., invalid token), treat as unauthenticated but log for debugging
     logger.error(
       'Failed to retrieve auth token in middleware:',
-      error instanceof Error ? error : new Error(String(error))
+      error instanceof Error ? error : new Error(String(error)),
+      { event: 'middleware.auth-token.failed' }
     )
     token = null
   }

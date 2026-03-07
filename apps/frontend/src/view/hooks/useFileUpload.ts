@@ -208,6 +208,7 @@ export function useFileUpload({
       while (retries < MAX_RETRIES) {
         try {
           logger.info(`Uploading ${file.name} to Bucket`, {
+            event: 'file-upload.started',
             url: uploadUrl,
             size: file.size,
             type: file.type,
@@ -226,11 +227,15 @@ export function useFileUpload({
 
             xhr.addEventListener('load', () => {
               if (xhr.status >= 200 && xhr.status < 300) {
-                logger.info(`Upload successful for ${file.name}`, { status: xhr.status })
+                logger.info(`Upload successful for ${file.name}`, {
+                  event: 'file-upload.completed',
+                  status: xhr.status,
+                })
                 updateFileProgress(id, 100)
                 resolve(true)
               } else {
                 logger.error(`Upload failed with status ${xhr.status}`, undefined, {
+                  event: 'file-upload.failed',
                   statusCode: xhr.status,
                   statusText: xhr.statusText,
                   response: xhr.responseText,
@@ -241,6 +246,7 @@ export function useFileUpload({
 
             xhr.addEventListener('error', (_event) => {
               logger.error('XHR error event fired', undefined, {
+                event: 'file-upload.failed',
                 filename: file.name,
                 readyState: xhr.readyState,
                 statusCode: xhr.status,
@@ -264,6 +270,7 @@ export function useFileUpload({
         } catch (error) {
           retries++
           logger.warn(`Upload attempt ${retries} failed for ${file.name}`, {
+            event: 'file-upload.failed',
             error: error instanceof Error ? error.message : String(error),
           })
 
@@ -303,14 +310,17 @@ export function useFileUpload({
         flow: backendFlowType,
       }))
 
-      logger.info('Requesting presigned URLs for files', { fileCount: fileMetadata.length })
+      logger.info('Requesting presigned URLs for files', {
+        event: 'file-upload.started',
+        fileCount: fileMetadata.length,
+      })
 
       // Get presigned URLs from the server action
       const response = await getPresignedUrls(fileMetadata, chatTypeId)
 
       // Check if session expired (JWT expired on backend)
       if (response.sessionExpired) {
-        logger.warn('Session expired, redirecting to signin')
+        logger.warn('Session expired, redirecting to signin', { event: 'session-guard.redirect' })
         router.push(`/signin?error=session_expired&callbackUrl=${encodeURIComponent(callbackUrl)}`)
         return
       }
@@ -321,7 +331,10 @@ export function useFileUpload({
 
       const { uploadUrls } = response.data
 
-      logger.info('Received presigned URLs', { urlCount: uploadUrls.length })
+      logger.info('Received presigned URLs', {
+        event: 'file-upload.started',
+        urlCount: uploadUrls.length,
+      })
 
       // Create a map of filename to presigned URL info
       const urlMap = new Map(uploadUrls.map((u) => [u.filename, u]))
@@ -336,6 +349,7 @@ export function useFileUpload({
         }
 
         logger.info('Uploading file to Bucket', {
+          event: 'file-upload.started',
           filename: uploadedFile.file.name,
           fileKey: urlInfo.fileKey,
         })
@@ -347,6 +361,7 @@ export function useFileUpload({
         )
 
         logger.info('=== UPLOAD COMPLETE ===', {
+          event: 'file-upload.completed',
           filename: uploadedFile.file.name,
           fileKey: urlInfo.fileKey,
         })
@@ -357,13 +372,18 @@ export function useFileUpload({
           setIsExtracting(true)
 
           try {
-            logger.info('Starting extraction via server action', { fileKey: urlInfo.fileKey })
+            logger.info('Starting extraction via server action', {
+              event: 'file-upload.extraction-started',
+              fileKey: urlInfo.fileKey,
+            })
 
             const extractResult = await extractDataByFileIdAction(urlInfo.fileKey)
 
             // Check if session expired (JWT expired on backend)
             if (extractResult.sessionExpired) {
-              logger.warn('Session expired during extraction, redirecting to signin')
+              logger.warn('Session expired during extraction, redirecting to signin', {
+                event: 'session-guard.redirect',
+              })
               router.push(
                 `/signin?error=session_expired&callbackUrl=${encodeURIComponent(callbackUrl)}`
               )
@@ -375,16 +395,23 @@ export function useFileUpload({
               extractResult.allResults &&
               extractResult.allResults.length > 0
             ) {
-              logger.info('Extraction successful', { count: extractResult.allResults.length })
+              logger.info('Extraction successful', {
+                event: 'file-upload.extraction-completed',
+                count: extractResult.allResults.length,
+              })
               setExtractedData(extractResult.allResults)
             } else if (extractResult.error) {
-              logger.error('Extraction failed', undefined, { error: extractResult.error })
+              logger.error('Extraction failed', undefined, {
+                event: 'file-upload.extraction-failed',
+                error: extractResult.error,
+              })
               throw new Error(extractResult.error)
             }
           } catch (extractError) {
             logger.error(
               'Extraction failed',
-              extractError instanceof Error ? extractError : new Error(String(extractError))
+              extractError instanceof Error ? extractError : new Error(String(extractError)),
+              { event: 'file-upload.extraction-failed' }
             )
           } finally {
             setIsExtracting(false)
@@ -394,15 +421,16 @@ export function useFileUpload({
         }
 
         logger.info('File uploaded successfully', {
+          event: 'file-upload.completed',
           filename: uploadedFile.file.name,
           urlInfo: urlInfo.uploadUrl,
           id: uploadedFile.id,
         })
-        logger.info('Response uploaded successfully', { result })
+        logger.info('Response uploaded successfully', { event: 'file-upload.completed', result })
       }
 
       // All files uploaded successfully
-      logger.info('All files uploaded successfully to bucket')
+      logger.info('All files uploaded successfully to bucket', { event: 'file-upload.completed' })
       if (flow === 'rag' && ragUploadedFileKeys.length > 0) {
         setRagFileKeys(ragUploadedFileKeys)
         setShowRagForm(true)
@@ -411,7 +439,9 @@ export function useFileUpload({
       const errorMessage =
         error instanceof Error ? error.message : 'An error occurred during upload'
       setError(`Upload failed: ${errorMessage}`)
-      logger.error('Upload error', error instanceof Error ? error : new Error(String(error)))
+      logger.error('Upload error', error instanceof Error ? error : new Error(String(error)), {
+        event: 'file-upload.failed',
+      })
     } finally {
       setIsUploading(false)
     }
@@ -441,7 +471,8 @@ export function useFileUpload({
     } catch (error) {
       logger.error(
         'Failed to logout user on backend',
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
+        { event: 'server-action.logout.failed' }
       )
     } finally {
       await signOut({ callbackUrl: '/signin' })

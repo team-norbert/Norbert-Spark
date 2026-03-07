@@ -25,7 +25,9 @@ export async function getChatsByUserIdAction(userId: string): Promise<AIUserIdRe
   try {
     const token = await getAuthToken()
     if (!token) {
-      logger.warn('No auth token available in getChatsByUserIdAction')
+      logger.warn('No auth token available in getChatsByUserIdAction', {
+        event: 'server-action.get-chats.failed',
+      })
       return { success: false, data: [] }
     }
 
@@ -41,7 +43,7 @@ export async function getChatsByUserIdAction(userId: string): Promise<AIUserIdRe
     return response
   } catch (error_) {
     const err = error_ as BackendError
-    logger.error('getChatsByUserIdAction error', err)
+    logger.error('getChatsByUserIdAction error', err, { event: 'server-action.get-chats.failed' })
 
     // Return empty response on error to prevent UI breaking
     return { success: false, data: [] }

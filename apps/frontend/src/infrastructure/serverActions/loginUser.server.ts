@@ -45,7 +45,7 @@ export async function loginUserAction(credentials: LoginDTO): Promise<LoginRespo
     const err = error_ as BackendError
 
     // Log the error for debugging without leaking internals to the client
-    logger.error('loginUserAction error', err)
+    logger.error('loginUserAction error', err, { event: 'server-action.login.failed' })
 
     // Connection / network errors -> 503 (Service Unavailable)
     const msg = err?.message ?? ''

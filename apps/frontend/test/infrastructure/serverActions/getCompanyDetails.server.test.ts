@@ -346,7 +346,8 @@ describe('getCompanyDetailsAction', () => {
         },
       })
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'No auth token available in getCompanyDetailsAction'
+        'No auth token available in getCompanyDetailsAction',
+        { event: 'server-action.company-details.failed' }
       )
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
@@ -367,7 +368,8 @@ describe('getCompanyDetailsAction', () => {
         },
       })
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'No auth token available in getCompanyDetailsAction'
+        'No auth token available in getCompanyDetailsAction',
+        { event: 'server-action.company-details.failed' }
       )
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
@@ -388,7 +390,8 @@ describe('getCompanyDetailsAction', () => {
         },
       })
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'No auth token available in getCompanyDetailsAction'
+        'No auth token available in getCompanyDetailsAction',
+        { event: 'server-action.company-details.failed' }
       )
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
@@ -413,7 +416,9 @@ describe('getCompanyDetailsAction', () => {
           keyPerson: null,
         },
       })
-      expect(mockLogger.error).toHaveBeenCalledWith('getCompanyDetailsAction error', testError)
+      expect(mockLogger.error).toHaveBeenCalledWith('getCompanyDetailsAction error', testError, {
+        event: 'server-action.company-details.failed',
+      })
     })
 
     it('should handle 404 not found errors gracefully', async () => {
@@ -519,7 +524,9 @@ describe('getCompanyDetailsAction', () => {
       const result = await getCompanyDetailsAction()
 
       expect(result.success).toBe(false)
-      expect(mockLogger.error).toHaveBeenCalledWith('getCompanyDetailsAction error', error)
+      expect(mockLogger.error).toHaveBeenCalledWith('getCompanyDetailsAction error', error, {
+        event: 'server-action.company-details.failed',
+      })
     })
 
     it('should handle errors with cause property', async () => {
@@ -536,7 +543,9 @@ describe('getCompanyDetailsAction', () => {
       const result = await getCompanyDetailsAction()
 
       expect(result.success).toBe(false)
-      expect(mockLogger.error).toHaveBeenCalledWith('getCompanyDetailsAction error', error)
+      expect(mockLogger.error).toHaveBeenCalledWith('getCompanyDetailsAction error', error, {
+        event: 'server-action.company-details.failed',
+      })
     })
   })
 
