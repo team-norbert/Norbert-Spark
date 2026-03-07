@@ -1,4 +1,4 @@
-import { isDefined } from '@norberts-spark/shared'
+import { isDefined, UtcDate } from '@norberts-spark/shared'
 import { eq } from 'drizzle-orm'
 
 import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
@@ -11,7 +11,6 @@ import type { DBChatAiOptions } from '../../../infrastructure/database/schema.js
 import { chatAiOptions } from '../../../infrastructure/database/schema.js'
 import { ConflictException } from '../../../shared/exceptions/conflict.exception.js'
 import { DatabaseUtil } from '../../../shared/utils/database.util.js'
-
 /**
  * Secondary adapter that implements {@link AIAdminPort} using Drizzle ORM.
  *
@@ -143,7 +142,7 @@ export class AIAdminRepository implements AIAdminPort {
       // Build update object with only defined fields
       const updateData: Partial<DBChatAiOptions> = {
         prompt: dto.prompt,
-        updatedAt: new Date(),
+        updatedAt: UtcDate.now().toDate(),
       }
 
       if (isDefined(dto.maxTokens)) {

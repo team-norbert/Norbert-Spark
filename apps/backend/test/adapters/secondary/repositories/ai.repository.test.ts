@@ -1,3 +1,4 @@
+import { UtcDate } from '@norberts-spark/shared'
 import type { UIMessage } from 'ai'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -67,7 +68,7 @@ describe('AIRepository', () => {
           id: 'generated-msg-id',
           chatId: testChatIdString,
           role: 'user',
-          createdAt: new Date(),
+          createdAt: UtcDate.now().toDate(),
         },
       ]
 
@@ -130,7 +131,12 @@ describe('AIRepository', () => {
     it('should retrieve chat messages with parts', async () => {
       const mockResult = [
         {
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: { id: 'part-1', messageId: 'msg-1', type: 'text', textText: 'Hello' },
         },
         {
@@ -138,7 +144,7 @@ describe('AIRepository', () => {
             id: 'msg-2',
             chatId: mockChatIdString,
             role: 'assistant',
-            createdAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
           },
           part: { id: 'part-2', messageId: 'msg-2', type: 'text', textText: 'Hi there!' },
         },
@@ -173,7 +179,12 @@ describe('AIRepository', () => {
     it('should handle messages without parts', async () => {
       const mockResult = [
         {
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: null,
         },
       ]
@@ -194,11 +205,21 @@ describe('AIRepository', () => {
     it('should handle multiple parts for the same message', async () => {
       const mockResult = [
         {
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: { id: 'part-1', messageId: 'msg-1', type: 'text', textText: 'First part' },
         },
         {
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: { id: 'part-2', messageId: 'msg-1', type: 'text', textText: 'Second part' },
         },
       ]
@@ -241,7 +262,7 @@ describe('AIRepository', () => {
             id: 'msg-1',
             chatId: specificChatIdString,
             role: 'user',
-            createdAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
           },
           part: { id: 'part-1', messageId: 'msg-1', type: 'text', textText: 'Test' },
         },
@@ -300,13 +321,13 @@ describe('AIRepository', () => {
           id: 'generated-msg-id-1',
           chatId: testChatIdString,
           role: 'user',
-          createdAt: new Date(),
+          createdAt: UtcDate.now().toDate(),
         },
         {
           id: 'generated-msg-id-2',
           chatId: testChatIdString,
           role: 'assistant',
-          createdAt: new Date(),
+          createdAt: UtcDate.now().toDate(),
         },
       ]
 
@@ -359,7 +380,7 @@ describe('AIRepository', () => {
           id: 'generated-msg-id',
           chatId: testChatIdString,
           role: 'user',
-          createdAt: new Date(),
+          createdAt: UtcDate.now().toDate(),
         },
       ]
 
@@ -435,7 +456,7 @@ describe('AIRepository', () => {
           id: 'generated-msg-id',
           chatId: testChatIdString,
           role: 'user',
-          createdAt: new Date(),
+          createdAt: UtcDate.now().toDate(),
         },
       ]
 
@@ -497,13 +518,13 @@ describe('AIRepository', () => {
           id: 'generated-msg-id-1',
           chatId: testChatIdString,
           role: 'user',
-          createdAt: new Date(),
+          createdAt: UtcDate.now().toDate(),
         },
         {
           id: 'generated-msg-id-2',
           chatId: testChatIdString,
           role: 'assistant',
-          createdAt: new Date(),
+          createdAt: UtcDate.now().toDate(),
         },
       ]
 
@@ -554,7 +575,7 @@ describe('AIRepository', () => {
         id: `generated-msg-id-${idx}`,
         chatId: testChatIdString,
         role: msg.role,
-        createdAt: new Date(),
+        createdAt: UtcDate.now().toDate(),
       }))
 
       // Mock for chats update
@@ -618,24 +639,29 @@ describe('AIRepository', () => {
           chat: {
             id: mockChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: { id: 'part-1', messageId: 'msg-1', type: 'text', textText: 'Hello' },
         },
         {
           chat: {
             id: mockChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
           message: {
             id: 'msg-2',
             chatId: mockChatIdString,
             role: 'assistant',
-            createdAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
           },
           part: { id: 'part-2', messageId: 'msg-2', type: 'text', textText: 'Hi there!' },
         },
@@ -673,10 +699,15 @@ describe('AIRepository', () => {
           chat: {
             id: mockChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: null,
         },
       ]
@@ -700,20 +731,30 @@ describe('AIRepository', () => {
           chat: {
             id: mockChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: { id: 'part-1', messageId: 'msg-1', type: 'text', textText: 'First part' },
         },
         {
           chat: {
             id: mockChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: { id: 'part-2', messageId: 'msg-1', type: 'text', textText: 'Second part' },
         },
       ]
@@ -755,14 +796,14 @@ describe('AIRepository', () => {
           chat: {
             id: specificChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
           message: {
             id: 'msg-1',
             chatId: specificChatIdString,
             role: 'user',
-            createdAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
           },
           part: { id: 'part-1', messageId: 'msg-1', type: 'text', textText: 'Test' },
         },
@@ -802,24 +843,29 @@ describe('AIRepository', () => {
           chat: {
             id: mockChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: { id: 'part-1', messageId: 'msg-1', type: 'text', textText: 'Question' },
         },
         {
           chat: {
             id: mockChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
           message: {
             id: 'msg-2',
             chatId: mockChatIdString,
             role: 'assistant',
-            createdAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
           },
           part: { id: 'part-2', messageId: 'msg-2', type: 'text', textText: 'Answer part 1' },
         },
@@ -827,14 +873,14 @@ describe('AIRepository', () => {
           chat: {
             id: mockChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
           message: {
             id: 'msg-2',
             chatId: mockChatIdString,
             role: 'assistant',
-            createdAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
           },
           part: { id: 'part-3', messageId: 'msg-2', type: 'text', textText: 'Answer part 2' },
         },
@@ -859,20 +905,30 @@ describe('AIRepository', () => {
           chat: {
             id: mockChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: { id: 'part-1', messageId: 'msg-1', type: 'text', textText: 'Query' },
         },
         {
           chat: {
             id: mockChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: {
             id: 'part-2',
             messageId: 'msg-1',
@@ -884,14 +940,14 @@ describe('AIRepository', () => {
           chat: {
             id: mockChatIdString,
             userId: mockUserIdString,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
+            updatedAt: UtcDate.now().toDate(),
           },
           message: {
             id: 'msg-2',
             chatId: mockChatIdString,
             role: 'assistant',
-            createdAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
           },
           part: {
             id: 'part-3',
@@ -918,7 +974,12 @@ describe('AIRepository', () => {
     it('should preserve message order in results', async () => {
       const mockResult = [
         {
-          message: { id: 'msg-1', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-1',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: { id: 'part-1', messageId: 'msg-1', type: 'text', textText: 'First' },
         },
         {
@@ -926,12 +987,17 @@ describe('AIRepository', () => {
             id: 'msg-2',
             chatId: mockChatIdString,
             role: 'assistant',
-            createdAt: new Date(),
+            createdAt: UtcDate.now().toDate(),
           },
           part: { id: 'part-2', messageId: 'msg-2', type: 'text', textText: 'Second' },
         },
         {
-          message: { id: 'msg-3', chatId: mockChatIdString, role: 'user', createdAt: new Date() },
+          message: {
+            id: 'msg-3',
+            chatId: mockChatIdString,
+            role: 'user',
+            createdAt: UtcDate.now().toDate(),
+          },
           part: { id: 'part-3', messageId: 'msg-3', type: 'text', textText: 'Third' },
         },
       ]

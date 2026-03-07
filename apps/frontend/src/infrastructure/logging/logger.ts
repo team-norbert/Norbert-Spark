@@ -1,3 +1,5 @@
+import { UtcDate } from '@norberts-spark/shared'
+
 import type { LoggerPort } from '@/application/ports/logger.port.js'
 import { env } from '@/env/client.js'
 
@@ -170,7 +172,7 @@ export class UnifiedLogger implements LoggerPort {
   ): StructuredLogEntry {
     const entry: StructuredLogEntry = {
       level: logLevel,
-      timestamp: new Date().toISOString(),
+      timestamp: UtcDate.now().toISOString(),
       message,
       service: UnifiedLogger.SERVICE_NAME,
       env: UnifiedLogger.ENV,
