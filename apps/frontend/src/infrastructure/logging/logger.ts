@@ -148,7 +148,7 @@ export interface StructuredLogEntry {
  * logger.getMinLevel() // Returns 'warn'
  * ```
  */
-export class UnifiedLogger implements LoggerPort {
+export class UnifiedLogger implements Omit<LoggerPort, 'child'> {
   private static readonly LOG_LEVELS = [
     LogLevel.TRACE,
     LogLevel.DEBUG,
