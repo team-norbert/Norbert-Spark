@@ -116,7 +116,9 @@ describe('loginUserAction', () => {
       expect(result.success).toBe(false)
       expect(result.error).toBe('Invalid email or password')
       expect(result.status).toBe(401)
-      expect(mockLoggerError).toHaveBeenCalledWith('loginUserAction error', error)
+      expect(mockLoggerError).toHaveBeenCalledWith('loginUserAction error', error, {
+        event: 'server-action.login.failed',
+      })
     })
 
     it('should use custom error message from backend response', async () => {
@@ -166,7 +168,9 @@ describe('loginUserAction', () => {
         'Unable to connect to backend service. Please ensure the backend server is running.'
       )
       expect(result.status).toBe(503)
-      expect(mockLoggerError).toHaveBeenCalledWith('loginUserAction error', error)
+      expect(mockLoggerError).toHaveBeenCalledWith('loginUserAction error', error, {
+        event: 'server-action.login.failed',
+      })
     })
 
     it('should return 503 when ECONNREFUSED error occurs in message', async () => {

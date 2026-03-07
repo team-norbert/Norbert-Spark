@@ -65,6 +65,7 @@ async function handleResponse<T>(
 
   if (!res.ok) {
     logger.error('[backendRequest] non-ok response', undefined, {
+      event: 'server-action.backend-request.failed',
       url,
       statusCode: res.status,
       body: parsed,
@@ -98,11 +99,15 @@ async function handleResponse<T>(
  * new access token. If the refresh fails, the user is redirected to sign in.
  */
 async function attemptRetry<T>(options: BackendRequestOptions): Promise<T> {
-  logger.info('[backendRequest] 401 received — attempting silent token refresh')
+  logger.info('[backendRequest] 401 received — attempting silent token refresh', {
+    event: 'server-action.backend-request.retry',
+  })
   const refreshedSession = await getServerSession(authOptions)
 
   if (refreshedSession?.accessToken && !refreshedSession?.error) {
-    logger.info('[backendRequest] Token refreshed — retrying request')
+    logger.info('[backendRequest] Token refreshed — retrying request', {
+      event: 'server-action.backend-request.retry',
+    })
     return backendRequest<T>({
       ...options,
       headers: {
@@ -113,7 +118,9 @@ async function attemptRetry<T>(options: BackendRequestOptions): Promise<T> {
     })
   }
 
-  logger.warn('[backendRequest] Token refresh failed — redirecting to sign-in')
+  logger.warn('[backendRequest] Token refresh failed — redirecting to sign-in', {
+    event: 'server-action.backend-request.failed',
+  })
   redirect('/signin?error=session_expired')
 }
 
@@ -182,6 +189,8 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
     const nodeFetch = (await import('node-fetch')).default
     const agent = new https.Agent({ rejectUnauthorized: false })
 
+    const startTime = Date.now()
+
     const controller = new AbortController()
     const combinedSignal = options.signal
       ? AbortSignal.any([options.signal, controller.signal])
@@ -197,13 +206,37 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
-      return await handleResponse<T>(res, url)
+      const result = await handleResponse<T>(res, url)
+
+      logger.info('Backend request completed', {
+        event: 'server-action.backend-request.completed',
+        endpoint: options.endpoint,
+        statusCode: res.status,
+        durationMs: Math.round(Date.now() - startTime),
+      })
+
+      return result
     } catch (err) {
-      return handle401<T>(err as Error & { status?: number }, options)
+      const error = err as Error & { status?: number }
+      const will401Retry =
+        error.status === 401 && options.redirectOn401 !== false && !options._isRetry
+      if (!will401Retry) {
+        logger.error(
+          'Backend request failed',
+          err instanceof Error ? err : new Error(String(err)),
+          {
+            event: 'server-action.backend-request.failed',
+            endpoint: options.endpoint,
+            durationMs: Math.round(Date.now() - startTime),
+          }
+        )
+      }
+      return handle401<T>(error, options)
     } finally {
       clearTimeout(timeout)
     }
   } else {
+    const startTime = Date.now()
     const controller = new AbortController()
     const combinedSignal = options.signal
       ? AbortSignal.any([options.signal, controller.signal])
@@ -218,9 +251,32 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
-      return await handleResponse<T>(res, url)
+      const result = await handleResponse<T>(res, url)
+
+      logger.info('Backend request completed', {
+        event: 'server-action.backend-request.completed',
+        endpoint: options.endpoint,
+        statusCode: res.status,
+        durationMs: Math.round(Date.now() - startTime),
+      })
+
+      return result
     } catch (err) {
-      return handle401<T>(err as Error & { status?: number }, options)
+      const error = err as Error & { status?: number }
+      const will401Retry =
+        error.status === 401 && options.redirectOn401 !== false && !options._isRetry
+      if (!will401Retry) {
+        logger.error(
+          'Backend request failed',
+          err instanceof Error ? err : new Error(String(err)),
+          {
+            event: 'server-action.backend-request.failed',
+            endpoint: options.endpoint,
+            durationMs: Math.round(Date.now() - startTime),
+          }
+        )
+      }
+      return handle401<T>(error, options)
     } finally {
       clearTimeout(timeout)
     }

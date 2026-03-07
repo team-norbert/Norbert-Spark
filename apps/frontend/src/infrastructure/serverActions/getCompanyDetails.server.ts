@@ -56,7 +56,9 @@ export async function getCompanyDetailsAction(): Promise<CompanyDetailsResponse>
   try {
     const token = await getAuthToken()
     if (!token) {
-      logger.warn('No auth token available in getCompanyDetailsAction')
+      logger.warn('No auth token available in getCompanyDetailsAction', {
+        event: 'server-action.company-details.failed',
+      })
       return {
         success: false,
         data: {
@@ -78,7 +80,9 @@ export async function getCompanyDetailsAction(): Promise<CompanyDetailsResponse>
     return response
   } catch (error) {
     const err = error as BackendError
-    logger.error('getCompanyDetailsAction error', err)
+    logger.error('getCompanyDetailsAction error', err, {
+      event: 'server-action.company-details.failed',
+    })
 
     // Return empty response on error to prevent UI breaking
     return {

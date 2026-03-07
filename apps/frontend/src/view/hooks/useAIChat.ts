@@ -59,10 +59,16 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
   const handleNewChat = () => {
     const newId = uuidv7()
     if (chatTypeParam) {
-      logger.info('Creating new chat', { chatTypeParam, newId })
+      logger.info('Creating new chat', {
+        chatTypeParam,
+        newId,
+        event: 'chat.navigation.new-chat-type-param',
+      })
       router.push(`/ai/${chatTypeParam}/${newId}`)
     } else {
-      logger.info('No chatTypeParam, navigating to landing page')
+      logger.info('No chatTypeParam, navigating to landing page', {
+        event: 'chat.navigation.landing',
+      })
       router.push('/ai')
     }
   }
@@ -88,7 +94,10 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
     }
   }, [id])
 
-  logger.debug('Initial messages in useAIChat', { messageCount: initialMessages?.length })
+  logger.debug('Initial messages in useAIChat', {
+    messageCount: initialMessages?.length,
+    event: 'chat.messages.initialized',
+  })
 
   const { messages, sendMessage, status, stop } = useChat({
     id: id,
@@ -109,7 +118,9 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
       },
     }),
     onError: (error) => {
-      logger.error('Chat transport error', error)
+      logger.error('Chat transport error', error, {
+        event: 'chat.transport.error',
+      })
       setErrorMessage(error.message || 'An error occurred while communicating with the AI service')
     },
   })
@@ -119,7 +130,10 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
     void stop().catch((error) => {
       logger.error(
         'Error stopping chat transport',
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          event: 'chat.transport.error',
+        }
       )
     })
   }, [disabled, stop])

@@ -27,7 +27,8 @@ export async function POST(request: Request) {
     } catch (parseError) {
       logger.error(
         '[registration-route] Failed to parse Backend API URL',
-        parseError instanceof Error ? parseError : new Error(String(parseError))
+        parseError instanceof Error ? parseError : new Error(String(parseError)),
+        { event: 'api-route.register.failed' }
       )
       return Response.json(
         {
@@ -37,7 +38,10 @@ export async function POST(request: Request) {
         { status: 500 }
       )
     }
-    logger.info('[registration-route] using apiUrl', { apiUrl })
+    logger.info('[registration-route] using apiUrl', {
+      event: 'api-route.register.started',
+      apiUrl,
+    })
     const isLocalDevelopment =
       url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname === '::1'
 
@@ -94,6 +98,7 @@ export async function POST(request: Request) {
     }
 
     logger.info('[registration-route] /api/register responding with status', {
+      event: 'api-route.register.completed',
       statusCode: response.status,
     })
 
@@ -119,7 +124,9 @@ export async function POST(request: Request) {
 
     return Response.json(result, { status: 200 })
   } catch (error) {
-    logger.error('Registration error', error instanceof Error ? error : new Error(String(error)))
+    logger.error('Registration error', error instanceof Error ? error : new Error(String(error)), {
+      event: 'api-route.register.failed',
+    })
 
     // Handle backend connection failures specifically
     if (error instanceof Error) {

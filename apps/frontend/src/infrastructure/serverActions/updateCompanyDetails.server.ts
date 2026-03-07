@@ -54,7 +54,9 @@ export async function updateCompanyDetailsAction(
   try {
     const token = await getAuthToken()
     if (!token) {
-      logger.warn('No auth token available in updateCompanyDetailsAction')
+      logger.warn('No auth token available in updateCompanyDetailsAction', {
+        event: 'server-action.company-details.update-failed',
+      })
       return {
         status: 401,
         success: false,
@@ -73,11 +75,15 @@ export async function updateCompanyDetailsAction(
       timeoutMs: 10000,
     })
 
-    logger.info('Company details updated successfully')
+    logger.info('Company details updated successfully', {
+      event: 'server-action.company-details.updated',
+    })
     return { success: true, status: 204 }
   } catch (error) {
     const err = error as BackendError
-    logger.error('updateCompanyDetailsAction error', err)
+    logger.error('updateCompanyDetailsAction error', err, {
+      event: 'server-action.company-details.update-failed',
+    })
 
     return {
       status: err.status || 500,

@@ -41,7 +41,7 @@ function parseNDJSONLine(line: string): ExtractedInvoiceData | null {
     logger.error(
       'Failed to parse NDJSON line',
       parseError instanceof Error ? parseError : new Error(String(parseError)),
-      { line }
+      { event: 'server-action.extract-data.failed', lineLength: line.length }
     )
   }
   return null
@@ -64,11 +64,16 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
   try {
     const token = await getAuthToken()
     if (!token) {
-      logger.warn('No auth token available in extractDataByFileIdAction')
+      logger.warn('No auth token available in extractDataByFileIdAction', {
+        event: 'server-action.extract-data.failed',
+      })
       return { success: false, error: 'No authentication token' }
     }
 
-    logger.info('Calling extract data endpoint', { fileKey })
+    logger.info('Calling extract data endpoint', {
+      event: 'server-action.extract-data.started',
+      fileKey,
+    })
 
     const backendUrl = env.BACKEND_URL
     const url = `${backendUrl}/api/v1/ai/extract-data/${encodeURIComponent(fileKey)}`
@@ -83,7 +88,9 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
     if (!response.ok) {
       // Check for 401 Unauthorized (JWT expired on backend)
       if (response.status === 401) {
-        logger.warn('JWT expired or unauthorized in extractDataByFileIdAction')
+        logger.warn('JWT expired or unauthorized in extractDataByFileIdAction', {
+          event: 'server-action.extract-data.failed',
+        })
         return {
           success: false,
           error: 'Session expired. Please sign in again.',
@@ -140,7 +147,10 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
       reader.releaseLock()
     }
 
-    logger.info('Response from extract data', { count: allResults.length })
+    logger.info('Response from extract data', {
+      event: 'server-action.extract-data.completed',
+      count: allResults.length,
+    })
 
     return {
       success: true,
@@ -150,7 +160,10 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
   } catch (error) {
     const err = error as BackendError
 
-    logger.error('extractDataByFileIdAction error', err, { fileKey })
+    logger.error('extractDataByFileIdAction error', err, {
+      event: 'server-action.extract-data.failed',
+      fileKey,
+    })
 
     return { success: false, error: err.message || 'Failed to extract data' }
   }

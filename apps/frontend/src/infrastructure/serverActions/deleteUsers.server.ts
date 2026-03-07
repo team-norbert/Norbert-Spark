@@ -22,12 +22,15 @@ export interface DeleteUsersResult {
  */
 export async function deleteUsersAction(userIds: string[]): Promise<DeleteUsersResult> {
   try {
-    logger.info('Deleting users', { count: userIds.length })
+    logger.info('Deleting users', {
+      event: 'server-action.delete-users.started',
+      count: userIds.length,
+    })
 
     // Get auth token for the request
     const token = await getAuthToken()
     if (!token) {
-      logger.error('No auth token found')
+      logger.error('No auth token found', undefined, { event: 'server-action.delete-users.failed' })
       return {
         success: false,
         message: 'Authentication required',
@@ -45,7 +48,10 @@ export async function deleteUsersAction(userIds: string[]): Promise<DeleteUsersR
       timeoutMs: 10000,
     })
 
-    logger.info('Users deleted successfully', { count: userIds.length })
+    logger.info('Users deleted successfully', {
+      event: 'server-action.delete-users.completed',
+      count: userIds.length,
+    })
 
     return {
       success: true,
@@ -56,6 +62,7 @@ export async function deleteUsersAction(userIds: string[]): Promise<DeleteUsersR
     const err = error_ as Error & { status?: number; body?: unknown }
 
     logger.error('deleteUsersAction error', err, {
+      event: 'server-action.delete-users.failed',
       statusCode: err.status,
       body: err.body,
     })

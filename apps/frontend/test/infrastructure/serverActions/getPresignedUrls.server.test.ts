@@ -95,8 +95,9 @@ describe('getPresignedUrls', () => {
         redirectOn401: false,
       })
       expect(mockLoggerInfo).toHaveBeenCalledWith('Requesting presigned URLs', {
+        event: 'server-action.presigned-urls.started',
         fileCount: 2,
-        files: files.map((f) => ({ filename: f.filename, mimetype: f.mimetype })),
+        files: files.map((f) => ({ filename: f.filename, mimetype: f.mimetype, flow: f.flow })),
       })
       expect(mockLoggerWarn).not.toHaveBeenCalled()
       expect(mockLoggerError).not.toHaveBeenCalled()
@@ -170,6 +171,7 @@ describe('getPresignedUrls', () => {
       await getPresignedUrls(files)
 
       expect(mockLoggerInfo).toHaveBeenCalledWith('Presigned URLs received', {
+        event: 'server-action.presigned-urls.completed',
         success: true,
         urlCount: 3,
       })
@@ -221,7 +223,8 @@ describe('getPresignedUrls', () => {
         error: 'Authentication required',
       })
       expect(mockLoggerWarn).toHaveBeenCalledWith(
-        'No access token available for presigned URL request'
+        'No access token available for presigned URL request',
+        { event: 'server-action.presigned-urls.failed' }
       )
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
@@ -454,6 +457,7 @@ describe('getPresignedUrls', () => {
 
       expect(result.success).toBe(true)
       expect(mockLoggerInfo).toHaveBeenCalledWith('Presigned URLs received', {
+        event: 'server-action.presigned-urls.completed',
         success: true,
         urlCount: 0,
       })

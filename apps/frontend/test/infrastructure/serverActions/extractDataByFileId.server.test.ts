@@ -74,7 +74,8 @@ describe('extractDataByFileIdAction', () => {
       })
       expect(mockGetAuthToken).toHaveBeenCalledOnce()
       expect(mockLoggerWarn).toHaveBeenCalledWith(
-        'No auth token available in extractDataByFileIdAction'
+        'No auth token available in extractDataByFileIdAction',
+        { event: 'server-action.extract-data.failed' }
       )
       expect(mockFetch).not.toHaveBeenCalled()
     })
@@ -212,7 +213,8 @@ describe('extractDataByFileIdAction', () => {
         sessionExpired: true,
       })
       expect(mockLoggerWarn).toHaveBeenCalledWith(
-        'JWT expired or unauthorized in extractDataByFileIdAction'
+        'JWT expired or unauthorized in extractDataByFileIdAction',
+        { event: 'server-action.extract-data.failed' }
       )
     })
   })
@@ -576,7 +578,7 @@ describe('extractDataByFileIdAction', () => {
       expect(mockLoggerError).toHaveBeenCalledWith(
         'Failed to parse NDJSON line',
         expect.any(Error),
-        expect.objectContaining({ line: invalidLine })
+        expect.objectContaining({ lineLength: invalidLine.length })
       )
     })
 
@@ -648,6 +650,7 @@ describe('extractDataByFileIdAction', () => {
       await extractDataByFileIdAction(TEST_FILE_KEY)
 
       expect(mockLoggerInfo).toHaveBeenCalledWith('Calling extract data endpoint', {
+        event: 'server-action.extract-data.started',
         fileKey: TEST_FILE_KEY,
       })
     })
@@ -704,7 +707,10 @@ describe('extractDataByFileIdAction', () => {
 
       await extractDataByFileIdAction(TEST_FILE_KEY)
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith('Response from extract data', { count: 2 })
+      expect(mockLoggerInfo).toHaveBeenCalledWith('Response from extract data', {
+        event: 'server-action.extract-data.completed',
+        count: 2,
+      })
     })
   })
 

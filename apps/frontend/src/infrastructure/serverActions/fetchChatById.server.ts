@@ -25,7 +25,9 @@ export async function fetchChatByIdAction(chatId: string): Promise<AIFetchChatRe
   try {
     const token = await getAuthToken()
     if (!token) {
-      logger.warn('No auth token available in fetchChatByIdAction')
+      logger.warn('No auth token available in fetchChatByIdAction', {
+        event: 'server-action.fetch-chat.failed',
+      })
       return { success: false, data: { id: chatId, messages: [] } }
     }
 
@@ -41,7 +43,7 @@ export async function fetchChatByIdAction(chatId: string): Promise<AIFetchChatRe
     return response
   } catch (error) {
     const err = error as BackendError
-    logger.error('fetchChatByIdAction error', err)
+    logger.error('fetchChatByIdAction error', err, { event: 'server-action.fetch-chat.failed' })
 
     // Return empty response on error to prevent UI breaking
     return { success: false, data: { id: chatId, messages: [] } }

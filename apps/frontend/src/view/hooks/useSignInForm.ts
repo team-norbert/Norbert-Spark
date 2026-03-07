@@ -77,7 +77,9 @@ export function useSignInForm() {
     setErrors((prev) => ({ ...prev, general: '' }))
 
     try {
-      logger.info('[useSignInForm] Calling Server Action for authentication')
+      logger.info('[useSignInForm] Calling Server Action for authentication', {
+        event: 'signin.submitted',
+      })
 
       // Step 1: Authenticate via Server Action (secure server-side call to backend)
       const authResult = await loginUserAction({
@@ -86,6 +88,7 @@ export function useSignInForm() {
       })
 
       logger.info('[useSignInForm] Server Action result:', {
+        event: 'signin.submitted',
         success: authResult.success,
         status: authResult.status,
       })
@@ -93,7 +96,8 @@ export function useSignInForm() {
       if (!authResult.success) {
         logger.error(
           '[useSignInForm] Authentication failed',
-          authResult.error ? new Error(authResult.error) : undefined
+          authResult.error ? new Error(authResult.error) : undefined,
+          { event: 'signin.failed' }
         )
         setErrors((prev) => ({
           ...prev,
@@ -108,7 +112,9 @@ export function useSignInForm() {
       // authentication logic explicit in the infrastructure layer (Server Action).
       // Alternative approaches (custom session management or modifying NextAuth's flow)
       // would be more complex and outside the scope of this security architecture improvement.
-      logger.info('[useSignInForm] Authentication successful, establishing session')
+      logger.info('[useSignInForm] Authentication successful, establishing session', {
+        event: 'signin.submitted',
+      })
       const sessionResult = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
@@ -116,6 +122,7 @@ export function useSignInForm() {
       })
 
       logger.info('[useSignInForm] NextAuth signIn result:', {
+        event: 'signin.submitted',
         ok: sessionResult?.ok,
         error: sessionResult?.error,
         status: sessionResult?.status,
@@ -123,7 +130,13 @@ export function useSignInForm() {
       })
 
       if (sessionResult?.error) {
-        logger.error('[useSignInForm] Session establishment failed', new Error(sessionResult.error))
+        logger.error(
+          '[useSignInForm] Session establishment failed',
+          new Error(sessionResult.error),
+          {
+            event: 'signin.failed',
+          }
+        )
         setErrors((prev) => ({
           ...prev,
           general: 'Authentication succeeded but session creation failed. Please try again.',
@@ -134,7 +147,9 @@ export function useSignInForm() {
       // Redirect on successful session establishment
       // NextAuth's signIn returns { ok, error, status, url } or undefined in some edge cases
       if (sessionResult?.ok) {
-        logger.info('[useSignInForm] Success (ok=true) - redirecting to dashboard')
+        logger.info('[useSignInForm] Success (ok=true) - redirecting to dashboard', {
+          event: 'signin.submitted',
+        })
         router.push('/dashboard')
         router.refresh()
       } else if (!sessionResult?.error) {
@@ -142,12 +157,19 @@ export function useSignInForm() {
         // Log the full result and try redirect anyway since Step 1 authentication succeeded
         logger.warn(
           '[useSignInForm] Unexpected session result (no ok, no error), attempting redirect anyway',
-          { ok: sessionResult?.ok, error: sessionResult?.error, status: sessionResult?.status }
+          {
+            event: 'signin.submitted',
+            ok: sessionResult?.ok,
+            error: sessionResult?.error,
+            status: sessionResult?.status,
+          }
         )
         router.push('/dashboard')
         router.refresh()
       } else {
-        logger.error('[useSignInForm] Session establishment explicitly failed')
+        logger.error('[useSignInForm] Session establishment explicitly failed', undefined, {
+          event: 'signin.failed',
+        })
         setErrors((prev) => ({
           ...prev,
           general: 'An unexpected error occurred during sign in. Please try again.',
@@ -156,7 +178,8 @@ export function useSignInForm() {
     } catch (error) {
       logger.error(
         '[useSignInForm] Exception',
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
+        { event: 'signin.failed' }
       )
       setErrors((prev) => ({
         ...prev,

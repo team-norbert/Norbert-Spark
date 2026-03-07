@@ -92,7 +92,7 @@ export async function GET(request: Request) {
     return Response.json(result, { status: 200 })
   } catch (error) {
     if (error instanceof Error) {
-      logger.error('User API error', error)
+      logger.error('User API error', error, { event: 'api-route.users.failed' })
     }
     return Response.json(
       {

@@ -28,11 +28,11 @@ export interface LogoutResult {
  */
 export async function logoutUserAction(): Promise<LogoutResult> {
   try {
-    logger.info('Logging out user')
+    logger.info('Logging out user', { event: 'server-action.logout.started' })
 
     const token = await getAuthToken()
     if (!token) {
-      logger.error('No auth token found')
+      logger.error('No auth token found', undefined, { event: 'server-action.logout.failed' })
       return {
         success: false,
         message: 'Authentication required',
@@ -52,7 +52,7 @@ export async function logoutUserAction(): Promise<LogoutResult> {
 
     const message = parsed?.data?.message ?? 'Logged out'
 
-    logger.info('Logout successful')
+    logger.info('Logout successful', { event: 'server-action.logout.completed' })
 
     return {
       success: true,
@@ -63,6 +63,7 @@ export async function logoutUserAction(): Promise<LogoutResult> {
     const err = error_ as Error & { status?: number; body?: unknown }
 
     logger.error('logoutUserAction error', err, {
+      event: 'server-action.logout.failed',
       statusCode: err.status,
       body: err.body,
     })

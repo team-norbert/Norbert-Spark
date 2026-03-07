@@ -89,7 +89,9 @@ describe('updateCompanyDetailsAction', () => {
         body: mockRequest,
         timeoutMs: 10000,
       })
-      expect(mockLogger.info).toHaveBeenCalledWith('Company details updated successfully')
+      expect(mockLogger.info).toHaveBeenCalledWith('Company details updated successfully', {
+        event: 'server-action.company-details.updated',
+      })
       expect(mockLogger.warn).not.toHaveBeenCalled()
       expect(mockLogger.error).not.toHaveBeenCalled()
     })
@@ -283,7 +285,8 @@ describe('updateCompanyDetailsAction', () => {
         error: 'Authentication required',
       })
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'No auth token available in updateCompanyDetailsAction'
+        'No auth token available in updateCompanyDetailsAction',
+        { event: 'server-action.company-details.update-failed' }
       )
       expect(mockBackendRequest).not.toHaveBeenCalled()
     })
@@ -356,7 +359,9 @@ describe('updateCompanyDetailsAction', () => {
       expect(result.success).toBe(false)
       expect(result.status).toBe(500)
       expect(result.error).toBe('Network error')
-      expect(mockLogger.error).toHaveBeenCalledWith('updateCompanyDetailsAction error', mockError)
+      expect(mockLogger.error).toHaveBeenCalledWith('updateCompanyDetailsAction error', mockError, {
+        event: 'server-action.company-details.update-failed',
+      })
     })
 
     it('should handle errors with status codes', async () => {

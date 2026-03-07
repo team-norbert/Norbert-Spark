@@ -72,7 +72,9 @@ export async function getPresignedUrls(
     const accessToken = await getAuthToken()
 
     if (!accessToken) {
-      logger.warn('No access token available for presigned URL request')
+      logger.warn('No access token available for presigned URL request', {
+        event: 'server-action.presigned-urls.failed',
+      })
       return {
         success: false,
         error: 'Authentication required',
@@ -97,6 +99,7 @@ export async function getPresignedUrls(
     }
 
     logger.info('Requesting presigned URLs', {
+      event: 'server-action.presigned-urls.started',
       fileCount: files.length,
       files: files.map((f) => ({ filename: f.filename, mimetype: f.mimetype, flow: f.flow })),
     })
@@ -113,6 +116,7 @@ export async function getPresignedUrls(
     })
 
     logger.info('Presigned URLs received', {
+      event: 'server-action.presigned-urls.completed',
       success: response.success,
       urlCount: response.data?.uploadUrls?.length ?? 0,
     })
@@ -122,7 +126,9 @@ export async function getPresignedUrls(
     // Check if this is a 401 Unauthorized error (JWT expired)
     const err = error as Error & { status?: number }
     if (err.status === 401) {
-      logger.warn('JWT expired or unauthorized in getPresignedUrls')
+      logger.warn('JWT expired or unauthorized in getPresignedUrls', {
+        event: 'server-action.presigned-urls.failed',
+      })
       return {
         success: false,
         error: 'Session expired. Please sign in again.',
@@ -135,6 +141,7 @@ export async function getPresignedUrls(
       'Error getting presigned URLs',
       error instanceof Error ? error : new Error(errorMessage),
       {
+        event: 'server-action.presigned-urls.failed',
         errorMessage,
       }
     )

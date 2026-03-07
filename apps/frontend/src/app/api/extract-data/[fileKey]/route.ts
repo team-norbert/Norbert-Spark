@@ -15,14 +15,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
 
     const token = await getAuthToken()
     if (!token) {
-      logger.warn('No auth token available')
+      logger.warn('No auth token available', { event: 'api-route.extract-data.failed' })
       return new Response(JSON.stringify({ error: 'No authentication token' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       })
     }
 
-    logger.info('Proxying extraction request to backend', { fileKey })
+    logger.info('Proxying extraction request to backend', {
+      event: 'api-route.extract-data.started',
+      fileKey,
+    })
     const backendUrl = env.BACKEND_URL
     const url = `${backendUrl}/api/v1/ai/extract-data/${encodeURIComponent(fileKey)}`
 
@@ -34,7 +37,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
     })
 
     if (!response.ok) {
-      logger.error('Backend returned error', undefined, { statusCode: response.status })
+      logger.error('Backend returned error', undefined, {
+        event: 'api-route.extract-data.failed',
+        statusCode: response.status,
+      })
       return new Response(JSON.stringify({ error: `Backend error: ${response.status}` }), {
         status: response.status,
         headers: { 'Content-Type': 'application/json' },
@@ -42,7 +48,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
     }
 
     // Stream the NDJSON response directly to client
-    logger.info('Streaming response from backend to client')
+    logger.info('Streaming response from backend to client', {
+      event: 'api-route.extract-data.completed',
+    })
 
     return new Response(response.body, {
       headers: {
@@ -52,7 +60,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
       },
     })
   } catch (error) {
-    logger.error('API route error', error instanceof Error ? error : new Error(String(error)))
+    logger.error('API route error', error instanceof Error ? error : new Error(String(error)), {
+      event: 'api-route.extract-data.failed',
+    })
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
