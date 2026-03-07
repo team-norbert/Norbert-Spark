@@ -131,10 +131,10 @@ export async function getPresignedUrls(
     }
 
     const errorMessage = error instanceof Error ? error.message : 'Failed to get presigned URLs'
-    logger.error(
-      'Error getting presigned URLs',
-      error instanceof Error ? error : new Error(errorMessage)
-    )
+    logger.error('Error getting presigned URLs', {
+      errorMessage,
+      error: error instanceof Error ? error : new Error(errorMessage),
+    })
 
     return {
       success: false,
