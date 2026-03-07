@@ -273,7 +273,7 @@ export const authOptions: NextAuthOptions = {
             // Fallback if cache miss — should not happen in normal flow
             logger.warn('OAuth sync cache miss for user', {
               event: 'auth.oauth-sync.cache-miss',
-              email,
+              userId: user.id,
             })
             token.id = user.id
             token.roles = ['user']
