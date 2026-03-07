@@ -45,10 +45,13 @@ export function useCreateChatType() {
             prompt: 'Enter prompt here',
           })
         } catch (error) {
-          logger.error('Failed to seed initial AI settings for new chat type', {
-            error,
-            chatTypeId: newId,
-          })
+          logger.error(
+            'Failed to seed initial AI settings for new chat type',
+            error instanceof Error ? error : new Error(String(error)),
+            {
+              chatTypeId: newId,
+            }
+          )
 
           // Surface a clear, actionable error so the caller knows the chat type
           // exists but needs manual configuration for its AI settings.
@@ -65,7 +68,10 @@ export function useCreateChatType() {
     onSuccess: (result) => {
       if (result?.success) {
         queryClient.invalidateQueries({ queryKey: ['ai-chat-config'] }).catch((error) => {
-          logger.error('Failed to invalidate ai-chat-config query after creation', { error })
+          logger.error(
+            'Failed to invalidate ai-chat-config query after creation',
+            error instanceof Error ? error : new Error(String(error))
+          )
         })
 
         // Redirect to the chat types list

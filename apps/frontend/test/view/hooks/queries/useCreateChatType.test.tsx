@@ -250,7 +250,8 @@ describe('useCreateChatType', () => {
 
       expect(mockLoggerError).toHaveBeenCalledWith(
         'Failed to seed initial AI settings for new chat type',
-        { error: settingsError, chatTypeId: mockChatTypeId }
+        settingsError,
+        { chatTypeId: mockChatTypeId }
       )
     })
 

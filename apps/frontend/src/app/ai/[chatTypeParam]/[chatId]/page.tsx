@@ -27,14 +27,16 @@ export default function AIChatPage({
 }) {
   const { chatId, chatTypeParam } = use(params)
 
-  logger.info('Rendering AIChatPage with chatTypeParam:', chatTypeParam, 'chatId:', chatId)
+  logger.debug('Rendering AIChatPage', { chatTypeParam, chatId })
 
   // Fetch the chat data from the backend
   const { data: chatData, isError: isFetchError, isLoading: isFetchingChat } = useFetchChat(chatId)
 
-  logger.info('isLoading', isFetchingChat)
-  logger.info('isFetchError', isFetchError)
-  logger.info('Chat data:', chatData?.messages)
+  logger.debug('Fetch state', {
+    isLoading: isFetchingChat,
+    isFetchError,
+    messageCount: chatData?.messages?.length,
+  })
 
   const {
     accordionBody,
@@ -62,7 +64,7 @@ export default function AIChatPage({
     status,
   } = useAIChat({ id: chatId, chatTypeParam, initialMessages: chatData?.messages })
 
-  logger.info('Rendering AIChatPage with messages:', messages)
+  logger.debug('Rendering AIChatPage', { messageCount: messages?.length })
 
   return (
     <AIChatView

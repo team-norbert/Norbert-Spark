@@ -52,7 +52,10 @@ export function useDashboard({ userRoles }: UseDashboardProps): UseDashboardRetu
     try {
       await logoutUserAction()
     } catch (error) {
-      logger.error('Failed to logout user on backend', error)
+      logger.error(
+        'Failed to logout user on backend',
+        error instanceof Error ? error : new Error(String(error))
+      )
     } finally {
       await signOut({ callbackUrl: '/signin' })
     }

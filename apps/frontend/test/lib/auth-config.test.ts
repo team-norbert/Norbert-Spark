@@ -314,11 +314,11 @@ describe('authOptions Configuration', () => {
 
       expect(console.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Authentication error:',
-          method: 'ERROR',
-          prefix: '[[auth-config]] ',
-        }),
-        expect.any(Error)
+          level: 'error',
+          message: 'Authentication error',
+          loggerContext: '[auth-config]',
+          err: expect.objectContaining({ name: 'Error' }),
+        })
       )
     })
 

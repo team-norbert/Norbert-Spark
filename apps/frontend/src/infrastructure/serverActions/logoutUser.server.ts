@@ -62,9 +62,8 @@ export async function logoutUserAction(): Promise<LogoutResult> {
   } catch (error_) {
     const err = error_ as Error & { status?: number; body?: unknown }
 
-    logger.error('logoutUserAction error', {
-      error: err.message,
-      status: err.status,
+    logger.error('logoutUserAction error', err, {
+      statusCode: err.status,
       body: err.body,
     })
 

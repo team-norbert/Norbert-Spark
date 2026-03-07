@@ -91,7 +91,10 @@ export function useSignInForm() {
       })
 
       if (!authResult.success) {
-        logger.error('[useSignInForm] Authentication failed:', authResult.error)
+        logger.error(
+          '[useSignInForm] Authentication failed',
+          authResult.error ? new Error(authResult.error) : undefined
+        )
         setErrors((prev) => ({
           ...prev,
           general: authResult.error || 'Invalid email or password',
@@ -120,7 +123,7 @@ export function useSignInForm() {
       })
 
       if (sessionResult?.error) {
-        logger.error('[useSignInForm] Session establishment failed:', sessionResult.error)
+        logger.error('[useSignInForm] Session establishment failed', new Error(sessionResult.error))
         setErrors((prev) => ({
           ...prev,
           general: 'Authentication succeeded but session creation failed. Please try again.',
@@ -138,8 +141,8 @@ export function useSignInForm() {
         // If there's no explicit error but ok is falsy, this might be a timing/state issue
         // Log the full result and try redirect anyway since Step 1 authentication succeeded
         logger.warn(
-          '[useSignInForm] Unexpected session result (no ok, no error), attempting redirect anyway:',
-          sessionResult
+          '[useSignInForm] Unexpected session result (no ok, no error), attempting redirect anyway',
+          { ok: sessionResult?.ok, error: sessionResult?.error, status: sessionResult?.status }
         )
         router.push('/dashboard')
         router.refresh()
@@ -151,7 +154,10 @@ export function useSignInForm() {
         }))
       }
     } catch (error) {
-      logger.error('[useSignInForm] Exception:', error)
+      logger.error(
+        '[useSignInForm] Exception',
+        error instanceof Error ? error : new Error(String(error))
+      )
       setErrors((prev) => ({
         ...prev,
         general: 'An unexpected error occurred. Please try again.',

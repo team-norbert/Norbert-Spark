@@ -6,6 +6,14 @@ import { registerUser } from '@/application/actions/registerUser.js'
 // process.env afterwards has no effect. A getter-based mock re-reads process.env
 // on every property access, so per-test process.env overrides still work.
 vi.mock('@/env/client.js', () => ({
+  env: {
+    NEXT_PUBLIC_SERVICE_NAME: 'norberts-spark-frontend',
+    NEXT_PUBLIC_NODE_ENV: 'test',
+    NEXT_PUBLIC_APP_VERSION: 'unknown',
+    NEXT_PUBLIC_BASE_URL: 'http://localhost:3000',
+    NEXT_PUBLIC_POST_AI_CALLBACK_URL: 'http://localhost:3001/api/ai/callback',
+    NEXT_PUBLIC_BACKEND_URL: 'http://localhost:3001',
+  },
   get clientEnv() {
     return { NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL }
   },

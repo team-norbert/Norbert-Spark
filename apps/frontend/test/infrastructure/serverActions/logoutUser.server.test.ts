@@ -282,9 +282,8 @@ describe('logoutUserAction', () => {
         message: 'Authentication expired. Please sign in again.',
         status: 401,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', {
-        error: 'Unauthorized',
-        status: 401,
+      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', mockError, {
+        statusCode: 401,
         body: { error: 'Invalid token' },
       })
     })
@@ -307,9 +306,8 @@ describe('logoutUserAction', () => {
         message: 'Database connection failed',
         status: 500,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', {
-        error: 'Internal server error',
-        status: 500,
+      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', mockError, {
+        statusCode: 500,
         body: { error: 'Database connection failed' },
       })
     })
@@ -387,9 +385,8 @@ describe('logoutUserAction', () => {
         message: 'Network failure',
         status: 500,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', {
-        error: 'Network failure',
-        status: undefined,
+      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', mockError, {
+        statusCode: undefined,
         body: undefined,
       })
     })
@@ -480,9 +477,8 @@ describe('logoutUserAction', () => {
 
       await logoutUserAction()
 
-      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', {
-        error: 'Test error',
-        status: 503,
+      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', mockError, {
+        statusCode: 503,
         body: { error: 'Service temporarily unavailable' },
       })
     })
@@ -497,9 +493,8 @@ describe('logoutUserAction', () => {
 
       await logoutUserAction()
 
-      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', {
-        error: 'Unknown error',
-        status: undefined,
+      expect(mockLoggerError).toHaveBeenCalledWith('logoutUserAction error', mockError, {
+        statusCode: undefined,
         body: undefined,
       })
     })

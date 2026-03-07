@@ -1,4 +1,5 @@
 import type { LoggerPort } from '@/application/ports/logger.port.js'
+import { env } from '@/env/client.js'
 
 const LogLevel = {
   TRACE: 'trace',
@@ -120,35 +121,7 @@ export interface StructuredLogEntry {
 //   }
 // }
 
-/**
- * A unified logging service that provides consistent formatting and level-based filtering
- * across the application. Supports trace, debug, info, warn, and error methods with automatic
- * A unified logging service that provides consistent formatting and level-based filtering
- * across the application. Supports trace, debug, info, warn, and error methods with automatic
- * timestamp and prefix formatting. Returns formatted objects instead of strings for better
- * structured logging.
- *
- * @example
- * ```typescript
- * // Create a logger with default settings (DEBUG minLevel)
- * const logger = new UnifiedLogger()
- * logger.info('Application started')
- *
- * // Create a logger with custom options
- * const logger = new UnifiedLogger({ minLevel: 'debug', prefix: 'MyComponent' })
- * logger.debug('Debug information', { userId: 123 })
- * logger.error('An error occurred', error)
- *
- * // Create a logger with numeric level for compatibility
- * const logger = new UnifiedLogger({ minLevel: 'info', level: 20 })
- * logger.info('Message') // Output includes level: 20
- *
- * // Change logging threshold dynamically
- * logger.setMinLevel('warn') // Only warn and error will log now
- * logger.getMinLevel() // Returns 'warn'
- * ```
- */
-export class UnifiedLogger implements Omit<LoggerPort, 'child'> {
+export class UnifiedLogger implements LoggerPort {
   private static readonly LOG_LEVELS = [
     LogLevel.TRACE,
     LogLevel.DEBUG,
@@ -156,6 +129,23 @@ export class UnifiedLogger implements Omit<LoggerPort, 'child'> {
     LogLevel.WARN,
     LogLevel.ERROR,
   ]
+
+  private static readonly SERVICE_NAME = env.NEXT_PUBLIC_SERVICE_NAME || 'norberts-spark-frontend'
+  private static readonly ENV = process.env.NODE_ENV || 'development'
+  private static readonly VERSION = env.NEXT_PUBLIC_APP_VERSION || 'unknown'
+
+  // Hoisted to avoid per-call allocations on the hot logging path
+  private static readonly RESERVED_FIELDS = new Set([
+    'level',
+    'timestamp',
+    'message',
+    'service',
+    'env',
+    'version',
+    'loggerContext',
+  ])
+  private static readonly BLOCKED_FIELDS = new Set(['__proto__', 'constructor', 'prototype'])
+  private bindings?: Record<string, unknown>
 
   private minLevel: LogLevelType
   private readonly prefix: string
@@ -176,136 +166,105 @@ export class UnifiedLogger implements Omit<LoggerPort, 'child'> {
   private formatMessage(
     logLevel: LogLevelType,
     message: string,
-    ..._args: unknown[]
-  ): FormattedLogMessage {
-    const timestamp = new Date().toISOString()
-    const prefixPart = this.prefix ? `[${this.prefix}] ` : ''
-    const result: FormattedLogMessage = {
-      timestamp: timestamp,
-      prefix: prefixPart,
-      method: logLevel.toUpperCase(),
+    context?: Record<string, unknown>
+  ): StructuredLogEntry {
+    const entry: StructuredLogEntry = {
+      level: logLevel,
+      timestamp: new Date().toISOString(),
       message,
+      service: UnifiedLogger.SERVICE_NAME,
+      env: UnifiedLogger.ENV,
+      version: UnifiedLogger.VERSION,
     }
 
-    if (this.level !== undefined) {
-      result.level = this.level
+    if (this.prefix) {
+      entry.loggerContext = this.prefix
     }
 
-    return result
+    // Merge bound context from child() loggers
+    if (this.bindings) {
+      for (const [k, v] of Object.entries(this.bindings)) {
+        if (!UnifiedLogger.RESERVED_FIELDS.has(k) && !UnifiedLogger.BLOCKED_FIELDS.has(k)) {
+          Object.assign(entry, { [k]: v })
+        }
+      }
+    }
+
+    // Merge per-call fields
+    if (context) {
+      for (const [k, v] of Object.entries(context)) {
+        if (!UnifiedLogger.RESERVED_FIELDS.has(k) && !UnifiedLogger.BLOCKED_FIELDS.has(k)) {
+          Object.assign(entry, { [k]: v })
+        }
+      }
+    }
+
+    return entry
   }
 
-  /**
-   * Logs a trace-level message with optional additional arguments.
-   * Trace messages are only logged in non-production environments and when the logger's
-   * minLevel threshold allows trace output.
-   *
-   * @param message - The main log message
-   * @param args - Additional arguments to log (objects, errors, etc.)
-   *
-   * @example
-   * ```typescript
-   * logger.trace('Function called', { params: { id: 123 } })
-   * logger.trace('Stack trace point', stackInfo)
-   * ```
-   */
-  trace(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.TRACE) && process.env.NODE_ENV !== 'production') {
-      console.trace(this.formatMessage(LogLevel.TRACE, message), ...args)
+  private serializeError(error: Error): { name: string; stack?: string } {
+    const serialized: { name: string; stack?: string } = {
+      name: error.name,
     }
+    if (UnifiedLogger.ENV !== 'production' && error.stack) {
+      // Strip the first line ("ErrorName: message") to avoid reintroducing the error message,
+      // which may contain sensitive data, while preserving useful stack frames.
+      const lines = error.stack.split('\n')
+      const sanitizedStack = lines.slice(1).join('\n').trim()
+      if (sanitizedStack) {
+        serialized.stack = sanitizedStack
+      }
+    }
+    return serialized
   }
 
-  /**
-   * Logs a debug-level message with optional additional arguments.
-   * Debug messages are only logged in non-production environments and when the logger's
-   * minLevel threshold allows debug output.
-   *
-   * @param message - The main log message
-   * @param args - Additional arguments to log (objects, errors, etc.)
-   *
-   * @example
-   * ```typescript
-   * logger.debug('Processing item', { itemId: 456 })
-   * logger.debug('Cache hit', cacheKey, value)
-   * ```
-   */
-  debug(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.DEBUG) && process.env.NODE_ENV !== 'production') {
-      console.debug(this.formatMessage(LogLevel.DEBUG, message), ...args)
-    }
-  }
-
-  /**
-   * Logs an info-level message with optional additional arguments.
-   * Info messages are only logged in non-production environments and when the logger's
-   * minLevel threshold allows info output.
-   *
-   * @param message - The main log message
-   * @param args - Additional arguments to log (objects, errors, etc.)
-   *
-   * @example
-   * ```typescript
-   * logger.info('User logged in', { userId: '123' })
-   * logger.info('API request completed', responseData)
-   * ```
-   */
-  info(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.INFO) && process.env.NODE_ENV !== 'production') {
-      console.info(this.formatMessage(LogLevel.INFO, message), ...args)
-    }
-  }
-
-  /**
-   * Logs a warning-level message with optional additional arguments.
-   * Warning messages are logged in all environments (including production) when the logger's
-   * minLevel threshold allows warn output.
-   *
-   * @param message - The main log message
-   * @param args - Additional arguments to log (objects, errors, etc.)
-   *
-   * @example
-   * ```typescript
-   * logger.warn('Deprecated API usage', { api: 'oldEndpoint' })
-   * logger.warn('Rate limit approaching', currentRate, limit)
-   * ```
-   */
-  warn(message: string, ...args: unknown[]): void {
+  warn(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LogLevel.WARN)) {
-      console.warn(this.formatMessage(LogLevel.WARN, message), ...args)
+      const entry = this.formatMessage(LogLevel.WARN, message, context)
+      console.warn(entry)
     }
   }
 
-  /**
-   * Logs an error-level message with optional additional arguments.
-   * Error messages are logged in all environments (including production) when the logger's
-   * minLevel threshold allows error output.
-   *
-   * @param message - The main log message
-   * @param args - Additional arguments to log (errors, context objects, etc.)
-   *
-   * @example
-   * ```typescript
-   * logger.error('Failed to fetch data', error)
-   * logger.error('Database connection lost', { host, port }, error)
-   * ```
-   */
-  error(message: string, ...args: unknown[]): void {
+  error(message: string, error?: Error, context?: Record<string, unknown>): void {
     if (this.shouldLog(LogLevel.ERROR)) {
-      console.error(this.formatMessage(LogLevel.ERROR, message), ...args)
+      const errorContext = error ? { ...context, err: this.serializeError(error) } : context
+      const entry = this.formatMessage(LogLevel.ERROR, message, errorContext)
+      console.error(entry)
     }
   }
 
-  /**
-   * Sets the minimum logging level threshold.
-   * Messages below this threshold will be filtered out.
-   *
-   * @param minLevel - The new minimum logging level ('trace' | 'debug' | 'info' | 'warn' | 'error')
-   *
-   * @example
-   * ```typescript
-   * logger.setMinLevel('warn') // Only warn and error messages will be logged
-   * logger.setMinLevel('debug') // Debug, info, warn, and error messages will be logged
-   * ```
-   */
+  info(message: string, context?: Record<string, unknown>): void {
+    if (this.shouldLog(LogLevel.INFO) && UnifiedLogger.ENV !== 'production') {
+      const entry = this.formatMessage(LogLevel.INFO, message, context)
+      console.info(entry)
+    }
+  }
+
+  debug(message: string, context?: Record<string, unknown>): void {
+    if (this.shouldLog(LogLevel.DEBUG) && UnifiedLogger.ENV !== 'production') {
+      const entry = this.formatMessage(LogLevel.DEBUG, message, context)
+      console.debug(entry)
+    }
+  }
+
+  trace(message: string, context?: Record<string, unknown>): void {
+    if (this.shouldLog(LogLevel.TRACE) && UnifiedLogger.ENV !== 'production') {
+      const entry = this.formatMessage(LogLevel.TRACE, message, context)
+      console.trace(entry)
+    }
+  }
+
+  child(bindings: Record<string, unknown>): UnifiedLogger {
+    const childLogger = new UnifiedLogger({
+      minLevel: this.minLevel,
+      prefix: this.prefix,
+      level: this.level,
+    })
+    // Merge parent bindings with new bindings
+    childLogger.bindings = { ...this.bindings, ...bindings }
+    return childLogger
+  }
+
   setMinLevel(minLevel: LogLevelType): void {
     this.minLevel = minLevel
   }

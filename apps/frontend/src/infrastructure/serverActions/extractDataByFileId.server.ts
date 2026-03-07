@@ -38,7 +38,11 @@ function parseNDJSONLine(line: string): ExtractedInvoiceData | null {
       return parsedData
     }
   } catch (parseError) {
-    logger.error('Failed to parse NDJSON line', { line, error: parseError })
+    logger.error(
+      'Failed to parse NDJSON line',
+      parseError instanceof Error ? parseError : new Error(String(parseError)),
+      { line }
+    )
   }
   return null
 }
@@ -146,7 +150,7 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
   } catch (error) {
     const err = error as BackendError
 
-    logger.error('extractDataByFileIdAction error', { fileKey, error: err })
+    logger.error('extractDataByFileIdAction error', err, { fileKey })
 
     return { success: false, error: err.message || 'Failed to extract data' }
   }

@@ -64,7 +64,11 @@ async function handleResponse<T>(
   }
 
   if (!res.ok) {
-    logger.error('[backendRequest] non-ok response', { url, status: res.status, body: parsed })
+    logger.error('[backendRequest] non-ok response', undefined, {
+      url,
+      statusCode: res.status,
+      body: parsed,
+    })
 
     const extractedError = (() => {
       if (!parsed || typeof parsed !== 'object') return undefined

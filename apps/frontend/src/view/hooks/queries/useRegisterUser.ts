@@ -20,7 +20,10 @@ export function useRegisterUser() {
       if (result && (result as { success?: boolean }).success) {
         // Invalidate users list if needed
         queryClient.invalidateQueries({ queryKey: ['users'] }).catch((error) => {
-          logger.error(`Failed to invalidate users query after registration`, { error })
+          logger.error(
+            `Failed to invalidate users query after registration`,
+            error instanceof Error ? error : new Error(String(error))
+          )
         })
       }
     },
