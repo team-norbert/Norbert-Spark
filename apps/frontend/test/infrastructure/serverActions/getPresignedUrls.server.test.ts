@@ -374,7 +374,8 @@ describe('getPresignedUrls', () => {
       })
       expect(mockLoggerError).toHaveBeenCalledWith(
         'Error getting presigned URLs',
-        expect.objectContaining({ message: 'Network error' })
+        expect.objectContaining({ message: 'Network error' }),
+        expect.objectContaining({ errorMessage: 'Network error' })
       )
     })
 
