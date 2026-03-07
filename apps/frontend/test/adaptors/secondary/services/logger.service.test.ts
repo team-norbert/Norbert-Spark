@@ -185,6 +185,26 @@ describe('UnifiedLogger', () => {
       expect(consoleInfoSpy.mock.calls[0]).toHaveLength(1)
       expect(consoleInfoSpy.mock.calls[0][0].foo).toBe('bar')
     })
+
+    it('should block prototype-pollution keys (__proto__, constructor, prototype) in per-call context', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
+
+      // Simulate what JSON.parse('{"__proto__":{"polluted":true}}') would produce
+      const maliciousContext = JSON.parse(
+        '{"__proto__":{"polluted":true},"constructor":{"evil":1},"prototype":{"bad":2},"safe":"value"}'
+      ) as Record<string, unknown>
+
+      logger.info('test', maliciousContext)
+
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      // Safe key is preserved
+      expect(entry.safe).toBe('value')
+      // Prototype-pollution keys are not set as own properties
+      expect(Object.prototype).not.toHaveProperty('polluted')
+      expect(Object.hasOwn(entry, '__proto__')).toBe(false)
+      expect(Object.hasOwn(entry, 'constructor')).toBe(false)
+      expect(Object.hasOwn(entry, 'prototype')).toBe(false)
+    })
   })
 
   // -------------------------------------------------------------------------
@@ -849,6 +869,25 @@ describe('UnifiedLogger', () => {
       const entry = consoleInfoSpy.mock.calls[0][0]
       expect(entry.component).toBe('Auth')
       expect(entry.userId).toBe('u-456')
+    })
+
+    it('should block prototype-pollution keys in child() bindings', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
+      const maliciousBindings = JSON.parse(
+        '{"__proto__":{"polluted":true},"constructor":{"evil":1},"prototype":{"bad":2},"safe":"binding"}'
+      ) as Record<string, unknown>
+      const child = logger.child(maliciousBindings)
+
+      child.info('test')
+
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      // Safe binding is preserved
+      expect(entry.safe).toBe('binding')
+      // Prototype-pollution keys are not set as own properties
+      expect(Object.prototype).not.toHaveProperty('polluted')
+      expect(Object.hasOwn(entry, '__proto__')).toBe(false)
+      expect(Object.hasOwn(entry, 'constructor')).toBe(false)
+      expect(Object.hasOwn(entry, 'prototype')).toBe(false)
     })
   })
 

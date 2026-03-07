@@ -180,10 +180,13 @@ export class UnifiedLogger implements LoggerPort {
       'loggerContext',
     ])
 
+    // Keys that must always be blocked to prevent prototype-pollution attacks
+    const BLOCKED = new Set(['__proto__', 'constructor', 'prototype'])
+
     // Merge bound context from child() loggers
     if (this.bindings) {
       for (const [k, v] of Object.entries(this.bindings)) {
-        if (!RESERVED.has(k)) {
+        if (!RESERVED.has(k) && !BLOCKED.has(k)) {
           Object.assign(entry, { [k]: v })
         }
       }
@@ -192,7 +195,7 @@ export class UnifiedLogger implements LoggerPort {
     // Merge per-call fields
     if (context) {
       for (const [k, v] of Object.entries(context)) {
-        if (!RESERVED.has(k)) {
+        if (!RESERVED.has(k) && !BLOCKED.has(k)) {
           Object.assign(entry, { [k]: v })
         }
       }
