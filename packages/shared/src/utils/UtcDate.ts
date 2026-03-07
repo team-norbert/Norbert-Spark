@@ -291,7 +291,34 @@ export class UtcDate {
   }
 
   private static isStrictIsoWithTimezone(value: string): boolean {
-    // eslint-disable-next-line security/detect-unsafe-regex
-    return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)
+    if (typeof value !== 'string') {
+      return false
+    }
+    // Ensure the string parses to a valid date
+    const timestamp = Date.parse(value)
+    if (!Number.isFinite(timestamp)) {
+      return false
+    }
+    // Require a time separator to distinguish from date-only strings
+    if (!value.includes('T')) {
+      return false
+    }
+    // Require an explicit timezone designator at the end: "Z" or "±HH:MM"
+    if (value.endsWith('Z')) {
+      return true
+    }
+    const tzMatch = value.match(/([+-])(\d{2}):(\d{2})$/)
+    if (!tzMatch) {
+      return false
+    }
+    const hours = Number(tzMatch[2])
+    const minutes = Number(tzMatch[3])
+    if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
+      return false
+    }
+    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+      return false
+    }
+    return true
   }
 }
