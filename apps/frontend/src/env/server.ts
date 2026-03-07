@@ -3,8 +3,6 @@ import { z } from 'zod'
 
 import packageJson from '../../package.json' with { type: 'json' }
 
-// Inject version from package.json at build time so that client code does not
-// need to import package.json (which would bundle it into the browser build).
 // Using ??= so that an explicit env var in the environment always wins.
 process.env.NEXT_PUBLIC_APP_VERSION ??= packageJson.version
 process.env.APP_VERSION ??= packageJson.version
