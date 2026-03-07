@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^2.13.0",
-    "@eslint/eslintrc": "^3.3.4",
+    "@eslint/eslintrc": "^3.3.5",
     "@next/eslint-plugin-next": "^16.1.6",
     "@pact-foundation/pact": "^16.2.0",
     "@pact-foundation/pact-cli": "^16.1.6",
@@ -83,7 +83,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "cross-env": "10.1.0",
     "drizzle-orm": "^0.45.1",
-    "eslint": "^10.0.2",
+    "eslint": "^10.0.3",
     "eslint-config-next": "^16.1.6",
     "eslint-plugin-codegen": "^0.34.1",
     "eslint-plugin-drizzle": "^0.2.3",
