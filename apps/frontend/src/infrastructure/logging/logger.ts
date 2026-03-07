@@ -208,8 +208,14 @@ export class UnifiedLogger implements LoggerPort {
     const serialized: { name: string; stack?: string } = {
       name: error.name,
     }
-    if (UnifiedLogger.ENV !== 'production') {
-      serialized.stack = error.stack
+    if (UnifiedLogger.ENV !== 'production' && error.stack) {
+      // Strip the first line ("ErrorName: message") to avoid reintroducing the error message,
+      // which may contain sensitive data, while preserving useful stack frames.
+      const lines = error.stack.split('\n')
+      const sanitizedStack = lines.slice(1).join('\n').trim()
+      if (sanitizedStack) {
+        serialized.stack = sanitizedStack
+      }
     }
     return serialized
   }
