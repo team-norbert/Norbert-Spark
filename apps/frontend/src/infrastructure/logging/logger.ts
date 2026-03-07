@@ -133,6 +133,18 @@ export class UnifiedLogger implements LoggerPort {
   private static readonly SERVICE_NAME = env.NEXT_PUBLIC_SERVICE_NAME || 'norberts-spark-frontend'
   private static readonly ENV = process.env.NODE_ENV || 'development'
   private static readonly VERSION = env.NEXT_PUBLIC_APP_VERSION || 'unknown'
+
+  // Hoisted to avoid per-call allocations on the hot logging path
+  private static readonly RESERVED_FIELDS = new Set([
+    'level',
+    'timestamp',
+    'message',
+    'service',
+    'env',
+    'version',
+    'loggerContext',
+  ])
+  private static readonly BLOCKED_FIELDS = new Set(['__proto__', 'constructor', 'prototype'])
   private bindings?: Record<string, unknown>
 
   private minLevel: LogLevelType
@@ -169,25 +181,11 @@ export class UnifiedLogger implements LoggerPort {
       entry.loggerContext = this.prefix
     }
 
-    // Reserved core fields that must not be overwritten by bindings or per-call fields
-    const RESERVED = new Set([
-      'level',
-      'timestamp',
-      'message',
-      'service',
-      'env',
-      'version',
-      'loggerContext',
-    ])
-
-    // Keys that must always be blocked to prevent prototype-pollution attacks
-    const BLOCKED = new Set(['__proto__', 'constructor', 'prototype'])
-
     // Merge bound context from child() loggers
     if (this.bindings) {
       for (const [k, v] of Object.entries(this.bindings)) {
-        if (!RESERVED.has(k) && !BLOCKED.has(k)) {
-          Object.assign(entry, { [k]: v })
+        if (!UnifiedLogger.RESERVED_FIELDS.has(k) && !UnifiedLogger.BLOCKED_FIELDS.has(k)) {
+          entry[k] = v
         }
       }
     }
@@ -195,8 +193,8 @@ export class UnifiedLogger implements LoggerPort {
     // Merge per-call fields
     if (context) {
       for (const [k, v] of Object.entries(context)) {
-        if (!RESERVED.has(k) && !BLOCKED.has(k)) {
-          Object.assign(entry, { [k]: v })
+        if (!UnifiedLogger.RESERVED_FIELDS.has(k) && !UnifiedLogger.BLOCKED_FIELDS.has(k)) {
+          entry[k] = v
         }
       }
     }
