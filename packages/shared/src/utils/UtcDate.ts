@@ -7,6 +7,20 @@ export class InvalidUtcDateError extends Error {
   }
 }
 
+/**
+ * The reasons to use the UtcDate class:
+ * - Avoids the need for timezone-aware Date objects in the codebase.
+ * - Allows for easy conversion to/from various formats.
+ * - Provides a consistent API for working with dates.
+ * - Simplifies date arithmetic and comparisons.
+ * - Ensures that all date operations are performed in UTC.
+ * - Prevents errors due to timezone mismatches.
+ * - Facilitates easy migration to/from SQL databases.
+ * - Ensures that all date operations are performed in UTC.
+ * - Simplifies date arithmetic and comparisons.
+ * - Is immutable - every operation returns a new UtcDate.Nothing mutates in place.
+ */
+
 export class UtcDate {
   private readonly value: Date
 
