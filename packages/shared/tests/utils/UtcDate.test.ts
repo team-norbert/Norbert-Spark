@@ -47,7 +47,7 @@ describe('UtcDate.now()', () => {
     expect(UtcDate.now()).toBeInstanceOf(UtcDate)
   })
 
-  it('should be within 2 seconds of the current time', () => {
+  it('should return a timestamp between the instants captured immediately before and after the call', () => {
     const before = Date.now()
     const d = UtcDate.now()
     const after = Date.now()
