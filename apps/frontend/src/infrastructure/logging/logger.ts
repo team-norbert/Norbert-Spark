@@ -88,41 +88,41 @@ export interface StructuredLogEntry {
   [key: string]: unknown
 }
 
-/**
- * frontend server log shape
- * {
- *   "level": "error",
- *   "timestamp": "2026-03-06T12:00:00.000Z",
- *   "event": "server-action.backend-request.failed",
- *   "message": "Backend returned 502",
- *   "service": "norberts-spark-frontend",
- *   "env": "production",
- *   "version": "1.2.0",
- *   "loggerContext": "backendRequest",
- *   "statusCode": 502,
- *   "endpoint": "/api/v1/ai/chats",
- *   "durationMs": 1200,
- *   "err": {
- *     "name": "Error"
- *   }
- * }
- *
- * client-side log shape
- * {
- *   "level": "error",
- *   "timestamp": "2026-03-06T12:00:05.000Z",
- *   "event": "chat.transport.error",
- *   "message": "Chat transport error",
- *   "service": "norberts-spark-frontend",
- *   "env": "production",
- *   "loggerContext": "useAIChat",
- *   "err": {
- *     "name": "Error"
- *   }
- * }
- */
+// frontend server log shape
+// {
+//   "level": "error",
+//   "timestamp": "2026-03-06T12:00:00.000Z",
+//   "event": "server-action.backend-request.failed",
+//   "message": "Backend returned 502",
+//   "service": "norberts-spark-frontend",
+//   "env": "production",
+//   "version": "1.2.0",
+//   "loggerContext": "backendRequest",
+//   "statusCode": 502,
+//   "endpoint": "/api/v1/ai/chats",
+//   "durationMs": 1200,
+//   "err": {
+//     "name": "Error"
+//   }
+// }
+//
+// backend server log shape
+// {
+//   "level": "error",
+//   "timestamp": "2026-03-06T12:00:05.000Z",
+//   "event": "chat.transport.error",
+//   "message": "Chat transport error",
+//   "service": "norberts-spark-frontend",
+//   "env": "production",
+//   "loggerContext": "useAIChat",
+//   "err": {
+//     "name": "Error"
+//   }
+// }
 
 /**
+ * A unified logging service that provides consistent formatting and level-based filtering
+ * across the application. Supports trace, debug, info, warn, and error methods with automatic
  * A unified logging service that provides consistent formatting and level-based filtering
  * across the application. Supports trace, debug, info, warn, and error methods with automatic
  * timestamp and prefix formatting. Returns formatted objects instead of strings for better
