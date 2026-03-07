@@ -122,7 +122,6 @@ export interface StructuredLogEntry {
  * }
  */
 
-
 /**
  * A unified logging service that provides consistent formatting and level-based filtering
  * across the application. Supports trace, debug, info, warn, and error methods with automatic
