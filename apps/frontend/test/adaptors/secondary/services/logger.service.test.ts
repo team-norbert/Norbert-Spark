@@ -5,9 +5,9 @@ import { createLogger, UnifiedLogger } from '@/infrastructure/logging/logger.js'
 // ---------------------------------------------------------------------------
 // Mutable env mock — vi.hoisted ensures it is available before vi.mock's
 // factory runs and before any module is imported.
-// The logger reads env.NEXT_PUBLIC_NODE_ENV at call-time (production filtering)
-// so mutating this object between tests drives the filtering behaviour.
-// ---------------------------------------------------------------------------
+// Note: UnifiedLogger determines production filtering from process.env.NODE_ENV
+// captured at module load; this mock only controls the client env values read
+// from @/env/client.js (e.g. service name, reported environment, URLs).
 const mockEnv = vi.hoisted(() => ({
   NEXT_PUBLIC_SERVICE_NAME: 'norberts-spark-frontend',
   NEXT_PUBLIC_NODE_ENV: 'development',
