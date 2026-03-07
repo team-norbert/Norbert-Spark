@@ -2,8 +2,11 @@ import type { GridPaginationModel } from '@mui/x-data-grid'
 import { useState } from 'react'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
 
 import { useAIChatConfig } from './queries/useAIChatConfig.js'
+
+const logger = createLogger({ prefix: '[useAIAdminPage]' })
 
 interface UseAIAdminPageReturn {
   chatTypes: readonly ChatType[]
@@ -32,7 +35,7 @@ export function useAIAdminPage(): UseAIAdminPageReturn {
 
   // Use TanStack Query hook for data fetching with automatic caching
   const { chatTypes, error, isLoading } = useAIChatConfig()
-  console.log('chatTypes in useAIAdminPage', chatTypes)
+  logger.debug('chatTypes in useAIAdminPage', { chatTypes })
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query)

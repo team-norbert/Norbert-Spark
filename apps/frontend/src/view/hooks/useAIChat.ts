@@ -116,7 +116,12 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
 
   useEffect(() => {
     if (!disabled) return
-    void stop().catch(console.error)
+    void stop().catch((error) => {
+      logger.error(
+        'Error stopping chat transport',
+        error instanceof Error ? error : new Error(String(error))
+      )
+    })
   }, [disabled, stop])
 
   const scrollToBottom = () => {
