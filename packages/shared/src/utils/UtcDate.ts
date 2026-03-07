@@ -16,9 +16,7 @@ export class InvalidUtcDateError extends Error {
  * - Ensures that all date operations are performed in UTC.
  * - Prevents errors due to timezone mismatches.
  * - Facilitates easy migration to/from SQL databases.
- * - Ensures that all date operations are performed in UTC.
- * - Simplifies date arithmetic and comparisons.
- * - Is immutable - every operation returns a new UtcDate.Nothing mutates in place.
+ * - Is immutable - every operation returns a new UtcDate. Nothing mutates in place.
  */
 
 export class UtcDate {
