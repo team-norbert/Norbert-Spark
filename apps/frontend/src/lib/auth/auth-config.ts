@@ -214,7 +214,11 @@ export const authOptions: NextAuthOptions = {
           if (!syncResult?.success || !syncResult.data) {
             const errorMessage =
               syncResult?.error || 'OAuth authentication sync failed. Please try again.'
-            logger.error('OAuth user sync unsuccessful', undefined, { syncResult })
+            const { success, error: syncError } = syncResult ?? {}
+            logger.error('OAuth user sync unsuccessful', undefined, {
+              success: Boolean(success),
+              error: syncError,
+            })
             // Treat unsuccessful sync as sign-in failure and redirect to error page
             return `/error?code=500&message=${encodeURIComponent(errorMessage)}`
           }
