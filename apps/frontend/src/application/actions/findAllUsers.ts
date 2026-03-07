@@ -78,7 +78,9 @@ export async function findAllUsers(params: FindAllUsersParams): Promise<FindAllU
     if (error instanceof Error && error.name === 'AbortError') {
       throw error
     }
-    logger.warn('Error fetching users:', error)
+    logger.warn('Error fetching users', {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return {
       status: 500,
       success: false,

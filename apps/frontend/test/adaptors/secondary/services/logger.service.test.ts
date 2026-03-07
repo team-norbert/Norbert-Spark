@@ -2,6 +2,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createLogger, UnifiedLogger } from '@/infrastructure/logging/logger.js'
 
+// ---------------------------------------------------------------------------
+// Mutable env mock — vi.hoisted ensures it is available before vi.mock's
+// factory runs and before any module is imported.
+// The logger reads env.NEXT_PUBLIC_NODE_ENV at call-time (production filtering)
+// so mutating this object between tests drives the filtering behaviour.
+// ---------------------------------------------------------------------------
+const mockEnv = vi.hoisted(() => ({
+  NEXT_PUBLIC_SERVICE_NAME: 'norberts-spark-frontend',
+  NEXT_PUBLIC_NODE_ENV: 'development',
+  NEXT_PUBLIC_APP_VERSION: 'unknown',
+  NEXT_PUBLIC_POST_AI_CALLBACK_URL: 'http://localhost:3001/api/ai/callback',
+  NEXT_PUBLIC_BASE_URL: 'http://localhost:3000',
+  NEXT_PUBLIC_BACKEND_URL: 'http://localhost:3001',
+}))
+
+vi.mock('@/env/client.js', () => ({ env: mockEnv, clientEnv: mockEnv }))
+
 describe('UnifiedLogger', () => {
   let consoleTraceSpy: ReturnType<typeof vi.spyOn>
   let consoleDebugSpy: ReturnType<typeof vi.spyOn>
@@ -10,6 +27,8 @@ describe('UnifiedLogger', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
+    // Reset to non-production for every test
+    mockEnv.NEXT_PUBLIC_NODE_ENV = 'development'
     consoleTraceSpy = vi.spyOn(console, 'trace').mockImplementation(() => {})
     consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {})
     consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {})
@@ -25,6 +44,9 @@ describe('UnifiedLogger', () => {
     consoleErrorSpy.mockRestore()
   })
 
+  // -------------------------------------------------------------------------
+  // constructor
+  // -------------------------------------------------------------------------
   describe('constructor', () => {
     it('should create logger with default options', () => {
       const logger = new UnifiedLogger()
@@ -39,14 +61,14 @@ describe('UnifiedLogger', () => {
       expect(consoleDebugSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should create logger with custom prefix', () => {
+    it('should map prefix to loggerContext in log entries', () => {
       const logger = new UnifiedLogger({ prefix: 'MyApp' })
 
       logger.info('test message')
 
-      const loggedMessage = consoleInfoSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.prefix).toBe('[MyApp] ')
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      expect(entry).toBeTypeOf('object')
+      expect(entry.loggerContext).toBe('MyApp')
     })
 
     it('should create logger with both custom minimum level and prefix', () => {
@@ -54,12 +76,120 @@ describe('UnifiedLogger', () => {
 
       logger.warn('test warning')
 
-      const loggedMessage = consoleWarnSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.prefix).toBe('[API] ')
+      const entry = consoleWarnSpy.mock.calls[0][0]
+      expect(entry).toBeTypeOf('object')
+      expect(entry.loggerContext).toBe('API')
     })
   })
 
+  // -------------------------------------------------------------------------
+  // StructuredLogEntry shape
+  // -------------------------------------------------------------------------
+  describe('StructuredLogEntry shape', () => {
+    it('should include all required fields in every log entry', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
+
+      logger.info('test message')
+
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      expect(entry).toMatchObject({
+        level: 'info',
+        timestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/),
+        message: 'test message',
+        service: 'norberts-spark-frontend',
+        env: 'test',
+        version: 'unknown',
+      })
+    })
+
+    it('should set level as lowercase string matching the log level', () => {
+      const logger = new UnifiedLogger({ minLevel: 'trace' })
+
+      logger.trace('t')
+      logger.debug('d')
+      logger.info('i')
+      logger.warn('w')
+      logger.error('e')
+
+      expect(consoleTraceSpy.mock.calls[0][0].level).toBe('trace')
+      expect(consoleDebugSpy.mock.calls[0][0].level).toBe('debug')
+      expect(consoleInfoSpy.mock.calls[0][0].level).toBe('info')
+      expect(consoleWarnSpy.mock.calls[0][0].level).toBe('warn')
+      expect(consoleErrorSpy.mock.calls[0][0].level).toBe('error')
+    })
+
+    it('should not include loggerContext when prefix is not set', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
+
+      logger.info('test')
+
+      expect(consoleInfoSpy.mock.calls[0][0].loggerContext).toBeUndefined()
+    })
+
+    it('should include loggerContext equal to the prefix value when set', () => {
+      const logger = new UnifiedLogger({ prefix: 'TestPrefix' })
+
+      logger.info('test')
+
+      expect(consoleInfoSpy.mock.calls[0][0].loggerContext).toBe('TestPrefix')
+    })
+
+    it('should merge context fields into the log entry', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
+
+      logger.info('test', { requestId: 'abc-123', statusCode: 200 })
+
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      expect(entry.requestId).toBe('abc-123')
+      expect(entry.statusCode).toBe(200)
+    })
+
+    it('should pass the event field through context', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
+
+      logger.info('cache hit', { event: 'cache.read.hit' })
+
+      expect(consoleInfoSpy.mock.calls[0][0].event).toBe('cache.read.hit')
+    })
+
+    it('should not allow RESERVED fields to be overwritten by context', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
+
+      logger.info('message', {
+        level: 'evil',
+        timestamp: '1970',
+        message: 'overwritten',
+        service: 'hacker',
+        env: 'evil-env',
+        version: '0.0.0',
+        loggerContext: 'injected',
+      })
+
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      expect(entry.level).toBe('info')
+      expect(entry.message).toBe('message')
+      expect(entry.service).toBe('norberts-spark-frontend')
+      expect(entry.env).toBe('test')
+      expect(entry.version).toBe('unknown')
+      expect(entry.timestamp).not.toBe('1970')
+      // no prefix was set, and the injected loggerContext was blocked
+      expect(entry.loggerContext).toBeUndefined()
+    })
+
+    it('should call console with a single StructuredLogEntry argument (context is merged, not spread)', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
+
+      logger.info('test', { foo: 'bar' })
+
+      expect(consoleInfoSpy).toHaveBeenCalledTimes(1)
+      expect(consoleInfoSpy.mock.calls[0]).toHaveLength(1)
+      expect(consoleInfoSpy.mock.calls[0][0].foo).toBe('bar')
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // trace
+  // -------------------------------------------------------------------------
   describe('trace', () => {
     it('should log trace messages when minLevel is trace', () => {
       const logger = new UnifiedLogger({ minLevel: 'trace' })
@@ -67,9 +197,7 @@ describe('UnifiedLogger', () => {
       logger.trace('trace message')
 
       expect(consoleTraceSpy).toHaveBeenCalledTimes(1)
-      const loggedMessage = consoleTraceSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.method).toBe('TRACE')
+      expect(consoleTraceSpy.mock.calls[0][0].level).toBe('trace')
     })
 
     it('should not log trace messages when minLevel is debug', () => {
@@ -109,24 +237,25 @@ describe('UnifiedLogger', () => {
 
       logger.trace('test')
 
-      const loggedMessage = consoleTraceSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+      const entry = consoleTraceSpy.mock.calls[0][0]
+      expect(entry).toBeTypeOf('object')
+      expect(entry.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     })
 
-    it('should log trace message with additional arguments', () => {
+    it('should merge context object into the log entry', () => {
       const logger = new UnifiedLogger({ minLevel: 'trace' })
-      const obj = { key: 'value' }
 
-      logger.trace('trace message', obj)
+      logger.trace('trace message', { key: 'value' })
 
-      const loggedMessage = consoleTraceSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.message).toBe('trace message')
-      expect(consoleTraceSpy).toHaveBeenCalledWith(loggedMessage, obj)
+      const entry = consoleTraceSpy.mock.calls[0][0]
+      expect(entry.message).toBe('trace message')
+      expect(entry.key).toBe('value')
     })
   })
 
+  // -------------------------------------------------------------------------
+  // debug
+  // -------------------------------------------------------------------------
   describe('debug', () => {
     it('should log debug messages when minLevel is debug', () => {
       const logger = new UnifiedLogger({ minLevel: 'debug' })
@@ -134,9 +263,7 @@ describe('UnifiedLogger', () => {
       logger.debug('debug message')
 
       expect(consoleDebugSpy).toHaveBeenCalledTimes(1)
-      const loggedMessage = consoleDebugSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.method).toBe('DEBUG')
+      expect(consoleDebugSpy.mock.calls[0][0].level).toBe('debug')
     })
 
     it('should not log debug messages when minLevel is info', () => {
@@ -168,24 +295,25 @@ describe('UnifiedLogger', () => {
 
       logger.debug('test')
 
-      const loggedMessage = consoleDebugSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+      const entry = consoleDebugSpy.mock.calls[0][0]
+      expect(entry).toBeTypeOf('object')
+      expect(entry.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     })
 
-    it('should log debug message with additional arguments', () => {
+    it('should merge context object into the log entry', () => {
       const logger = new UnifiedLogger({ minLevel: 'debug' })
-      const obj = { key: 'value' }
 
-      logger.debug('debug message', obj)
+      logger.debug('debug message', { key: 'value' })
 
-      const loggedMessage = consoleDebugSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.message).toBe('debug message')
-      expect(consoleDebugSpy).toHaveBeenCalledWith(loggedMessage, obj)
+      const entry = consoleDebugSpy.mock.calls[0][0]
+      expect(entry.message).toBe('debug message')
+      expect(entry.key).toBe('value')
     })
   })
 
+  // -------------------------------------------------------------------------
+  // info
+  // -------------------------------------------------------------------------
   describe('info', () => {
     it('should log info messages when minLevel is debug', () => {
       const logger = new UnifiedLogger({ minLevel: 'debug' })
@@ -193,9 +321,7 @@ describe('UnifiedLogger', () => {
       logger.info('info message')
 
       expect(consoleInfoSpy).toHaveBeenCalledTimes(1)
-      const loggedMessage = consoleInfoSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.method).toBe('INFO')
+      expect(consoleInfoSpy.mock.calls[0][0].level).toBe('info')
     })
 
     it('should log info messages when minLevel is info', () => {
@@ -227,24 +353,25 @@ describe('UnifiedLogger', () => {
 
       logger.info('test')
 
-      const loggedMessage = consoleInfoSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      expect(entry).toBeTypeOf('object')
+      expect(entry.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     })
 
-    it('should log info message with additional arguments', () => {
+    it('should merge context object into the log entry', () => {
       const logger = new UnifiedLogger({ minLevel: 'info' })
-      const data = [1, 2, 3]
 
-      logger.info('info message', data)
+      logger.info('info message', { userId: 'u-123' })
 
-      const loggedMessage = consoleInfoSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.message).toBe('info message')
-      expect(consoleInfoSpy).toHaveBeenCalledWith(loggedMessage, data)
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      expect(entry.message).toBe('info message')
+      expect(entry.userId).toBe('u-123')
     })
   })
 
+  // -------------------------------------------------------------------------
+  // warn
+  // -------------------------------------------------------------------------
   describe('warn', () => {
     it('should log warn messages when minLevel is debug', () => {
       const logger = new UnifiedLogger({ minLevel: 'debug' })
@@ -252,9 +379,7 @@ describe('UnifiedLogger', () => {
       logger.warn('warn message')
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
-      const loggedMessage = consoleWarnSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.method).toBe('WARN')
+      expect(consoleWarnSpy.mock.calls[0][0].level).toBe('warn')
     })
 
     it('should log warn messages when minLevel is info', () => {
@@ -286,24 +411,25 @@ describe('UnifiedLogger', () => {
 
       logger.warn('test')
 
-      const loggedMessage = consoleWarnSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+      const entry = consoleWarnSpy.mock.calls[0][0]
+      expect(entry).toBeTypeOf('object')
+      expect(entry.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     })
 
-    it('should log warn message with additional arguments', () => {
+    it('should merge context object into the log entry', () => {
       const logger = new UnifiedLogger({ minLevel: 'warn' })
-      const error = new Error('test error')
 
-      logger.warn('warn message', error)
+      logger.warn('warn message', { retryCount: 3 })
 
-      const loggedMessage = consoleWarnSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.message).toBe('warn message')
-      expect(consoleWarnSpy).toHaveBeenCalledWith(loggedMessage, error)
+      const entry = consoleWarnSpy.mock.calls[0][0]
+      expect(entry.message).toBe('warn message')
+      expect(entry.retryCount).toBe(3)
     })
   })
 
+  // -------------------------------------------------------------------------
+  // error
+  // -------------------------------------------------------------------------
   describe('error', () => {
     it('should log error messages when minLevel is debug', () => {
       const logger = new UnifiedLogger({ minLevel: 'debug' })
@@ -311,9 +437,7 @@ describe('UnifiedLogger', () => {
       logger.error('error message')
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
-      const loggedMessage = consoleErrorSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.method).toBe('ERROR')
+      expect(consoleErrorSpy.mock.calls[0][0].level).toBe('error')
     })
 
     it('should log error messages when minLevel is info', () => {
@@ -345,25 +469,99 @@ describe('UnifiedLogger', () => {
 
       logger.error('test')
 
-      const loggedMessage = consoleErrorSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+      const entry = consoleErrorSpy.mock.calls[0][0]
+      expect(entry).toBeTypeOf('object')
+      expect(entry.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     })
 
-    it('should log error message with additional arguments', () => {
+    it('should set err.name from the provided Error', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
+
+      logger.error('error message', new TypeError('bad value'))
+
+      expect(consoleErrorSpy.mock.calls[0][0].err).toMatchObject({ name: 'TypeError' })
+    })
+
+    it('should include err.stack in non-production environment', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
+
+      logger.error('error message', new Error('fail'))
+
+      expect(consoleErrorSpy.mock.calls[0][0].err?.stack).toBeDefined()
+    })
+
+    it('should merge additional context alongside err', () => {
       const logger = new UnifiedLogger({ minLevel: 'error' })
       const error = new Error('critical error')
-      const context = { userId: '123' }
 
-      logger.error('error message', error, context)
+      logger.error('error message', error, { userId: 'u-123' })
 
-      const loggedMessage = consoleErrorSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.message).toBe('error message')
-      expect(consoleErrorSpy).toHaveBeenCalledWith(loggedMessage, error, context)
+      const entry = consoleErrorSpy.mock.calls[0][0]
+      expect(entry.message).toBe('error message')
+      expect(entry.err).toMatchObject({ name: 'Error' })
+      expect(entry.userId).toBe('u-123')
+    })
+
+    it('should not set err when no Error is provided', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
+
+      logger.error('error message')
+
+      expect(consoleErrorSpy.mock.calls[0][0].err).toBeUndefined()
     })
   })
 
+  // -------------------------------------------------------------------------
+  // error serialization (serializeError)
+  // -------------------------------------------------------------------------
+  describe('error serialization', () => {
+    it('should set err.name matching error.name', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
+
+      logger.error('range fail', new RangeError('out of bounds'))
+
+      expect(consoleErrorSpy.mock.calls[0][0].err?.name).toBe('RangeError')
+    })
+
+    it('should include err.stack in non-production (NODE_ENV=test)', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
+
+      logger.error('test', new Error('stack test'))
+
+      const entry = consoleErrorSpy.mock.calls[0][0]
+      expect(typeof entry.err?.stack).toBe('string')
+      expect(entry.err?.stack).toContain('Error')
+    })
+
+    it('should exclude err.stack when process.env.NODE_ENV is production', async () => {
+      // ENV is a static readonly field captured at class-load time, so we must
+      // reset the module registry and re-import with NODE_ENV='production'.
+      ;(process.env as { NODE_ENV?: string }).NODE_ENV = 'production'
+      vi.resetModules()
+      try {
+        const { UnifiedLogger: ProdLogger } = await import('@/infrastructure/logging/logger.js')
+        const logger = new ProdLogger({ minLevel: 'error' })
+        logger.error('test', new Error('no stack'))
+        expect(consoleErrorSpy.mock.calls[0][0].err?.stack).toBeUndefined()
+      } finally {
+        ;(process.env as { NODE_ENV?: string }).NODE_ENV = 'test'
+        vi.resetModules()
+      }
+    })
+
+    it('should not include err.message (PII safety — only name and stack are serialised)', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
+
+      logger.error('test', new Error('sensitive info in message'))
+
+      const err = consoleErrorSpy.mock.calls[0][0].err as Record<string, unknown> | undefined
+      expect(err?.message).toBeUndefined()
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // setMinLevel and getMinLevel
+  // -------------------------------------------------------------------------
   describe('setMinLevel and getMinLevel', () => {
     it('should change minimum log level from debug to warn', () => {
       const logger = new UnifiedLogger({ minLevel: 'debug' })
@@ -412,29 +610,23 @@ describe('UnifiedLogger', () => {
     })
   })
 
+  // -------------------------------------------------------------------------
+  // setLevel and getLevel (numeric level — stored for external compatibility,
+  // but NOT emitted into StructuredLogEntry; entry.level is always the string level)
+  // -------------------------------------------------------------------------
   describe('setLevel and getLevel', () => {
-    it('should set and get numeric level', () => {
+    it('should return undefined when level is not set', () => {
       const logger = new UnifiedLogger({ minLevel: 'info' })
 
       expect(logger.getLevel()).toBeUndefined()
+    })
+
+    it('should set and get a numeric level', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.setLevel(30)
 
       expect(logger.getLevel()).toBe(30)
-    })
-
-    it('should include level in formatted message after setLevel', () => {
-      const logger = new UnifiedLogger({ minLevel: 'info' })
-
-      logger.info('without level')
-      let loggedMessage = consoleInfoSpy.mock.calls[0][0]
-      expect(loggedMessage.level).toBeUndefined()
-
-      logger.setLevel(40)
-      logger.info('with level')
-      loggedMessage = consoleInfoSpy.mock.calls[1][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.level).toBe(40)
     })
 
     it('should allow changing level multiple times', () => {
@@ -448,86 +640,24 @@ describe('UnifiedLogger', () => {
       logger.setLevel(30)
       expect(logger.getLevel()).toBe(30)
     })
-  })
 
-  describe('optional numeric level field', () => {
-    it('should include level when provided', () => {
-      const logger = new UnifiedLogger({ minLevel: 'info', level: 20 })
-
-      logger.info('test message')
-
-      const loggedMessage = consoleInfoSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.level).toBe(20)
-    })
-
-    it('should not include level when not provided', () => {
+    it('should not affect the level string field in log entries', () => {
+      // The numeric level option is stored for external compatibility but is NOT emitted
+      // into the StructuredLogEntry — entry.level is always the string log level.
       const logger = new UnifiedLogger({ minLevel: 'info' })
 
-      logger.info('test message')
-
-      const loggedMessage = consoleInfoSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.level).toBeUndefined()
-    })
-  })
-
-  describe('message formatting', () => {
-    it('should include prefix in formatted message', () => {
-      const logger = new UnifiedLogger({ minLevel: 'info', prefix: 'TestPrefix' })
-
-      logger.info('test message')
-
-      const loggedMessage = consoleInfoSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.prefix).toBe('[TestPrefix] ')
-    })
-
-    it('should not include prefix when not specified', () => {
-      const logger = new UnifiedLogger({ minLevel: 'info' })
-
-      logger.info('test message')
-
-      const loggedMessage = consoleInfoSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.prefix).toBe('')
-    })
-
-    it('should format message with correct structure', () => {
-      const logger = new UnifiedLogger({ minLevel: 'info', prefix: 'APP' })
-
-      logger.info('test message')
-
-      const loggedMessage = consoleInfoSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.timestamp).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
-      expect(loggedMessage.prefix).toBe('[APP] ')
-      expect(loggedMessage.method).toBe('INFO')
-      expect(loggedMessage.message).toBe('test message')
-    })
-
-    it('should uppercase log method in formatted message', () => {
-      const logger = new UnifiedLogger({ minLevel: 'trace' })
-
-      logger.trace('test')
-      expect(consoleTraceSpy.mock.calls[0][0].method).toBe('TRACE')
-
-      logger.debug('test')
-      expect(consoleDebugSpy.mock.calls[0][0].method).toBe('DEBUG')
-
+      logger.setLevel(40)
       logger.info('test')
-      expect(consoleInfoSpy.mock.calls[0][0].method).toBe('INFO')
 
-      logger.warn('test')
-      expect(consoleWarnSpy.mock.calls[0][0].method).toBe('WARN')
-
-      logger.error('test')
-      expect(consoleErrorSpy.mock.calls[0][0].method).toBe('ERROR')
+      expect(consoleInfoSpy.mock.calls[0][0].level).toBe('info')
     })
   })
 
+  // -------------------------------------------------------------------------
+  // log level hierarchy
+  // -------------------------------------------------------------------------
   describe('log level hierarchy', () => {
-    it('should respect log level hierarchy for trace', () => {
+    it('should log all levels when minLevel is trace', () => {
       const logger = new UnifiedLogger({ minLevel: 'trace' })
 
       logger.trace('trace')
@@ -543,7 +673,7 @@ describe('UnifiedLogger', () => {
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should respect log level hierarchy for debug', () => {
+    it('should skip trace when minLevel is debug', () => {
       const logger = new UnifiedLogger({ minLevel: 'debug' })
 
       logger.trace('trace')
@@ -559,7 +689,7 @@ describe('UnifiedLogger', () => {
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should respect log level hierarchy for info', () => {
+    it('should skip trace and debug when minLevel is info', () => {
       const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.trace('trace')
@@ -575,7 +705,7 @@ describe('UnifiedLogger', () => {
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should respect log level hierarchy for warn', () => {
+    it('should only log warn and error when minLevel is warn', () => {
       const logger = new UnifiedLogger({ minLevel: 'warn' })
 
       logger.trace('trace')
@@ -591,7 +721,7 @@ describe('UnifiedLogger', () => {
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should respect log level hierarchy for error', () => {
+    it('should only log error when minLevel is error', () => {
       const logger = new UnifiedLogger({ minLevel: 'error' })
 
       logger.trace('trace')
@@ -608,8 +738,11 @@ describe('UnifiedLogger', () => {
     })
   })
 
+  // -------------------------------------------------------------------------
+  // createLogger factory function
+  // -------------------------------------------------------------------------
   describe('createLogger factory function', () => {
-    it('should create logger instance without options', () => {
+    it('should create a UnifiedLogger instance without options', () => {
       const logger = createLogger()
 
       expect(logger).toBeInstanceOf(UnifiedLogger)
@@ -617,13 +750,12 @@ describe('UnifiedLogger', () => {
       expect(consoleDebugSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should create logger instance with options', () => {
+    it('should create a UnifiedLogger instance with options', () => {
       const logger = createLogger({ minLevel: 'debug', prefix: 'Factory' })
 
       expect(logger).toBeInstanceOf(UnifiedLogger)
       logger.debug('test')
-      const loggedMessage = consoleDebugSpy.mock.calls[0][0]
-      expect(loggedMessage.prefix).toBe('[Factory] ')
+      expect(consoleDebugSpy.mock.calls[0][0].loggerContext).toBe('Factory')
     })
 
     it('should create independent logger instances', () => {
@@ -634,151 +766,160 @@ describe('UnifiedLogger', () => {
       expect(consoleDebugSpy).toHaveBeenCalledTimes(1)
 
       logger2.debug('test')
-      expect(consoleDebugSpy).toHaveBeenCalledTimes(1) // Should still be 1
+      expect(consoleDebugSpy).toHaveBeenCalledTimes(1) // still 1 — logger2 filtered it
 
       logger2.error('test')
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
     })
   })
 
-  describe('multiple arguments', () => {
-    it('should pass multiple arguments to console.trace', () => {
-      const logger = new UnifiedLogger({ minLevel: 'trace' })
-      const arg1 = { key: 'value' }
-      const arg2 = [1, 2, 3]
-      const arg3 = 'string'
-
-      logger.trace('message', arg1, arg2, arg3)
-
-      const loggedMessage = consoleTraceSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.message).toBe('message')
-      expect(consoleTraceSpy).toHaveBeenCalledWith(loggedMessage, arg1, arg2, arg3)
-    })
-
-    it('should pass multiple arguments to console.debug', () => {
-      const logger = new UnifiedLogger({ minLevel: 'debug' })
-      const arg1 = { key: 'value' }
-      const arg2 = [1, 2, 3]
-      const arg3 = 'string'
-
-      logger.debug('message', arg1, arg2, arg3)
-
-      const loggedMessage = consoleDebugSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.message).toBe('message')
-      expect(consoleDebugSpy).toHaveBeenCalledWith(loggedMessage, arg1, arg2, arg3)
-    })
-
-    it('should pass multiple arguments to console.info', () => {
+  // -------------------------------------------------------------------------
+  // child()
+  // -------------------------------------------------------------------------
+  describe('child()', () => {
+    it('should return a new UnifiedLogger instance', () => {
       const logger = new UnifiedLogger({ minLevel: 'info' })
-      const error = new Error('test')
-      const context = { userId: '123' }
 
-      logger.info('message', error, context)
+      const child = logger.child({ component: 'UserService' })
 
-      const loggedMessage = consoleInfoSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.message).toBe('message')
-      expect(consoleInfoSpy).toHaveBeenCalledWith(loggedMessage, error, context)
+      expect(child).toBeInstanceOf(UnifiedLogger)
+      expect(child).not.toBe(logger)
     })
 
-    it('should pass multiple arguments to console.warn', () => {
-      const logger = new UnifiedLogger({ minLevel: 'warn' })
-      const data = { warning: true }
+    it('should merge bindings into every log entry emitted by the child', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
+      const child = logger.child({ requestId: 'req-abc' })
 
-      logger.warn('message', data)
+      child.info('handling request')
 
-      const loggedMessage = consoleWarnSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.message).toBe('message')
-      expect(consoleWarnSpy).toHaveBeenCalledWith(loggedMessage, data)
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      expect(entry.requestId).toBe('req-abc')
+      expect(entry.message).toBe('handling request')
     })
 
-    it('should pass multiple arguments to console.error', () => {
-      const logger = new UnifiedLogger({ minLevel: 'error' })
-      const error = new Error('critical')
-      const stack = error.stack
+    it('should not mutate parent logger bindings', () => {
+      const parent = new UnifiedLogger({ minLevel: 'info' })
+      const _child = parent.child({ scope: 'child-scope' })
 
-      logger.error('message', error, stack)
+      parent.info('parent message')
 
-      const loggedMessage = consoleErrorSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.message).toBe('message')
-      expect(consoleErrorSpy).toHaveBeenCalledWith(loggedMessage, error, stack)
+      expect(consoleInfoSpy.mock.calls[0][0].scope).toBeUndefined()
+    })
+
+    it('should inherit parent minLevel', () => {
+      const parent = new UnifiedLogger({ minLevel: 'warn' })
+      const child = parent.child({ scope: 'child' })
+
+      child.info('should be filtered')
+      expect(consoleInfoSpy).not.toHaveBeenCalled()
+
+      child.warn('should appear')
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('should inherit parent prefix as loggerContext', () => {
+      const parent = new UnifiedLogger({ prefix: 'ParentModule' })
+      const child = parent.child({ requestId: 'r-1' })
+
+      child.info('child log')
+
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      expect(entry.loggerContext).toBe('ParentModule')
+      expect(entry.requestId).toBe('r-1')
+    })
+
+    it('should merge grandchild bindings on top of child bindings', () => {
+      const root = new UnifiedLogger({ minLevel: 'info' })
+      const child = root.child({ layer: 'service' })
+      const grandchild = child.child({ traceId: 'trace-xyz' })
+
+      grandchild.info('deep log')
+
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      expect(entry.layer).toBe('service')
+      expect(entry.traceId).toBe('trace-xyz')
+    })
+
+    it('should merge per-call context on top of child bindings', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
+      const child = logger.child({ component: 'Auth' })
+
+      child.info('login attempt', { userId: 'u-456' })
+
+      const entry = consoleInfoSpy.mock.calls[0][0]
+      expect(entry.component).toBe('Auth')
+      expect(entry.userId).toBe('u-456')
     })
   })
 
-  describe('production environment behavior', () => {
-    let originalEnv: string | undefined
-
+  // -------------------------------------------------------------------------
+  // production environment filtering (process.env.NODE_ENV)
+  // ENV is a static readonly field captured at class-load time, so each test
+  // must reset the module registry and dynamically re-import the logger after
+  // setting process.env.NODE_ENV = 'production'.
+  // Suppresses trace / debug / info; warn and error always pass through.
+  // -------------------------------------------------------------------------
+  describe('production environment filtering', () => {
     beforeEach(() => {
-      originalEnv = process.env.NODE_ENV
       ;(process.env as { NODE_ENV?: string }).NODE_ENV = 'production'
-      // Clear mocks to ensure test isolation
-      consoleTraceSpy.mockClear()
-      consoleDebugSpy.mockClear()
-      consoleInfoSpy.mockClear()
-      consoleWarnSpy.mockClear()
-      consoleErrorSpy.mockClear()
+      vi.resetModules()
     })
 
     afterEach(() => {
-      if (originalEnv === undefined) {
-        delete (process.env as { NODE_ENV?: string }).NODE_ENV
-      } else {
-        ;(process.env as { NODE_ENV?: string }).NODE_ENV = originalEnv
-      }
+      ;(process.env as { NODE_ENV?: string }).NODE_ENV = 'test'
+      vi.resetModules()
     })
 
-    it('should suppress trace messages in production', () => {
-      const logger = new UnifiedLogger({ minLevel: 'trace' })
+    it('should suppress trace messages in production', async () => {
+      const { UnifiedLogger: PL } = await import('@/infrastructure/logging/logger.js')
+      const logger = new PL({ minLevel: 'trace' })
 
       logger.trace('trace message')
 
       expect(consoleTraceSpy).not.toHaveBeenCalled()
     })
 
-    it('should suppress debug messages in production', () => {
-      const logger = new UnifiedLogger({ minLevel: 'debug' })
+    it('should suppress debug messages in production', async () => {
+      const { UnifiedLogger: PL } = await import('@/infrastructure/logging/logger.js')
+      const logger = new PL({ minLevel: 'debug' })
 
       logger.debug('debug message')
 
       expect(consoleDebugSpy).not.toHaveBeenCalled()
     })
 
-    it('should suppress info messages in production', () => {
-      const logger = new UnifiedLogger({ minLevel: 'info' })
+    it('should suppress info messages in production', async () => {
+      const { UnifiedLogger: PL } = await import('@/infrastructure/logging/logger.js')
+      const logger = new PL({ minLevel: 'info' })
 
       logger.info('info message')
 
       expect(consoleInfoSpy).not.toHaveBeenCalled()
     })
 
-    it('should allow warn messages in production', () => {
-      const logger = new UnifiedLogger({ minLevel: 'warn' })
+    it('should allow warn messages in production', async () => {
+      const { UnifiedLogger: PL } = await import('@/infrastructure/logging/logger.js')
+      const logger = new PL({ minLevel: 'warn' })
 
       logger.warn('warn message')
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
-      const loggedMessage = consoleWarnSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.method).toBe('WARN')
+      expect(consoleWarnSpy.mock.calls[0][0].level).toBe('warn')
     })
 
-    it('should allow error messages in production', () => {
-      const logger = new UnifiedLogger({ minLevel: 'error' })
+    it('should allow error messages in production', async () => {
+      const { UnifiedLogger: PL } = await import('@/infrastructure/logging/logger.js')
+      const logger = new PL({ minLevel: 'error' })
 
       logger.error('error message')
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
-      const loggedMessage = consoleErrorSpy.mock.calls[0][0]
-      expect(loggedMessage).toBeTypeOf('object')
-      expect(loggedMessage.method).toBe('ERROR')
+      expect(consoleErrorSpy.mock.calls[0][0].level).toBe('error')
     })
 
-    it('should suppress debug and info but allow warn and error in production', () => {
-      const logger = new UnifiedLogger({ minLevel: 'trace' })
+    it('should suppress trace, debug, info but allow warn and error in production', async () => {
+      const { UnifiedLogger: PL } = await import('@/infrastructure/logging/logger.js')
+      const logger = new PL({ minLevel: 'trace' })
 
       logger.trace('trace message')
       logger.debug('debug message')

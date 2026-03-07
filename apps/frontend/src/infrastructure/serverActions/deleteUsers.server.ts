@@ -55,9 +55,8 @@ export async function deleteUsersAction(userIds: string[]): Promise<DeleteUsersR
   } catch (error_) {
     const err = error_ as Error & { status?: number; body?: unknown }
 
-    logger.error('deleteUsersAction error', {
-      error: err.message,
-      status: err.status,
+    logger.error('deleteUsersAction error', err, {
+      statusCode: err.status,
       body: err.body,
     })
 

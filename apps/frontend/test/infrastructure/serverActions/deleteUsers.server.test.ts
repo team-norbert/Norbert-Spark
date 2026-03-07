@@ -317,9 +317,8 @@ describe('deleteUsersAction', () => {
         message: 'Authentication expired. Please sign in again.',
         status: 401,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', {
-        error: mockError.message,
-        status: 401,
+      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        statusCode: 401,
         body: mockError.body,
       })
     })
@@ -342,9 +341,8 @@ describe('deleteUsersAction', () => {
         message: 'You do not have permission to delete users.',
         status: 403,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', {
-        error: mockError.message,
-        status: 403,
+      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        statusCode: 403,
         body: mockError.body,
       })
     })
@@ -367,9 +365,8 @@ describe('deleteUsersAction', () => {
         message: 'One or more users not found.',
         status: 404,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', {
-        error: mockError.message,
-        status: 404,
+      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        statusCode: 404,
         body: mockError.body,
       })
     })
@@ -392,9 +389,8 @@ describe('deleteUsersAction', () => {
         message: 'Internal server error',
         status: 500,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', {
-        error: mockError.message,
-        status: 500,
+      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        statusCode: 500,
         body: mockError.body,
       })
     })
@@ -474,9 +470,8 @@ describe('deleteUsersAction', () => {
         message: 'Network failure',
         status: 500,
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', {
-        error: 'Network failure',
-        status: undefined,
+      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        statusCode: undefined,
         body: undefined,
       })
     })
@@ -651,9 +646,8 @@ describe('deleteUsersAction', () => {
 
       await deleteUsersAction(TEST_USER_IDS)
 
-      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', {
-        error: 'Test error',
-        status: 503,
+      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        statusCode: 503,
         body: { details: 'Service temporarily unavailable' },
       })
     })
@@ -668,9 +662,8 @@ describe('deleteUsersAction', () => {
 
       await deleteUsersAction(TEST_USER_IDS)
 
-      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', {
-        error: 'Unknown error',
-        status: undefined,
+      expect(mockLoggerError).toHaveBeenCalledWith('deleteUsersAction error', mockError, {
+        statusCode: undefined,
         body: undefined,
       })
     })

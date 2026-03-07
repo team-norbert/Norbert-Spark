@@ -372,9 +372,10 @@ describe('getPresignedUrls', () => {
         success: false,
         error: 'Network error',
       })
-      expect(mockLoggerError).toHaveBeenCalledWith('Error getting presigned URLs', {
-        error: 'Network error',
-      })
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        'Error getting presigned URLs',
+        expect.objectContaining({ message: 'Network error' })
+      )
     })
 
     it('should handle non-Error exceptions', async () => {

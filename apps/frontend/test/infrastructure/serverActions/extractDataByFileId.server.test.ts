@@ -269,6 +269,7 @@ describe('extractDataByFileIdAction', () => {
       expect(result.error).toContain('Network error')
       expect(mockLoggerError).toHaveBeenCalledWith(
         'extractDataByFileIdAction error',
+        expect.any(Error),
         expect.objectContaining({
           fileKey: TEST_FILE_KEY,
         })
@@ -574,6 +575,7 @@ describe('extractDataByFileIdAction', () => {
       expect(result.data?.invoiceNumber).toBe('INV-001')
       expect(mockLoggerError).toHaveBeenCalledWith(
         'Failed to parse NDJSON line',
+        expect.any(Error),
         expect.objectContaining({ line: invalidLine })
       )
     })

@@ -230,8 +230,8 @@ export function useFileUpload({
                 updateFileProgress(id, 100)
                 resolve(true)
               } else {
-                logger.error(`Upload failed with status ${xhr.status}`, {
-                  status: xhr.status,
+                logger.error(`Upload failed with status ${xhr.status}`, undefined, {
+                  statusCode: xhr.status,
                   statusText: xhr.statusText,
                   response: xhr.responseText,
                 })
@@ -240,10 +240,10 @@ export function useFileUpload({
             })
 
             xhr.addEventListener('error', (_event) => {
-              logger.error('XHR error event fired', {
+              logger.error('XHR error event fired', undefined, {
                 filename: file.name,
                 readyState: xhr.readyState,
-                status: xhr.status,
+                statusCode: xhr.status,
                 statusText: xhr.statusText,
                 responseURL: xhr.responseURL,
               })
@@ -263,7 +263,9 @@ export function useFileUpload({
           return result
         } catch (error) {
           retries++
-          logger.warn(`Upload attempt ${retries} failed for ${file.name}`, error)
+          logger.warn(`Upload attempt ${retries} failed for ${file.name}`, {
+            error: error instanceof Error ? error.message : String(error),
+          })
 
           if (retries >= MAX_RETRIES) {
             throw new Error(`Failed to upload ${file.name} after ${MAX_RETRIES} retries`, {
@@ -344,9 +346,10 @@ export function useFileUpload({
           uploadedFile.id
         )
 
-        logger.info('=== UPLOAD COMPLETE ===')
-        logger.info('File:', uploadedFile.file.name)
-        logger.info('FileKey:', urlInfo.fileKey)
+        logger.info('=== UPLOAD COMPLETE ===', {
+          filename: uploadedFile.file.name,
+          fileKey: urlInfo.fileKey,
+        })
 
         if (flow === 'extract') {
           // Clear previous extraction results
@@ -375,11 +378,14 @@ export function useFileUpload({
               logger.info('Extraction successful', { count: extractResult.allResults.length })
               setExtractedData(extractResult.allResults)
             } else if (extractResult.error) {
-              logger.error('Extraction failed', { error: extractResult.error })
+              logger.error('Extraction failed', undefined, { error: extractResult.error })
               throw new Error(extractResult.error)
             }
           } catch (extractError) {
-            logger.error('Extraction failed', { error: extractError })
+            logger.error(
+              'Extraction failed',
+              extractError instanceof Error ? extractError : new Error(String(extractError))
+            )
           } finally {
             setIsExtracting(false)
           }
@@ -405,7 +411,7 @@ export function useFileUpload({
       const errorMessage =
         error instanceof Error ? error.message : 'An error occurred during upload'
       setError(`Upload failed: ${errorMessage}`)
-      logger.error('Upload error:', error)
+      logger.error('Upload error', error instanceof Error ? error : new Error(String(error)))
     } finally {
       setIsUploading(false)
     }
@@ -433,7 +439,10 @@ export function useFileUpload({
     try {
       await logoutUserAction()
     } catch (error) {
-      logger.error('Failed to logout user on backend', error)
+      logger.error(
+        'Failed to logout user on backend',
+        error instanceof Error ? error : new Error(String(error))
+      )
     } finally {
       await signOut({ callbackUrl: '/signin' })
     }

@@ -150,7 +150,10 @@ export const authOptions: NextAuthOptions = {
 
           return null
         } catch (error) {
-          logger.error('Authentication error:', error)
+          logger.error(
+            'Authentication error',
+            error instanceof Error ? error : new Error(String(error))
+          )
           throw error
         }
       },
@@ -191,11 +194,14 @@ export const authOptions: NextAuthOptions = {
               if (errorData?.error) {
                 errorMessage = errorData.error
               }
-              logger.error('OAuth user sync failed:', errorData)
+              logger.error('OAuth user sync failed', undefined, {
+                statusCode: response.status,
+                body: errorData,
+              })
             } catch (readError) {
               logger.error(
-                `OAuth user sync failed (HTTP ${response.status} ${response.statusText}, unable to read response body):`,
-                readError
+                `OAuth user sync failed (HTTP ${response.status} ${response.statusText}, unable to read response body)`,
+                readError instanceof Error ? readError : new Error(String(readError))
               )
             }
             // Redirect to error page with backend error message
@@ -208,7 +214,7 @@ export const authOptions: NextAuthOptions = {
           if (!syncResult?.success || !syncResult.data) {
             const errorMessage =
               syncResult?.error || 'OAuth authentication sync failed. Please try again.'
-            logger.error('OAuth user sync unsuccessful:', syncResult)
+            logger.error('OAuth user sync unsuccessful', undefined, { syncResult })
             // Treat unsuccessful sync as sign-in failure and redirect to error page
             return `/error?code=500&message=${encodeURIComponent(errorMessage)}`
           }
@@ -221,7 +227,10 @@ export const authOptions: NextAuthOptions = {
             roles: syncResult.data.roles,
           })
         } catch (error) {
-          logger.error('OAuth sync error:', error)
+          logger.error(
+            'OAuth sync error',
+            error instanceof Error ? error : new Error(String(error))
+          )
           // Redirect to error page for sync failures
           return `/error?code=500&message=${encodeURIComponent('OAuth authentication error. Please try again.')}`
         }
@@ -350,7 +359,7 @@ export const authOptions: NextAuthOptions = {
           return target.toString()
         }
       } catch (error) {
-        logger.error('Invalid redirect URL', { url, baseUrl, error })
+        logger.error('Invalid redirect URL', undefined, { url, baseUrl })
       }
       // Fallback: redirect to a safe default on the base origin
       return `${baseUrl}/dashboard`

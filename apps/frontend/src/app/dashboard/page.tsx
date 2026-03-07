@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   const session = await getAuthSession()
   // Check if user has any of the required roles ('user', 'admin' or 'moderator')
   const hasAccess = await hasAnyRole(['user', 'admin', 'moderator'])
-  logger.info('[Dashboard] Role check result:', hasAccess)
+  logger.info('[Dashboard] Role check result', { hasAccess })
 
   // Redirect to signin if user doesn't have required role
   if (!hasAccess) {

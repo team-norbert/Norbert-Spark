@@ -34,7 +34,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
     })
 
     if (!response.ok) {
-      logger.error('Backend returned error', { status: response.status })
+      logger.error('Backend returned error', undefined, { statusCode: response.status })
       return new Response(JSON.stringify({ error: `Backend error: ${response.status}` }), {
         status: response.status,
         headers: { 'Content-Type': 'application/json' },
@@ -52,7 +52,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
       },
     })
   } catch (error) {
-    logger.error('API route error', { error })
+    logger.error('API route error', error instanceof Error ? error : new Error(String(error)))
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

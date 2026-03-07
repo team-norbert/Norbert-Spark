@@ -59,7 +59,7 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
   const handleNewChat = () => {
     const newId = uuidv7()
     if (chatTypeParam) {
-      logger.info('Creating new chat with chatTypeParam:', chatTypeParam, 'ID:', newId)
+      logger.info('Creating new chat', { chatTypeParam, newId })
       router.push(`/ai/${chatTypeParam}/${newId}`)
     } else {
       logger.info('No chatTypeParam, navigating to landing page')
@@ -88,7 +88,7 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
     }
   }, [id])
 
-  logger.info('Initial messages in useAIChat:', initialMessages)
+  logger.debug('Initial messages in useAIChat', { messageCount: initialMessages?.length })
 
   const { messages, sendMessage, status, stop } = useChat({
     id: id,
