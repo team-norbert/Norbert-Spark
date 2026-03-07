@@ -217,12 +217,21 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
 
       return result
     } catch (err) {
-      logger.error('Backend request failed', err instanceof Error ? err : new Error(String(err)), {
-        event: 'server-action.backend-request.failed',
-        endpoint: options.endpoint,
-        durationMs: Math.round(Date.now() - startTime),
-      })
-      return handle401<T>(err as Error & { status?: number }, options)
+      const error = err as Error & { status?: number }
+      const will401Retry =
+        error.status === 401 && options.redirectOn401 !== false && !options._isRetry
+      if (!will401Retry) {
+        logger.error(
+          'Backend request failed',
+          err instanceof Error ? err : new Error(String(err)),
+          {
+            event: 'server-action.backend-request.failed',
+            endpoint: options.endpoint,
+            durationMs: Math.round(Date.now() - startTime),
+          }
+        )
+      }
+      return handle401<T>(error, options)
     } finally {
       clearTimeout(timeout)
     }
@@ -253,12 +262,21 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
 
       return result
     } catch (err) {
-      logger.error('Backend request failed', err instanceof Error ? err : new Error(String(err)), {
-        event: 'server-action.backend-request.failed',
-        endpoint: options.endpoint,
-        durationMs: Math.round(Date.now() - startTime),
-      })
-      return handle401<T>(err as Error & { status?: number }, options)
+      const error = err as Error & { status?: number }
+      const will401Retry =
+        error.status === 401 && options.redirectOn401 !== false && !options._isRetry
+      if (!will401Retry) {
+        logger.error(
+          'Backend request failed',
+          err instanceof Error ? err : new Error(String(err)),
+          {
+            event: 'server-action.backend-request.failed',
+            endpoint: options.endpoint,
+            durationMs: Math.round(Date.now() - startTime),
+          }
+        )
+      }
+      return handle401<T>(error, options)
     } finally {
       clearTimeout(timeout)
     }

@@ -578,7 +578,7 @@ describe('extractDataByFileIdAction', () => {
       expect(mockLoggerError).toHaveBeenCalledWith(
         'Failed to parse NDJSON line',
         expect.any(Error),
-        expect.objectContaining({ line: invalidLine })
+        expect.objectContaining({ lineLength: invalidLine.length })
       )
     })
 
