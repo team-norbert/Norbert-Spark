@@ -2,8 +2,11 @@ import { NextResponse } from 'next/server.js'
 import { getToken } from 'next-auth/jwt'
 
 import { env } from '@/env/index.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
 
 import { AUTH_ROUTES, PROTECTED_ROUTES } from './shared/constants/routes.js'
+
+const logger = createLogger({ prefix: '[middleware]' })
 
 // In-memory sliding-window rate limiter (hybrid keying: user-id when available, else IP)
 const DEFAULT_RATE_LIMIT_WINDOW = 10 // seconds
@@ -272,7 +275,10 @@ export async function middleware(request: Request) {
     token = await getToken({ req: request as never, secret: env.NEXTAUTH_SECRET })
   } catch (error) {
     // If JWT decryption fails (e.g., invalid token), treat as unauthenticated but log for debugging
-    console.error('Failed to retrieve auth token in middleware:', error)
+    logger.error(
+      'Failed to retrieve auth token in middleware:',
+      error instanceof Error ? error : new Error(String(error))
+    )
     token = null
   }
   const isAuthenticated = !!token && !token.error
