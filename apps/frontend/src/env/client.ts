@@ -5,7 +5,6 @@ import packageJson from '../../package.json' with { type: 'json' }
 
 // Using ??= so that an explicit env var in the environment always wins.
 process.env.NEXT_PUBLIC_APP_VERSION ??= packageJson.version
-process.env.APP_VERSION ??= packageJson.version
 
 export const env = createEnv({
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
