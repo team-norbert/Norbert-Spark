@@ -6,5 +6,6 @@ export * from './schemas/auth.js'
 export * from './schemas/user.js'
 export * from './types/index.js'
 export * from './utils/functions.js'
+export * from './utils/UtcDate.js'
 
 export { OpenAPI }
