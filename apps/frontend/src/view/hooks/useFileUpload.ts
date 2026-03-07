@@ -423,7 +423,7 @@ export function useFileUpload({
         logger.info('File uploaded successfully', {
           event: 'file-upload.completed',
           filename: uploadedFile.file.name,
-          urlInfo: urlInfo.uploadUrl,
+          fileKey: urlInfo.fileKey,
           id: uploadedFile.id,
         })
         logger.info('Response uploaded successfully', { event: 'file-upload.completed', result })
@@ -472,7 +472,7 @@ export function useFileUpload({
       logger.error(
         'Failed to logout user on backend',
         error instanceof Error ? error : new Error(String(error)),
-        { event: 'server-action.logout.failed' }
+        { event: 'file-upload.logout.failed' }
       )
     } finally {
       await signOut({ callbackUrl: '/signin' })

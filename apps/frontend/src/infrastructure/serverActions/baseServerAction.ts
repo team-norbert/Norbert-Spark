@@ -206,6 +206,8 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
+      const result = await handleResponse<T>(res, url)
+
       logger.info('Backend request completed', {
         event: 'server-action.backend-request.completed',
         endpoint: options.endpoint,
@@ -213,7 +215,7 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         durationMs: Math.round(Date.now() - startTime),
       })
 
-      return await handleResponse<T>(res, url)
+      return result
     } catch (err) {
       logger.error('Backend request failed', err instanceof Error ? err : new Error(String(err)), {
         event: 'server-action.backend-request.failed',
@@ -240,6 +242,8 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
+      const result = await handleResponse<T>(res, url)
+
       logger.info('Backend request completed', {
         event: 'server-action.backend-request.completed',
         endpoint: options.endpoint,
@@ -247,7 +251,7 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         durationMs: Math.round(Date.now() - startTime),
       })
 
-      return await handleResponse<T>(res, url)
+      return result
     } catch (err) {
       logger.error('Backend request failed', err instanceof Error ? err : new Error(String(err)), {
         event: 'server-action.backend-request.failed',

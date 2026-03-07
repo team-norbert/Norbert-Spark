@@ -62,7 +62,7 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
       logger.info('Creating new chat', {
         chatTypeParam,
         newId,
-        event: 'chat.navigation.newchatTypeParam',
+        event: 'chat.navigation.new-chat-type-param',
       })
       router.push(`/ai/${chatTypeParam}/${newId}`)
     } else {
@@ -96,7 +96,7 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
 
   logger.debug('Initial messages in useAIChat', {
     messageCount: initialMessages?.length,
-    event: 'chat.transport.success',
+    event: 'chat.messages.initialized',
   })
 
   const { messages, sendMessage, status, stop } = useChat({
