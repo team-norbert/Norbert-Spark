@@ -53,7 +53,7 @@
     "bcrypt": "^6.0.0",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
-    "fastify": "^5.8.1",
+    "fastify": "^5.8.2",
     "js-tiktoken": "^1.0.21",
     "jsonwebtoken": "^9.0.3",
     "obscured": "^2.0.4",
