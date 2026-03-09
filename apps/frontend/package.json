@@ -51,7 +51,7 @@
     "node-fetch": "^3.3.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "shiki": "^4.0.1",
+    "shiki": "^4.0.2",
     "streamdown": "^2.4.0",
     "uuidv7": "^1.1.0",
     "uuidv7-utilities": "^3.1.0",
