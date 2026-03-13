@@ -44,7 +44,7 @@ export class EnvConfig {
   static readonly UPSTASH_REDIS_REST_TOKEN = obscured.make(ENV.UPSTASH_REDIS_REST_TOKEN)
   static readonly OAUTH_SYNC_SECRET = obscured.make(ENV.OAUTH_SYNC_SECRET)
   static readonly SENTRY_DSN = obscured.make(ENV.SENTRY_DSN)
-  static readonly SENTRY_ENABLED = ENV.SENTRY_ENABLED ?? ''
+  static readonly SENTRY_ENABLED = ENV.SENTRY_ENABLED ?? false
   static readonly SENTRY_AUTH_TOKEN = ENV.SENTRY_AUTH_TOKEN || ''
   static readonly SENTRY_PROJECT = ENV.SENTRY_PROJECT || ''
   static readonly SENTRY_ORG = ENV.SENTRY_ORG || ''
