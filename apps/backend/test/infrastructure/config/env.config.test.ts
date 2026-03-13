@@ -320,7 +320,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.USE_HTTPS).toBe('false')
+      expect(EnvConfig.USE_HTTPS).toBe(false)
     })
 
     it('should default to "true" when USE_HTTPS is not set', async () => {
@@ -333,27 +333,27 @@ describe('EnvConfig', () => {
       expect(EnvConfig.USE_HTTPS).toBe(true)
     })
 
-    it('should have type string', async () => {
+    it('should have type boolean (varlock coerces string env vars to booleans)', async () => {
       process.env.USE_HTTPS = 'true'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
-      expect(EnvConfig.USE_HTTPS).toBe('true')
+      expect(typeof EnvConfig.USE_HTTPS).toBe('boolean')
+      expect(EnvConfig.USE_HTTPS).toBe(true)
     })
 
-    it('should not be obscured (plain string value)', async () => {
+    it('should not be obscured (plain boolean value)', async () => {
       process.env.USE_HTTPS = 'false'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      // USE_HTTPS should be a plain string, not obscured
-      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
-      expect(EnvConfig.USE_HTTPS).toBe('false')
+      // USE_HTTPS should be a plain boolean, not obscured
+      expect(typeof EnvConfig.USE_HTTPS).toBe('boolean')
+      expect(EnvConfig.USE_HTTPS).toBe(false)
       // Should not have obscured behavior
       expect(String(EnvConfig.USE_HTTPS)).toBe('false')
     })
@@ -365,7 +365,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.USE_HTTPS).toBe('true')
+      expect(EnvConfig.USE_HTTPS).toBe(true)
     })
 
     it('should accept "false" value', async () => {
@@ -375,19 +375,19 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.USE_HTTPS).toBe('false')
+      expect(EnvConfig.USE_HTTPS).toBe(false)
     })
 
-    it('should accept any string value (not strictly boolean)', async () => {
+    it('should coerce non-standard string values to false (varlock boolean fields only accept "true" as truthy)', async () => {
       process.env.USE_HTTPS = 'yes'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      // USE_HTTPS is a string, so it accepts any value
-      expect(EnvConfig.USE_HTTPS).toBe('yes')
-      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
+      // varlock parses boolean fields strictly — only 'true' maps to true; anything else is false
+      expect(EnvConfig.USE_HTTPS).toBe(false)
+      expect(typeof EnvConfig.USE_HTTPS).toBe('boolean')
     })
   })
   describe('API_VERSION', () => {
@@ -608,8 +608,8 @@ describe('EnvConfig', () => {
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
       expect(EnvConfig.USE_HTTPS).toBeDefined()
-      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
-      expect(EnvConfig.USE_HTTPS).toBe('false')
+      expect(typeof EnvConfig.USE_HTTPS).toBe('boolean')
+      expect(EnvConfig.USE_HTTPS).toBe(false)
     })
 
     it('should have static API_VERSION property accessible without instantiation', async () => {
