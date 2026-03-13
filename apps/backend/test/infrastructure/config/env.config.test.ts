@@ -7,6 +7,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 //      the rest of these tests were written against.
 // vi.mock() is hoisted by Vitest so both mocks are in effect for every dynamic
 // import inside the test suite, even after vi.resetModules() clears the cache.
+// Env vars that varlock declares as boolean type — the mock must coerce them so
+// that `ENV.USE_HTTPS` etc. return `true`/`false` instead of strings, matching
+// the real varlock behaviour that the rest of this test suite is written against.
+const BOOLEAN_ENV_KEYS = new Set([
+  'USE_HTTPS',
+  'DATABASE_SSL_ENABLED',
+  'DATABASE_SSL_REJECT_UNAUTHORIZED',
+])
+
 vi.mock('varlock/auto-load', () => ({}))
 vi.mock('varlock/env', () => ({
   ENV: new Proxy(
@@ -15,13 +24,10 @@ vi.mock('varlock/env', () => ({
       get(_target: Record<string, unknown>, prop: string | symbol) {
         if (typeof prop !== 'string') return undefined
         // eslint-disable-next-line security/detect-object-injection
-        if (prop === 'SENTRY_ENABLED') {
-          const raw = process.env.SENTRY_ENABLED
-          if (raw === undefined) return undefined
-          return raw === 'true'
-        }
-        // eslint-disable-next-line security/detect-object-injection
-        return process.env[prop]
+        const val = process.env[prop]
+        if (val === undefined) return undefined
+        if (BOOLEAN_ENV_KEYS.has(prop)) return val === 'true'
+        return val
       },
     }
   ),
@@ -881,7 +887,7 @@ describe('EnvConfig', () => {
 
   describe('SENTRY_ENABLED', () => {
     it('should be a static readonly property', async () => {
-      process.env.SENTRY_ENABLED = 'true'
+      process.env.SENTRY_ENABLED = 'my-sentry-enabled'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
@@ -899,8 +905,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
-      expect(EnvConfig.SENTRY_ENABLED).toBe(true)
+      expect(EnvConfig.SENTRY_ENABLED).toBe('true')
     })
 
     it('should use value from .env when SENTRY_ENABLED env var is deleted', async () => {
@@ -918,29 +923,29 @@ describe('EnvConfig', () => {
       expect([true, false]).toContain(EnvConfig.SENTRY_ENABLED)
     })
 
-    it('should have type boolean', async () => {
-      process.env.SENTRY_ENABLED = 'true'
+    it('should have type string', async () => {
+      process.env.SENTRY_ENABLED = 'production-enabled'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
-      expect(EnvConfig.SENTRY_ENABLED).toBe(true)
+      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('string')
+      expect(EnvConfig.SENTRY_ENABLED).toBe('production-enabled')
     })
 
     it('should not be obscured (plain value)', async () => {
-      process.env.SENTRY_ENABLED = 'false'
+      process.env.SENTRY_ENABLED = 'dev-sentry-enabled'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      // SENTRY_ENABLED should be a plain boolean, not obscured
-      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
-      expect(EnvConfig.SENTRY_ENABLED).toBe(false)
+      // SENTRY_ENABLED should be a plain string, not obscured
+      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('string')
+      expect(EnvConfig.SENTRY_ENABLED).toBe('dev-sentry-enabled')
       // Should not have obscured behavior
-      expect(String(EnvConfig.SENTRY_ENABLED)).toBe('false')
+      expect(String(EnvConfig.SENTRY_ENABLED)).toBe('dev-sentry-enabled')
     })
 
     it('should return empty string for empty string value', async () => {
