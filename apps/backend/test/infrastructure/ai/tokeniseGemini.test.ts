@@ -3,20 +3,6 @@ import { fileURLToPath } from 'node:url'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('varlock/auto-load', () => ({}))
-vi.mock('varlock/env', () => ({
-  ENV: new Proxy(
-    {},
-    {
-      get(_target, prop) {
-        if (typeof prop !== 'string') return undefined
-        // eslint-disable-next-line security/detect-object-injection
-        return process.env[prop]
-      },
-    }
-  ),
-}))
-
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const FIXTURES_DIR = path.join(__dirname, 'fixtures')
