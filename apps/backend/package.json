@@ -49,6 +49,7 @@
     "@smithy/node-http-handler": "^4.4.14",
     "@supercharge/promise-pool": "^3.3.0",
     "@upstash/redis": "^1.36.4",
+    "@varlock/1password-plugin": "^0.2.2",
     "ai": "^6.0.116",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.3.1",

@@ -33,7 +33,13 @@ export function useSessionGuard(): void {
             { event: 'session-guard.logout.failed' }
           )
         } finally {
-          await signOut({ callbackUrl: '/signin?error=session_expired' })
+          // Use signOut with redirect:false then hard-navigate via window.location
+          // so the browser performs a full page reload. Without this, Next.js App
+          // Router intercepts the navigation as a client-side route change, leaving
+          // the current page's React tree mounted while only updating the URL —
+          // resulting in the dashboard UI being visible at /signin?error=session_expired.
+          await signOut({ redirect: false })
+          window.location.href = '/signin?error=session_expired'
         }
       })()
     }

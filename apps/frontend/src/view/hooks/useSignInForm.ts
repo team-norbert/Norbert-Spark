@@ -1,8 +1,8 @@
 import type { LoginDTO } from '@norberts-spark/shared'
 import { LoginSchema } from '@norberts-spark/shared'
-import { useRouter } from 'next/navigation.js'
+import { useRouter, useSearchParams } from 'next/navigation.js'
 import { signIn } from 'next-auth/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { loginUserAction } from '@/infrastructure/serverActions/loginUser.server.js'
@@ -19,6 +19,7 @@ interface FormErrors {
 
 export function useSignInForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -29,6 +30,16 @@ export function useSignInForm() {
     password: '',
     general: '',
   })
+
+  // Show a banner when redirected here after session expiry
+  useEffect(() => {
+    if (searchParams.get('error') === 'session_expired') {
+      setErrors((prev) => ({
+        ...prev,
+        general: 'Your session has expired. Please sign in again.',
+      }))
+    }
+  }, [searchParams])
 
   const [showPassword, setShowPassword] = useState(false)
 
@@ -119,6 +130,12 @@ export function useSignInForm() {
         email: formData.email,
         password: formData.password,
         redirect: false,
+        // Explicitly set callbackUrl to /dashboard so that NextAuth's returned
+        // URL is never /signin?error=session_expired. Without this, when the
+        // user signs in from that URL, next-auth parses the `error` query param
+        // from the current page URL and surfaces it as sessionResult.error,
+        // making a successful sign-in appear as a session creation failure.
+        callbackUrl: '/dashboard',
       })
 
       logger.info('[useSignInForm] NextAuth signIn result:', {

@@ -326,8 +326,14 @@ export async function middleware(request: Request) {
     return resp
   }
 
-  // Redirect authenticated users away from auth pages
-  if (isAuthRoute && isAuthenticated) {
+  // Redirect authenticated users away from auth pages.
+  // Exception: when the URL carries ?error=session_expired the server already
+  // detected that the session is expired (the jwt callback ran and the token
+  // refresh failed). The JWT cookie may not have the error persisted yet at
+  // middleware time, so `isAuthenticated` can still be `true` here — but we
+  // must NOT redirect back to /dashboard or the signin page will never render.
+  const isSessionExpiredRedirect = url.searchParams.get('error') === 'session_expired'
+  if (isAuthRoute && isAuthenticated && !isSessionExpiredRedirect) {
     const resp = NextResponse.redirect(new URL('/dashboard', request.url), 302)
     if (rateLimitResult) {
       attachRateLimitHeaders(resp, rateLimitResult)

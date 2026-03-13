@@ -406,6 +406,7 @@ export function CreateVectorStoreForm({
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent header="Read Chunk Size" body={chunkSizeText} />
+
           <Divider sx={{ my: 2 }} />
 
           <TextField
