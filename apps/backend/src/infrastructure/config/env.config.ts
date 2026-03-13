@@ -1,30 +1,11 @@
-import dotenv from 'dotenv'
+import 'varlock/auto-load'
+
 import { obscured } from 'obscured'
+import { ENV } from 'varlock/env'
 
 import packageJson from '../../../../../package.json' with { type: 'json' }
 
 const { version } = packageJson
-
-// Determine which env file to load based on NODE_ENV.
-// NODE_ENV is the only env var that must be set externally (e.g. in the shell or
-// the npm script) before this module is imported — it cannot come from a .env file
-// because we need it to decide *which* file to load.
-//
-// Load priority (highest → lowest):
-//   1. .env.<NODE_ENV>.local  — machine-local overrides for a specific environment
-//   2. .env.local             — machine-local overrides for all environments
-//   3. .env.<NODE_ENV>        — environment-specific defaults (committed to git)
-//   4. .env                   — shared defaults (committed to git)
-//
-// dotenv.config() silently skips a file that doesn't exist, so listing all four
-// paths is safe even when some are absent.
-process.env.NODE_ENV ??= 'development'
-const NODE_ENV = process.env.NODE_ENV
-
-dotenv.config({ path: `.env.${NODE_ENV}.local` })
-dotenv.config({ path: '.env.local' })
-dotenv.config({ path: `.env.${NODE_ENV}` })
-dotenv.config({ path: '.env' })
 
 const requiredEnvs: string[] = [
   'DATABASE_URL',
@@ -38,55 +19,48 @@ const requiredEnvs: string[] = [
 ]
 
 export class EnvConfig {
-  static readonly NODE_ENV = process.env.NODE_ENV || 'development'
-  static readonly DATABASE_URL = obscured.make(process.env.DATABASE_URL)
-  static readonly DATABASE_SSL_ENABLED = process.env.DATABASE_SSL_ENABLED || 'false'
-  static readonly DATABASE_SSL_REJECT_UNAUTHORIZED =
-    process.env.DATABASE_SSL_REJECT_UNAUTHORIZED || 'true'
-  static readonly GOOGLE_GENERATIVE_AI_API_KEY = obscured.make(
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY
-  )
-  static readonly MODEL_NAME = process.env.MODEL_NAME
-  static readonly PORT = process.env.PORT || '3000'
-  static readonly LOG_LEVEL = process.env.LOG_LEVEL || 'info'
-  static readonly DATABASE_CONNECTION_TIMEOUT_MS =
-    process.env.DATABASE_CONNECTION_TIMEOUT_MS || '5000'
-  static readonly DATABASE_IDLE_TIMEOUT_MS = process.env.DATABASE_IDLE_TIMEOUT_MS || '30000'
-  static readonly DATABASE_POOL_MAX = process.env.DATABASE_POOL_MAX || '20'
-  static readonly DATABASE_POOL_MIN = process.env.DATABASE_POOL_MIN || '5'
-  static readonly DATABASE_POOL_MAX_LIFETIME_SECONDS =
-    process.env.DATABASE_POOL_MAX_LIFETIME_SECONDS || '60'
-  static readonly RESEND_API_KEY = obscured.make(process.env.RESEND_API_KEY)
-  static readonly EMAIL_FROM_ADDRESS = process.env.EMAIL_FROM_ADDRESS || ''
-  static readonly HOST = process.env.HOST || '127.0.0.1'
-  static readonly USE_HTTPS = process.env.USE_HTTPS || 'true'
-  static readonly JWT_SECRET = process.env.JWT_SECRET
-  static readonly JWT_EXPIRATION = process.env.JWT_EXPIRATION || '3600' // 1 hour in seconds
-  static readonly JWT_ISSUER = process.env.JWT_ISSUER || 'my-app'
-  static readonly API_VERSION = process.env.API_VERSION || 'v1'
-  static readonly UPSTASH_REDIS_REST_URL = obscured.make(process.env.UPSTASH_REDIS_REST_URL)
-  static readonly UPSTASH_REDIS_REST_TOKEN = obscured.make(process.env.UPSTASH_REDIS_REST_TOKEN)
-  static readonly OAUTH_SYNC_SECRET = obscured.make(process.env.OAUTH_SYNC_SECRET)
-  static readonly SENTRY_DSN = obscured.make(process.env.SENTRY_DSN)
-  static readonly SENTRY_ENABLED =
-    process.env.SENTRY_ENABLED === 'false' ? '' : process.env.SENTRY_ENABLED || ''
-  static readonly SENTRY_AUTH_TOKEN = process.env.SENTRY_AUTH_TOKEN || ''
-  static readonly SENTRY_PROJECT = process.env.SENTRY_PROJECT || ''
-  static readonly SENTRY_ORG = process.env.SENTRY_ORG || ''
-  static readonly CLOUDFLARE_ACCESS_SECRET =
-    obscured.make(process.env.CLOUDFLARE_ACCESS_SECRET) || ''
-  static readonly CLOUDFLARE_ACCESS_ID = obscured.make(process.env.CLOUDFLARE_ACCESS_ID) || ''
-  static readonly CLOUDFLARE_ENDPOINT = process.env.CLOUDFLARE_ENDPOINT || ''
-  static readonly CLOUDFLARE_API = obscured.make(process.env.CLOUDFLARE_API) || ''
-  static readonly BUCKET = process.env.BUCKET || ''
-  static readonly OTEL_CAPTURE_QUERY_TEXT = process.env.OTEL_CAPTURE_QUERY_TEXT || 'false'
-  static readonly ENCRYPTION_KEY = obscured.make(process.env.ENCRYPTION_KEY) || ''
-  static readonly REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION || '604800' // 7 days in seconds
-  static readonly ACCESS_TOKEN_BUFFER = process.env.ACCESS_TOKEN_BUFFER || '300' // 5 minutes in seconds
-  static readonly SERVICE_NAME = process.env.SERVICE_NAME || 'norberts-spark-backend'
+  static readonly NODE_ENV = ENV.NODE_ENV || 'development'
+  static readonly DATABASE_URL = obscured.make(ENV.DATABASE_URL)
+  static readonly DATABASE_SSL_ENABLED = ENV.DATABASE_SSL_ENABLED ?? false
+  static readonly DATABASE_SSL_REJECT_UNAUTHORIZED = ENV.DATABASE_SSL_REJECT_UNAUTHORIZED ?? true
+  static readonly GOOGLE_GENERATIVE_AI_API_KEY = obscured.make(ENV.GOOGLE_GENERATIVE_AI_API_KEY)
+  static readonly MODEL_NAME = ENV.MODEL_NAME
+  static readonly PORT = ENV.PORT ?? 3001
+  static readonly LOG_LEVEL = ENV.LOG_LEVEL || 'info'
+  static readonly DATABASE_CONNECTION_TIMEOUT_MS = ENV.DATABASE_CONNECTION_TIMEOUT_MS ?? 5000
+  static readonly DATABASE_IDLE_TIMEOUT_MS = ENV.DATABASE_IDLE_TIMEOUT_MS ?? 30000
+  static readonly DATABASE_POOL_MAX = ENV.DATABASE_POOL_MAX ?? 20
+  static readonly DATABASE_POOL_MIN = ENV.DATABASE_POOL_MIN ?? 5
+  static readonly DATABASE_POOL_MAX_LIFETIME_SECONDS = ENV.DATABASE_POOL_MAX_LIFETIME_SECONDS ?? 60
+  static readonly RESEND_API_KEY = obscured.make(ENV.RESEND_API_KEY)
+  static readonly EMAIL_FROM_ADDRESS = ENV.EMAIL_FROM_ADDRESS || ''
+  static readonly HOST = ENV.HOST || '127.0.0.1'
+  static readonly USE_HTTPS = ENV.USE_HTTPS ?? true
+  static readonly JWT_SECRET = ENV.JWT_SECRET
+  static readonly JWT_EXPIRATION = ENV.JWT_EXPIRATION ?? 3600 // 1 hour in seconds
+  static readonly JWT_ISSUER = ENV.JWT_ISSUER || 'my-app'
+  static readonly API_VERSION = ENV.API_VERSION || 'v1'
+  static readonly UPSTASH_REDIS_REST_URL = obscured.make(ENV.UPSTASH_REDIS_REST_URL)
+  static readonly UPSTASH_REDIS_REST_TOKEN = obscured.make(ENV.UPSTASH_REDIS_REST_TOKEN)
+  static readonly OAUTH_SYNC_SECRET = obscured.make(ENV.OAUTH_SYNC_SECRET)
+  static readonly SENTRY_DSN = obscured.make(ENV.SENTRY_DSN)
+  static readonly SENTRY_ENABLED = ENV.SENTRY_ENABLED ?? false
+  static readonly SENTRY_AUTH_TOKEN = ENV.SENTRY_AUTH_TOKEN || ''
+  static readonly SENTRY_PROJECT = ENV.SENTRY_PROJECT || ''
+  static readonly SENTRY_ORG = ENV.SENTRY_ORG || ''
+  static readonly CLOUDFLARE_ACCESS_SECRET = obscured.make(ENV.CLOUDFLARE_ACCESS_SECRET) || ''
+  static readonly CLOUDFLARE_ACCESS_ID = obscured.make(ENV.CLOUDFLARE_ACCESS_ID) || ''
+  static readonly CLOUDFLARE_ENDPOINT = ENV.CLOUDFLARE_ENDPOINT || ''
+  static readonly CLOUDFLARE_API = obscured.make(ENV.CLOUDFLARE_API) || ''
+  static readonly BUCKET = ENV.BUCKET || ''
+  static readonly OTEL_CAPTURE_QUERY_TEXT = ENV.OTEL_CAPTURE_QUERY_TEXT ?? false
+  static readonly ENCRYPTION_KEY = obscured.make(ENV.ENCRYPTION_KEY) || ''
+  static readonly REFRESH_TOKEN_EXPIRATION = ENV.REFRESH_TOKEN_EXPIRATION ?? 604800 // 7 days in seconds
+  static readonly ACCESS_TOKEN_BUFFER = ENV.ACCESS_TOKEN_BUFFER ?? 300 // 5 minutes in seconds
+  static readonly SERVICE_NAME = ENV.SERVICE_NAME || 'norberts-spark-backend'
   static readonly APP_VERSION = version
   static validate(): void {
-    const missing = requiredEnvs.filter((key) => !Reflect.get(process.env, key))
+    const missing = requiredEnvs.filter((key) => !Reflect.get(ENV, key))
 
     if (missing.length > 0) {
       throw new Error(`Missing required environment variables: ${missing.join(', ')}`)

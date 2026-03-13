@@ -179,8 +179,7 @@ export class RegisterUserUseCase {
       roles: [dto.role],
     })
 
-    const expiresIn = Number.parseInt(EnvConfig.JWT_EXPIRATION, 10)
-    const safeExpiresIn = Number.isNaN(expiresIn) ? 3600 : expiresIn
+    const safeExpiresIn = EnvConfig.JWT_EXPIRATION || 3600
 
     return {
       userId: userId,

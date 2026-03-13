@@ -183,7 +183,7 @@ export class AIExtractDataController {
               system: `You will receive an invoice. Please extract the data from the invoice.`,
               output: Output.object({ schema: pdfSchema }),
               experimental_telemetry: {
-                isEnabled: EnvConfig.SENTRY_ENABLED === 'true',
+                isEnabled: EnvConfig.SENTRY_ENABLED,
                 recordInputs: true,
                 recordOutputs: true,
               },
@@ -270,7 +270,7 @@ export class AIExtractDataController {
             system: `You will receive an invoice. Please extract the data from the invoice.`,
             output: Output.object({ schema: pdfSchema }),
             experimental_telemetry: {
-              isEnabled: EnvConfig.SENTRY_ENABLED === 'true',
+              isEnabled: EnvConfig.SENTRY_ENABLED,
               recordInputs: true,
               recordOutputs: true,
             },

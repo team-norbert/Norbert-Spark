@@ -8,6 +8,6 @@
       "@norberts-spark/shared/*": ["../../packages/shared/dist/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "env.d.ts"],
   "exclude": ["node_modules", "dist", "../../.history", "eslint.config.ts"]
 }

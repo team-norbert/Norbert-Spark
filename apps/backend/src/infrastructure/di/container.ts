@@ -175,7 +175,7 @@ export class Container {
       const __dirname = dirname(__filename)
 
       const isDevelopment = EnvConfig.NODE_ENV !== 'production'
-      const useHttps = isDevelopment && EnvConfig.USE_HTTPS === 'true'
+      const useHttps = isDevelopment && EnvConfig.USE_HTTPS
 
       let httpsOptions: FastifyServerOptions | undefined
       if (useHttps) {
@@ -471,10 +471,10 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
    */
   async start(): Promise<void> {
     try {
-      const port = Number.parseInt(EnvConfig.PORT)
+      const port = EnvConfig.PORT
       const host = EnvConfig.HOST
       const isDevelopment = EnvConfig.NODE_ENV !== 'production'
-      const useHttps = isDevelopment && EnvConfig.USE_HTTPS === 'true'
+      const useHttps = isDevelopment && EnvConfig.USE_HTTPS
 
       await this.app.listen({ port, host })
       const protocol = useHttps ? 'https' : 'http'
