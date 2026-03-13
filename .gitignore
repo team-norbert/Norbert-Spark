@@ -193,3 +193,4 @@ apps/frontend/e2e/.test-db-config.json
 .turbo
 packages/shared/src/openapi.json
 **/env.d.ts
+apps/backend/env.d.ts
