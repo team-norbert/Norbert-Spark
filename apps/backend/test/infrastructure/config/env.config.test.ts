@@ -954,9 +954,9 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      // 'false' is passed through as-is; callers use a truthy check (if SENTRY_ENABLED)
-      // rather than a strict string comparison, so the string 'false' correctly
-      // disables Sentry because the string is truthy — but that is a caller concern.
+      // 'false' is passed through as-is; callers should *not* rely on a truthy check
+      // (if SENTRY_ENABLED) because the string 'false' is truthy and would enable Sentry.
+      // Disabling Sentry is a caller concern and should use explicit boolean logic or comparison.
       expect(EnvConfig.SENTRY_ENABLED).toBe('false')
     })
   })
