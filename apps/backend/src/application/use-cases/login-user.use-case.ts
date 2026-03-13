@@ -231,10 +231,11 @@ export class LoginUserUseCase {
     const tokenFamily = uuidv7() // New token family for this rotation chain
 
     // Calculate expiration date
-    const parsedExpiration = Number.parseInt(EnvConfig.REFRESH_TOKEN_EXPIRATION, 10)
-    const expiresInSeconds = Number.isNaN(parsedExpiration)
-      ? 7 * 24 * 60 * 60 // default 7 days in seconds
-      : parsedExpiration
+    const configuredExpiration = EnvConfig.REFRESH_TOKEN_EXPIRATION
+    const expiresInSeconds =
+      typeof configuredExpiration === 'number' && configuredExpiration > 0
+        ? configuredExpiration
+        : 7 * 24 * 60 * 60
     const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
 
     try {

@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 /**
  * Global test setup for Vitest
  *
@@ -7,6 +8,24 @@
  * IMPORTANT: This runs at module load time (before any imports) to ensure
  * environment variables are available when EnvConfig runs dotenv.config()
  */
+
+// Mock varlock globally so that `varlock/auto-load` never tries to run the
+// varlock CLI (which calls process.exit(1) in CI where no vault is present).
+// The ENV proxy delegates to process.env so tests can still mutate env vars.
+// Per-file vi.mock() calls for varlock override this global registration when present.
+vi.mock('varlock/auto-load', () => ({}))
+vi.mock('varlock/env', () => ({
+  ENV: new Proxy(
+    {},
+    {
+      get(_target, prop) {
+        if (typeof prop !== 'string') return undefined
+        // eslint-disable-next-line security/detect-object-injection
+        return process.env[prop]
+      },
+    }
+  ),
+}))
 
 // Set default environment variables for testing if not already set
 // These must be set at module level (not in beforeAll) to be available

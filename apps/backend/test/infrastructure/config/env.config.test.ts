@@ -1,6 +1,42 @@
 import type { Obscured } from 'obscured'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Mock varlock before any imports so that:
+//   1. `varlock/auto-load` doesn't spawn the `varlock load` CLI subprocess.
+//   2. `ENV.X` reads from `process.env.X` (strings), matching the behaviour that
+//      the rest of these tests were written against.
+// vi.mock() is hoisted by Vitest so both mocks are in effect for every dynamic
+// import inside the test suite, even after vi.resetModules() clears the cache.
+// Env vars that varlock declares as boolean type — the mock must coerce them so
+// that `ENV.USE_HTTPS` etc. return `true`/`false` instead of strings, matching
+// the real varlock behaviour that the rest of this test suite is written against.
+const BOOLEAN_ENV_KEYS = new Set([
+  'USE_HTTPS',
+  'DATABASE_SSL_ENABLED',
+  'DATABASE_SSL_REJECT_UNAUTHORIZED',
+])
+
+vi.mock('varlock/auto-load', () => ({}))
+vi.mock('varlock/env', () => ({
+  ENV: new Proxy(
+    {},
+    {
+      get(_target: Record<string, unknown>, prop: string | symbol) {
+        if (typeof prop !== 'string') return undefined
+        // eslint-disable-next-line security/detect-object-injection
+        const value = process.env[prop]
+        if (value === undefined) return undefined
+        if (prop === 'REFRESH_TOKEN_EXPIRATION') {
+          const parsed = Number(value)
+          return Number.isNaN(parsed) ? undefined : parsed
+        }
+        if (BOOLEAN_ENV_KEYS.has(prop)) return value === 'true'
+        return value
+      },
+    }
+  ),
+}))
+
 //TODO: these tests need refactoring as the environment mocking is incorrectly handled
 describe('EnvConfig', () => {
   let originalEnv: typeof process.env
@@ -288,7 +324,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.USE_HTTPS).toBe('false')
+      expect(EnvConfig.USE_HTTPS).toBe(false)
     })
 
     it('should default to "true" when USE_HTTPS is not set', async () => {
@@ -298,30 +334,30 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.USE_HTTPS).toBe('true')
+      expect(EnvConfig.USE_HTTPS).toBe(true)
     })
 
-    it('should have type string', async () => {
+    it('should have type boolean (varlock coerces string env vars to booleans)', async () => {
       process.env.USE_HTTPS = 'true'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
-      expect(EnvConfig.USE_HTTPS).toBe('true')
+      expect(typeof EnvConfig.USE_HTTPS).toBe('boolean')
+      expect(EnvConfig.USE_HTTPS).toBe(true)
     })
 
-    it('should not be obscured (plain string value)', async () => {
+    it('should not be obscured (plain boolean value)', async () => {
       process.env.USE_HTTPS = 'false'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      // USE_HTTPS should be a plain string, not obscured
-      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
-      expect(EnvConfig.USE_HTTPS).toBe('false')
+      // USE_HTTPS should be a plain boolean, not obscured
+      expect(typeof EnvConfig.USE_HTTPS).toBe('boolean')
+      expect(EnvConfig.USE_HTTPS).toBe(false)
       // Should not have obscured behavior
       expect(String(EnvConfig.USE_HTTPS)).toBe('false')
     })
@@ -333,7 +369,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.USE_HTTPS).toBe('true')
+      expect(EnvConfig.USE_HTTPS).toBe(true)
     })
 
     it('should accept "false" value', async () => {
@@ -343,19 +379,19 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.USE_HTTPS).toBe('false')
+      expect(EnvConfig.USE_HTTPS).toBe(false)
     })
 
-    it('should accept any string value (not strictly boolean)', async () => {
+    it('should coerce non-standard string values to false (varlock boolean fields only accept "true" as truthy)', async () => {
       process.env.USE_HTTPS = 'yes'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      // USE_HTTPS is a string, so it accepts any value
-      expect(EnvConfig.USE_HTTPS).toBe('yes')
-      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
+      // varlock parses boolean fields strictly — only 'true' maps to true; anything else is false
+      expect(EnvConfig.USE_HTTPS).toBe(false)
+      expect(typeof EnvConfig.USE_HTTPS).toBe('boolean')
     })
   })
   describe('API_VERSION', () => {
@@ -576,8 +612,8 @@ describe('EnvConfig', () => {
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
       expect(EnvConfig.USE_HTTPS).toBeDefined()
-      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
-      expect(EnvConfig.USE_HTTPS).toBe('false')
+      expect(typeof EnvConfig.USE_HTTPS).toBe('boolean')
+      expect(EnvConfig.USE_HTTPS).toBe(false)
     })
 
     it('should have static API_VERSION property accessible without instantiation', async () => {
@@ -873,7 +909,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.SENTRY_ENABLED).toBe('true')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(true)
     })
 
     it('should use value from .env when SENTRY_ENABLED env var is deleted', async () => {
@@ -887,8 +923,8 @@ describe('EnvConfig', () => {
       // Dotenv reloads .env file which may have SENTRY_ENABLED set
       // When not explicitly set, it uses the .env value or defaults to empty string
       // In local dev, .env may have SENTRY_ENABLED=true, but in CI it may be unset
-      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('string')
-      expect(['true', 'false', '']).toContain(EnvConfig.SENTRY_ENABLED)
+      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
+      expect([true, false]).toContain(EnvConfig.SENTRY_ENABLED)
     })
 
     it('should have type string', async () => {
@@ -898,8 +934,8 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('string')
-      expect(EnvConfig.SENTRY_ENABLED).toBe('production-enabled')
+      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(false)
     })
 
     it('should not be obscured (plain value)', async () => {
@@ -910,13 +946,11 @@ describe('EnvConfig', () => {
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
       // SENTRY_ENABLED should be a plain string, not obscured
-      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('string')
-      expect(EnvConfig.SENTRY_ENABLED).toBe('dev-sentry-enabled')
-      // Should not have obscured behavior
-      expect(String(EnvConfig.SENTRY_ENABLED)).toBe('dev-sentry-enabled')
+      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(false)
     })
 
-    it('should return empty string for empty string value', async () => {
+    it('should return boolean false for empty string value', async () => {
       process.env.SENTRY_ENABLED = ''
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
@@ -924,18 +958,20 @@ describe('EnvConfig', () => {
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
       // Empty string is falsy, so it defaults to empty string
-      expect(EnvConfig.SENTRY_ENABLED).toBe('')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(false)
     })
 
-    it('should return empty string when explicitly set to "false"', async () => {
+    it('should return boolean when explicitly set to string "false"', async () => {
       process.env.SENTRY_ENABLED = 'false'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      // Special case: 'false' string returns empty string to disable Sentry
-      expect(EnvConfig.SENTRY_ENABLED).toBe('')
+      // 'false' is passed through as-is; callers should *not* rely on a truthy check
+      // (if SENTRY_ENABLED) because the string 'false' is truthy and would enable Sentry.
+      // Disabling Sentry is a caller concern and should use explicit boolean logic or comparison.
+      expect(EnvConfig.SENTRY_ENABLED).toBe(false)
     })
   })
 
@@ -1493,7 +1529,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('1209600')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe(1209600)
     })
 
     it('should default to "604800" (7 days) when REFRESH_TOKEN_EXPIRATION is not set', async () => {
@@ -1510,20 +1546,20 @@ describe('EnvConfig', () => {
 
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('604800')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe(604800)
 
       vi.doUnmock('dotenv')
     })
 
-    it('should have type string', async () => {
+    it('should have type number', async () => {
       process.env.REFRESH_TOKEN_EXPIRATION = '86400'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('string')
-      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('86400')
+      expect(typeof EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('number')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe(86400)
     })
 
     it('should not be obscured (plain string value)', async () => {
@@ -1533,8 +1569,8 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('string')
-      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('604800')
+      expect(typeof EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('number')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe(604800)
       expect(String(EnvConfig.REFRESH_TOKEN_EXPIRATION)).toBe('604800')
     })
 
@@ -1545,7 +1581,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('2592000')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe(2592000)
     })
   })
 
@@ -1586,7 +1622,7 @@ describe('EnvConfig', () => {
 
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.ACCESS_TOKEN_BUFFER).toBe('300')
+      expect(EnvConfig.ACCESS_TOKEN_BUFFER).toBe(300)
 
       vi.doUnmock('dotenv')
     })

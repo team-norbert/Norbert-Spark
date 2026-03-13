@@ -320,7 +320,7 @@ export class AIController {
       messages: await convertToModelMessages(messages as UIMessage[]),
       system: systemPrompt.prompt,
       experimental_telemetry: {
-        isEnabled: EnvConfig.SENTRY_ENABLED === 'true',
+        isEnabled: EnvConfig.SENTRY_ENABLED,
         recordInputs: true,
         recordOutputs: true,
       },

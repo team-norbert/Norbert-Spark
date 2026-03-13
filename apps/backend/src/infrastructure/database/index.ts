@@ -20,14 +20,14 @@ if (!obscured.value(EnvConfig.DATABASE_URL)) {
 export const pool = new Pool({
   connectionString: obscured.value(EnvConfig.DATABASE_URL),
   ssl:
-    EnvConfig.DATABASE_SSL_ENABLED === 'true'
-      ? { rejectUnauthorized: EnvConfig.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false' }
+    String(EnvConfig.DATABASE_SSL_ENABLED) === 'true'
+      ? { rejectUnauthorized: String(EnvConfig.DATABASE_SSL_REJECT_UNAUTHORIZED) !== 'false' }
       : false,
-  connectionTimeoutMillis: Number.parseInt(EnvConfig.DATABASE_CONNECTION_TIMEOUT_MS),
-  idleTimeoutMillis: Number.parseInt(EnvConfig.DATABASE_IDLE_TIMEOUT_MS),
-  max: Number.parseInt(EnvConfig.DATABASE_POOL_MAX),
-  min: Number.parseInt(EnvConfig.DATABASE_POOL_MIN),
-  maxLifetimeSeconds: Number.parseInt(EnvConfig.DATABASE_POOL_MAX_LIFETIME_SECONDS),
+  connectionTimeoutMillis: Number(EnvConfig.DATABASE_CONNECTION_TIMEOUT_MS),
+  idleTimeoutMillis: Number(EnvConfig.DATABASE_IDLE_TIMEOUT_MS),
+  max: Number(EnvConfig.DATABASE_POOL_MAX),
+  min: Number(EnvConfig.DATABASE_POOL_MIN),
+  maxLifetimeSeconds: Number(EnvConfig.DATABASE_POOL_MAX_LIFETIME_SECONDS),
 })
 
 pool.on('error', (err) => {
@@ -38,7 +38,7 @@ pool.on('error', (err) => {
 const db = drizzle(pool)
 
 const shouldCaptureQueryText =
-  EnvConfig.NODE_ENV !== 'production' && EnvConfig.OTEL_CAPTURE_QUERY_TEXT === 'true'
+  EnvConfig.NODE_ENV !== 'production' && EnvConfig.OTEL_CAPTURE_QUERY_TEXT
 
 const instrumentedDb = instrumentDrizzleClient(db, {
   captureQueryText: shouldCaptureQueryText,

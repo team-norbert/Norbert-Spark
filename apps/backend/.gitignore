@@ -17,3 +17,5 @@ postgres-config/log/
 data/file-system-db.local/
 .devtools
 src/shared/data/embedding_models.json
+
+!.env.schema
