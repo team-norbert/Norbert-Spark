@@ -97,7 +97,7 @@ export class JwtUtil {
   static generateToken(claims: JwtUserClaims): string {
     const { sub, ...restClaims } = claims
     const options: SignOptions = {
-      expiresIn: EnvConfig.JWT_EXPIRATION,
+      expiresIn: Number(EnvConfig.JWT_EXPIRATION),
       issuer: EnvConfig.JWT_ISSUER,
     }
     // Use the branded user ID string directly for the JWT subject
