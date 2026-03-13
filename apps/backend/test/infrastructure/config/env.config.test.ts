@@ -318,7 +318,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.USE_HTTPS).toBe('true')
+      expect(EnvConfig.USE_HTTPS).toBe(true)
     })
 
     it('should have type string', async () => {
@@ -907,8 +907,8 @@ describe('EnvConfig', () => {
       // Dotenv reloads .env file which may have SENTRY_ENABLED set
       // When not explicitly set, it uses the .env value or defaults to empty string
       // In local dev, .env may have SENTRY_ENABLED=true, but in CI it may be unset
-      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('string')
-      expect(['true', 'false', '']).toContain(EnvConfig.SENTRY_ENABLED)
+      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
+      expect([true, false]).toContain(EnvConfig.SENTRY_ENABLED)
     })
 
     it('should have type string', async () => {
@@ -1532,7 +1532,7 @@ describe('EnvConfig', () => {
 
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('604800')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe(604800)
 
       vi.doUnmock('dotenv')
     })
@@ -1608,7 +1608,7 @@ describe('EnvConfig', () => {
 
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.ACCESS_TOKEN_BUFFER).toBe('300')
+      expect(EnvConfig.ACCESS_TOKEN_BUFFER).toBe(300)
 
       vi.doUnmock('dotenv')
     })
