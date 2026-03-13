@@ -160,7 +160,18 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
         .filter(Boolean)
     }
   } else {
-    allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://localhost:3000']
+    allowedOrigins = [
+      // Next.js dev server
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'https://localhost:3000',
+      'https://127.0.0.1:3000',
+      // Next.js production / standalone server (pnpm start:e2e and manual prod runs)
+      'http://localhost:4321',
+      'http://127.0.0.1:4321',
+      'https://localhost:4321',
+      'https://127.0.0.1:4321',
+    ]
   }
   fastify.register(cors, {
     origin: allowedOrigins,

@@ -468,6 +468,9 @@ importers:
       cross-env:
         specifier: 10.1.0
         version: 10.1.0
+      dotenv:
+        specifier: ^17.3.1
+        version: 17.3.1
       drizzle-orm:
         specifier: ^0.45.1
         version: 0.45.1(@opentelemetry/api@1.9.0)(@types/pg@8.18.0)(@upstash/redis@1.36.4)(better-sqlite3@11.10.0)(pg@8.20.0)(postgres@3.4.8)

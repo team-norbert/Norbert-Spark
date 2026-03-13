@@ -5,7 +5,26 @@ import packageJson from '../../../../../package.json' with { type: 'json' }
 
 const { version } = packageJson
 
-dotenv.config()
+// Determine which env file to load based on NODE_ENV.
+// NODE_ENV is the only env var that must be set externally (e.g. in the shell or
+// the npm script) before this module is imported — it cannot come from a .env file
+// because we need it to decide *which* file to load.
+//
+// Load priority (highest → lowest):
+//   1. .env.<NODE_ENV>.local  — machine-local overrides for a specific environment
+//   2. .env.local             — machine-local overrides for all environments
+//   3. .env.<NODE_ENV>        — environment-specific defaults (committed to git)
+//   4. .env                   — shared defaults (committed to git)
+//
+// dotenv.config() silently skips a file that doesn't exist, so listing all four
+// paths is safe even when some are absent.
+process.env.NODE_ENV ??= 'development'
+const NODE_ENV = process.env.NODE_ENV
+
+dotenv.config({ path: `.env.${NODE_ENV}.local` })
+dotenv.config({ path: '.env.local' })
+dotenv.config({ path: `.env.${NODE_ENV}` })
+dotenv.config({ path: '.env' })
 
 const requiredEnvs: string[] = [
   'DATABASE_URL',
