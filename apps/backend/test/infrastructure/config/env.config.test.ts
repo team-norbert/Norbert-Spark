@@ -27,7 +27,6 @@ vi.mock('varlock/env', () => ({
         const value = process.env[prop]
         if (value === undefined) return undefined
         if (prop === 'REFRESH_TOKEN_EXPIRATION') {
-          if (value === undefined) return undefined
           const parsed = Number(value)
           return Number.isNaN(parsed) ? undefined : parsed
         }
