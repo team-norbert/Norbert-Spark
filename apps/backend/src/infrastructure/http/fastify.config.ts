@@ -220,7 +220,7 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     staticCSP: true,
   })
 
-  if (EnvConfig.SENTRY_ENABLED) {
+  if (EnvConfig.SENTRY_ENABLED === true) {
     Sentry.setupFastifyErrorHandler(fastify)
   }
 

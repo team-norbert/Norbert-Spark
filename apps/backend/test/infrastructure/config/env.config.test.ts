@@ -910,7 +910,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.SENTRY_ENABLED).toBe('true')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(true)
     })
 
     it('should use value from .env when SENTRY_ENABLED env var is deleted', async () => {
@@ -935,8 +935,8 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('string')
-      expect(EnvConfig.SENTRY_ENABLED).toBe('production-enabled')
+      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(false)
     })
 
     it('should not be obscured (plain value)', async () => {
@@ -947,13 +947,11 @@ describe('EnvConfig', () => {
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
       // SENTRY_ENABLED should be a plain string, not obscured
-      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('string')
-      expect(EnvConfig.SENTRY_ENABLED).toBe('dev-sentry-enabled')
-      // Should not have obscured behavior
-      expect(String(EnvConfig.SENTRY_ENABLED)).toBe('dev-sentry-enabled')
+      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(false)
     })
 
-    it('should return empty string for empty string value', async () => {
+    it('should return boolean false for empty string value', async () => {
       process.env.SENTRY_ENABLED = ''
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
@@ -961,10 +959,10 @@ describe('EnvConfig', () => {
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
       // Empty string is falsy, so it defaults to empty string
-      expect(EnvConfig.SENTRY_ENABLED).toBe('')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(false)
     })
 
-    it('should return "false" when explicitly set to "false"', async () => {
+    it('should return boolean when explicitly set to string "false"', async () => {
       process.env.SENTRY_ENABLED = 'false'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
@@ -974,7 +972,7 @@ describe('EnvConfig', () => {
       // 'false' is passed through as-is; callers should *not* rely on a truthy check
       // (if SENTRY_ENABLED) because the string 'false' is truthy and would enable Sentry.
       // Disabling Sentry is a caller concern and should use explicit boolean logic or comparison.
-      expect(EnvConfig.SENTRY_ENABLED).toBe('false')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(false)
     })
   })
 
