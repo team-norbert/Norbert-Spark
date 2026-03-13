@@ -44,7 +44,7 @@ export class EnvConfig {
   static readonly UPSTASH_REDIS_REST_TOKEN = obscured.make(ENV.UPSTASH_REDIS_REST_TOKEN)
   static readonly OAUTH_SYNC_SECRET = obscured.make(ENV.OAUTH_SYNC_SECRET)
   static readonly SENTRY_DSN = obscured.make(ENV.SENTRY_DSN)
-  static readonly SENTRY_ENABLED = ENV.SENTRY_ENABLED ?? false
+  static readonly SENTRY_ENABLED = EnvConfig.parseBooleanEnv(ENV.SENTRY_ENABLED, false)
   static readonly SENTRY_AUTH_TOKEN = ENV.SENTRY_AUTH_TOKEN || ''
   static readonly SENTRY_PROJECT = ENV.SENTRY_PROJECT || ''
   static readonly SENTRY_ORG = ENV.SENTRY_ORG || ''
@@ -59,6 +59,21 @@ export class EnvConfig {
   static readonly ACCESS_TOKEN_BUFFER = ENV.ACCESS_TOKEN_BUFFER ?? 300 // 5 minutes in seconds
   static readonly SERVICE_NAME = ENV.SERVICE_NAME || 'norberts-spark-backend'
   static readonly APP_VERSION = version
+  private static parseBooleanEnv(value: unknown, defaultValue: boolean): boolean {
+    if (typeof value === 'boolean') {
+      return value
+    }
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase()
+      if (['true', '1', 'yes', 'on'].includes(normalized)) {
+        return true
+      }
+      if (['false', '0', 'no', 'off'].includes(normalized)) {
+        return false
+      }
+    }
+    return defaultValue
+  }
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !Reflect.get(ENV, key))
 
