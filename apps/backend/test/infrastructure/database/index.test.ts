@@ -1,5 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Prevent varlock/auto-load from spawning the CLI subprocess, and make ENV
+// read live from process.env so test mutations take effect.
+vi.mock('varlock/auto-load', () => ({}))
+vi.mock('varlock/env', () => ({
+  ENV: new Proxy(
+    {},
+    {
+      get(_target: Record<string, unknown>, prop: string | symbol) {
+        if (typeof prop !== 'string') return undefined
+        // eslint-disable-next-line security/detect-object-injection
+        return process.env[prop]
+      },
+    }
+  ),
+}))
+
 describe('Database Index', () => {
   let originalEnv: typeof process.env
 
@@ -76,7 +92,7 @@ describe('Database Index', () => {
 
   describe('Error Handling', () => {
     it('should throw ValidationException when DATABASE_URL is undefined', async () => {
-      process.env.DATABASE_URL = undefined
+      delete process.env.DATABASE_URL
 
       await expect(import('../../../src/infrastructure/database/index.js')).rejects.toThrow(
         'DATABASE_URL is required but not configured'

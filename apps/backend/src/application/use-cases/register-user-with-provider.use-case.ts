@@ -214,7 +214,7 @@ export class RegisterUserWithProviderUseCase {
     const tokenFamily = uuidv7() // New token family for this rotation chain
 
     // Calculate expiration date
-    const expiresInSeconds = EnvConfig.REFRESH_TOKEN_EXPIRATION || 7 * 24 * 60 * 60
+    const expiresInSeconds = Number(EnvConfig.REFRESH_TOKEN_EXPIRATION) || 7 * 24 * 60 * 60
     const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
 
     try {

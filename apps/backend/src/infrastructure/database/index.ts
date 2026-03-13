@@ -19,14 +19,15 @@ if (!obscured.value(EnvConfig.DATABASE_URL)) {
 
 export const pool = new Pool({
   connectionString: obscured.value(EnvConfig.DATABASE_URL),
-  ssl: EnvConfig.DATABASE_SSL_ENABLED
-    ? { rejectUnauthorized: EnvConfig.DATABASE_SSL_REJECT_UNAUTHORIZED }
-    : false,
-  connectionTimeoutMillis: EnvConfig.DATABASE_CONNECTION_TIMEOUT_MS,
-  idleTimeoutMillis: EnvConfig.DATABASE_IDLE_TIMEOUT_MS,
-  max: EnvConfig.DATABASE_POOL_MAX,
-  min: EnvConfig.DATABASE_POOL_MIN,
-  maxLifetimeSeconds: EnvConfig.DATABASE_POOL_MAX_LIFETIME_SECONDS,
+  ssl:
+    String(EnvConfig.DATABASE_SSL_ENABLED) === 'true'
+      ? { rejectUnauthorized: String(EnvConfig.DATABASE_SSL_REJECT_UNAUTHORIZED) !== 'false' }
+      : false,
+  connectionTimeoutMillis: Number(EnvConfig.DATABASE_CONNECTION_TIMEOUT_MS),
+  idleTimeoutMillis: Number(EnvConfig.DATABASE_IDLE_TIMEOUT_MS),
+  max: Number(EnvConfig.DATABASE_POOL_MAX),
+  min: Number(EnvConfig.DATABASE_POOL_MIN),
+  maxLifetimeSeconds: Number(EnvConfig.DATABASE_POOL_MAX_LIFETIME_SECONDS),
 })
 
 pool.on('error', (err) => {

@@ -35,7 +35,7 @@ export class EnvConfig {
   static readonly RESEND_API_KEY = obscured.make(ENV.RESEND_API_KEY)
   static readonly EMAIL_FROM_ADDRESS = ENV.EMAIL_FROM_ADDRESS || ''
   static readonly HOST = ENV.HOST || '127.0.0.1'
-  static readonly USE_HTTPS = ENV.USE_HTTPS ?? true
+  static readonly USE_HTTPS = ENV.USE_HTTPS ?? 'true'
   static readonly JWT_SECRET = ENV.JWT_SECRET
   static readonly JWT_EXPIRATION = ENV.JWT_EXPIRATION ?? 3600 // 1 hour in seconds
   static readonly JWT_ISSUER = ENV.JWT_ISSUER || 'my-app'
@@ -44,7 +44,7 @@ export class EnvConfig {
   static readonly UPSTASH_REDIS_REST_TOKEN = obscured.make(ENV.UPSTASH_REDIS_REST_TOKEN)
   static readonly OAUTH_SYNC_SECRET = obscured.make(ENV.OAUTH_SYNC_SECRET)
   static readonly SENTRY_DSN = obscured.make(ENV.SENTRY_DSN)
-  static readonly SENTRY_ENABLED = ENV.SENTRY_ENABLED ?? false
+  static readonly SENTRY_ENABLED = ENV.SENTRY_ENABLED ?? ''
   static readonly SENTRY_AUTH_TOKEN = ENV.SENTRY_AUTH_TOKEN || ''
   static readonly SENTRY_PROJECT = ENV.SENTRY_PROJECT || ''
   static readonly SENTRY_ORG = ENV.SENTRY_ORG || ''
@@ -55,8 +55,8 @@ export class EnvConfig {
   static readonly BUCKET = ENV.BUCKET || ''
   static readonly OTEL_CAPTURE_QUERY_TEXT = ENV.OTEL_CAPTURE_QUERY_TEXT ?? false
   static readonly ENCRYPTION_KEY = obscured.make(ENV.ENCRYPTION_KEY) || ''
-  static readonly REFRESH_TOKEN_EXPIRATION = ENV.REFRESH_TOKEN_EXPIRATION ?? 604800 // 7 days in seconds
-  static readonly ACCESS_TOKEN_BUFFER = ENV.ACCESS_TOKEN_BUFFER ?? 300 // 5 minutes in seconds
+  static readonly REFRESH_TOKEN_EXPIRATION = ENV.REFRESH_TOKEN_EXPIRATION ?? '604800' // 7 days in seconds
+  static readonly ACCESS_TOKEN_BUFFER = ENV.ACCESS_TOKEN_BUFFER ?? '300' // 5 minutes in seconds
   static readonly SERVICE_NAME = ENV.SERVICE_NAME || 'norberts-spark-backend'
   static readonly APP_VERSION = version
   static validate(): void {
