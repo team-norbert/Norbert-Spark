@@ -265,8 +265,7 @@ export class AIExtractDataController {
         this.logger.debug('Processing PDF file', { path: fileKey })
 
         try {
-          const isTelemetryEnabled =
-            EnvConfig.SENTRY_ENABLED === true
+          const isTelemetryEnabled = EnvConfig.SENTRY_ENABLED === true
 
           const result = streamText({
             model: google(EnvConfig.MODEL_NAME as string),

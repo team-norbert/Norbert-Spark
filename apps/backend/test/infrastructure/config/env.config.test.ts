@@ -24,10 +24,15 @@ vi.mock('varlock/env', () => ({
       get(_target: Record<string, unknown>, prop: string | symbol) {
         if (typeof prop !== 'string') return undefined
         // eslint-disable-next-line security/detect-object-injection
-        const val = process.env[prop]
-        if (val === undefined) return undefined
-        if (BOOLEAN_ENV_KEYS.has(prop)) return val === 'true'
-        return val
+        const value = process.env[prop]
+        if (value === undefined) return undefined
+        if (prop === 'REFRESH_TOKEN_EXPIRATION') {
+          if (value === undefined) return undefined
+          const parsed = Number(value)
+          return Number.isNaN(parsed) ? undefined : parsed
+        }
+        if (BOOLEAN_ENV_KEYS.has(prop)) return value === 'true'
+        return value
       },
     }
   ),
@@ -1527,7 +1532,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('1209600')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe(1209600)
     })
 
     it('should default to "604800" (7 days) when REFRESH_TOKEN_EXPIRATION is not set', async () => {
@@ -1549,15 +1554,15 @@ describe('EnvConfig', () => {
       vi.doUnmock('dotenv')
     })
 
-    it('should have type string', async () => {
+    it('should have type number', async () => {
       process.env.REFRESH_TOKEN_EXPIRATION = '86400'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('string')
-      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('86400')
+      expect(typeof EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('number')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe(86400)
     })
 
     it('should not be obscured (plain string value)', async () => {
@@ -1567,8 +1572,8 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('string')
-      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('604800')
+      expect(typeof EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('number')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe(604800)
       expect(String(EnvConfig.REFRESH_TOKEN_EXPIRATION)).toBe('604800')
     })
 
@@ -1579,7 +1584,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe('2592000')
+      expect(EnvConfig.REFRESH_TOKEN_EXPIRATION).toBe(2592000)
     })
   })
 
