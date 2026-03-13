@@ -6,7 +6,26 @@ import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql'
+import dotenv from 'dotenv'
 import postgres from 'postgres'
+
+// Load env files before anything else so all subsequent process.env references
+// and spawn({ env: { ...process.env } }) calls include the correct values.
+//
+// Priority (highest → lowest — dotenv never overwrites an already-set var):
+//   1. .env.test.local  — machine-local overrides for the test environment
+//   2. .env.local       — machine-local secrets (GOOGLE_ID, GOOGLE_SECRET, etc.)
+//   3. .env.test        — committed test-environment defaults
+//   4. .env             — base fallback
+//
+// All paths are relative to apps/frontend/ where Playwright is rooted.
+//
+// NOTE: NODE_ENV is explicitly set in every subprocess spawn below, so any
+// value a .env file may inject into this process has no effect on subprocesses.
+dotenv.config({ path: '.env.test.local' })
+dotenv.config({ path: '.env.local' })
+dotenv.config({ path: '.env.test' })
+dotenv.config({ path: '.env' })
 
 /* eslint-disable-next-line no-undef */
 type ProcessEnv = NodeJS.ProcessEnv
@@ -189,12 +208,20 @@ async function globalSetup() {
       cwd: frontendPath,
       env: {
         ...process.env,
+        // NODE_ENV must be 'production' for next build — override anything that
+        // may have leaked in from the shell or a .env file.
+        NODE_ENV: 'production',
         DATABASE_URL: connectionString,
         BACKEND_AI_CALLBACK_URL: 'http://localhost:3000/api/v1',
         NEXT_PUBLIC_BASE_URL: 'http://localhost:4321',
         NEXT_PUBLIC_POST_AI_CALLBACK_URL: 'http://localhost:3000/api/v1/ai/chat',
         NEXTAUTH_URL: 'http://localhost:4321',
         NEXTAUTH_SECRET: 'e2e-test-secret-minimum-32-chars-long',
+        // Secrets sourced from .env.local — needed for env validation at build time
+        GOOGLE_ID: process.env.GOOGLE_ID,
+        GOOGLE_SECRET: process.env.GOOGLE_SECRET,
+        BACKEND_URL: process.env.BACKEND_URL,
+        OAUTH_SYNC_SECRET: process.env.OAUTH_SYNC_SECRET,
       },
     })
     console.warn('✅ Next.js production build complete')
@@ -251,6 +278,13 @@ async function globalSetup() {
         NEXT_PUBLIC_POST_AI_CALLBACK_URL: 'http://localhost:3000/api/v1/ai/chat',
         NEXTAUTH_URL: 'http://localhost:4321',
         NEXTAUTH_SECRET: 'e2e-test-secret-minimum-32-chars-long',
+        // Secrets sourced from .env.local — loaded by dotenv at the top of this file.
+        // Listing them explicitly here ensures the standalone server receives them
+        // even if the OS-level environment doesn't already have them set.
+        GOOGLE_ID: process.env.GOOGLE_ID,
+        GOOGLE_SECRET: process.env.GOOGLE_SECRET,
+        BACKEND_URL: process.env.BACKEND_URL,
+        OAUTH_SYNC_SECRET: process.env.OAUTH_SYNC_SECRET,
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     })
