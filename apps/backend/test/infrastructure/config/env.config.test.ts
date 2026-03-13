@@ -15,6 +15,12 @@ vi.mock('varlock/env', () => ({
       get(_target: Record<string, unknown>, prop: string | symbol) {
         if (typeof prop !== 'string') return undefined
         // eslint-disable-next-line security/detect-object-injection
+        if (prop === 'SENTRY_ENABLED') {
+          const raw = process.env.SENTRY_ENABLED
+          if (raw === undefined) return undefined
+          return raw === 'true'
+        }
+        // eslint-disable-next-line security/detect-object-injection
         return process.env[prop]
       },
     }
@@ -875,7 +881,7 @@ describe('EnvConfig', () => {
 
   describe('SENTRY_ENABLED', () => {
     it('should be a static readonly property', async () => {
-      process.env.SENTRY_ENABLED = 'my-sentry-enabled'
+      process.env.SENTRY_ENABLED = 'true'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
@@ -893,7 +899,8 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.SENTRY_ENABLED).toBe('true')
+      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(true)
     })
 
     it('should use value from .env when SENTRY_ENABLED env var is deleted', async () => {
@@ -911,29 +918,29 @@ describe('EnvConfig', () => {
       expect([true, false]).toContain(EnvConfig.SENTRY_ENABLED)
     })
 
-    it('should have type string', async () => {
-      process.env.SENTRY_ENABLED = 'production-enabled'
+    it('should have type boolean', async () => {
+      process.env.SENTRY_ENABLED = 'true'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('string')
-      expect(EnvConfig.SENTRY_ENABLED).toBe('production-enabled')
+      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(true)
     })
 
     it('should not be obscured (plain value)', async () => {
-      process.env.SENTRY_ENABLED = 'dev-sentry-enabled'
+      process.env.SENTRY_ENABLED = 'false'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      // SENTRY_ENABLED should be a plain string, not obscured
-      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('string')
-      expect(EnvConfig.SENTRY_ENABLED).toBe('dev-sentry-enabled')
+      // SENTRY_ENABLED should be a plain boolean, not obscured
+      expect(typeof EnvConfig.SENTRY_ENABLED).toBe('boolean')
+      expect(EnvConfig.SENTRY_ENABLED).toBe(false)
       // Should not have obscured behavior
-      expect(String(EnvConfig.SENTRY_ENABLED)).toBe('dev-sentry-enabled')
+      expect(String(EnvConfig.SENTRY_ENABLED)).toBe('false')
     })
 
     it('should return empty string for empty string value', async () => {
