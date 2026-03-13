@@ -179,7 +179,7 @@ export class RegisterUserUseCase {
       roles: [dto.role],
     })
 
-    const safeExpiresIn = EnvConfig.JWT_EXPIRATION || 3600
+    const safeExpiresIn = EnvConfig.JWT_EXPIRATION ?? 3600
 
     return {
       userId: userId,
