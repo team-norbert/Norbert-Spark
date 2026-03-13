@@ -217,7 +217,11 @@ export class RefreshAccessTokenUseCase {
       const newRefreshToken = RefreshToken.generate()
 
       // e. Store new refresh token with SAME tokenFamily
-      const expiresInSeconds = Number(EnvConfig.REFRESH_TOKEN_EXPIRATION) || 7 * 24 * 60 * 60
+      const configuredExpiration = Number(EnvConfig.REFRESH_TOKEN_EXPIRATION)
+      const expiresInSeconds =
+        Number.isFinite(configuredExpiration) && configuredExpiration > 0
+          ? configuredExpiration
+          : 7 * 24 * 60 * 60
       const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
 
       try {
