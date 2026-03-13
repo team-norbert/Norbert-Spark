@@ -35,7 +35,7 @@ export class EnvConfig {
   static readonly RESEND_API_KEY = obscured.make(ENV.RESEND_API_KEY)
   static readonly EMAIL_FROM_ADDRESS = ENV.EMAIL_FROM_ADDRESS || ''
   static readonly HOST = ENV.HOST || '127.0.0.1'
-  static readonly USE_HTTPS = ENV.USE_HTTPS ?? 'true'
+  static readonly USE_HTTPS = ENV.USE_HTTPS ?? true
   static readonly JWT_SECRET = ENV.JWT_SECRET
   static readonly JWT_EXPIRATION = ENV.JWT_EXPIRATION ?? 3600 // 1 hour in seconds
   static readonly JWT_ISSUER = ENV.JWT_ISSUER || 'my-app'
