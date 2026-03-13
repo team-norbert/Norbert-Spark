@@ -18,7 +18,8 @@ const { version } = packageJson
 //
 // dotenv.config() silently skips a file that doesn't exist, so listing all four
 // paths is safe even when some are absent.
-const NODE_ENV = process.env.NODE_ENV ?? 'development'
+process.env.NODE_ENV ??= 'development'
+const NODE_ENV = process.env.NODE_ENV
 
 dotenv.config({ path: `.env.${NODE_ENV}.local` })
 dotenv.config({ path: '.env.local' })
