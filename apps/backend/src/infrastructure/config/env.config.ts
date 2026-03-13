@@ -55,8 +55,8 @@ export class EnvConfig {
   static readonly BUCKET = ENV.BUCKET || ''
   static readonly OTEL_CAPTURE_QUERY_TEXT = ENV.OTEL_CAPTURE_QUERY_TEXT ?? false
   static readonly ENCRYPTION_KEY = obscured.make(ENV.ENCRYPTION_KEY) || ''
-  static readonly REFRESH_TOKEN_EXPIRATION = ENV.REFRESH_TOKEN_EXPIRATION ?? '604800' // 7 days in seconds
-  static readonly ACCESS_TOKEN_BUFFER = ENV.ACCESS_TOKEN_BUFFER ?? '300' // 5 minutes in seconds
+  static readonly REFRESH_TOKEN_EXPIRATION = ENV.REFRESH_TOKEN_EXPIRATION ?? 604800 // 7 days in seconds
+  static readonly ACCESS_TOKEN_BUFFER = ENV.ACCESS_TOKEN_BUFFER ?? 300 // 5 minutes in seconds
   static readonly SERVICE_NAME = ENV.SERVICE_NAME || 'norberts-spark-backend'
   static readonly APP_VERSION = version
   static validate(): void {
