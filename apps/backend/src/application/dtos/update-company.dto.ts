@@ -12,7 +12,7 @@ import { ValidationException } from '../../shared/exceptions/validation.exceptio
  * during an update operation.
  */
 export type CompanyUpdate = {
-  /** UUID of the company to update. Must be a valid v4 UUID when present. */
+  /** UUID of the company to update. Must be a valid v7 UUID when present. */
   companyId?: string
   /**
    * Official legal name of the company.
