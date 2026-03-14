@@ -18,12 +18,14 @@ const DimensionSchema = z.union([
  * provider and dimension — matching the OpenAPI `anyOf` constraint.
  */
 const EmbeddingModelsRequestSchema = z.union([
-  z.object({ existingModelId: z.string().uuid() }),
-  z.object({
-    modelName: z.string(),
-    modelProvider: z.string(),
-    dimension: DimensionSchema,
-  }),
+  z.object({ existingModelId: z.uuid() }).strict(),
+  z
+    .object({
+      modelName: z.string(),
+      modelProvider: z.string(),
+      dimension: DimensionSchema,
+    })
+    .strict(),
 ])
 
 /**
@@ -31,7 +33,7 @@ const EmbeddingModelsRequestSchema = z.union([
  * Mirrors the OpenAPI `CreateVectorStoreRequest` schema.
  */
 export const CreateVectorStoreRequestSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   documents: z
     .array(
       z.object({
@@ -47,7 +49,7 @@ export const CreateVectorStoreRequestSchema = z.object({
     chunkOverlap: z.number().int().min(0).max(1000),
   }),
   chatAIOptions: z.object({
-    chatTypeId: z.string().uuid(),
+    chatTypeId: z.uuid(),
     maxTokens: z.number().int().min(1).max(100000).optional(),
     temperature: z.number().min(0).max(2).optional(),
     topP: z.number().min(0).max(1).optional(),
@@ -74,14 +76,14 @@ export const CreateVectorStoreResponseSchema = z.object({
   success: z.boolean(),
   data: z.object({
     documents: z.object({
-      id: z.string().uuid(),
+      id: z.uuid(),
       title: z.string(),
       source: z.string(),
       createdAt: z.string().datetime(),
       updatedAt: z.string().datetime(),
     }),
     embeddingModels: z.object({
-      id: z.string().uuid(),
+      id: z.uuid(),
       modelName: z.string(),
       modelProvider: z.string(),
       dimension: DimensionSchema,
@@ -89,7 +91,7 @@ export const CreateVectorStoreResponseSchema = z.object({
       updatedAt: z.string().datetime(),
     }),
     vectorEmbeddings: z.object({
-      id: z.string().uuid(),
+      id: z.uuid(),
       distanceMetric: z.enum(['cosine', 'euclidean', 'dot_product']),
       chunkSize: z.number().int(),
       chunkOverlap: z.number().int(),
@@ -97,7 +99,7 @@ export const CreateVectorStoreResponseSchema = z.object({
       updatedAt: z.string().datetime(),
     }),
     chatAIOptions: z.object({
-      id: z.string().uuid(),
+      id: z.uuid(),
       maxTokens: z.number().int().optional(),
       temperature: z.number().optional(),
       topP: z.number().optional(),
