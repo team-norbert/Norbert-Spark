@@ -3,14 +3,30 @@ import { redactSensitiveData } from '@norberts-spark/shared'
 import type { LoggerPort } from '@/application/ports/logger.port.js'
 import { env } from '@/env/client.js'
 
+/**
+ * Enumeration of all supported log levels in ascending severity order.
+ *
+ * The ordering `TRACE < DEBUG < INFO < WARN < ERROR` is enforced by the
+ * `LOG_LEVELS` array inside {@link UnifiedLogger}. Any level below the
+ * configured `minLevel` is silently discarded.
+ */
 const LogLevel = {
+  /** Finest-grained diagnostic information. Suppressed in production. */
   TRACE: 'trace',
+  /** Diagnostic information useful during development. Suppressed in production. */
   DEBUG: 'debug',
+  /** Normal operational events. Suppressed in production. */
   INFO: 'info',
+  /** Unexpected situations that do not stop execution. Always emitted. */
   WARN: 'warn',
+  /** Failures that require attention. Always emitted. */
   ERROR: 'error',
 } as const
 
+/**
+ * Union of all valid log level strings derived from {@link LogLevel}.
+ * Equivalent to `'trace' | 'debug' | 'info' | 'warn' | 'error'`.
+ */
 type LogLevelType = (typeof LogLevel)[keyof typeof LogLevel]
 
 /**
@@ -24,106 +40,167 @@ export interface LoggerOptions {
    */
   minLevel?: LogLevelType
   /**
-   * An optional prefix to prepend to all log messages.
-   * Useful for identifying the source of log messages (e.g., component name, module name).
-   * @example '[AuthService]', '[UserAPI]'
+   * An optional context label attached to every log entry as `loggerContext`.
+   * Useful for identifying the module, component, or service that emitted the log.
+   * @example
+   * ```ts
+   * createLogger({ prefix: 'AuthService' })
+   * createLogger({ prefix: 'Users:ApiRoute' })
+   * ```
    */
   prefix?: string
   /**
-   * The numeric log level for compatibility purposes.
+   * An optional numeric log level stored for compatibility with external systems
+   * that use numeric levels (e.g. Pino's `30 = info`).
+   *
+   * This value is **not** emitted into {@link StructuredLogEntry} — it is only
+   * accessible via {@link UnifiedLogger.getLevel}.
    */
   level?: number
 }
 
 /**
- * Represents a formatted log message with metadata.
+ * Legacy log shape returned by the pre-structured `UnifiedLogger`.
+ *
+ * @deprecated Superseded by {@link StructuredLogEntry}, which provides a
+ *   machine-readable, GDPR-safe structured format. Do not use in new code.
  */
 export interface FormattedLogMessage {
-  /**
-   * ISO 8601 timestamp when the log message was created.
-   */
+  /** ISO 8601 timestamp when the log message was created. */
   timestamp: string
-  /**
-   * The prefix string for the logger instance, if configured.
-   */
+  /** The prefix string for the logger instance, if configured. */
   prefix: string
-  /**
-   *
-   * The log method/level in uppercase (e.g., 'DEBUG', 'INFO', 'WARN', 'ERROR').
-   */
+  /** The log method/level in uppercase (e.g. `'DEBUG'`, `'INFO'`, `'WARN'`, `'ERROR'`). */
   method: string
-  /**
-   * The actual log message content.
-   */
+  /** The human-readable log message. */
   message: string
-  /**
-   * Optional numeric log level, included only if configured in LoggerOptions.
-   */
+  /** Optional numeric log level, included only if configured in {@link LoggerOptions.level}. */
   level?: number
 }
 
 /**
- * A structured log entry emitted by UnifiedLogger.
- * Designed for machine-readability in log aggregators.
+ * A structured log entry emitted by {@link UnifiedLogger}.
+ *
+ * Every entry is machine-readable and designed for ingestion by log
+ * aggregators (Datadog, CloudWatch, Loki, etc.). Fields are grouped into
+ * five categories:
+ *
+ * 1. **Core** — `level`, `timestamp`, `message` (always present)
+ * 2. **Service metadata** — `service`, `env`, `version` (injected automatically)
+ * 3. **Logger identity** — `loggerContext` (derived from the `prefix` option)
+ * 4. **Error details** — `err` with `name` and `stack`; `message` omitted for GDPR safety
+ * 5. **Extra fields** — any caller-supplied key/value pairs via the `context` argument
+ *
+ * Sensitive fields are redacted by `redactSensitiveData` from `@norberts-spark/shared`
+ * before the entry is forwarded to `console.*`.
+ *
+ * @example
+ * Server-side structured log (Server Action / API Route):
+ * ```json
+ * {
+ *   "level": "error",
+ *   "timestamp": "2026-03-06T12:00:00.000Z",
+ *   "event": "server-action.backend-request.failed",
+ *   "message": "Backend returned 502",
+ *   "service": "norberts-spark-frontend",
+ *   "env": "production",
+ *   "version": "1.2.0",
+ *   "loggerContext": "BackendRequest",
+ *   "statusCode": 502,
+ *   "endpoint": "/api/v1/ai/chats",
+ *   "durationMs": 1200,
+ *   "err": { "name": "Error" }
+ * }
+ * ```
+ *
+ * @example
+ * Client-side structured log (React hook / component):
+ * ```json
+ * {
+ *   "level": "error",
+ *   "timestamp": "2026-03-06T12:00:05.000Z",
+ *   "event": "chat.transport.error",
+ *   "message": "Chat transport error",
+ *   "service": "norberts-spark-frontend",
+ *   "env": "production",
+ *   "loggerContext": "UseAIChat:Hook",
+ *   "err": { "name": "Error" }
+ * }
+ * ```
  */
 export interface StructuredLogEntry {
-  /** Log level: 'trace' | 'debug' | 'info' | 'warn' | 'error' */
+  /** Log level string. One of `'trace'`, `'debug'`, `'info'`, `'warn'`, `'error'`. */
   level: string
-  /** ISO 8601 timestamp */
+  /** ISO 8601 timestamp produced by `new Date().toISOString()`. */
   timestamp: string
-  /** Human-readable log message */
+  /** Human-readable description of the event. Must not contain PII. */
   message: string
-  /** Service identifier */
+  /** Identifies the application in a multi-service log aggregator. */
   service: string
-  /** Runtime environment */
+  /** Runtime environment (`'production'`, `'development'`, `'test'`, etc.). */
   env: string
-  /** Application version */
+  /** Application version string, used to correlate log spikes with deploys. */
   version: string
-  /** Logger context/module name (formerly 'prefix') */
+  /**
+   * Module or component that emitted the log, derived from the `prefix`
+   * option passed to {@link createLogger}.
+   */
   loggerContext?: string
-  /** Stable, dot-separated event name for machine filtering */
+  /**
+   * Stable, dot-separated machine-readable event name for filtering and
+   * alerting in log aggregators (e.g. `'server-action.backend-request.failed'`).
+   */
   event?: string
-  /** Serialised error details (message omitted — may contain PII) */
+  /**
+   * Serialised error details. `message` is deliberately omitted because error
+   * messages may contain PII. `stack` is only included outside production and
+   * has the first line (which repeats the message) stripped.
+   */
   err?: { name: string; stack?: string }
-  /** Application-specific error code */
+  /**
+   * Application-specific error code for programmatic error handling
+   * (e.g. `'UNAUTHORIZED'`, `'NETWORK_ERROR'`, `'VALIDATION_FAILED'`).
+   */
   errorCode?: string
-  /** Additional structured fields */
+  /** Any additional caller-supplied structured fields merged in at call time. */
   [key: string]: unknown
 }
 
-// frontend server log shape
-// {
-//   "level": "error",
-//   "timestamp": "2026-03-06T12:00:00.000Z",
-//   "event": "server-action.backend-request.failed",
-//   "message": "Backend returned 502",
-//   "service": "norberts-spark-frontend",
-//   "env": "production",
-//   "version": "1.2.0",
-//   "loggerContext": "backendRequest",
-//   "statusCode": 502,
-//   "endpoint": "/api/v1/ai/chats",
-//   "durationMs": 1200,
-//   "err": {
-//     "name": "Error"
-//   }
-// }
-//
-// backend server log shape
-// {
-//   "level": "error",
-//   "timestamp": "2026-03-06T12:00:05.000Z",
-//   "event": "chat.transport.error",
-//   "message": "Chat transport error",
-//   "service": "norberts-spark-frontend",
-//   "env": "production",
-//   "loggerContext": "useAIChat",
-//   "err": {
-//     "name": "Error"
-//   }
-// }
-
+/**
+ * Zero-dependency, `console`-based structured logger for the Next.js frontend.
+ *
+ * Works identically on the server (Node.js / Edge Runtime) and in the browser.
+ * Each log method builds a {@link StructuredLogEntry}, runs it through
+ * `redactSensitiveData`, and delegates to the matching `console.*` method
+ * (`console.info`, `console.warn`, etc.).
+ *
+ * **Production filtering**: `trace`, `debug`, and `info` are no-ops when
+ * `process.env.NODE_ENV === 'production'`. Only `warn` and `error` emit in
+ * production.
+ *
+ * **Context propagation**: Use {@link child} to bind persistent fields (e.g.
+ * `requestId`) that are merged into every entry produced by the child logger.
+ *
+ * @example
+ * ```ts
+ * const logger = createLogger({ prefix: 'BackendRequest' })
+ * logger.info('Request completed', {
+ *   event: 'server-action.backend-request.completed',
+ *   endpoint: '/api/v1/ai/chats',
+ *   statusCode: 200,
+ *   durationMs: 42,
+ * })
+ *
+ * // With per-request context binding:
+ * const reqLogger = logger.child({ requestId: 'req-abc-123' })
+ * reqLogger.warn('Slow response', { event: 'server-action.backend-request.slow', durationMs: 8000 })
+ * ```
+ */
 export class UnifiedLogger implements LoggerPort {
+  /**
+   * Ordered array of level strings used to compare severity by index position.
+   * Index 0 = lowest (`trace`), index 4 = highest (`error`).
+   */
   private static readonly LOG_LEVELS = [
     LogLevel.TRACE,
     LogLevel.DEBUG,
@@ -132,11 +209,18 @@ export class UnifiedLogger implements LoggerPort {
     LogLevel.ERROR,
   ]
 
+  /** Application identifier injected into every log entry as `service`. */
   private static readonly SERVICE_NAME = env.NEXT_PUBLIC_SERVICE_NAME || 'norberts-spark-frontend'
+  /** Runtime environment injected into every log entry as `env`. */
   private static readonly ENV = process.env.NODE_ENV || 'development'
+  /** Application version injected into every log entry as `version`. */
   private static readonly VERSION = env.NEXT_PUBLIC_APP_VERSION || 'unknown'
 
-  // Hoisted to avoid per-call allocations on the hot logging path
+  /**
+   * Core fields set by {@link formatMessage} that must never be overwritten by
+   * caller-supplied `context` or `child()` bindings.
+   * Declared as a static `Set` to avoid per-call allocation on the hot logging path.
+   */
   private static readonly RESERVED_FIELDS = new Set([
     'level',
     'timestamp',
@@ -146,25 +230,72 @@ export class UnifiedLogger implements LoggerPort {
     'version',
     'loggerContext',
   ])
+
+  /**
+   * Keys silently dropped from `context` and `child()` bindings to prevent
+   * prototype-pollution attacks.
+   */
   private static readonly BLOCKED_FIELDS = new Set(['__proto__', 'constructor', 'prototype'])
+
+  /**
+   * Persistent key/value pairs bound via {@link child} that are shallow-merged
+   * into every log entry produced by this logger instance.
+   */
   private bindings?: Record<string, unknown>
 
+  /** The minimum severity threshold below which log calls are discarded. */
   private minLevel: LogLevelType
+  /** Context label emitted as `loggerContext` in every entry. Empty string means omitted. */
   private readonly prefix: string
+  /** Optional numeric level stored for external compatibility; not emitted in entries. */
   private level?: number
 
+  /**
+   * Creates a new {@link UnifiedLogger} instance.
+   *
+   * Prefer the {@link createLogger} factory over calling `new UnifiedLogger()`
+   * directly — it is more concise and consistent across the codebase.
+   *
+   * @param options - Optional configuration. Defaults to `minLevel: 'debug'` with no prefix.
+   */
   constructor(options: LoggerOptions = {}) {
     this.level = options.level
     this.minLevel = options.minLevel || LogLevel.DEBUG
     this.prefix = options.prefix || ''
   }
 
+  /**
+   * Returns `true` when `logLevel` meets or exceeds `minLevel`.
+   *
+   * Comparison is by index position within the ordered {@link LOG_LEVELS}
+   * array (`trace = 0` … `error = 4`).
+   *
+   * @param logLevel - The severity of the message being evaluated.
+   * @returns `true` when the message should be emitted; `false` to suppress it.
+   */
   private shouldLog(logLevel: LogLevelType): boolean {
     return (
       UnifiedLogger.LOG_LEVELS.indexOf(logLevel) >= UnifiedLogger.LOG_LEVELS.indexOf(this.minLevel)
     )
   }
 
+  /**
+   * Builds a {@link StructuredLogEntry} for the given log level and message.
+   *
+   * Construction order:
+   * 1. Core fields (`level`, `timestamp`, `message`, `service`, `env`, `version`)
+   * 2. `loggerContext` from `this.prefix` (if set)
+   * 3. Bound fields from `this.bindings` (merged in by {@link child})
+   * 4. Per-call fields from `context`
+   *
+   * Reserved and prototype-polluting keys in steps 3–4 are silently dropped.
+   * The completed entry is passed through `redactSensitiveData` before being returned.
+   *
+   * @param logLevel - The severity level for this entry.
+   * @param message - The human-readable log message.
+   * @param context - Optional caller-supplied structured fields to merge into the entry.
+   * @returns A fully populated, redacted {@link StructuredLogEntry}.
+   */
   private formatMessage(
     logLevel: LogLevelType,
     message: string,
@@ -204,13 +335,27 @@ export class UnifiedLogger implements LoggerPort {
     return redactSensitiveData(entry) as StructuredLogEntry
   }
 
+  /**
+   * Converts an `Error` into a GDPR-safe `err` object for inclusion in a
+   * {@link StructuredLogEntry}.
+   *
+   * - `err.name` is always included (e.g. `'TypeError'`, `'RangeError'`).
+   * - `err.message` is **never** included — error messages frequently contain
+   *   PII such as email addresses or request payloads.
+   * - `err.stack` is included only outside production. The first line of the
+   *   raw stack (which repeats `"ErrorName: message"`) is stripped to prevent
+   *   the message from being reintroduced via the stack trace.
+   *
+   * @param error - The `Error` instance to serialise.
+   * @returns A plain object containing `name` and, in non-production, `stack`.
+   */
   private serializeError(error: Error): { name: string; stack?: string } {
     const serialized: { name: string; stack?: string } = {
       name: error.name,
     }
     if (UnifiedLogger.ENV !== 'production' && error.stack) {
-      // Strip the first line ("ErrorName: message") to avoid reintroducing the error message,
-      // which may contain sensitive data, while preserving useful stack frames.
+      // Strip the first line ("ErrorName: message") so the error message —
+      // which may contain PII — is not reintroduced via the stack trace.
       const lines = error.stack.split('\n')
       const sanitizedStack = lines.slice(1).join('\n').trim()
       if (sanitizedStack) {
@@ -220,6 +365,17 @@ export class UnifiedLogger implements LoggerPort {
     return serialized
   }
 
+  /**
+   * Emits a `warn`-level structured log entry.
+   *
+   * Always emitted regardless of `NODE_ENV`. Use it for unexpected situations
+   * that do not stop execution but indicate something is wrong (e.g. a slow
+   * response, a retried request, a deprecated code path).
+   *
+   * @param message - Human-readable description of the warning. Must not contain PII.
+   * @param context - Optional structured fields merged into the entry
+   *   (e.g. `{ event: 'middleware.rate-limit.exceeded', endpoint: '/api/v1/chat' }`).
+   */
   warn(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LogLevel.WARN)) {
       const entry = this.formatMessage(LogLevel.WARN, message, context)
@@ -227,6 +383,21 @@ export class UnifiedLogger implements LoggerPort {
     }
   }
 
+  /**
+   * Emits an `error`-level structured log entry.
+   *
+   * Always emitted regardless of `NODE_ENV`. Use it for failures that require
+   * attention (e.g. a failed backend request, an uncaught exception).
+   *
+   * When an `Error` is provided it is serialised via {@link serializeError}:
+   * `err.name` and (outside production) `err.stack` are added to the entry.
+   * `err.message` is deliberately omitted because error messages may contain PII.
+   *
+   * @param message - Human-readable description of the failure. Must not contain PII.
+   * @param error - Optional `Error` instance to serialise into the `err` field.
+   * @param context - Optional structured fields merged into the entry
+   *   (e.g. `{ event: 'server-action.backend-request.failed', statusCode: 502 }`).
+   */
   error(message: string, error?: Error, context?: Record<string, unknown>): void {
     if (this.shouldLog(LogLevel.ERROR)) {
       const errorContext = error ? { ...context, err: this.serializeError(error) } : context
@@ -235,6 +406,17 @@ export class UnifiedLogger implements LoggerPort {
     }
   }
 
+  /**
+   * Emits an `info`-level structured log entry.
+   *
+   * Suppressed when `process.env.NODE_ENV === 'production'`. Use it for normal
+   * operational events that are valuable during development and staging (e.g. a
+   * successful backend request, a completed user action).
+   *
+   * @param message - Human-readable description of the event. Must not contain PII.
+   * @param context - Optional structured fields merged into the entry
+   *   (e.g. `{ event: 'server-action.backend-request.completed', durationMs: 42 }`).
+   */
   info(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LogLevel.INFO) && UnifiedLogger.ENV !== 'production') {
       const entry = this.formatMessage(LogLevel.INFO, message, context)
@@ -242,6 +424,16 @@ export class UnifiedLogger implements LoggerPort {
     }
   }
 
+  /**
+   * Emits a `debug`-level structured log entry.
+   *
+   * Suppressed when `process.env.NODE_ENV === 'production'`. Use it for
+   * diagnostic information useful when tracing a specific flow during
+   * development but too noisy for production.
+   *
+   * @param message - Human-readable debug message. Must not contain PII.
+   * @param context - Optional structured fields merged into the entry.
+   */
   debug(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LogLevel.DEBUG) && UnifiedLogger.ENV !== 'production') {
       const entry = this.formatMessage(LogLevel.DEBUG, message, context)
@@ -249,6 +441,16 @@ export class UnifiedLogger implements LoggerPort {
     }
   }
 
+  /**
+   * Emits a `trace`-level structured log entry.
+   *
+   * Suppressed when `process.env.NODE_ENV === 'production'`. Use it for the
+   * finest-grained diagnostic information (e.g. entering/leaving a function,
+   * loop iterations) where even `debug` would be too coarse.
+   *
+   * @param message - Human-readable trace message. Must not contain PII.
+   * @param context - Optional structured fields merged into the entry.
+   */
   trace(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LogLevel.TRACE) && UnifiedLogger.ENV !== 'production') {
       const entry = this.formatMessage(LogLevel.TRACE, message, context)
@@ -256,17 +458,54 @@ export class UnifiedLogger implements LoggerPort {
     }
   }
 
+  /**
+   * Creates a new {@link UnifiedLogger} with the supplied `bindings` pre-merged
+   * into every log entry it produces.
+   *
+   * The child inherits `minLevel` and `prefix` from the parent. Parent bindings
+   * are shallow-merged with the new `bindings` (child wins on key conflicts).
+   * The parent logger is **not** mutated.
+   *
+   * Prototype-polluting keys (`__proto__`, `constructor`, `prototype`) in
+   * `bindings` are silently dropped when entries are built.
+   *
+   * @param bindings - Key/value pairs to pre-merge into every entry emitted by
+   *   the child logger (e.g. `{ requestId: 'req-abc-123' }`).
+   * @returns A new `UnifiedLogger` instance with the bound context.
+   *
+   * @example
+   * ```ts
+   * const reqLogger = logger.child({ requestId: req.headers['x-request-id'] })
+   * reqLogger.info('Handling request', { event: 'api-route.users.fetched' })
+   * // → entry contains both requestId and event
+   * ```
+   */
   child(bindings: Record<string, unknown>): UnifiedLogger {
     const childLogger = new UnifiedLogger({
       minLevel: this.minLevel,
       prefix: this.prefix,
       level: this.level,
     })
-    // Merge parent bindings with new bindings
+    // Shallow-merge parent bindings with new bindings; child wins on key conflicts.
     childLogger.bindings = { ...this.bindings, ...bindings }
     return childLogger
   }
 
+  /**
+   * Updates the minimum log level threshold at runtime.
+   *
+   * Any subsequent log call below the new `minLevel` will be silently
+   * discarded. The production guard is unaffected — `trace`, `debug`, and
+   * `info` remain no-ops in production regardless of `minLevel`.
+   *
+   * @param minLevel - The new minimum level
+   *   (`'trace'` | `'debug'` | `'info'` | `'warn'` | `'error'`).
+   *
+   * @example
+   * ```ts
+   * logger.setMinLevel('warn') // silence debug and info going forward
+   * ```
+   */
   setMinLevel(minLevel: LogLevelType): void {
     this.minLevel = minLevel
   }
@@ -286,16 +525,20 @@ export class UnifiedLogger implements LoggerPort {
   }
 
   /**
-   * Sets the optional numeric log level.
-   * When set, this value will be included in the formatted log message output.
-   * Useful for compatibility with logging systems that use numeric levels.
+   * Stores an optional numeric log level for compatibility with external
+   * systems that use numeric levels (e.g. Pino's `30 = info`).
    *
-   * @param level - The numeric log level
+   * This value is **not** emitted into the {@link StructuredLogEntry} — the
+   * entry always uses the string `level` field. The numeric level is only
+   * accessible via {@link getLevel} and is intended for serialisation to
+   * external log consumers.
+   *
+   * @param level - The numeric log level to store (e.g. `30` for info in Pino).
    *
    * @example
-   * ```typescript
-   * logger.setLevel(30) // Sets numeric level to 30
-   * logger.info('Message') // Output will include level: 30
+   * ```ts
+   * logger.setLevel(30)
+   * logger.getLevel() // → 30
    * ```
    */
   setLevel(level: number): void {
