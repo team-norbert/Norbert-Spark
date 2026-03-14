@@ -189,6 +189,9 @@ describe('CreateVectorStoreForm', () => {
       })
 
       it('all text fields start empty', () => {
+        // Note: maxTokens, temperature and topP are intentionally excluded here because
+        // they are pre-populated with sensible defaults (1000, 0.7, 1) so users can
+        // submit the form without having to fill in those optional fields manually.
         const labelRegexes = [
           /^vector store id/i,
           /^title/i,
@@ -196,9 +199,6 @@ describe('CreateVectorStoreForm', () => {
           /^model name/i,
           /^model provider/i,
           /^chat type id/i,
-          /^max tokens/i,
-          /^temperature/i,
-          /^top p/i,
           /^frequency penalty/i,
           /^presence penalty/i,
           /^stop sequences/i,
@@ -208,6 +208,12 @@ describe('CreateVectorStoreForm', () => {
         for (const labelRegex of labelRegexes) {
           expect((screen.getByLabelText(labelRegex) as HTMLInputElement).value).toBe('')
         }
+      })
+
+      it('max tokens, temperature and top p start with their default values', () => {
+        expect((screen.getByLabelText(/^max tokens/i) as HTMLInputElement).value).toBe('1000')
+        expect((screen.getByLabelText(/^temperature/i) as HTMLInputElement).value).toBe('0.7')
+        expect((screen.getByLabelText(/^top p/i) as HTMLInputElement).value).toBe('1')
       })
 
       it('chatTypeId is empty when initialChatTypeId is not provided', () => {
@@ -377,7 +383,10 @@ describe('CreateVectorStoreForm', () => {
     it('omits optional fields from chatAIOptions when their inputs are empty', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      fillRequiredFields() // leaves all optional fields blank
+      fillRequiredFields() // fills required fields; clear optional fields that have defaults
+      fireEvent.change(screen.getByLabelText(/^max tokens/i), { target: { value: '' } })
+      fireEvent.change(screen.getByLabelText(/^temperature/i), { target: { value: '' } })
+      fireEvent.change(screen.getByLabelText(/^top p/i), { target: { value: '' } })
       submitForm()
 
       const { chatAIOptions } = mockOnSubmit.mock.calls[0]![0]!

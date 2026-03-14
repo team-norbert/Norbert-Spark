@@ -113,6 +113,7 @@ describe('RagFilesPageClient', () => {
         onProcessFiles: mockHookReturn.handleProcessFiles,
         onRemoveFile: mockHookReturn.removeFile,
         onSignOut: mockHookReturn.handleSignOut,
+        onSubmitVectorStore: mockHookReturn.handleRagFormSubmit,
         ragFileKeys: mockHookReturn.ragFileKeys,
         showRagForm: mockHookReturn.showRagForm,
         testIds: {
@@ -159,7 +160,7 @@ describe('RagFilesPageClient', () => {
       const passedProps = fileUploadPageCall?.[0]
 
       expect(passedProps).toBeDefined()
-      expect(Object.keys(passedProps || {})).toHaveLength(21) // All 21 props should be passed
+      expect(Object.keys(passedProps || {})).toHaveLength(22) // All 22 props should be passed
     })
 
     it('should not contain any business logic', () => {
