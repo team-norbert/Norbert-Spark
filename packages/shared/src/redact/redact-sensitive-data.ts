@@ -64,6 +64,10 @@ export const SENSITIVE_FIELDS = [
   'biometric',
 ] as const
 
+const SENSITIVE_FIELDS_LOWER = new Set(
+  SENSITIVE_FIELDS.map((field) => field.toLowerCase())
+)
+
 /**
  * Placeholder text for redacted sensitive fields
  */
@@ -150,9 +154,8 @@ export function redactSensitiveData(
     }
 
     // Check if the field name matches any sensitive field (case-insensitive)
-    const isFieldSensitive = SENSITIVE_FIELDS.some(
-      (sensitiveField) => key.toLowerCase() === sensitiveField.toLowerCase()
-    )
+    const keyLower = key.toLowerCase()
+    const isFieldSensitive = SENSITIVE_FIELDS_LOWER.has(keyLower)
 
     if (isFieldSensitive) {
       // Redact the entire field
