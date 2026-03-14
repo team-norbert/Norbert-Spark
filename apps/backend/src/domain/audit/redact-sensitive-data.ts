@@ -1,4 +1,5 @@
 import { hasChangesObject, redactSensitiveData } from '@norberts-spark/shared'
+
 /**
  * Redacts sensitive data from audit log entry changes
  *
