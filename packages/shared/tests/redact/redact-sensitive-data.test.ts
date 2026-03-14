@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { redactSensitiveData } from '../../src/redact/redact-sensitive-data.js'
+import { hasChangesObject, redactSensitiveData } from '../../src/redact/redact-sensitive-data.js'
 
 describe('redactSensitiveData', () => {
   describe('primitive values', () => {
@@ -233,6 +233,44 @@ describe('redactSensitiveData', () => {
       expect(result.after.name).toBe('New Name')
       expect(result.after.email).toBe('[REDACTED]')
       expect(result.after.password).toBe('[REDACTED]')
+    })
+  })
+
+  describe('hasChangesObject', () => {
+    it('should return false for a non-object (string)', () => {
+      expect(hasChangesObject('not an object')).toBe(false)
+    })
+
+    it('should return false for a non-object (number)', () => {
+      expect(hasChangesObject(42)).toBe(false)
+    })
+
+    it('should return false for null', () => {
+      expect(hasChangesObject(null)).toBe(false)
+    })
+
+    it('should return false for an object missing the changes property', () => {
+      expect(hasChangesObject({ other: 'value' })).toBe(false)
+    })
+
+    it('should return true when changes is null', () => {
+      expect(hasChangesObject({ changes: null })).toBe(true)
+    })
+
+    it('should return true when changes is an empty object', () => {
+      expect(hasChangesObject({ changes: {} })).toBe(true)
+    })
+
+    it('should return true when changes is a populated object', () => {
+      expect(hasChangesObject({ changes: { field: 'value' } })).toBe(true)
+    })
+
+    it('should return false when changes is a string', () => {
+      expect(hasChangesObject({ changes: 'string' })).toBe(false)
+    })
+
+    it('should return false when changes is a number', () => {
+      expect(hasChangesObject({ changes: 123 })).toBe(false)
     })
   })
 
