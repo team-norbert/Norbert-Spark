@@ -168,9 +168,7 @@ describe('UnifiedLogger', () => {
 
       logger.error('backend failed', undefined, { event: 'server-action.backend-request.failed' })
 
-      expect(consoleErrorSpy.mock.calls[0][0].event).toBe(
-        'server-action.backend-request.failed'
-      )
+      expect(consoleErrorSpy.mock.calls[0][0].event).toBe('server-action.backend-request.failed')
     })
 
     it('should not allow RESERVED fields to be overwritten by context', () => {
