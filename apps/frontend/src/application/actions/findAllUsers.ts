@@ -2,7 +2,7 @@ import type { PaginatedUsersResponse, User } from '@/domain/user/user.js'
 import { clientEnv } from '@/env/client.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
 
-const logger = createLogger({ prefix: 'RegisterUser:Action' })
+const logger = createLogger({ prefix: 'FindAllUsers:Action' })
 
 export interface FindAllUsersParams {
   limit: number
