@@ -8,8 +8,17 @@ import { useSessionGuard } from '@/view/hooks/useSessionGuard.js'
 
 vi.mock('next-auth/react', () => ({
   useSession: vi.fn(),
-  signOut: vi.fn(),
+  signOut: vi.fn().mockResolvedValue(undefined),
 }))
+
+// jsdom does not allow direct reassignment of window.location.href;
+// replace it with a configurable spy so the hook's `window.location.href = ...`
+// assignment doesn't throw in the test environment.
+Object.defineProperty(window, 'location', {
+  value: { ...window.location, href: '' },
+  writable: true,
+  configurable: true,
+})
 
 vi.mock('@/infrastructure/serverActions/logoutUser.server.js', () => ({
   logoutUserAction: vi
@@ -61,9 +70,8 @@ describe('useSessionGuard', () => {
 
       await waitFor(() => {
         expect(mockSignOut).toHaveBeenCalledTimes(1)
-        expect(mockSignOut).toHaveBeenCalledWith({
-          callbackUrl: '/signin?error=session_expired',
-        })
+        expect(mockSignOut).toHaveBeenCalledWith({ redirect: false })
+        expect(window.location.href).toBe('/signin?error=session_expired')
       })
     })
 
@@ -92,9 +100,8 @@ describe('useSessionGuard', () => {
 
       await waitFor(() => {
         expect(mockSignOut).toHaveBeenCalledTimes(1)
-        expect(mockSignOut).toHaveBeenCalledWith({
-          callbackUrl: '/signin?error=session_expired',
-        })
+        expect(mockSignOut).toHaveBeenCalledWith({ redirect: false })
+        expect(window.location.href).toBe('/signin?error=session_expired')
       })
     })
 
@@ -172,9 +179,8 @@ describe('useSessionGuard', () => {
 
       await waitFor(() => {
         expect(mockSignOut).toHaveBeenCalledTimes(1)
-        expect(mockSignOut).toHaveBeenCalledWith({
-          callbackUrl: '/signin?error=session_expired',
-        })
+        expect(mockSignOut).toHaveBeenCalledWith({ redirect: false })
+        expect(window.location.href).toBe('/signin?error=session_expired')
       })
     })
 

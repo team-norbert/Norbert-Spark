@@ -9,6 +9,7 @@ import { useSignInForm } from '@/view/hooks/useSignInForm.js'
 // Mock next/navigation
 vi.mock('next/navigation.js', () => ({
   useRouter: vi.fn(),
+  useSearchParams: vi.fn(() => ({ get: vi.fn().mockReturnValue(null) })),
 }))
 
 // Mock NextAuth signIn
@@ -761,6 +762,7 @@ describe('useSignInForm', () => {
         email: 'test@example.com',
         password: 'mypassword',
         redirect: false,
+        callbackUrl: '/dashboard',
       })
 
       // Verify redirect to dashboard
@@ -911,6 +913,7 @@ describe('useSignInForm', () => {
         email: 'test@example.com',
         password: 'mypassword',
         redirect: false,
+        callbackUrl: '/dashboard',
       })
       expect(signIn).toHaveBeenCalledTimes(1)
     })
