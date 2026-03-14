@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { type Session } from 'next-auth'
 import { signOut, useSession } from 'next-auth/react'
-import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
 import { logoutUserAction } from '@/infrastructure/serverActions/logoutUser.server.js'
 import { useSessionGuard } from '@/view/hooks/useSessionGuard.js'
@@ -10,15 +10,6 @@ vi.mock('next-auth/react', () => ({
   useSession: vi.fn(),
   signOut: vi.fn().mockResolvedValue(undefined),
 }))
-
-// jsdom does not allow direct reassignment of window.location.href;
-// replace it with a configurable spy so the hook's `window.location.href = ...`
-// assignment doesn't throw in the test environment.
-Object.defineProperty(window, 'location', {
-  value: { ...window.location, href: '' },
-  writable: true,
-  configurable: true,
-})
 
 vi.mock('@/infrastructure/serverActions/logoutUser.server.js', () => ({
   logoutUserAction: vi
@@ -56,7 +47,15 @@ function createMockSession(overrides: Partial<Session> = {}): Session {
 describe('useSessionGuard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // jsdom does not allow direct reassignment of window.location.href;
+    // stub it per-test so the hook's `window.location.href = ...` assignment
+    // doesn't throw and is cleaned up after each test.
+    vi.stubGlobal('location', { href: '' })
     mockUseSession.mockReturnValue({ data: null, status: 'unauthenticated' })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   describe('Sign-Out on RefreshTokenExpired', () => {
