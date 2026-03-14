@@ -39,7 +39,7 @@ export type CompanyUpdate = {
   industry?: string | null
   /**
    * Approximate number of employees.
-   * Must be a positive integer (≥ 1) when present; `null` clears the field.
+   * Must be a positive number (≥ 1) when present; `null` clears the field.
    * @example 250
    */
   companySize?: number | null
