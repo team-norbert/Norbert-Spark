@@ -1,3 +1,5 @@
+import { redactSensitiveData } from '@norberts-spark/shared'
+
 import type { LoggerPort } from '@/application/ports/logger.port.js'
 import { env } from '@/env/client.js'
 
@@ -199,7 +201,7 @@ export class UnifiedLogger implements LoggerPort {
       }
     }
 
-    return entry
+    return redactSensitiveData(entry) as StructuredLogEntry
   }
 
   private serializeError(error: Error): { name: string; stack?: string } {

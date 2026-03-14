@@ -84,6 +84,7 @@ describe('UnifiedLogger', () => {
 
   // -------------------------------------------------------------------------
   // StructuredLogEntry shape
+  // Step 12 test case: `formatMessage` returns `StructuredLogEntry` shape
   // -------------------------------------------------------------------------
   describe('StructuredLogEntry shape', () => {
     it('should include all required fields in every log entry', () => {
@@ -126,6 +127,7 @@ describe('UnifiedLogger', () => {
       expect(consoleInfoSpy.mock.calls[0][0].loggerContext).toBeUndefined()
     })
 
+    // Step 12 test case: `prefix` maps to `loggerContext` field
     it('should include loggerContext equal to the prefix value when set', () => {
       const logger = new UnifiedLogger({ prefix: 'TestPrefix' })
 
@@ -144,12 +146,29 @@ describe('UnifiedLogger', () => {
       expect(entry.statusCode).toBe(200)
     })
 
+    // Step 12 test case: `event` field passes through
     it('should pass the event field through context', () => {
       const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.info('cache hit', { event: 'cache.read.hit' })
 
       expect(consoleInfoSpy.mock.calls[0][0].event).toBe('cache.read.hit')
+    })
+
+    it('should pass the event field through when calling warn', () => {
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
+
+      logger.warn('rate limit hit', { event: 'middleware.rate-limit.exceeded' })
+
+      expect(consoleWarnSpy.mock.calls[0][0].event).toBe('middleware.rate-limit.exceeded')
+    })
+
+    it('should pass the event field through when calling error', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
+
+      logger.error('backend failed', undefined, { event: 'server-action.backend-request.failed' })
+
+      expect(consoleErrorSpy.mock.calls[0][0].event).toBe('server-action.backend-request.failed')
     })
 
     it('should not allow RESERVED fields to be overwritten by context', () => {
@@ -189,7 +208,6 @@ describe('UnifiedLogger', () => {
     it('should block prototype-pollution keys (__proto__, constructor, prototype) in per-call context', () => {
       const logger = new UnifiedLogger({ minLevel: 'info' })
 
-      // Simulate what JSON.parse('{"__proto__":{"polluted":true}}') would produce
       const maliciousContext = JSON.parse(
         '{"__proto__":{"polluted":true},"constructor":{"evil":1},"prototype":{"bad":2},"safe":"value"}'
       ) as Record<string, unknown>
@@ -533,6 +551,9 @@ describe('UnifiedLogger', () => {
 
   // -------------------------------------------------------------------------
   // error serialization (serializeError)
+  // Step 12 test cases:
+  //   - `error()` serialises Error into `err` with no `err.message`
+  //   - Error stack excluded in production
   // -------------------------------------------------------------------------
   describe('error serialization', () => {
     it('should set err.name matching error.name', () => {
@@ -541,6 +562,15 @@ describe('UnifiedLogger', () => {
       logger.error('range fail', new RangeError('out of bounds'))
 
       expect(consoleErrorSpy.mock.calls[0][0].err?.name).toBe('RangeError')
+    })
+
+    it('should not include err.message (PII safety — only name and stack are serialised)', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
+
+      logger.error('test', new Error('sensitive info in message'))
+
+      const err = consoleErrorSpy.mock.calls[0][0].err as Record<string, unknown> | undefined
+      expect(err?.message).toBeUndefined()
     })
 
     it('should include err.stack in non-production (NODE_ENV=test)', () => {
@@ -553,6 +583,19 @@ describe('UnifiedLogger', () => {
       expect(entry.err?.stack).toContain('at ')
     })
 
+    it('should strip the error message from err.stack to avoid re-introducing PII', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
+      const error = new Error('sensitive message in stack header')
+
+      logger.error('test', error)
+
+      const stack = consoleErrorSpy.mock.calls[0][0].err?.stack as string | undefined
+      // The first line of the raw stack is "Error: sensitive message..." — it must be stripped
+      expect(stack).not.toMatch(/^Error:/)
+      expect(stack).not.toContain('sensitive message in stack header')
+    })
+
+    // Step 12 test case: Error stack excluded in production
     it('should exclude err.stack when process.env.NODE_ENV is production', async () => {
       // ENV is a static readonly field captured at class-load time, so we must
       // reset the module registry and re-import with NODE_ENV='production'.
@@ -567,15 +610,6 @@ describe('UnifiedLogger', () => {
         ;(process.env as { NODE_ENV?: string }).NODE_ENV = 'test'
         vi.resetModules()
       }
-    })
-
-    it('should not include err.message (PII safety — only name and stack are serialised)', () => {
-      const logger = new UnifiedLogger({ minLevel: 'error' })
-
-      logger.error('test', new Error('sensitive info in message'))
-
-      const err = consoleErrorSpy.mock.calls[0][0].err as Record<string, unknown> | undefined
-      expect(err?.message).toBeUndefined()
     })
   })
 
@@ -795,6 +829,9 @@ describe('UnifiedLogger', () => {
 
   // -------------------------------------------------------------------------
   // child()
+  // Step 12 test cases:
+  //   - `child()` merges bindings into every log entry emitted by the child
+  //   - `child()` bindings don't mutate parent
   // -------------------------------------------------------------------------
   describe('child()', () => {
     it('should return a new UnifiedLogger instance', () => {
@@ -806,6 +843,7 @@ describe('UnifiedLogger', () => {
       expect(child).not.toBe(logger)
     })
 
+    // Step 12 test case: `child()` merges bindings
     it('should merge bindings into every log entry emitted by the child', () => {
       const logger = new UnifiedLogger({ minLevel: 'info' })
       const child = logger.child({ requestId: 'req-abc' })
@@ -817,6 +855,16 @@ describe('UnifiedLogger', () => {
       expect(entry.message).toBe('handling request')
     })
 
+    it('should merge bindings into warn entries emitted by the child', () => {
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
+      const child = logger.child({ requestId: 'req-abc' })
+
+      child.warn('rate limited')
+
+      expect(consoleWarnSpy.mock.calls[0][0].requestId).toBe('req-abc')
+    })
+
+    // Step 12 test case: `child()` bindings don't mutate parent
     it('should not mutate parent logger bindings', () => {
       const parent = new UnifiedLogger({ minLevel: 'info' })
       const _child = parent.child({ scope: 'child-scope' })
@@ -824,6 +872,18 @@ describe('UnifiedLogger', () => {
       parent.info('parent message')
 
       expect(consoleInfoSpy.mock.calls[0][0].scope).toBeUndefined()
+    })
+
+    it('parent entries must not contain any of the child bindings even after multiple child logs', () => {
+      const parent = new UnifiedLogger({ minLevel: 'info' })
+      const child = parent.child({ childOnly: 'secret' })
+
+      child.info('child log')
+      child.info('child log 2')
+      parent.info('parent log')
+
+      // The third call (index 2) belongs to the parent
+      expect(consoleInfoSpy.mock.calls[2][0].childOnly).toBeUndefined()
     })
 
     it('should inherit parent minLevel', () => {
@@ -893,10 +953,13 @@ describe('UnifiedLogger', () => {
 
   // -------------------------------------------------------------------------
   // production environment filtering (process.env.NODE_ENV)
+  // Step 12 test cases:
+  //   - Production filtering: info/debug/trace do not call console.*
+  //   - warn and error log in production
+  //
   // ENV is a static readonly field captured at class-load time, so each test
   // must reset the module registry and dynamically re-import the logger after
   // setting process.env.NODE_ENV = 'production'.
-  // Suppresses trace / debug / info; warn and error always pass through.
   // -------------------------------------------------------------------------
   describe('production environment filtering', () => {
     beforeEach(() => {
@@ -909,6 +972,7 @@ describe('UnifiedLogger', () => {
       vi.resetModules()
     })
 
+    // Step 12 test case: Production filtering — info/debug/trace suppressed
     it('should suppress trace messages in production', async () => {
       const { UnifiedLogger: PL } = await import('@/infrastructure/logging/logger.js')
       const logger = new PL({ minLevel: 'trace' })
@@ -936,6 +1000,7 @@ describe('UnifiedLogger', () => {
       expect(consoleInfoSpy).not.toHaveBeenCalled()
     })
 
+    // Step 12 test case: warn and error log in production
     it('should allow warn messages in production', async () => {
       const { UnifiedLogger: PL } = await import('@/infrastructure/logging/logger.js')
       const logger = new PL({ minLevel: 'warn' })
@@ -971,6 +1036,50 @@ describe('UnifiedLogger', () => {
       expect(consoleInfoSpy).not.toHaveBeenCalled()
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('should still emit the full StructuredLogEntry shape for warn in production', async () => {
+      const { UnifiedLogger: PL } = await import('@/infrastructure/logging/logger.js')
+      const logger = new PL({ minLevel: 'warn', prefix: 'ProdModule' })
+
+      logger.warn('production warning', { event: 'middleware.auth-token.failed' })
+
+      const entry = consoleWarnSpy.mock.calls[0][0]
+      expect(entry).toMatchObject({
+        level: 'warn',
+        message: 'production warning',
+        service: 'norberts-spark-frontend',
+        env: 'production',
+        loggerContext: 'ProdModule',
+        event: 'middleware.auth-token.failed',
+      })
+      expect(entry.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+    })
+
+    it('should still emit the full StructuredLogEntry shape for error in production', async () => {
+      const { UnifiedLogger: PL } = await import('@/infrastructure/logging/logger.js')
+      const logger = new PL({ minLevel: 'error', prefix: 'BackendRequest' })
+
+      logger.error('backend failed', new Error('502'), {
+        event: 'server-action.backend-request.failed',
+        statusCode: 502,
+        endpoint: '/api/v1/ai/chats',
+      })
+
+      const entry = consoleErrorSpy.mock.calls[0][0]
+      expect(entry).toMatchObject({
+        level: 'error',
+        message: 'backend failed',
+        service: 'norberts-spark-frontend',
+        env: 'production',
+        loggerContext: 'BackendRequest',
+        event: 'server-action.backend-request.failed',
+        statusCode: 502,
+        endpoint: '/api/v1/ai/chats',
+      })
+      expect(entry.err).toMatchObject({ name: 'Error' })
+      // Stack must be omitted in production
+      expect(entry.err?.stack).toBeUndefined()
     })
   })
 })
