@@ -1,8 +1,8 @@
 import type { RegisterUserData, RegisterUserResponse } from '@/domain/schemas/index.js'
 import { clientEnv } from '@/env/client.js'
-import { UnifiedLogger } from '@/infrastructure/logging/logger.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
 
-const logger = new UnifiedLogger({ prefix: '[registerUser]' })
+const logger = createLogger({ prefix: 'RegisterUser:Action' })
 
 export async function registerUser(data: RegisterUserData): Promise<RegisterUserResponse> {
   try {
