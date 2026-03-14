@@ -15,10 +15,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import type { components } from '@norberts-spark/shared/openapi-types'
 import type React from 'react'
 import { useMemo, useState } from 'react'
 
+import type {
+  CreateVectorStoreRequest,
+  VectorStoreDocumentEntry,
+} from '@/domain/ai/vector-store.js'
 import { useEmbeddingModels } from '@/view/hooks/queries/useEmbeddingModels.js'
 
 import { AccordionComponent } from './AccordionComponent.js'
@@ -37,8 +40,8 @@ import {
   vectorEmbeddingsText,
 } from './VectorStoreText.js'
 
-export type CreateVectorStoreFormData = components['schemas']['CreateVectorStoreRequest']
-export type DocumentEntry = CreateVectorStoreFormData['documents'][number]
+export type CreateVectorStoreFormData = CreateVectorStoreRequest
+export type DocumentEntry = VectorStoreDocumentEntry
 
 const DISTANCE_METRICS: CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric'][] = [
   'cosine',
@@ -130,14 +133,14 @@ export function CreateVectorStoreForm({
     CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric'] | ''
   >('cosine')
   const [distanceMetricError, setDistanceMetricError] = useState<string | null>(null)
-  const [chunkSize, setChunkSize] = useState('')
-  const [chunkOverlap, setChunkOverlap] = useState('')
+  const [chunkSize, setChunkSize] = useState('300')
+  const [chunkOverlap, setChunkOverlap] = useState('40')
 
   // chatAIOptions
   const [chatTypeId, setChatTypeId] = useState(initialChatTypeId ?? '')
-  const [maxTokens, setMaxTokens] = useState('')
-  const [temperature, setTemperature] = useState('')
-  const [topP, setTopP] = useState('')
+  const [maxTokens, setMaxTokens] = useState('1000')
+  const [temperature, setTemperature] = useState('0.7')
+  const [topP, setTopP] = useState('1')
   const [frequencyPenalty, setFrequencyPenalty] = useState('')
   const [presencePenalty, setPresencePenalty] = useState('')
   const [stopSequences, setStopSequences] = useState('')
@@ -322,7 +325,7 @@ export function CreateVectorStoreForm({
             <strong>Examples: openai, google</strong>
           </Typography>
           <Divider sx={{ my: 2 }} />
-          <FormControl fullWidth required={selectedModelId === ''} sx={{ mb: 2 }}>
+          <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel id="dimension-label" shrink>
               Dimension
             </InputLabel>
@@ -440,7 +443,6 @@ export function CreateVectorStoreForm({
             required
             data-test-id="vector-embeddings-chunk-overlap-input"
             sx={{ mb: 2 }}
-            defaultValue={40}
           />
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
@@ -492,7 +494,6 @@ export function CreateVectorStoreForm({
             fullWidth
             data-test-id="chat-ai-options-max-tokens-input"
             sx={{ mb: 2 }}
-            defaultValue={1000}
           />
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
@@ -519,7 +520,6 @@ export function CreateVectorStoreForm({
             fullWidth
             data-test-id="chat-ai-options-temperature-input"
             sx={{ mb: 2 }}
-            defaultValue={0.7}
           />
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
@@ -542,7 +542,6 @@ export function CreateVectorStoreForm({
             fullWidth
             data-test-id="chat-ai-options-top-p-input"
             sx={{ mb: 2 }}
-            defaultValue={1}
           />
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>

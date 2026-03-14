@@ -20,6 +20,7 @@ export function RagFilesPageClient({ chatTypeId }: { chatTypeId: string }) {
     handleFileInputChange,
     handleNavigateHome,
     handleProcessFiles,
+    handleRagFormSubmit,
     handleSignOut,
     isExtracting,
     isUploading,
@@ -51,6 +52,7 @@ export function RagFilesPageClient({ chatTypeId }: { chatTypeId: string }) {
       onProcessFiles={handleProcessFiles}
       onRemoveFile={removeFile}
       onSignOut={handleSignOut}
+      onSubmitVectorStore={handleRagFormSubmit}
       ragFileKeys={ragFileKeys}
       showRagForm={showRagForm}
       testIds={{
