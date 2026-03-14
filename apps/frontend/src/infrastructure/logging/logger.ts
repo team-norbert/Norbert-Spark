@@ -1,3 +1,5 @@
+import { redactSensitiveData } from '@norberts-spark/shared'
+
 import type { LoggerPort } from '@/application/ports/logger.port.js'
 import { env } from '@/env/client.js'
 
@@ -168,14 +170,14 @@ export class UnifiedLogger implements LoggerPort {
     message: string,
     context?: Record<string, unknown>
   ): StructuredLogEntry {
-    const entry: StructuredLogEntry = {
+    const entry: StructuredLogEntry = redactSensitiveData({
       level: logLevel,
       timestamp: new Date().toISOString(),
       message,
       service: UnifiedLogger.SERVICE_NAME,
       env: UnifiedLogger.ENV,
       version: UnifiedLogger.VERSION,
-    }
+    }) as StructuredLogEntry
 
     if (this.prefix) {
       entry.loggerContext = this.prefix

@@ -1,8 +1,8 @@
+import { SENSITIVE_FIELDS } from '@norberts-spark/shared'
 import os from 'os'
 import pino from 'pino'
 
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
-import { SENSITIVE_FIELDS } from '../../../domain/audit/redact-sensitive-data.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 
 /**

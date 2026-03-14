@@ -1,6 +1,7 @@
 import OpenAPI from './openapi.json' with { type: 'json' }
 
 export * from './guards/type.guards.js'
+export * from './redact/redact-sensitive-data.js'
 export * from './schemas/ai.js'
 export * from './schemas/auth.js'
 export * from './schemas/user.js'
