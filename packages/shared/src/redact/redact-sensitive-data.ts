@@ -64,9 +64,7 @@ export const SENSITIVE_FIELDS = [
   'biometric',
 ] as const
 
-const SENSITIVE_FIELDS_LOWER = new Set(
-  SENSITIVE_FIELDS.map((field) => field.toLowerCase())
-)
+const SENSITIVE_FIELDS_LOWER = new Set(SENSITIVE_FIELDS.map((field) => field.toLowerCase()))
 
 /**
  * Placeholder text for redacted sensitive fields
