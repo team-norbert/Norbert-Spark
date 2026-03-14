@@ -170,14 +170,14 @@ export class UnifiedLogger implements LoggerPort {
     message: string,
     context?: Record<string, unknown>
   ): StructuredLogEntry {
-    const entry: StructuredLogEntry = redactSensitiveData({
+    const entry: StructuredLogEntry = {
       level: logLevel,
       timestamp: new Date().toISOString(),
       message,
       service: UnifiedLogger.SERVICE_NAME,
       env: UnifiedLogger.ENV,
       version: UnifiedLogger.VERSION,
-    }) as StructuredLogEntry
+    }
 
     if (this.prefix) {
       entry.loggerContext = this.prefix
@@ -201,7 +201,7 @@ export class UnifiedLogger implements LoggerPort {
       }
     }
 
-    return entry
+    return redactSensitiveData(entry) as StructuredLogEntry
   }
 
   private serializeError(error: Error): { name: string; stack?: string } {
