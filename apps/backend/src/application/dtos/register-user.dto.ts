@@ -135,8 +135,7 @@ export class RegisterUserDto {
    * @param data - The raw request payload conforming to either
    *   `RegisterUserRequest` (credential registration) or `OAuthSyncRequest`
    *   (OAuth sync) from the OpenAPI schema.
-   * @returns A new `RegisterUserDto` with all fields validated and trimmed
-   *   where applicable.
+   * @returns A new `RegisterUserDto` with all fields validated.
    * @throws {TypeException} When `data` is not an object.
    * @throws {ValidationException} When `email` is missing or not a string.
    * @throws {ValidationException} When `password` is missing or not a string
