@@ -99,7 +99,7 @@ const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
  * const redacted = redactSensitiveData(data)
  * // Result:
  * // {
- * //   email: 'user@example.com',
+ * //   email: '[REDACTED]',
  * //   password: '[REDACTED]',
  * //   profile: {
  * //     name: 'John',
