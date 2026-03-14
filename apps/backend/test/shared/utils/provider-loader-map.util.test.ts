@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('@ai-sdk/openai', () => ({ openai: 'mock-openai-provider' }))
 vi.mock('@ai-sdk/google', () => ({ google: 'mock-google-provider' }))
 vi.mock('@ai-sdk/huggingface', () => ({ huggingface: 'mock-huggingface-provider' }))
-vi.mock('jina-ai-provider', () => ({ jina: 'mock-jina-provider' }))
 vi.mock('voyage-ai-provider', () => ({ voyage: 'mock-voyage-provider' }))
 vi.mock('@ai-sdk/cohere', () => ({ cohere: 'mock-cohere-provider' }))
 
@@ -31,12 +30,6 @@ describe('loadProvider', () => {
       const loadProvider = await getLoadProvider()
       const provider = await loadProvider('huggingface')
       expect(provider).toBe('mock-huggingface-provider')
-    })
-
-    it('should load the jina provider', async () => {
-      const loadProvider = await getLoadProvider()
-      const provider = await loadProvider('jina')
-      expect(provider).toBe('mock-jina-provider')
     })
 
     it('should load the voyage provider', async () => {

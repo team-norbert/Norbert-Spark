@@ -170,9 +170,6 @@ importers:
       fastify:
         specifier: ^5.8.2
         version: 5.8.2
-      jina-ai-provider:
-        specifier: ^1.0.0
-        version: 1.0.0(zod@4.3.6)
       js-tiktoken:
         specifier: ^1.0.21
         version: 1.0.21
@@ -637,12 +634,6 @@ packages:
 
   '@ai-sdk/openai@3.0.41':
     resolution: {integrity: sha512-IZ42A+FO+vuEQCVNqlnAPYQnnUpUfdJIwn1BEDOBywiEHa23fw7PahxVtlX9zm3/zMvTW4JKPzWyvAgDu+SQ2A==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      zod: ^3.25.76 || ^4.1.8
-
-  '@ai-sdk/provider-utils@3.0.22':
-    resolution: {integrity: sha512-fFT1KfUUKktfAFm5mClJhS1oux9tP2qgzmEZVl5UdwltQ1LO/s8hd7znVrgKzivwv1s1FIPza0s9OpJaNB/vHw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -6776,14 +6767,6 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
 
-  jina-ai-provider@1.0.0:
-    resolution: {integrity: sha512-sUivqXtLX3yUvLXOKjDtwPu1BHxBy2VEYipTU3um99jc9jbsq1hgRY5F8yH/Ae6SsMJ9o7lMA/6eEE7+RyC0/A==}
-    peerDependencies:
-      zod: ^3.0.0 || ^4.0.0
-    peerDependenciesMeta:
-      zod:
-        optional: true
-
   jiti@2.6.1:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
@@ -9960,13 +9943,6 @@ snapshots:
     dependencies:
       '@ai-sdk/provider': 3.0.8
       '@ai-sdk/provider-utils': 4.0.19(zod@4.3.6)
-      zod: 4.3.6
-
-  '@ai-sdk/provider-utils@3.0.22(zod@4.3.6)':
-    dependencies:
-      '@ai-sdk/provider': 2.0.1
-      '@standard-schema/spec': 1.1.0
-      eventsource-parser: 3.0.6
       zod: 4.3.6
 
   '@ai-sdk/provider-utils@4.0.17(zod@4.3.6)':
@@ -17553,13 +17529,6 @@ snapshots:
       '@types/node': 25.4.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
-
-  jina-ai-provider@1.0.0(zod@4.3.6):
-    dependencies:
-      '@ai-sdk/provider': 2.0.1
-      '@ai-sdk/provider-utils': 3.0.22(zod@4.3.6)
-    optionalDependencies:
-      zod: 4.3.6
 
   jiti@2.6.1: {}
 
