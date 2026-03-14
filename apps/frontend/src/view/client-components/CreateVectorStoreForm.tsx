@@ -421,6 +421,11 @@ export function CreateVectorStoreForm({
             sx={{ mb: 2 }}
           />
 
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Chunk size recommended default: 300 tokens.</strong> Adjust based on your
+            document structure and retrieval needs.
+          </Typography>
+
           <Divider sx={{ my: 2 }} />
           <AccordionComponent header="Information on ChunkOverlap" body={chunkOverlapText} />
           <Divider sx={{ my: 2 }} />
@@ -436,6 +441,13 @@ export function CreateVectorStoreForm({
             data-test-id="vector-embeddings-chunk-overlap-input"
             sx={{ mb: 2 }}
           />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Chunk Overlap recommended default: 40 tokens.</strong> Adding overlap helps
+            preserve context at chunk boundaries, which can improve retrieval quality. However,
+            larger overlap values increase the total number of vectors stored, which can increase
+            storage and query costs. Adjust based on your document structure and retrieval needs.
+          </Typography>
 
           <Divider sx={{ my: 2 }} />
 
@@ -481,6 +493,14 @@ export function CreateVectorStoreForm({
             sx={{ mb: 2 }}
           />
 
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Recommended default 1000.</strong> Adjust based on your preference and desired
+            response style. Lower values produce shorter and more concise responses, while higher
+            values allow longer and more detailed outputs. The optimal setting depends on your use
+            case and the AI model being used, as different models support different maximum output
+            lengths.
+          </Typography>
+
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
             header="Read information on Temperature settings"
@@ -499,6 +519,13 @@ export function CreateVectorStoreForm({
             sx={{ mb: 2 }}
           />
 
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Recommended default: 0.7</strong> Adjust based on your preference and desired
+            response style. Lower values (closer to 0) produce more focused and deterministic
+            responses, while higher values increase randomness and creativity. It&#39;s generally
+            recommended to adjust either temperature or Top P, but not both simultaneously.
+          </Typography>
+
           <Divider sx={{ my: 2 }} />
           <AccordionComponent header="Information on Top P settings" body={topPText} />
           <Divider sx={{ my: 2 }} />
@@ -513,6 +540,13 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-top-p-input"
             sx={{ mb: 2 }}
           />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Recommended default: 1.0</strong> It is usually recommended to adjust either
+            Temperature or Top-P, but not both simultaneously. Leave this value as 1.0 and adjust
+            the Temperature. Lower values (closer to 0) produce more focused and deterministic
+            responses, while higher values increase randomness and creativity.
+          </Typography>
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
@@ -565,6 +599,10 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-stop-sequences-input"
             sx={{ mb: 2 }}
           />
+
+          <Typography variant={'body2'} color="text.secondary" sx={{ mb: 1.5 }}>
+            If no stop sequences are specified, an empty array will be used.
+          </Typography>
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent header="Information on Seed settings" body={seedText} />

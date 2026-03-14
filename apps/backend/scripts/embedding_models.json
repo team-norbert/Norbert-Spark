@@ -127,14 +127,6 @@
       "status": "current",
       "release_year": 2024,
       "recommended_usage": "Strong open ecosystem embeddings for hybrid and self-hosted RAG"
-    },
-    {
-      "provider": "nomic",
-      "name": "nomic-embed-text-v1.5",
-      "dimension": 768,
-      "status": "current",
-      "release_year": 2024,
-      "recommended_usage": "Efficient embeddings for local or open-source friendly pipelines"
     }
   ]
 }
