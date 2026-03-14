@@ -5,7 +5,9 @@ import type React from 'react'
 import { useCallback, useState } from 'react'
 import type { z } from 'zod'
 
+import type { CreateVectorStoreRequest } from '@/domain/ai/vector-store.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
+import { createVectorStoreAction } from '@/infrastructure/serverActions/createVectorStore.server.js'
 import { extractDataByFileIdAction } from '@/infrastructure/serverActions/extractDataByFileId.server.js'
 import { getPresignedUrls } from '@/infrastructure/serverActions/getPresignedUrls.server.js'
 import { logoutUserAction } from '@/infrastructure/serverActions/logoutUser.server.js'
@@ -38,6 +40,7 @@ interface UseFileUploadReturn {
   handleSignOut: () => void
   showRagForm: boolean
   ragFileKeys: string[]
+  handleRagFormSubmit: (data: CreateVectorStoreRequest) => Promise<void>
 }
 
 const ACCEPTED_FILE_TYPES = ['.pdf', '.zip']
@@ -417,6 +420,10 @@ export function useFileUpload({
             setIsExtracting(false)
           }
         } else if (flow === 'rag') {
+          // File upload is complete. The bucket file key is collected here so the
+          // CreateVectorStoreForm can pre-populate document titles and sources.
+          // Vector store creation itself is triggered when the user submits the
+          // form — see handleRagFormSubmit below.
           ragUploadedFileKeys.push(urlInfo.fileKey)
         }
 
@@ -446,6 +453,35 @@ export function useFileUpload({
       setIsUploading(false)
     }
   }, [uploadedFiles, isUploading, uploadFileToBucket, router, callbackUrl, flow, chatTypeId])
+
+  /**
+   * Submit the CreateVectorStoreForm data to the backend.
+   * Called when the user fills out and submits the form shown after a RAG file upload.
+   *
+   * @param {CreateVectorStoreRequest} data - The complete vector store configuration
+   */
+  const handleRagFormSubmit = useCallback(async (data: CreateVectorStoreRequest) => {
+    setError(null)
+    try {
+      logger.info('Submitting vector store creation request', {
+        event: 'file-upload.rag-form.submit',
+        id: data.id,
+      })
+      await createVectorStoreAction(data)
+      logger.info('Vector store created successfully', {
+        event: 'file-upload.rag-form.success',
+        id: data.id,
+      })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create vector store'
+      logger.error(
+        'Vector store creation failed',
+        err instanceof Error ? err : new Error(String(err)),
+        { event: 'file-upload.rag-form.failed' }
+      )
+      setError(message)
+    }
+  }, [])
 
   /**
    * Clear the error message
@@ -497,5 +533,6 @@ export function useFileUpload({
     handleSignOut,
     showRagForm,
     ragFileKeys,
+    handleRagFormSubmit,
   }
 }

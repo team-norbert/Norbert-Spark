@@ -29,6 +29,7 @@ describe('ExtractDataPageClient', () => {
     handleFileInputChange: vi.fn(),
     handleNavigateHome: vi.fn(),
     handleProcessFiles: vi.fn(),
+    handleRagFormSubmit: vi.fn(),
     handleSignOut: vi.fn(),
     isExtracting: false,
     isUploading: false,
