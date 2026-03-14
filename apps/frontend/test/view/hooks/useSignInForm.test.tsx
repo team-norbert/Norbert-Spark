@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, renderHook } from '@testing-library/react'
-import { useRouter } from 'next/navigation.js'
+import { useRouter, useSearchParams } from 'next/navigation.js'
 import React, { type ReactNode } from 'react'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
@@ -9,6 +9,7 @@ import { useSignInForm } from '@/view/hooks/useSignInForm.js'
 // Mock next/navigation
 vi.mock('next/navigation.js', () => ({
   useRouter: vi.fn(),
+  useSearchParams: vi.fn(() => ({ get: vi.fn().mockReturnValue(null) })),
 }))
 
 // Mock NextAuth signIn
@@ -761,6 +762,7 @@ describe('useSignInForm', () => {
         email: 'test@example.com',
         password: 'mypassword',
         redirect: false,
+        callbackUrl: '/dashboard',
       })
 
       // Verify redirect to dashboard
@@ -911,6 +913,7 @@ describe('useSignInForm', () => {
         email: 'test@example.com',
         password: 'mypassword',
         redirect: false,
+        callbackUrl: '/dashboard',
       })
       expect(signIn).toHaveBeenCalledTimes(1)
     })
@@ -1397,6 +1400,88 @@ describe('useSignInForm', () => {
 
       // General error should be cleared (empty string, not the old error)
       expect(result.current.errors.general).toBe('')
+    })
+  })
+
+  describe('callbackUrl behaviour', () => {
+    type SignInFormHookResult = ReturnType<
+      typeof renderHook<ReturnType<typeof useSignInForm>, void>
+    >['result']
+
+    async function submitSuccessfully(result: SignInFormHookResult) {
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+      const { signIn } = await import('next-auth/react')
+
+      ;(loginUserAction as Mock).mockResolvedValue({ success: true, status: 200, data: {} })
+      ;(signIn as Mock).mockResolvedValue({ ok: true, error: null })
+
+      act(() => {
+        result.current.handleChange('email')({
+          target: { value: 'a@b.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+      act(() => {
+        result.current.handleChange('password')({
+          target: { value: 'secret1234' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+      await act(async () => {
+        await result.current.handleSubmit({ preventDefault: () => {} } as React.FormEvent)
+      })
+
+      return { signIn, loginUserAction }
+    }
+
+    it('should use /dashboard when there is no callbackUrl param', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { signIn } = await submitSuccessfully(result)
+
+      expect(signIn).toHaveBeenCalledWith(
+        'credentials',
+        expect.objectContaining({ callbackUrl: '/dashboard' })
+      )
+      expect(mockPush).toHaveBeenCalledWith('/dashboard')
+    })
+
+    it('should use a valid same-origin callbackUrl from search params', async () => {
+      ;(useSearchParams as Mock).mockReturnValue({ get: vi.fn().mockReturnValue('/admin') })
+
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { signIn } = await submitSuccessfully(result)
+
+      expect(signIn).toHaveBeenCalledWith(
+        'credentials',
+        expect.objectContaining({ callbackUrl: '/admin' })
+      )
+      expect(mockPush).toHaveBeenCalledWith('/admin')
+    })
+
+    it('should fallback to /dashboard for a protocol-relative URL', async () => {
+      ;(useSearchParams as Mock).mockReturnValue({ get: vi.fn().mockReturnValue('//evil.com') })
+
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { signIn } = await submitSuccessfully(result)
+
+      expect(signIn).toHaveBeenCalledWith(
+        'credentials',
+        expect.objectContaining({ callbackUrl: '/dashboard' })
+      )
+      expect(mockPush).toHaveBeenCalledWith('/dashboard')
+    })
+
+    it('should fallback to /dashboard for an absolute external URL', async () => {
+      ;(useSearchParams as Mock).mockReturnValue({
+        get: vi.fn().mockReturnValue('https://evil.com/steal'),
+      })
+
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { signIn } = await submitSuccessfully(result)
+
+      expect(signIn).toHaveBeenCalledWith(
+        'credentials',
+        expect.objectContaining({ callbackUrl: '/dashboard' })
+      )
+      expect(mockPush).toHaveBeenCalledWith('/dashboard')
     })
   })
 })

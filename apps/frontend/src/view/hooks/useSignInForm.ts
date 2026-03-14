@@ -1,8 +1,8 @@
 import type { LoginDTO } from '@norberts-spark/shared'
 import { LoginSchema } from '@norberts-spark/shared'
-import { useRouter } from 'next/navigation.js'
+import { useRouter, useSearchParams } from 'next/navigation.js'
 import { signIn } from 'next-auth/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
 import { loginUserAction } from '@/infrastructure/serverActions/loginUser.server.js'
@@ -19,6 +19,7 @@ interface FormErrors {
 
 export function useSignInForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -29,6 +30,16 @@ export function useSignInForm() {
     password: '',
     general: '',
   })
+
+  // Show a banner when redirected here after session expiry
+  useEffect(() => {
+    if (searchParams.get('error') === 'session_expired') {
+      setErrors((prev) => ({
+        ...prev,
+        general: 'Your session has expired. Please sign in again.',
+      }))
+    }
+  }, [searchParams])
 
   const [showPassword, setShowPassword] = useState(false)
 
@@ -115,10 +126,28 @@ export function useSignInForm() {
       logger.info('[useSignInForm] Authentication successful, establishing session', {
         event: 'signin.submitted',
       })
+
+      // Derive a safe same-origin callback URL by parsing with the current origin as base.
+      // This rejects protocol-relative, external, and encoded-bypass URLs automatically.
+      const rawCallback = searchParams.get('callbackUrl')
+      const callbackUrl = (() => {
+        if (!rawCallback) return '/dashboard'
+        try {
+          const parsed = new URL(rawCallback, window.location.origin)
+          if (parsed.origin !== window.location.origin) return '/dashboard'
+          // Return the normalized path so fragments/query strings are preserved
+          // but the URL is fully resolved and free of encoding tricks.
+          return parsed.pathname + parsed.search + parsed.hash
+        } catch {
+          return '/dashboard'
+        }
+      })()
+
       const sessionResult = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
         redirect: false,
+        callbackUrl,
       })
 
       logger.info('[useSignInForm] NextAuth signIn result:', {
@@ -147,10 +176,10 @@ export function useSignInForm() {
       // Redirect on successful session establishment
       // NextAuth's signIn returns { ok, error, status, url } or undefined in some edge cases
       if (sessionResult?.ok) {
-        logger.info('[useSignInForm] Success (ok=true) - redirecting to dashboard', {
+        logger.info('[useSignInForm] Success (ok=true) - redirecting', {
           event: 'signin.submitted',
         })
-        router.push('/dashboard')
+        router.push(callbackUrl)
         router.refresh()
       } else if (!sessionResult?.error) {
         // If there's no explicit error but ok is falsy, this might be a timing/state issue
@@ -164,7 +193,7 @@ export function useSignInForm() {
             status: sessionResult?.status,
           }
         )
-        router.push('/dashboard')
+        router.push(callbackUrl)
         router.refresh()
       } else {
         logger.error('[useSignInForm] Session establishment explicitly failed', undefined, {

@@ -1,14 +1,11 @@
 'use client'
 
+import { Suspense } from 'react'
+
 import { SignInForm } from '@/view/client-components/SignInForm.js'
 import { useSignInForm } from '@/view/hooks/useSignInForm.js'
 
-/**
- * Sign-in page following DDD architecture.
- * This page is minimal and declarative - it only orchestrates the hook and component.
- * Business logic is in the hook, presentation is in the component.
- */
-export default function SignInPage() {
+function SignInFormContainer() {
   const {
     errors,
     formData,
@@ -35,5 +32,21 @@ export default function SignInPage() {
       togglePasswordVisibility={togglePasswordVisibility}
       isLoading={isLoading}
     />
+  )
+}
+
+/**
+ * Sign-in page following DDD architecture.
+ * This page is minimal and declarative - it only orchestrates the hook and component.
+ * Business logic is in the hook, presentation is in the component.
+ *
+ * Wrapped in Suspense because useSignInForm uses useSearchParams() which requires
+ * a Suspense boundary to avoid SSR/hydration mismatches.
+ */
+export default function SignInPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignInFormContainer />
+    </Suspense>
   )
 }

@@ -1,14 +1,14 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { type Session } from 'next-auth'
 import { signOut, useSession } from 'next-auth/react'
-import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
 import { logoutUserAction } from '@/infrastructure/serverActions/logoutUser.server.js'
 import { useSessionGuard } from '@/view/hooks/useSessionGuard.js'
 
 vi.mock('next-auth/react', () => ({
   useSession: vi.fn(),
-  signOut: vi.fn(),
+  signOut: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/infrastructure/serverActions/logoutUser.server.js', () => ({
@@ -47,7 +47,15 @@ function createMockSession(overrides: Partial<Session> = {}): Session {
 describe('useSessionGuard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // jsdom does not allow direct reassignment of window.location.href;
+    // stub it per-test so the hook's `window.location.href = ...` assignment
+    // doesn't throw and is cleaned up after each test.
+    vi.stubGlobal('location', { href: '' })
     mockUseSession.mockReturnValue({ data: null, status: 'unauthenticated' })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   describe('Sign-Out on RefreshTokenExpired', () => {
@@ -61,9 +69,8 @@ describe('useSessionGuard', () => {
 
       await waitFor(() => {
         expect(mockSignOut).toHaveBeenCalledTimes(1)
-        expect(mockSignOut).toHaveBeenCalledWith({
-          callbackUrl: '/signin?error=session_expired',
-        })
+        expect(mockSignOut).toHaveBeenCalledWith({ redirect: false })
+        expect(window.location.href).toBe('/signin?error=session_expired')
       })
     })
 
@@ -92,9 +99,8 @@ describe('useSessionGuard', () => {
 
       await waitFor(() => {
         expect(mockSignOut).toHaveBeenCalledTimes(1)
-        expect(mockSignOut).toHaveBeenCalledWith({
-          callbackUrl: '/signin?error=session_expired',
-        })
+        expect(mockSignOut).toHaveBeenCalledWith({ redirect: false })
+        expect(window.location.href).toBe('/signin?error=session_expired')
       })
     })
 
@@ -172,9 +178,8 @@ describe('useSessionGuard', () => {
 
       await waitFor(() => {
         expect(mockSignOut).toHaveBeenCalledTimes(1)
-        expect(mockSignOut).toHaveBeenCalledWith({
-          callbackUrl: '/signin?error=session_expired',
-        })
+        expect(mockSignOut).toHaveBeenCalledWith({ redirect: false })
+        expect(window.location.href).toBe('/signin?error=session_expired')
       })
     })
 

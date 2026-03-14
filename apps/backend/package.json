@@ -32,7 +32,10 @@
     "test:pact": "vitest run --config vitest.config.pact.ts pact/provider.pact.spec.ts"
   },
   "dependencies": {
+    "@ai-sdk/cohere": "^3.0.25",
     "@ai-sdk/google": "^3.0.43",
+    "@ai-sdk/huggingface": "^1.0.37",
+    "@ai-sdk/openai": "^3.0.41",
     "@ai-sdk/provider": "^3.0.8",
     "@aws-sdk/client-s3": "^3.1007.0",
     "@aws-sdk/s3-request-presigner": "^3.1007.0",
@@ -66,6 +69,7 @@
     "uuidv7": "^1.1.0",
     "uuidv7-utilities": "^3.1.0",
     "varlock": "^0.4.2",
+    "voyage-ai-provider": "^3.0.0",
     "yaml": "^2.8.2",
     "zod": "^4.3.6"
   },
