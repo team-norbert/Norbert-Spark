@@ -126,16 +126,28 @@ export function useSignInForm() {
       logger.info('[useSignInForm] Authentication successful, establishing session', {
         event: 'signin.submitted',
       })
+
+      // Derive a safe same-origin callback URL by parsing with the current origin as base.
+      // This rejects protocol-relative, external, and encoded-bypass URLs automatically.
+      const rawCallback = searchParams.get('callbackUrl')
+      const callbackUrl = (() => {
+        if (!rawCallback) return '/dashboard'
+        try {
+          const parsed = new URL(rawCallback, window.location.origin)
+          if (parsed.origin !== window.location.origin) return '/dashboard'
+          // Return the normalized path so fragments/query strings are preserved
+          // but the URL is fully resolved and free of encoding tricks.
+          return parsed.pathname + parsed.search + parsed.hash
+        } catch {
+          return '/dashboard'
+        }
+      })()
+
       const sessionResult = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
         redirect: false,
-        // Explicitly set callbackUrl to /dashboard so that NextAuth's returned
-        // URL is never /signin?error=session_expired. Without this, when the
-        // user signs in from that URL, next-auth parses the `error` query param
-        // from the current page URL and surfaces it as sessionResult.error,
-        // making a successful sign-in appear as a session creation failure.
-        callbackUrl: '/dashboard',
+        callbackUrl,
       })
 
       logger.info('[useSignInForm] NextAuth signIn result:', {
@@ -164,10 +176,10 @@ export function useSignInForm() {
       // Redirect on successful session establishment
       // NextAuth's signIn returns { ok, error, status, url } or undefined in some edge cases
       if (sessionResult?.ok) {
-        logger.info('[useSignInForm] Success (ok=true) - redirecting to dashboard', {
+        logger.info('[useSignInForm] Success (ok=true) - redirecting', {
           event: 'signin.submitted',
         })
-        router.push('/dashboard')
+        router.push(callbackUrl)
         router.refresh()
       } else if (!sessionResult?.error) {
         // If there's no explicit error but ok is falsy, this might be a timing/state issue
@@ -181,7 +193,7 @@ export function useSignInForm() {
             status: sessionResult?.status,
           }
         )
-        router.push('/dashboard')
+        router.push(callbackUrl)
         router.refresh()
       } else {
         logger.error('[useSignInForm] Session establishment explicitly failed', undefined, {
