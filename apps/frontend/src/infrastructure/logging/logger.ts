@@ -88,7 +88,7 @@ export interface FormattedLogMessage {
  * 1. **Core** — `level`, `timestamp`, `message` (always present)
  * 2. **Service metadata** — `service`, `env`, `version` (injected automatically)
  * 3. **Logger identity** — `loggerContext` (derived from the `prefix` option)
- * 4. **Error details** — `err` with `name` and `stack`; `message` omitted for GDPR safety
+ * 4. **Error details** — `err` with `name` and `stack`; `err.message` omitted for GDPR safety
  * 5. **Extra fields** — any caller-supplied key/value pairs via the `context` argument
  *
  * Sensitive fields are redacted by `redactSensitiveData` from `@norberts-spark/shared`
