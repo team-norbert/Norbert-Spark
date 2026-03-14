@@ -440,6 +440,7 @@ export function CreateVectorStoreForm({
             required
             data-test-id="vector-embeddings-chunk-overlap-input"
             sx={{ mb: 2 }}
+            defaultValue={40}
           />
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
@@ -491,6 +492,7 @@ export function CreateVectorStoreForm({
             fullWidth
             data-test-id="chat-ai-options-max-tokens-input"
             sx={{ mb: 2 }}
+            defaultValue={1000}
           />
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
@@ -517,6 +519,7 @@ export function CreateVectorStoreForm({
             fullWidth
             data-test-id="chat-ai-options-temperature-input"
             sx={{ mb: 2 }}
+            defaultValue={0.7}
           />
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
@@ -539,6 +542,7 @@ export function CreateVectorStoreForm({
             fullWidth
             data-test-id="chat-ai-options-top-p-input"
             sx={{ mb: 2 }}
+            defaultValue={1}
           />
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
