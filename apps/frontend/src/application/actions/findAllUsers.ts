@@ -1,6 +1,8 @@
 import type { PaginatedUsersResponse, User } from '@/domain/user/user.js'
 import { clientEnv } from '@/env/client.js'
-import { UnifiedLogger } from '@/infrastructure/logging/logger.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
+
+const logger = createLogger({ prefix: 'FindAllUsers:Action' })
 
 export interface FindAllUsersParams {
   limit: number
@@ -15,8 +17,6 @@ export interface FindAllUsersResult {
   error?: string
   status: number
 }
-
-const logger = new UnifiedLogger({ prefix: '[find-all-users]' })
 
 /**
  * Fetch all users with pagination from the API.
