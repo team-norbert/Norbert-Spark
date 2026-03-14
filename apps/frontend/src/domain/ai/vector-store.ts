@@ -18,14 +18,12 @@ const DimensionSchema = z.union([
  * provider and dimension — matching the OpenAPI `anyOf` constraint.
  */
 const EmbeddingModelsRequestSchema = z.union([
-  z.object({ existingModelId: z.uuid() }).strict(),
-  z
-    .object({
-      modelName: z.string(),
-      modelProvider: z.string(),
-      dimension: DimensionSchema,
-    })
-    .strict(),
+  z.object({ existingModelId: z.uuid() }),
+  z.object({
+    modelName: z.string(),
+    modelProvider: z.string(),
+    dimension: DimensionSchema,
+  }),
 ])
 
 /**
