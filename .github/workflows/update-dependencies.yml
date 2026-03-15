@@ -53,6 +53,10 @@ jobs:
         working-directory: ./apps/backend
         run: pnpm update
 
+      - name: Regenerate varlock TypeScript types
+        working-directory: ./apps/backend
+        run: pnpm varlock typegen
+
       - name: Run tests to check for breaking changes
         id: run-tests
         continue-on-error: true
@@ -75,7 +79,7 @@ jobs:
       - name: Check for changes in package files
         id: check-changes
         run: |
-          if git diff --exit-code pnpm-lock.yaml **/package.json package.json; then
+          if git diff --exit-code pnpm-lock.yaml **/package.json package.json apps/backend/env.d.ts; then
             echo "changes=false" >> $GITHUB_OUTPUT
           else
             echo "changes=true" >> $GITHUB_OUTPUT
