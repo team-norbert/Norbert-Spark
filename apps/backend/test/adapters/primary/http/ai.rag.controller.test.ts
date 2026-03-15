@@ -135,7 +135,7 @@ describe('AiRagController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Database connection lost',
+        error: 'An unexpected error occurred',
       })
     })
 
@@ -165,7 +165,7 @@ describe('AiRagController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Failed to fetch embedding models due to a database error',
+        error: 'An unexpected error occurred',
       })
     })
 

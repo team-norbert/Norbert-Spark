@@ -697,7 +697,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error generating presigned URLs',
@@ -741,7 +741,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to generate presigned URLs due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error generating presigned URLs',
@@ -761,7 +761,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to generate presigned URLs due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error generating presigned URLs',
@@ -782,7 +782,7 @@ describe('AIExtractDataController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to generate presigned URLs due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error generating presigned URLs',

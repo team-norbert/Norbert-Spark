@@ -1,5 +1,4 @@
 import type { components } from '@norberts-spark/shared/openapi-types'
-import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
 import { LoginUserDto } from '../../../application/dtos/login-user.dto.js'
@@ -198,9 +197,9 @@ export class AuthController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to log out user due to a database error'
-          : err?.message || 'Failed to log out user due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -305,9 +304,9 @@ export class AuthController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to refresh authentication token due to a database error'
-          : err?.message || 'Failed to refresh authentication token due to an internal server error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -432,9 +431,9 @@ export class AuthController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to authenticate user due to a database error'
-          : err?.message || 'Failed to authenticate user due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -531,11 +530,9 @@ export class AuthController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to sync OAuth user due to a database error'
-          : err instanceof BaseException && err.message
-            ? err.message
-            : 'OAuth sync failed'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,

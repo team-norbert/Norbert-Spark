@@ -1,5 +1,4 @@
 import type { components } from '@norberts-spark/shared/openapi-types'
-import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
 import { UpdateCompanyDTO } from '../../../application/dtos/update-company.dto.js'
@@ -253,9 +252,9 @@ export class CompanyController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to update company details due to a database error'
-          : err?.message || 'Failed to update company details due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       return reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -380,9 +379,9 @@ export class CompanyController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to retrieve company details due to a database error'
-          : err?.message || 'Failed to retrieve company details due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       return reply.code(statusCode).send({
         success: false,
         error: errorMessage,

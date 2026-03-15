@@ -1,5 +1,4 @@
 import type { components } from '@norberts-spark/shared/openapi-types'
-import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
 import { PostAIAdminDTO } from '../../../application/dtos/post-ai-admin.dto.js'
@@ -135,9 +134,9 @@ export class AIAdminController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to create AI chat settings due to a database error'
-          : err?.message || 'Failed to create AI chat settings due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -219,9 +218,9 @@ export class AIAdminController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to update AI chat settings due to a database error'
-          : err?.message || 'Failed to update AI chat settings due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -314,9 +313,9 @@ export class AIAdminController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to retrieve AI chat settings due to a database error'
-          : err?.message || 'Failed to retrieve AI chat settings due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,

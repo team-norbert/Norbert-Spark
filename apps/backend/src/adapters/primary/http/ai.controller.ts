@@ -12,7 +12,6 @@ import {
   validateUIMessages,
 } from 'ai'
 import { createHash } from 'crypto'
-import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
 import { PostChatDto } from '../../../application/dtos/post-chat.dto.js'
@@ -621,9 +620,9 @@ export class AIController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to fetch chat details'
-          : err?.message || 'Failed to fetch chat details'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -687,9 +686,9 @@ export class AIController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to update chat details'
-          : err?.message || 'Failed to update chat details'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -780,9 +779,9 @@ export class AIController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to create chat type'
-          : err?.message || 'Failed to create chat type'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,

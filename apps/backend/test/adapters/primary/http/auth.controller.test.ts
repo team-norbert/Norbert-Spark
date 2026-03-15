@@ -703,7 +703,7 @@ describe('AuthController', () => {
 
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Unexpected error occurred',
+          error: 'An unexpected error occurred',
         })
         expect(mockChildLogger.error).toHaveBeenCalledWith(
           'Error in login handler',
@@ -739,7 +739,7 @@ describe('AuthController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to authenticate user due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockChildLogger.error).toHaveBeenCalledWith(
           'Error in login handler',
@@ -761,7 +761,7 @@ describe('AuthController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to authenticate user due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockChildLogger.error).toHaveBeenCalledWith(
           'Error in login handler',
@@ -1228,7 +1228,7 @@ describe('AuthController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Database connection lost',
+          error: 'An unexpected error occurred',
         })
       })
 
@@ -1259,7 +1259,7 @@ describe('AuthController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to refresh authentication token due to a database error',
+          error: 'An unexpected error occurred',
         })
       })
 
@@ -1272,7 +1272,7 @@ describe('AuthController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to refresh authentication token due to an internal server error',
+          error: 'An unexpected error occurred',
         })
       })
 
@@ -1500,7 +1500,7 @@ describe('AuthController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to log out user due to a database error',
+          error: 'An unexpected error occurred',
         })
       })
 
@@ -1512,7 +1512,7 @@ describe('AuthController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to log out user due to a database error',
+          error: 'An unexpected error occurred',
         })
       })
 
@@ -1703,7 +1703,7 @@ describe('AuthController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'OAuth sync failed',
+          error: 'An unexpected error occurred',
         })
       })
 
@@ -1729,7 +1729,7 @@ describe('AuthController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to sync OAuth user due to a database error',
+          error: 'An unexpected error occurred',
         })
       })
 

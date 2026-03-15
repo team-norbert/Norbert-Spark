@@ -3,7 +3,6 @@ import type { MultipartFile } from '@fastify/multipart'
 import { pdfSchema } from '@norberts-spark/shared'
 import type { components } from '@norberts-spark/shared/openapi-types'
 import { Output, streamText } from 'ai'
-import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
 import { ExtractDataDto } from '../../../application/dtos/extract-data.dto.js'
@@ -351,9 +350,9 @@ export class AIExtractDataController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to extract data due to a database error'
-          : err?.message || 'Failed to extract data due to a server error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -524,9 +523,9 @@ export class AIExtractDataController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to generate presigned URLs due to a database error'
-          : err?.message || 'Failed to generate presigned URLs due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,

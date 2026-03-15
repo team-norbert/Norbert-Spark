@@ -397,7 +397,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Database connection failed',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting all users', expect.any(Error))
       })
@@ -433,7 +433,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to retrieve users due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting all users', expect.any(Error))
       })
@@ -447,7 +447,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to retrieve users due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting all users', expect.any(Error))
       })
@@ -465,7 +465,7 @@ describe('UserController', () => {
         }
         expect(sentData).toHaveProperty('success', false)
         expect(sentData).toHaveProperty('error')
-        expect(sentData.error).toBe('Internal database schema mismatch')
+        expect(sentData.error).toBe('An unexpected error occurred')
       })
     })
 
@@ -855,7 +855,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'User with this email already exists',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
@@ -896,7 +896,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Database connection failed',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
@@ -915,7 +915,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Unexpected error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
@@ -938,7 +938,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to register user due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
@@ -1368,7 +1368,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Database connection failed',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', expect.any(Error))
       })
@@ -1396,7 +1396,7 @@ describe('UserController', () => {
 
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to delete users due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', expect.any(Error))
       })
@@ -1412,7 +1412,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to delete users due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', expect.any(Error))
       })
@@ -1884,7 +1884,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Unexpected error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting user by id', expect.any(Error))
       })
@@ -1921,7 +1921,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to retrieve user by id due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting user by id', expect.any(Error))
       })
@@ -1939,7 +1939,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to retrieve user by id due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting user by id', expect.any(Error))
       })
