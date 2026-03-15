@@ -44,8 +44,8 @@ import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
  * ```
  */
 export class UserController {
-  private NODE_ENV = EnvConfig.NODE_ENV
-  private rateLimit = this.NODE_ENV === 'development' || this.NODE_ENV === 'test' ? 200 : 10
+  private readonly nodeEnv = EnvConfig.NODE_ENV
+  private rateLimit = this.nodeEnv === 'development' || this.nodeEnv === 'test' ? 200 : 10
   /**
    * Creates an instance of UserController
    * @param {RegisterUserUseCase} registerUserUseCase - Use case for registering new users
