@@ -252,23 +252,29 @@ export class PostChatDto {
       throw new ValidationException('At least one of chatTypeParam or chatTypeId must be provided')
     }
 
-    // Assess every user-role message for prompt injection patterns.
+    // Assess only the last user-role message for prompt injection patterns.
+    // Earlier user messages are conversation history already validated on prior
+    // requests; only the newest user turn represents fresh, unvetted input.
     // Only flag/block results are collected; allow results are discarded.
     const guard = new PromptInjectionGuard()
     const promptRiskAssessments: PostChatPromptAssessment[] = []
 
-    for (const [i, msg] of validatedMessages.entries()) {
-      if (msg.role !== 'user') continue
+    // reduceRight avoids index-based array access (security/detect-object-injection).
+    const lastUserEntry = validatedMessages.reduceRight<{
+      msg: PostChatMessage
+      index: number
+    } | null>((found, msg, index) => found ?? (msg.role === 'user' ? { msg, index } : null), null)
 
-      for (const part of msg.parts) {
+    if (lastUserEntry !== null) {
+      for (const part of lastUserEntry.msg.parts) {
         if (part.type !== 'text' || !isString(part.text) || part.text === '') continue
 
         const assessment = guard.assess(part.text)
         if (assessment.decision !== 'allow') {
           promptRiskAssessments.push({
             ...assessment,
-            messageIndex: i,
-            messageId: msg.id,
+            messageIndex: lastUserEntry.index,
+            messageId: lastUserEntry.msg.id,
           })
         }
       }
