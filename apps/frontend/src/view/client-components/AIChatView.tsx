@@ -101,7 +101,6 @@ export function AIChatView({
   selectedFile,
   status,
 }: AIChatViewProps) {
-  console.log('isLoadingChats', isLoadingChats)
   const router = useRouter()
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
