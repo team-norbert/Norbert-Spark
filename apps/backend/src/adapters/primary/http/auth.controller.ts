@@ -154,7 +154,7 @@ export class AuthController {
    *
    * Error response format:
    * ```json
-   * { "success": false, "error": "Failed to log out user" }
+   * { "success": false, "error": "An unexpected error occurred" }
    * ```
    *
    * @example
