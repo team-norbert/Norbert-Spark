@@ -140,7 +140,13 @@ describe('UserController', () => {
       controller.registerRoutes(mockApp)
 
       expect(mockApp.post).toHaveBeenCalledTimes(1)
-      expect(mockApp.post).toHaveBeenCalledWith('/users/register', expect.any(Function))
+      expect(mockApp.post).toHaveBeenCalledWith(
+        '/users/register',
+        expect.objectContaining({
+          config: expect.objectContaining({ rateLimit: expect.any(Object) }),
+        }),
+        expect.any(Function)
+      )
     })
 
     it('should register GET /users/:id route', () => {
@@ -180,7 +186,7 @@ describe('UserController', () => {
       controller.registerRoutes(mockApp)
 
       // Verify handlers are bound functions
-      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1]
+      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2]
       // GET /users is registered with options, so handler is at index 2
       const getAllUsersHandler = (vi.mocked(mockApp.get).mock.calls[0] as any)?.[2]
       // GET /users/:id is also registered with options, so handler is at index 2
@@ -1072,7 +1078,7 @@ describe('UserController', () => {
       controller.registerRoutes(mockApp)
 
       // Get the registered handler
-      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1] as unknown as (
+      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2] as unknown as (
         req: FastifyRequest,
         reply: FastifyReply
       ) => Promise<void>
@@ -1108,7 +1114,7 @@ describe('UserController', () => {
 
       controller.registerRoutes(mockApp)
 
-      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1] as unknown as (
+      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2] as unknown as (
         req: FastifyRequest,
         reply: FastifyReply
       ) => Promise<void>

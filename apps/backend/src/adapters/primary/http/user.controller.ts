@@ -10,10 +10,12 @@ import { GetAllUsersUseCase } from '../../../application/use-cases/get-all-users
 import { GetUserByIdUseCase } from '../../../application/use-cases/get-user-by-id.use-case.js'
 import { RegisterUserUseCase } from '../../../application/use-cases/register-user.use-case.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
+import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
+
 /**
  * HTTP controller for user-related endpoints
  *
@@ -42,6 +44,8 @@ import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
  * ```
  */
 export class UserController {
+  private NODE_ENV = EnvConfig.NODE_ENV
+  private rateLimit = this.NODE_ENV === 'development' || this.NODE_ENV === 'test' ? 200 : 10
   /**
    * Creates an instance of UserController
    * @param {RegisterUserUseCase} registerUserUseCase - Use case for registering new users
@@ -78,7 +82,11 @@ export class UserController {
    * ```
    */
   registerRoutes(app: FastifyInstance): void {
-    app.post('/users/register', this.register.bind(this))
+    app.post(
+      '/users/register',
+      { config: { rateLimit: { max: this.rateLimit, timeWindow: '1 minute' } } },
+      this.register.bind(this)
+    )
     app.get(
       '/users',
       {
