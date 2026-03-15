@@ -55,7 +55,7 @@ jobs:
 
       - name: Regenerate varlock TypeScript types
         working-directory: ./apps/backend
-        run: pnpm varlock typegen
+        run: pnpm exec varlock typegen
 
       - name: Run tests to check for breaking changes
         id: run-tests
