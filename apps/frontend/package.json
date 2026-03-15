@@ -17,7 +17,7 @@
     "bundle:analyze": "pnpm run build && next experimental-analyze",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",
-    "test:unit": "vitest run --hideSkippedTests ",
+    "test:unit": "vitest run --hideSkippedTests",
     "test:unit:coverage": "vitest run --coverage --hideSkippedTests --maxWorkers=50%",
     "test:e2e": "cross-env E2E_CLEANUP_PROCESSES=true playwright test",
     "test:e2e:headed": "cross-env E2E_CLEANUP_PROCESSES=true playwright test --headed",
