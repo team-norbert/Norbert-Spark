@@ -58,6 +58,9 @@ interface OAuthSyncResult {
  */
 const oauthSyncCache = new Map<string, OAuthSyncResult>()
 
+const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 60 * 60 // 7 days in seconds
+const maxDays = SEVEN_DAYS_IN_SECONDS
+
 interface CredentialsInput {
   email: string
   password: string
@@ -67,7 +70,7 @@ interface CredentialsInput {
  * NextAuth configuration options for authentication
  *
  * Configures authentication using credentials provider with backend API integration.
- * Uses JWT strategy for session management with 30-day expiration.
+ * Uses JWT strategy for session management with 7-day expiration.
  *
  * @property {Array} providers - Authentication providers (Credentials)
  * @property {object} callbacks - Custom callbacks for JWT and session handling
@@ -78,9 +81,9 @@ interface CredentialsInput {
  * @property {string} pages.error - Error page route (/login)
  * @property {object} session - Session configuration
  * @property {string} session.strategy - Session strategy ('jwt')
- * @property {number} session.maxAge - Session max age in seconds (30 days)
+ * @property {number} session.maxAge - Session max age in seconds (7 days)
  * @property {object} jwt - JWT configuration
- * @property {number} jwt.maxAge - JWT max age in seconds (30 days)
+ * @property {number} jwt.maxAge - JWT max age in seconds (7 days)
  * @property {string} secret - Secret key for JWT signing from NEXTAUTH_SECRET env var
  * @property {boolean} debug - Enable debug mode in development
  *
@@ -388,10 +391,10 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: maxDays,
   },
   jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: maxDays,
   },
   secret: env.NEXTAUTH_SECRET,
   debug: env.NODE_ENV === 'development',
