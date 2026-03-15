@@ -76,6 +76,7 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     genReqId: () => uuidv7(),
     ...options,
     logger: resolvedLogger,
+    trustProxy: EnvConfig.NODE_ENV === 'production',
   })
 
   fastify.addHook('onRequest', (request, _reply, done) => {
@@ -186,6 +187,7 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     max: 100,
     timeWindow: '1 minute',
     keyGenerator: (req) => {
+      // TODO: NGINX reverse proxy should be used to set the correct IP address
       const xRealIp = req.headers['x-real-ip']
       if (typeof xRealIp === 'string' && xRealIp.trim().length > 0) {
         return xRealIp.trim()
@@ -199,11 +201,26 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
           .filter(Boolean)
 
         if (forwardedIps.length > 0) {
-          return forwardedIps[0]
+          return forwardedIps[0] ?? req.socket?.remoteAddress ?? ''
         }
       }
 
       return req.socket?.remoteAddress ?? ''
+    },
+    errorResponseBuilder: (_request, context) => {
+      const message = 'Too many requests, please try again later.'
+      return {
+        statusCode: 429,
+        success: false,
+        error: {
+          message,
+          limit: context.max,
+          timeWindow: context.after,
+          // `context` may also include `current`, `remaining`, etc.,
+          // but we only include the most useful fields here to keep
+          // the response compact and consistent.
+        },
+      }
     },
   })
 
