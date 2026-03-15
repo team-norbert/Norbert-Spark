@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 describe('scheduleRateMapCleanup', () => {
   const origEnv = process.env
 
+
   beforeEach(() => {
     // Use fake timers so the `setTimeout` scheduled at module load is controllable
     vi.useFakeTimers()
