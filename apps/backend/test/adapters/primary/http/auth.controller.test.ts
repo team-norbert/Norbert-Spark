@@ -143,30 +143,58 @@ describe('AuthController', () => {
       controller.registerRoutes(mockApp)
 
       expect(mockApp.post).toHaveBeenCalledTimes(4)
-      expect(mockApp.post).toHaveBeenCalledWith(
-        '/auth/login',
+
+      const postCalls = vi.mocked(mockApp.post).mock.calls
+
+      const loginCall = postCalls.find((call) => call[0] === '/auth/login')
+      expect(loginCall).toBeDefined()
+      const loginOptions = loginCall?.[1] as any
+      expect(loginOptions).toEqual(
         expect.objectContaining({
-          config: expect.objectContaining({ rateLimit: expect.any(Object) }),
-        }),
-        expect.any(Function)
+          config: expect.objectContaining({
+            rateLimit: expect.objectContaining({
+              max: 5,
+              timeWindow: '1 minute',
+            }),
+          }),
+        })
       )
-      expect(mockApp.post).toHaveBeenCalledWith(
-        '/auth/oauth-sync',
-        expect.objectContaining({ preHandler: expect.any(Function) }),
-        expect.any(Function)
-      )
-      expect(mockApp.post).toHaveBeenCalledWith(
-        '/auth/refresh',
+      expect(loginCall?.[2]).toEqual(expect.any(Function))
+
+      const oauthSyncCall = postCalls.find((call) => call[0] === '/auth/oauth-sync')
+      expect(oauthSyncCall).toBeDefined()
+      const oauthSyncOptions = oauthSyncCall?.[1] as any
+      expect(oauthSyncOptions).toEqual(
         expect.objectContaining({
-          config: expect.objectContaining({ rateLimit: expect.any(Object) }),
-        }),
-        expect.any(Function)
+          preHandler: expect.any(Function),
+        })
       )
-      expect(mockApp.post).toHaveBeenCalledWith(
-        '/auth/logout',
-        expect.objectContaining({ preHandler: expect.any(Function) }),
-        expect.any(Function)
+      expect(oauthSyncCall?.[2]).toEqual(expect.any(Function))
+
+      const refreshCall = postCalls.find((call) => call[0] === '/auth/refresh')
+      expect(refreshCall).toBeDefined()
+      const refreshOptions = refreshCall?.[1] as any
+      expect(refreshOptions).toEqual(
+        expect.objectContaining({
+          config: expect.objectContaining({
+            rateLimit: expect.objectContaining({
+              max: 5,
+              timeWindow: '1 minute',
+            }),
+          }),
+        })
       )
+      expect(refreshCall?.[2]).toEqual(expect.any(Function))
+
+      const logoutCall = postCalls.find((call) => call[0] === '/auth/logout')
+      expect(logoutCall).toBeDefined()
+      const logoutOptions = logoutCall?.[1] as any
+      expect(logoutOptions).toEqual(
+        expect.objectContaining({
+          preHandler: expect.any(Function),
+        })
+      )
+      expect(logoutCall?.[2]).toEqual(expect.any(Function))
     })
 
     it('should bind controller context to route handler', () => {
