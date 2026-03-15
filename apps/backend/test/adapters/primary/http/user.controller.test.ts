@@ -11,6 +11,7 @@ import { GetAllUsersUseCase } from '../../../../src/application/use-cases/get-al
 import { GetUserByIdUseCase } from '../../../../src/application/use-cases/get-user-by-id.use-case.js'
 import { RegisterUserUseCase } from '../../../../src/application/use-cases/register-user.use-case.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
+import { EnvConfig } from '../../../../src/infrastructure/config/env.config.js'
 import { HttpStatus } from '../../../../src/shared/constants/http-status.js'
 import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
@@ -51,6 +52,8 @@ function createMockRegisterResult(
 }
 
 describe('UserController', () => {
+  const ENVRate = EnvConfig.NODE_ENV === 'development' || EnvConfig.NODE_ENV === 'test' ? 200 : 10
+
   let controller: UserController
   let mockRegisterUserUseCase: RegisterUserUseCase
   let mockGetAllUsersUseCase: GetAllUsersUseCase
@@ -140,7 +143,23 @@ describe('UserController', () => {
       controller.registerRoutes(mockApp)
 
       expect(mockApp.post).toHaveBeenCalledTimes(1)
-      expect(mockApp.post).toHaveBeenCalledWith('/users/register', expect.any(Function))
+
+      const registerCall = vi
+        .mocked(mockApp.post)
+        .mock.calls.find((call) => call[0] === '/users/register')
+      expect(registerCall).toBeDefined()
+      const registerOptions = registerCall?.[1] as any
+      expect(registerOptions).toEqual(
+        expect.objectContaining({
+          config: expect.objectContaining({
+            rateLimit: expect.objectContaining({
+              max: ENVRate,
+              timeWindow: '1 minute',
+            }),
+          }),
+        })
+      )
+      expect(registerCall?.[2]).toEqual(expect.any(Function))
     })
 
     it('should register GET /users/:id route', () => {
@@ -180,7 +199,7 @@ describe('UserController', () => {
       controller.registerRoutes(mockApp)
 
       // Verify handlers are bound functions
-      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1]
+      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2]
       // GET /users is registered with options, so handler is at index 2
       const getAllUsersHandler = (vi.mocked(mockApp.get).mock.calls[0] as any)?.[2]
       // GET /users/:id is also registered with options, so handler is at index 2
@@ -1072,7 +1091,7 @@ describe('UserController', () => {
       controller.registerRoutes(mockApp)
 
       // Get the registered handler
-      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1] as unknown as (
+      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2] as unknown as (
         req: FastifyRequest,
         reply: FastifyReply
       ) => Promise<void>
@@ -1108,7 +1127,7 @@ describe('UserController', () => {
 
       controller.registerRoutes(mockApp)
 
-      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1] as unknown as (
+      const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2] as unknown as (
         req: FastifyRequest,
         reply: FastifyReply
       ) => Promise<void>

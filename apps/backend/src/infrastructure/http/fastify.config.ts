@@ -3,6 +3,7 @@ import '../security/instrument.js'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import multipart from '@fastify/multipart'
+import rateLimit from '@fastify/rate-limit'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
 import { OpenAPI } from '@norberts-spark/shared'
@@ -75,6 +76,7 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     genReqId: () => uuidv7(),
     ...options,
     logger: resolvedLogger,
+    trustProxy: EnvConfig.NODE_ENV === 'production',
   })
 
   fastify.addHook('onRequest', (request, _reply, done) => {
@@ -178,6 +180,48 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+
+  fastify.register(rateLimit, {
+    global: true,
+    max: 100,
+    timeWindow: '1 minute',
+    keyGenerator: (req) => {
+      // TODO: NGINX reverse proxy should be used to set the correct IP address
+      const xRealIp = req.headers['x-real-ip']
+      if (typeof xRealIp === 'string' && xRealIp.trim().length > 0) {
+        return xRealIp.trim()
+      }
+
+      const xForwardedFor = req.headers['x-forwarded-for']
+      if (typeof xForwardedFor === 'string' && xForwardedFor.length > 0) {
+        const forwardedIps = xForwardedFor
+          .split(',')
+          .map((ip) => ip.trim())
+          .filter(Boolean)
+
+        if (forwardedIps.length > 0) {
+          return forwardedIps[0] ?? req.socket?.remoteAddress ?? ''
+        }
+      }
+
+      return req.socket?.remoteAddress ?? ''
+    },
+    errorResponseBuilder: (_request, context) => {
+      const message = 'Too many requests, please try again later.'
+      return {
+        statusCode: 429,
+        success: false,
+        error: {
+          message,
+          limit: context.max,
+          timeWindow: context.after,
+          // `context` may also include `current`, `remaining`, etc.,
+          // but we only include the most useful fields here to keep
+          // the response compact and consistent.
+        },
+      }
+    },
   })
 
   fastify.register(

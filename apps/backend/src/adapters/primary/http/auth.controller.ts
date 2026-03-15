@@ -10,6 +10,7 @@ import type { LogOutUseCase } from '../../../application/use-cases/log-out.use-c
 import { LoginUserUseCase } from '../../../application/use-cases/login-user.use-case.js'
 import { RefreshAccessTokenUseCase } from '../../../application/use-cases/refresh-access-token.use-case.js'
 import { RegisterUserWithProviderUseCase } from '../../../application/use-cases/register-user-with-provider.use-case.js'
+import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { oauthSyncAuthMiddleware } from '../../../infrastructure/http/middleware/auth-sync-auth.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
@@ -61,6 +62,8 @@ import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
  * @see {@link LogOutUseCase} for session revocation logic
  */
 export class AuthController {
+  private NODE_ENV = EnvConfig.NODE_ENV
+  private rateLimit = this.NODE_ENV === 'development' || this.NODE_ENV === 'test' ? 200 : 10
   /**
    * Creates a new AuthController instance.
    *
@@ -107,9 +110,17 @@ export class AuthController {
    * ```
    */
   registerRoutes(app: FastifyInstance): void {
-    app.post('/auth/login', this.login.bind(this))
+    app.post(
+      '/auth/login',
+      { config: { rateLimit: { max: this.rateLimit, timeWindow: '1 minute' } } },
+      this.login.bind(this)
+    )
     app.post('/auth/oauth-sync', { preHandler: oauthSyncAuthMiddleware }, this.oauthSync.bind(this))
-    app.post('/auth/refresh', this.refresh.bind(this))
+    app.post(
+      '/auth/refresh',
+      { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } },
+      this.refresh.bind(this)
+    )
     app.post('/auth/logout', { preHandler: authMiddleware }, this.logout.bind(this))
   }
 

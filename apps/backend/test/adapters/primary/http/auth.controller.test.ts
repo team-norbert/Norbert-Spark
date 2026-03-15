@@ -9,6 +9,7 @@ import { LoginUserUseCase } from '../../../../src/application/use-cases/login-us
 import { RefreshAccessTokenUseCase } from '../../../../src/application/use-cases/refresh-access-token.use-case.js'
 import { RegisterUserWithProviderUseCase } from '../../../../src/application/use-cases/register-user-with-provider.use-case.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
+import { EnvConfig } from '../../../../src/infrastructure/config/env.config.js'
 import { UnauthorizedException } from '../../../../src/shared/exceptions/unauthorized.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
 import { createMockLogger } from '../../../shared/factories/logger.factory.js'
@@ -41,6 +42,7 @@ describe('AuthController', () => {
     child: ReturnType<typeof vi.fn>
   }
   let mockChildLogger: typeof mockLogger
+  const ENVRate = EnvConfig.NODE_ENV === 'development' || EnvConfig.NODE_ENV === 'test' ? 200 : 10
 
   beforeEach(() => {
     // Reset all mocks before each test
@@ -143,18 +145,58 @@ describe('AuthController', () => {
       controller.registerRoutes(mockApp)
 
       expect(mockApp.post).toHaveBeenCalledTimes(4)
-      expect(mockApp.post).toHaveBeenCalledWith('/auth/login', expect.any(Function))
-      expect(mockApp.post).toHaveBeenCalledWith(
-        '/auth/oauth-sync',
-        expect.objectContaining({ preHandler: expect.any(Function) }),
-        expect.any(Function)
+
+      const postCalls = vi.mocked(mockApp.post).mock.calls
+
+      const loginCall = postCalls.find((call) => call[0] === '/auth/login')
+      expect(loginCall).toBeDefined()
+      const loginOptions = loginCall?.[1] as any
+      expect(loginOptions).toEqual(
+        expect.objectContaining({
+          config: expect.objectContaining({
+            rateLimit: expect.objectContaining({
+              max: ENVRate,
+              timeWindow: '1 minute',
+            }),
+          }),
+        })
       )
-      expect(mockApp.post).toHaveBeenCalledWith('/auth/refresh', expect.any(Function))
-      expect(mockApp.post).toHaveBeenCalledWith(
-        '/auth/logout',
-        expect.objectContaining({ preHandler: expect.any(Function) }),
-        expect.any(Function)
+      expect(loginCall?.[2]).toEqual(expect.any(Function))
+
+      const oauthSyncCall = postCalls.find((call) => call[0] === '/auth/oauth-sync')
+      expect(oauthSyncCall).toBeDefined()
+      const oauthSyncOptions = oauthSyncCall?.[1] as any
+      expect(oauthSyncOptions).toEqual(
+        expect.objectContaining({
+          preHandler: expect.any(Function),
+        })
       )
+      expect(oauthSyncCall?.[2]).toEqual(expect.any(Function))
+
+      const refreshCall = postCalls.find((call) => call[0] === '/auth/refresh')
+      expect(refreshCall).toBeDefined()
+      const refreshOptions = refreshCall?.[1] as any
+      expect(refreshOptions).toEqual(
+        expect.objectContaining({
+          config: expect.objectContaining({
+            rateLimit: expect.objectContaining({
+              max: 30,
+              timeWindow: '1 minute',
+            }),
+          }),
+        })
+      )
+      expect(refreshCall?.[2]).toEqual(expect.any(Function))
+
+      const logoutCall = postCalls.find((call) => call[0] === '/auth/logout')
+      expect(logoutCall).toBeDefined()
+      const logoutOptions = logoutCall?.[1] as any
+      expect(logoutOptions).toEqual(
+        expect.objectContaining({
+          preHandler: expect.any(Function),
+        })
+      )
+      expect(logoutCall?.[2]).toEqual(expect.any(Function))
     })
 
     it('should bind controller context to route handler', () => {
@@ -165,7 +207,7 @@ describe('AuthController', () => {
       controller.registerRoutes(mockApp)
 
       // Verify handler is a bound function
-      const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1]
+      const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2]
 
       expect(loginHandler).toBeTypeOf('function')
     })
@@ -776,7 +818,7 @@ describe('AuthController', () => {
 
         controller.registerRoutes(mockApp)
 
-        const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1] as unknown as (
+        const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2] as unknown as (
           req: FastifyRequest,
           reply: FastifyReply
         ) => Promise<void>
@@ -805,7 +847,7 @@ describe('AuthController', () => {
 
         controller.registerRoutes(mockApp)
 
-        const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1] as unknown as (
+        const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2] as unknown as (
           req: FastifyRequest,
           reply: FastifyReply
         ) => Promise<void>
@@ -1279,7 +1321,18 @@ describe('AuthController', () => {
 
         controller.registerRoutes(mockApp)
 
-        expect(mockApp.post).toHaveBeenCalledWith('/auth/refresh', expect.any(Function))
+        expect(mockApp.post).toHaveBeenCalledWith(
+          '/auth/refresh',
+          expect.objectContaining({
+            config: expect.objectContaining({
+              rateLimit: expect.objectContaining({
+                max: 30,
+                timeWindow: '1 minute',
+              }),
+            }),
+          }),
+          expect.any(Function)
+        )
       })
 
       it('should invoke refresh handler when route is called', async () => {
@@ -1295,7 +1348,7 @@ describe('AuthController', () => {
           .mock.calls.find((call) => call[0] === '/auth/refresh')
         expect(refreshCall).toBeDefined()
 
-        const refreshHandler = refreshCall![1] as unknown as (
+        const refreshHandler = refreshCall![2] as unknown as (
           req: FastifyRequest,
           reply: FastifyReply
         ) => Promise<void>
