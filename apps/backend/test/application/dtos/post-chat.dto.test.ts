@@ -391,11 +391,15 @@ describe('PostChatDto', () => {
       expect(dto.chatTypeId).toBe(VALID_CHAT_TYPE_ID)
     })
 
-    it('should treat a whitespace-only chatTypeParam as undefined', () => {
-      // isString(' ') is true but it passes the empty-string check — only '' is excluded.
-      // A non-empty whitespace string is therefore accepted as a param value.
-      const dto = PostChatDto.validate(validBase({ chatTypeParam: ' ' }))
-      expect(dto.chatTypeParam).toBe(' ')
+    it('should treat a whitespace-only chatTypeParam as undefined (throws when no chatTypeId)', () => {
+      // The DTO trims chatTypeParam: a whitespace-only value becomes undefined.
+      // When chatTypeId is also absent this triggers the anyOf constraint.
+      expect(() =>
+        PostChatDto.validate(validBase({ chatTypeParam: ' ', chatTypeId: undefined }))
+      ).toThrow(ValidationException)
+      expect(() =>
+        PostChatDto.validate(validBase({ chatTypeParam: ' ', chatTypeId: undefined }))
+      ).toThrow('At least one of chatTypeParam or chatTypeId must be provided')
     })
   })
 

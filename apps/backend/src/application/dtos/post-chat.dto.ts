@@ -231,16 +231,12 @@ export class PostChatDto {
     const validatedMessages = PostChatDto.validateMessages(d.messages as unknown[])
 
     const chatTypeParam =
-      isDefined(d.chatTypeParam) &&
-      isString(d.chatTypeParam) &&
-      d.chatTypeParam.trim() !== ''
+      isDefined(d.chatTypeParam) && isString(d.chatTypeParam) && d.chatTypeParam.trim() !== ''
         ? d.chatTypeParam.trim()
         : undefined
 
     const chatTypeId =
-      isDefined(d.chatTypeId) &&
-      isString(d.chatTypeId) &&
-      d.chatTypeId.trim() !== ''
+      isDefined(d.chatTypeId) && isString(d.chatTypeId) && d.chatTypeId.trim() !== ''
         ? d.chatTypeId.trim()
         : undefined
 

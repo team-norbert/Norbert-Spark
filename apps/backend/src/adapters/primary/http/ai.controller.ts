@@ -162,7 +162,7 @@ export class AIController {
         trigger: body?.trigger,
         chatTypeParam: body?.chatTypeParam,
         chatTypeId: body?.chatTypeId,
-        messages: body?.messages,
+        messages: redactSensitiveData(body?.messages),
       })
 
       const chatDTO = PostChatDto.validate(body)
