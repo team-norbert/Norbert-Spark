@@ -1327,7 +1327,7 @@ describe('AuthController', () => {
             config: expect.objectContaining({
               rateLimit: expect.objectContaining({
                 max: 30,
-                timeWindow: 60_000,
+                timeWindow: '1 minute',
               }),
             }),
           }),
