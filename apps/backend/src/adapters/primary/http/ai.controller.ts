@@ -124,7 +124,6 @@ export class AIController {
    * @throws {400} When the request body fails validation, a required field is missing,
    *   prompt injection is detected, the last message is not from the user,
    *   or the chat type cannot be resolved.
-   * @throws {401} When the user is unauthenticated and a new chat needs to be created.
    * @throws {500} When the AI model is not configured or an unexpected error occurs.
    */
   async chat(request: FastifyRequest, reply: FastifyReply) {
