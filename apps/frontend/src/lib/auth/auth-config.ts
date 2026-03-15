@@ -58,7 +58,8 @@ interface OAuthSyncResult {
  */
 const oauthSyncCache = new Map<string, OAuthSyncResult>()
 
-const maxDays = 604800 // 7 days in seconds
+const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 60 * 60 // 7 days in seconds
+const maxDays = SEVEN_DAYS_IN_SECONDS
 
 interface CredentialsInput {
   email: string
