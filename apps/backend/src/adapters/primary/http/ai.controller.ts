@@ -3,7 +3,6 @@
 /* eslint-disable max-lines */
 
 import { google } from '@ai-sdk/google'
-import { redactSensitiveData } from '@norberts-spark/shared'
 import type { components, operations } from '@norberts-spark/shared/openapi-types'
 import {
   convertToModelMessages,
