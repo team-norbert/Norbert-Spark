@@ -58,6 +58,8 @@ interface OAuthSyncResult {
  */
 const oauthSyncCache = new Map<string, OAuthSyncResult>()
 
+const maxDays = 604800 // 7 days in seconds
+
 interface CredentialsInput {
   email: string
   password: string
@@ -78,9 +80,9 @@ interface CredentialsInput {
  * @property {string} pages.error - Error page route (/login)
  * @property {object} session - Session configuration
  * @property {string} session.strategy - Session strategy ('jwt')
- * @property {number} session.maxAge - Session max age in seconds (30 days)
+ * @property {number} session.maxAge - Session max age in seconds (7 days)
  * @property {object} jwt - JWT configuration
- * @property {number} jwt.maxAge - JWT max age in seconds (30 days)
+ * @property {number} jwt.maxAge - JWT max age in seconds (7 days)
  * @property {string} secret - Secret key for JWT signing from NEXTAUTH_SECRET env var
  * @property {boolean} debug - Enable debug mode in development
  *
@@ -388,10 +390,10 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 604800, // 7 days
+    maxAge: maxDays,
   },
   jwt: {
-    maxAge: 604800, // 7 days
+    maxAge: maxDays,
   },
   secret: env.NEXTAUTH_SECRET,
   debug: env.NODE_ENV === 'development',
