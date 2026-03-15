@@ -12,9 +12,9 @@ import {
   type UIMessage,
   validateUIMessages,
 } from 'ai'
+import { createHash } from 'crypto'
 import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import { createHash } from 'crypto'
 
 import { PostChatDto } from '../../../application/dtos/post-chat.dto.js'
 import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
