@@ -17,7 +17,7 @@ export class PromptInjectionGuard {
     const checks: Array<[RegExp, number, string]> = [
       [/\bignore (all|any|previous|prior) instructions?\b/i, 4, 'instruction-override'],
       [/\byou are now\b/i, 3, 'role-reassignment'],
-      [/\b(role\s*:\s*system|<system>|\[system\])\b/i, 5, 'system-role-spoofing'],
+      [/(\brole\s*:\s*system\b|<system>|\[system\])/i, 5, 'system-role-spoofing'],
       [
         /\b(reveal|show|print|dump).{0,40}\b(system prompt|hidden prompt|developer message|internal instructions?)\b/i,
         6,
