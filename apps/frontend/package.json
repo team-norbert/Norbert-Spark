@@ -18,7 +18,7 @@
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",
     "test:unit": "vitest run --hideSkippedTests",
-    "test:unit:coverage": "vitest run --coverage --hideSkippedTests",
+    "test:unit:coverage": "vitest run --coverage --hideSkippedTests --maxWorkers=50%",
     "test:e2e": "cross-env E2E_CLEANUP_PROCESSES=true playwright test",
     "test:e2e:headed": "cross-env E2E_CLEANUP_PROCESSES=true playwright test --headed",
     "test:pact": "vitest run --config vitest.config.pact.ts pacts/consumer.pact.spec.ts",

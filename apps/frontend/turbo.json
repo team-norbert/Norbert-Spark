@@ -34,6 +34,20 @@
         "SKIP_ENV_VALIDATION",
         "RATE_LIMITER_TYPE"
       ]
+    },
+    "test:unit": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**",
+        "test/**",
+        "tests/**",
+        "vitest.config.*",
+        "vite.config.*",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "outputs": []
     }
   }
 }
