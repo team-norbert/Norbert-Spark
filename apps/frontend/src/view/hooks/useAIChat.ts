@@ -133,9 +133,6 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
     },
   })
 
-  console.log('messages', messages)
-  console.log('status', status)
-
   useEffect(() => {
     if (!disabled) return
     void stop().catch((error) => {
