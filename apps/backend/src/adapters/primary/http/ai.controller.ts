@@ -289,6 +289,12 @@ export class AIController {
     }
 
     if (!chat) {
+      if (!userId) {
+        return reply.code(401).send({
+          success: false,
+          error: 'User not authenticated',
+        })
+      }
       this.logger.info('Chat does not exist, creating new chat', { id })
       await this.saveChatUseCase.execute(
         chatId,

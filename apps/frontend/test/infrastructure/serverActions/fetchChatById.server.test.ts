@@ -72,6 +72,7 @@ describe('fetchChatByIdAction', () => {
         headers: {
           Authorization: `Bearer ${TEST_TOKEN}`,
         },
+        suppressLogForStatus: [404],
         timeoutMs: 10000,
       })
       expect(mockLoggerWarn).not.toHaveBeenCalled()
@@ -299,8 +300,8 @@ describe('fetchChatByIdAction', () => {
 
       const result = await fetchChatByIdAction(TEST_CHAT_ID)
 
-      expect(result).toEqual({ success: false, data: { id: TEST_CHAT_ID, messages: [] } })
-      expect(mockLoggerError).toHaveBeenCalled()
+      expect(result).toEqual({ success: true, data: { id: TEST_CHAT_ID, messages: [] } })
+      expect(mockLoggerError).not.toHaveBeenCalled()
     })
 
     it('should handle 500 internal server error', async () => {

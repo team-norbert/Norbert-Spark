@@ -322,7 +322,7 @@ describe('AIController', () => {
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: 'Invalid request body',
-          details: 'id and trigger are required',
+          details: 'id is required and must be a non-empty string',
         })
       })
 
@@ -340,10 +340,9 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'No messages provided',
+          error: 'Invalid request body',
+          details: 'messages is required and must be an array',
         })
-        // When messages is missing, validateUIMessages accepts empty array,
-        // then the controller checks for empty messages and returns "No messages provided"
       })
 
       it('should return 400 if trigger is missing', async () => {
@@ -358,7 +357,7 @@ describe('AIController', () => {
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: 'Invalid request body',
-          details: 'id and trigger are required',
+          details: 'trigger is required and must be a non-empty string',
         })
       })
 
@@ -366,7 +365,7 @@ describe('AIController', () => {
         mockRequest.body = {
           id: 'invalid-uuid-format',
           trigger: 'user-input',
-          messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           chatTypeId: new ChatId(uuidv7()).getValue(),
         }
 
@@ -390,7 +389,7 @@ describe('AIController', () => {
         mockRequest.body = {
           id: uuidv7(),
           trigger: 'user-input',
-          messages: [{ invalid: 'message' }],
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           chatTypeId: new ChatId(uuidv7()).getValue(),
         }
 
@@ -416,7 +415,7 @@ describe('AIController', () => {
         mockRequest.body = {
           id: uuidv7(),
           trigger: 'user-input',
-          messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           // Intentionally omit both chatTypeId and chatTypeParam
         }
 
@@ -425,8 +424,8 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Chat type identification required',
-          details: 'Provide chatTypeParam or chatTypeId in the request body',
+          error: 'Invalid request body',
+          details: 'At least one of chatTypeParam or chatTypeId must be provided',
         })
       })
 
@@ -436,7 +435,7 @@ describe('AIController', () => {
         mockRequest.body = {
           id: uuidv7(),
           trigger: 'user-input',
-          messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           chatTypeParam: chatTypeParam,
         }
 
@@ -460,7 +459,7 @@ describe('AIController', () => {
         mockRequest.body = {
           id: uuidv7(),
           trigger: 'user-input',
-          messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           chatTypeParam: chatTypeParam,
         }
 
@@ -480,7 +479,7 @@ describe('AIController', () => {
         mockRequest.body = {
           id: uuidv7(),
           trigger: 'user-input',
-          messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           chatTypeId: 'invalid-uuid-format',
         }
 
@@ -540,6 +539,7 @@ describe('AIController', () => {
           id: uuidv7(),
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
+          chatTypeId: new ChatId(uuidv7()).getValue(),
         }
         mockRequest.user = undefined
 
@@ -803,7 +803,7 @@ describe('AIController', () => {
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
           error: 'Invalid request body',
-          details: 'id and trigger are required',
+          details: 'id is required and must be a non-empty string',
         })
       })
 
