@@ -131,8 +131,20 @@ export interface PromptInjectionChanges {
   decision: 'flag' | 'block'
   /** Human-readable labels for each matched pattern, e.g. 'instruction-override'. */
   reasons: string[]
-  /** The NFKC-normalised, zero-width-stripped, lowercase text that was assessed. */
-  normalizedText: string
+  /**
+   * Hash of the NFKC-normalised, zero-width-stripped, lowercase text that was assessed.
+   *
+   * NOTE: Do not store the full prompt text in audit logs. Use a one-way hash (e.g. SHA-256)
+   * of the normalised text instead so prompts can be correlated without persisting PII/secrets.
+   */
+  normalizedTextHash?: string
+  /**
+   * Optional, truncated excerpt of the normalised text for debugging purposes.
+   *
+   * This MUST be limited to a short prefix (e.g. first N characters) and must not contain
+   * the full prompt text to avoid leaking PII/secrets into long-lived audit logs.
+   */
+  normalizedTextExcerpt?: string
   /** Zero-based index of the offending message within the request messages array. */
   messageIndex: number
   /** The `id` field of the offending message. */
