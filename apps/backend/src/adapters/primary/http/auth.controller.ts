@@ -107,9 +107,17 @@ export class AuthController {
    * ```
    */
   registerRoutes(app: FastifyInstance): void {
-    app.post('/auth/login', this.login.bind(this))
+    app.post(
+      '/auth/login',
+      { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } },
+      this.login.bind(this)
+    )
     app.post('/auth/oauth-sync', { preHandler: oauthSyncAuthMiddleware }, this.oauthSync.bind(this))
-    app.post('/auth/refresh', this.refresh.bind(this))
+    app.post(
+      '/auth/refresh',
+      { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } },
+      this.refresh.bind(this)
+    )
     app.post('/auth/logout', { preHandler: authMiddleware }, this.logout.bind(this))
   }
 

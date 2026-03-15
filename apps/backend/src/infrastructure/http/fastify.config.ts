@@ -3,6 +3,7 @@ import '../security/instrument.js'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import multipart from '@fastify/multipart'
+import rateLimit from '@fastify/rate-limit'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
 import { OpenAPI } from '@norberts-spark/shared'
@@ -178,6 +179,13 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+
+  fastify.register(rateLimit, {
+    global: true,
+    max: 100,
+    timeWindow: '1 minute',
+    keyGenerator: (req) => req.ip,
   })
 
   fastify.register(

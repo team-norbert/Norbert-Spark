@@ -194,3 +194,4 @@ apps/frontend/e2e/.test-db-config.json
 packages/shared/src/openapi.json
 **/env.d.ts
 apps/backend/env.d.ts
+SECURITY_THREAT_MODEL.md
