@@ -96,7 +96,7 @@ test.describe('Chat Interaction', () => {
     await sendButton.click()
 
     // Wait for the user message to appear in the UI
-    const userMessageWrapper = page.getByTestId('user')
+    const userMessageWrapper = page.getByTestId('message-user')
     await expect(userMessageWrapper).toBeVisible({ timeout: 10000 })
 
     // Verify the message text directly on the user message container
