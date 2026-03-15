@@ -210,7 +210,6 @@ export class PostChatDto {
    * ```
    */
   static validate(data: components['schemas']['AIRequest']): PostChatDto {
-    console.log('PostChatDto.validate', data)
     if (!isDefined(data) || !isObject(data)) {
       throw new TypeException('Data must be a valid object')
     }
