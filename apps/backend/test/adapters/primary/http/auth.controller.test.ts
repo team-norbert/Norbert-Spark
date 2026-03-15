@@ -1649,7 +1649,7 @@ describe('AuthController', () => {
         await controller.oauthSync(mockRequest, mockReply)
 
         expect(mockChildLogger.info).toHaveBeenCalledWith('OAuth sync request received', {
-          body: mockRequest.body,
+          provider: OAUTH_SYNC_REQUEST.provider,
         })
       })
 
