@@ -76,7 +76,7 @@ export function RegistrationForm({
   }
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="sm" id="registration-form" data-testid="registration-form">
       <Box
         sx={{
           minHeight: '100vh',

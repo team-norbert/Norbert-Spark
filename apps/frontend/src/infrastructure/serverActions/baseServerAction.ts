@@ -51,6 +51,15 @@ export interface BackendRequestOptions {
    */
   redirectOn401?: boolean
   /**
+   * HTTP status codes for which errors should not be logged.
+   *
+   * Use this for expected non-2xx responses — for example, a 404 when checking
+   * whether a resource exists yet. Errors with a matching status are still thrown
+   * so the caller can handle them, but no `error`-level log entries are emitted
+   * by `backendRequest` or `handleResponse`.
+   */
+  suppressLogForStatus?: number[]
+  /**
    * Internal flag — set automatically by the retry logic on a 401.
    * Prevents infinite retry loops. Do not set manually.
    * @internal
@@ -99,7 +108,8 @@ function normalizeUrl(apiUrl: string, endpoint: string): string {
  */
 async function handleResponse<T>(
   res: Response | Awaited<ReturnType<typeof import('node-fetch').default>>,
-  url: string
+  url: string,
+  suppressLogForStatus?: number[]
 ): Promise<T> {
   const text = await res.text()
   let parsed: unknown
@@ -110,12 +120,14 @@ async function handleResponse<T>(
   }
 
   if (!res.ok) {
-    logger.error('[backendRequest] non-ok response', undefined, {
-      event: 'server-action.backend-request.failed',
-      url,
-      statusCode: res.status,
-      body: parsed,
-    })
+    if (!suppressLogForStatus?.includes(res.status)) {
+      logger.error('[backendRequest] non-ok response', undefined, {
+        event: 'server-action.backend-request.failed',
+        url,
+        statusCode: res.status,
+        body: parsed,
+      })
+    }
 
     const extractedError = (() => {
       if (!parsed || typeof parsed !== 'object') return undefined
@@ -318,7 +330,7 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
-      const result = await handleResponse<T>(res, url)
+      const result = await handleResponse<T>(res, url, options.suppressLogForStatus)
 
       logger.info('Backend request completed', {
         event: 'server-action.backend-request.completed',
@@ -332,7 +344,8 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
       const error = err as Error & { status?: number }
       const will401Retry =
         error.status === 401 && options.redirectOn401 !== false && !options._isRetry
-      if (!will401Retry) {
+      const isSuppressed = options.suppressLogForStatus?.includes(error.status ?? -1) ?? false
+      if (!will401Retry && !isSuppressed) {
         logger.error(
           'Backend request failed',
           err instanceof Error ? err : new Error(String(err)),
@@ -363,7 +376,7 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         signal: combinedSignal,
       })
 
-      const result = await handleResponse<T>(res, url)
+      const result = await handleResponse<T>(res, url, options.suppressLogForStatus)
 
       logger.info('Backend request completed', {
         event: 'server-action.backend-request.completed',
@@ -377,7 +390,8 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
       const error = err as Error & { status?: number }
       const will401Retry =
         error.status === 401 && options.redirectOn401 !== false && !options._isRetry
-      if (!will401Retry) {
+      const isSuppressed = options.suppressLogForStatus?.includes(error.status ?? -1) ?? false
+      if (!will401Retry && !isSuppressed) {
         logger.error(
           'Backend request failed',
           err instanceof Error ? err : new Error(String(err)),

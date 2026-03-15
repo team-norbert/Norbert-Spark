@@ -89,7 +89,7 @@ export function CompanyDetailsForm({
   successMessage,
 }: CompanyDetailsFormProps) {
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="md" id="company-details-form" data-testid="company-details-form">
       <Box
         sx={{
           minHeight: '100vh',

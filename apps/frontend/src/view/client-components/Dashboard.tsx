@@ -39,7 +39,7 @@ interface DashboardProps {
  */
 export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardProps) {
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
+    <Container maxWidth="lg" sx={{ py: 8 }} id="dashboard" data-testid="dashboard">
       <header>
         <PageHeader
           title="Dashboard"

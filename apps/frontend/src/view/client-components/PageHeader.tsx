@@ -31,7 +31,11 @@ interface PageHeaderProps {
  */
 export function PageHeader({ onNavigateHome, onSignOut, title }: PageHeaderProps) {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
+    <Box
+      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}
+      id="page-header"
+      data-testid="page-header"
+    >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Tooltip title="Home">
           <IconButton onClick={onNavigateHome} color="primary" aria-label="Home" size="large">

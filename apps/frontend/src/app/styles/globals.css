@@ -26,3 +26,7 @@
   position: absolute;
   width: 1px
 }
+
+@view-transition {
+  navigation: auto;
+}

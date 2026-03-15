@@ -153,7 +153,7 @@ export function FileUploadPage({
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth="md" sx={{ py: 4 }} id="file-upload-page" data-testid="file-upload-page">
       <PageHeader title={text.title} onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>

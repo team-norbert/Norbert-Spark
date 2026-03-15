@@ -10,6 +10,7 @@ import {
 import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
+import { PostChatDto } from '../../../application/dtos/post-chat.dto.js'
 import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
 import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
@@ -154,15 +155,19 @@ export class AIController {
         messages: body?.messages,
       })
 
+      console.dir(body, { depth: null })
+
+      const chatDTO = PostChatDto.validate(body)
+
       // Validate messages using validateUIMessages from 'ai' package
       messages = await validateUIMessages({
-        messages: body?.messages || [],
+        messages: chatDTO?.messages || [],
       })
 
       // Extract id and trigger from body
-      id = body?.id as ChatIdType
+      id = chatDTO?.id as ChatIdType
 
-      trigger = body?.trigger
+      trigger = chatDTO?.trigger
 
       if (!id || !trigger) {
         return reply.code(400).send({
@@ -192,16 +197,9 @@ export class AIController {
       })
     }
 
-    if (!request.user?.sub) {
-      return reply.code(401).send({
-        success: false,
-        error: 'User not authenticated',
-      })
-    }
-
     // Conversion of string request.user.sub id to UserIdType branded type
     // happens in middleware so no need to instantiate a new UserId here
-    const userId = request.user.sub
+    const userId = request?.user?.sub
     const chatId = id
 
     // Resolve chatTypeId from URI parameter (chatTypeParam) or fallback to body.chatTypeId
@@ -292,7 +290,7 @@ export class AIController {
 
     if (!chat) {
       this.logger.info('Chat does not exist, creating new chat', { id })
-      await this.saveChatUseCase.execute(chatId, userId, chatTypeId, messages, auditContext)
+      await this.saveChatUseCase.execute(chatId, userId as UserIdType, chatTypeId, messages, auditContext)
     } else {
       await this.appendChatUseCase.execute(chatId, [mostRecentMessage as UIMessage], auditContext)
       this.logger.info('Chat exists, appending most recent message', { id })

@@ -200,7 +200,7 @@ export function AIChatView({
   )
 
   return (
-    <Wrapper>
+    <Wrapper id="wrapper" data-testid="ai-chat-view">
       <PageHeader title="AI Chat" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
 
       <AccordionComponent header={accordionHeader} body={accordionBody} />

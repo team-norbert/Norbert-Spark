@@ -139,7 +139,12 @@ export default function AIOptionsForm({
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+    <Container
+      maxWidth="md"
+      sx={{ mt: 4, mb: 4 }}
+      id="ai-options-form"
+      data-testid="ai-options-form"
+    >
       <header>
         <PageHeader
           title="AI Chat Options Configuration"
