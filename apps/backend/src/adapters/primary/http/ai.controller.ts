@@ -162,7 +162,7 @@ export class AIController {
         trigger: body?.trigger,
         chatTypeParam: body?.chatTypeParam,
         chatTypeId: body?.chatTypeId,
-        messages: redactSensitiveData(body?.messages),
+        messageCount: Array.isArray(body?.messages) ? body.messages.length : 0,
       })
 
       const chatDTO = PostChatDto.validate(body)
@@ -209,11 +209,15 @@ export class AIController {
       id = chatDTO?.id as ChatIdType
 
       trigger = chatDTO?.trigger
-      this.logger.debug('Validated messages', { messageCount: messages.length, id, trigger })
-      this.logger.debug(
-        'Validated messages content:',
-        redactSensitiveData(messages) as Record<string, any>
-      )
+      this.logger.debug('Validated messages', {
+        messageCount: messages.length,
+        id,
+        trigger,
+      })
+      this.logger.debug('Validated messages summary', {
+        messageCount: messages.length,
+        roles: messages.map((m) => m.role),
+      })
     } catch (e) {
       return reply.code(400).send({
         success: false,
