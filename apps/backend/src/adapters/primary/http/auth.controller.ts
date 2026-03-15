@@ -495,9 +495,6 @@ export class AuthController {
     const reqLogger = this.createRequestLogger(request)
 
     try {
-      reqLogger.info('OAuth sync request received', {
-        provider: (request.body as any)?.provider ?? 'unknown',
-      })
       // Extract audit context from request
       const auditContext = {
         userId: request.user?.sub ?? null,
@@ -508,6 +505,10 @@ export class AuthController {
       const body = request.body as components['schemas']['OAuthSyncRequest']
 
       const dto = OAuthSyncDto.validate(body)
+
+      reqLogger.info('OAuth sync request received', {
+        provider: dto.provider ?? 'unknown',
+      })
 
       const result = await this.registerUserWithProviderUseCase.execute(dto, auditContext)
 
