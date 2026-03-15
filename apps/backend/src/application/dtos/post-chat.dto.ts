@@ -1,6 +1,7 @@
 import { isArray, isDefined, isObject, isString } from '@norberts-spark/shared'
 import type { components } from '@norberts-spark/shared/openapi-types'
 
+import { ChatId, type ChatIdType } from '../../domain/value-objects/chatID.js'
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 import {
@@ -121,7 +122,7 @@ export class PostChatDto {
      *
      * @example '01890c3a-6f2b-7c1a-b9e1-9b5a0d5f6e3a'
      */
-    public readonly id: string,
+    public readonly id: ChatIdType,
     /**
      * Ordered list of messages exchanged in this conversation.
      */
@@ -220,6 +221,13 @@ export class PostChatDto {
       throw new ValidationException('id is required and must be a non-empty string')
     }
 
+    let id: ChatIdType
+    try {
+      id = new ChatId(d.id).getValue()
+    } catch {
+      throw new ValidationException('Invalid id format')
+    }
+
     if (!isDefined(d.trigger) || !isString(d.trigger) || d.trigger === '') {
       throw new ValidationException('trigger is required and must be a non-empty string')
     }
@@ -267,7 +275,7 @@ export class PostChatDto {
     }
 
     return new PostChatDto(
-      d.id,
+      id,
       validatedMessages,
       d.trigger,
       chatTypeParam,

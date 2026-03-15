@@ -209,25 +209,6 @@ export class AIController {
       id = chatDTO?.id as ChatIdType
 
       trigger = chatDTO?.trigger
-
-      if (!id || !trigger) {
-        return reply.code(400).send({
-          success: false,
-          error: 'Invalid request body',
-          details: 'id and trigger are required',
-        })
-      }
-
-      try {
-        id = new ChatId(id).getValue()
-      } catch {
-        return reply.code(400).send({
-          success: false,
-          error: 'Invalid id format',
-          details: 'incorrect ChatId format',
-        })
-      }
-
       this.logger.debug('Validated messages', { messageCount: messages.length, id, trigger })
       this.logger.debug('Validated messages content:', messages)
     } catch (e) {

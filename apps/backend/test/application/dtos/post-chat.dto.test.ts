@@ -1,3 +1,4 @@
+import { uuidv7 } from 'uuidv7'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -5,6 +6,7 @@ import {
   type PostChatMessage,
   type PostChatMessagePart,
 } from '../../../src/application/dtos/post-chat.dto.js'
+import { ChatId, type ChatIdType } from '../../../src/domain/value-objects/chatID.js'
 import { TypeException } from '../../../src/shared/exceptions/type.exception.js'
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 
@@ -43,8 +45,9 @@ describe('PostChatDto', () => {
   describe('constructor', () => {
     it('should expose all provided fields as public readonly properties', () => {
       const messages = [userMessage()]
+      const chatId: ChatIdType = new ChatId(VALID_ID).getValue()
       const dto = new PostChatDto(
-        VALID_ID,
+        chatId,
         messages,
         VALID_TRIGGER,
         VALID_CHAT_TYPE_PARAM,
@@ -61,7 +64,8 @@ describe('PostChatDto', () => {
     })
 
     it('should accept chatTypeId and leave chatTypeParam undefined', () => {
-      const dto = new PostChatDto(VALID_ID, [], VALID_TRIGGER, undefined, VALID_CHAT_TYPE_ID, [])
+      const chatId: ChatIdType = new ChatId(VALID_ID).getValue()
+      const dto = new PostChatDto(chatId, [], VALID_TRIGGER, undefined, VALID_CHAT_TYPE_ID, [])
 
       expect(dto.chatTypeId).toBe(VALID_CHAT_TYPE_ID)
       expect(dto.chatTypeParam).toBeUndefined()
@@ -122,8 +126,28 @@ describe('PostChatDto', () => {
       expect(() => PostChatDto.validate(validBase({ id: null }))).toThrow(ValidationException)
     })
 
-    it('should accept any non-empty string as id', () => {
-      expect(() => PostChatDto.validate(validBase({ id: 'any-string' }))).not.toThrow()
+    it('should throw ValidationException for a non-UUID string id', () => {
+      // Non-empty string but not a UUID — fails ChatId UUIDv7 validation
+      expect(() => PostChatDto.validate(validBase({ id: 'any-string' }))).toThrow(
+        ValidationException
+      )
+      expect(() => PostChatDto.validate(validBase({ id: 'any-string' }))).toThrow(
+        'Invalid id format'
+      )
+    })
+
+    it('should throw ValidationException for a UUIDv4 id', () => {
+      // Well-formed UUID but wrong version — ChatId requires v7
+      const uuidV4 = '550e8400-e29b-41d4-a716-446655440000'
+      expect(() => PostChatDto.validate(validBase({ id: uuidV4 }))).toThrow(ValidationException)
+      expect(() => PostChatDto.validate(validBase({ id: uuidV4 }))).toThrow('Invalid id format')
+    })
+
+    it('should accept a valid UUIDv7 id', () => {
+      const freshId = uuidv7()
+      expect(() => PostChatDto.validate(validBase({ id: freshId }))).not.toThrow()
+      const dto = PostChatDto.validate(validBase({ id: freshId }))
+      expect(dto.id).toBe(freshId)
     })
   })
 
