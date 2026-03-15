@@ -143,13 +143,25 @@ describe('AuthController', () => {
       controller.registerRoutes(mockApp)
 
       expect(mockApp.post).toHaveBeenCalledTimes(4)
-      expect(mockApp.post).toHaveBeenCalledWith('/auth/login', expect.any(Function))
+      expect(mockApp.post).toHaveBeenCalledWith(
+        '/auth/login',
+        expect.objectContaining({
+          config: expect.objectContaining({ rateLimit: expect.any(Object) }),
+        }),
+        expect.any(Function)
+      )
       expect(mockApp.post).toHaveBeenCalledWith(
         '/auth/oauth-sync',
         expect.objectContaining({ preHandler: expect.any(Function) }),
         expect.any(Function)
       )
-      expect(mockApp.post).toHaveBeenCalledWith('/auth/refresh', expect.any(Function))
+      expect(mockApp.post).toHaveBeenCalledWith(
+        '/auth/refresh',
+        expect.objectContaining({
+          config: expect.objectContaining({ rateLimit: expect.any(Object) }),
+        }),
+        expect.any(Function)
+      )
       expect(mockApp.post).toHaveBeenCalledWith(
         '/auth/logout',
         expect.objectContaining({ preHandler: expect.any(Function) }),
@@ -165,7 +177,7 @@ describe('AuthController', () => {
       controller.registerRoutes(mockApp)
 
       // Verify handler is a bound function
-      const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1]
+      const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2]
 
       expect(loginHandler).toBeTypeOf('function')
     })
@@ -776,7 +788,7 @@ describe('AuthController', () => {
 
         controller.registerRoutes(mockApp)
 
-        const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1] as unknown as (
+        const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2] as unknown as (
           req: FastifyRequest,
           reply: FastifyReply
         ) => Promise<void>
@@ -805,7 +817,7 @@ describe('AuthController', () => {
 
         controller.registerRoutes(mockApp)
 
-        const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1] as unknown as (
+        const loginHandler = vi.mocked(mockApp.post).mock.calls[0]?.[2] as unknown as (
           req: FastifyRequest,
           reply: FastifyReply
         ) => Promise<void>
@@ -1279,7 +1291,13 @@ describe('AuthController', () => {
 
         controller.registerRoutes(mockApp)
 
-        expect(mockApp.post).toHaveBeenCalledWith('/auth/refresh', expect.any(Function))
+        expect(mockApp.post).toHaveBeenCalledWith(
+          '/auth/refresh',
+          expect.objectContaining({
+            config: expect.objectContaining({ rateLimit: expect.any(Object) }),
+          }),
+          expect.any(Function)
+        )
       })
 
       it('should invoke refresh handler when route is called', async () => {
@@ -1295,7 +1313,7 @@ describe('AuthController', () => {
           .mock.calls.find((call) => call[0] === '/auth/refresh')
         expect(refreshCall).toBeDefined()
 
-        const refreshHandler = refreshCall![1] as unknown as (
+        const refreshHandler = refreshCall![2] as unknown as (
           req: FastifyRequest,
           reply: FastifyReply
         ) => Promise<void>
