@@ -152,7 +152,7 @@ describe('AiRagController', () => {
       })
     })
 
-    it('should return a DB-specific message when a DrizzleQueryError is thrown', async () => {
+    it('should not expose error details for DrizzleQueryError', async () => {
       const drizzleError = new DrizzleQueryError(
         'SELECT * FROM embedding_models',
         [],
