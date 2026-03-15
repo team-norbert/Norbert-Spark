@@ -1,5 +1,4 @@
 import type { components } from '@norberts-spark/shared/openapi-types'
-import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
 import { DeleteUsersDto } from '../../../application/dtos/delete-users.dto.js'
@@ -212,9 +211,9 @@ export class UserController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to delete users due to a database error'
-          : err?.message || 'Failed to delete users due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -284,9 +283,9 @@ export class UserController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to retrieve users due to a database error'
-          : err?.message || 'Failed to retrieve users due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -352,9 +351,9 @@ export class UserController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to register user due to a database error'
-          : err?.message || 'Failed to register user due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
@@ -507,9 +506,9 @@ export class UserController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage =
-        error instanceof DrizzleQueryError
-          ? 'Failed to retrieve user by id due to a database error'
-          : err?.message || 'Failed to retrieve user by id due to a database error'
+        error instanceof BaseException
+          ? error.message // These are intentionally user-facing
+          : 'An unexpected error occurred' // Everything else: hide internals
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,

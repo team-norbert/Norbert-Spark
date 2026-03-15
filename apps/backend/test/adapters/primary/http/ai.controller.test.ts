@@ -1502,7 +1502,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Database connection failed',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in getAIChatDetails',
@@ -1526,7 +1526,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to fetch chat details',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in getAIChatDetails',
@@ -1549,7 +1549,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to fetch chat details',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in getAIChatDetails',
@@ -1572,7 +1572,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to fetch chat details',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in getAIChatDetails',
@@ -2847,7 +2847,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Unexpected error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in updateAIChatDetails',
@@ -2878,7 +2878,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to update chat details',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in updateAIChatDetails',
@@ -2934,7 +2934,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to update chat details',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in updateAIChatDetails',
@@ -2960,7 +2960,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to update chat details',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in updateAIChatDetails',
@@ -3257,7 +3257,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'DB connection lost',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in createAIChatType',
@@ -3346,7 +3346,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to create chat type',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in createAIChatType',
@@ -3366,7 +3366,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to create chat type',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in createAIChatType',
@@ -3387,7 +3387,7 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to create chat type',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in createAIChatType',

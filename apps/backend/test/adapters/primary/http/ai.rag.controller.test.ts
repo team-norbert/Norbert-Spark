@@ -135,7 +135,7 @@ describe('AiRagController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Database connection lost',
+        error: 'An unexpected error occurred',
       })
     })
 
@@ -152,7 +152,7 @@ describe('AiRagController', () => {
       })
     })
 
-    it('should return a DB-specific message when a DrizzleQueryError is thrown', async () => {
+    it('should not expose error details for DrizzleQueryError', async () => {
       const drizzleError = new DrizzleQueryError(
         'SELECT * FROM embedding_models',
         [],
@@ -165,7 +165,7 @@ describe('AiRagController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Failed to fetch embedding models due to a database error',
+        error: 'An unexpected error occurred',
       })
     })
 

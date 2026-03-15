@@ -14,6 +14,7 @@ import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { EnvConfig } from '../../../../src/infrastructure/config/env.config.js'
 import { HttpStatus } from '../../../../src/shared/constants/http-status.js'
 import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
+import { ConflictException } from '../../../../src/shared/exceptions/conflict.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
 import { createMockLogger } from '../../../shared/factories/logger.factory.js'
 
@@ -397,7 +398,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Database connection failed',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting all users', expect.any(Error))
       })
@@ -433,12 +434,12 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to retrieve users due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting all users', expect.any(Error))
       })
 
-      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+      it('should not expose error details for DrizzleQueryError', async () => {
         const drizzleError = new DrizzleQueryError('SELECT * FROM users LIMIT $1 OFFSET $2', [])
         vi.mocked(mockGetAllUsersUseCase.execute).mockRejectedValue(drizzleError)
 
@@ -447,7 +448,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to retrieve users due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting all users', expect.any(Error))
       })
@@ -465,7 +466,7 @@ describe('UserController', () => {
         }
         expect(sentData).toHaveProperty('success', false)
         expect(sentData).toHaveProperty('error')
-        expect(sentData.error).toBe('Internal database schema mismatch')
+        expect(sentData.error).toBe('An unexpected error occurred')
       })
     })
 
@@ -847,7 +848,27 @@ describe('UserController', () => {
         }
 
         vi.mocked(mockRegisterUserUseCase.execute).mockRejectedValue(
-          new Error('User with this email already exists')
+          new ConflictException('User with this email already exists')
+        )
+
+        await controller.register(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(409)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'User with this email already exists',
+        })
+      })
+
+      it('should mask generic errors and not expose internal details', async () => {
+        mockRequest.body = {
+          email: 'test@example.com',
+          password: 'SecurePass123!',
+          name: 'Test User',
+        }
+
+        vi.mocked(mockRegisterUserUseCase.execute).mockRejectedValue(
+          new Error('Some internal error')
         )
 
         await controller.register(mockRequest, mockReply)
@@ -855,7 +876,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'User with this email already exists',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
@@ -896,7 +917,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Database connection failed',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
@@ -915,12 +936,12 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Unexpected error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
 
-      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+      it('should not expose error details for DrizzleQueryError', async () => {
         mockRequest.body = {
           email: 'test@example.com',
           password: 'SecurePass123!',
@@ -938,7 +959,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to register user due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error registering user', expect.any(Error))
       })
@@ -1368,7 +1389,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Database connection failed',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', expect.any(Error))
       })
@@ -1396,12 +1417,12 @@ describe('UserController', () => {
 
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to delete users due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', expect.any(Error))
       })
 
-      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+      it('should not expose error details for DrizzleQueryError', async () => {
         mockRequest.body = { userIds: [uuidv7()] }
 
         const drizzleError = new DrizzleQueryError('DELETE FROM users WHERE id = ANY($1)', [])
@@ -1412,7 +1433,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to delete users due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error deleting users', expect.any(Error))
       })
@@ -1884,7 +1905,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Unexpected error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting user by id', expect.any(Error))
       })
@@ -1921,12 +1942,12 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to retrieve user by id due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting user by id', expect.any(Error))
       })
 
-      it('should return a safe error message when a DrizzleQueryError is thrown', async () => {
+      it('should not expose error details for DrizzleQueryError', async () => {
         const userId = uuidv7()
         mockRequest.params = { id: userId }
         mockRequest.user = { sub: userId, roles: ['admin'] } as any
@@ -1939,7 +1960,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to retrieve user by id due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith('Error getting user by id', expect.any(Error))
       })

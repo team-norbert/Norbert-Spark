@@ -262,7 +262,7 @@ describe('CompanyController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Database connection failed',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in getCompanyDetails handler',
@@ -280,7 +280,7 @@ describe('CompanyController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to retrieve company details due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in getCompanyDetails handler',
@@ -296,7 +296,7 @@ describe('CompanyController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to retrieve company details due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in getCompanyDetails handler',
@@ -313,7 +313,7 @@ describe('CompanyController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to retrieve company details due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error in getCompanyDetails handler',
@@ -585,7 +585,7 @@ describe('CompanyController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Database connection failed',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error updating company details',
@@ -612,7 +612,7 @@ describe('CompanyController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to update company details due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error updating company details',
@@ -641,7 +641,7 @@ describe('CompanyController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Failed to update company details due to a database error',
+          error: 'An unexpected error occurred',
         })
         expect(mockLogger.error).toHaveBeenCalledWith(
           'Error updating company details',

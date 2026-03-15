@@ -212,7 +212,7 @@ describe('AIAdminController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Database connection failed',
+        error: 'An unexpected error occurred',
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error handling ai-admin request',
@@ -254,7 +254,7 @@ describe('AIAdminController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Failed to retrieve AI chat settings due to a database error',
+        error: 'An unexpected error occurred',
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error handling ai-admin request',
@@ -274,7 +274,7 @@ describe('AIAdminController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Failed to retrieve AI chat settings due to a database error',
+        error: 'An unexpected error occurred',
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error handling ai-admin request',
@@ -484,7 +484,7 @@ describe('AIAdminController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Unexpected error',
+        error: 'An unexpected error occurred',
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error processing ai-admin PUT request',
@@ -508,7 +508,7 @@ describe('AIAdminController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Failed to update AI chat settings due to a database error',
+        error: 'An unexpected error occurred',
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error processing ai-admin PUT request',
@@ -771,7 +771,7 @@ describe('AIAdminController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Unexpected database error',
+        error: 'An unexpected error occurred',
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error processing ai-admin POST request',
@@ -814,7 +814,7 @@ describe('AIAdminController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Failed to create AI chat settings due to a database error',
+        error: 'An unexpected error occurred',
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error processing ai-admin POST request',
@@ -838,7 +838,7 @@ describe('AIAdminController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
       expect(mockReply.send).toHaveBeenCalledWith({
         success: false,
-        error: 'Failed to create AI chat settings due to a database error',
+        error: 'An unexpected error occurred',
       })
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error processing ai-admin POST request',
