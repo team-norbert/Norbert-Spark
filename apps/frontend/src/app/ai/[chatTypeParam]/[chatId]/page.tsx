@@ -80,6 +80,7 @@ export default function AIChatPage({
       errorMessage={errorMessage}
       input={input}
       isChatsError={isChatsError}
+      isFetchingChat={isFetchingChat}
       isLoading={isLoading}
       isLoadingChats={isLoadingChats}
       messages={messages}

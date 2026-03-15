@@ -99,8 +99,16 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
     event: 'chat.messages.initialized',
   })
 
+  // Only pass the real chat id to useChat once initialMessages has resolved.
+  // useChat treats `messages` as initial state, so if `id` is set before the
+  // fetch completes (when initialMessages is still undefined), useChat
+  // initialises with an empty message list and ignores the later update.
+  // By withholding the real id until we have the data, we guarantee useChat
+  // initialises with the correct messages in the same render cycle.
+  const activeChatId = initialMessages !== undefined ? id : undefined
+
   const { messages, sendMessage, status, stop } = useChat({
-    id: id,
+    id: activeChatId,
     messages: initialMessages,
     transport: new DefaultChatTransport({
       api: clientEnv.NEXT_PUBLIC_POST_AI_CALLBACK_URL,

@@ -29,6 +29,7 @@ describe('AIChatView Component', () => {
     errorMessage: '',
     input: '',
     isChatsError: false,
+    isFetchingChat: false,
     isLoading: false,
     isLoadingChats: false,
     messages: [],
