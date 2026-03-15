@@ -185,7 +185,26 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     global: true,
     max: 100,
     timeWindow: '1 minute',
-    keyGenerator: (req) => req.ip,
+    keyGenerator: (req) => {
+      const xRealIp = req.headers['x-real-ip']
+      if (typeof xRealIp === 'string' && xRealIp.trim().length > 0) {
+        return xRealIp.trim()
+      }
+
+      const xForwardedFor = req.headers['x-forwarded-for']
+      if (typeof xForwardedFor === 'string' && xForwardedFor.length > 0) {
+        const forwardedIps = xForwardedFor
+          .split(',')
+          .map((ip) => ip.trim())
+          .filter(Boolean)
+
+        if (forwardedIps.length > 0) {
+          return forwardedIps[0]
+        }
+      }
+
+      return req.socket?.remoteAddress ?? ''
+    },
   })
 
   fastify.register(
