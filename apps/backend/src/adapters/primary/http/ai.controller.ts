@@ -1,7 +1,9 @@
 // TODO: Refactor AIController — split into focused sub-controllers (e.g. ChatController,
 // ChatTypeController, ChatDetailsController) to bring the file under the 600-line limit.
 /* eslint-disable max-lines */
+
 import { google } from '@ai-sdk/google'
+import { redactSensitiveData } from '@norberts-spark/shared'
 import type { components, operations } from '@norberts-spark/shared/openapi-types'
 import {
   convertToModelMessages,
@@ -180,7 +182,7 @@ export class AIController {
             score: assessment.score,
             decision: assessment.decision,
             reasons: assessment.reasons,
-            normalizedText: assessment.normalizedText,
+            normalizedText: redactSensitiveData(assessment.normalizedText),
             messageIndex: assessment.messageIndex,
             messageId: assessment.messageId,
           },
