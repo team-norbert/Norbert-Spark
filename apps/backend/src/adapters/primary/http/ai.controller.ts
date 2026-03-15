@@ -210,7 +210,7 @@ export class AIController {
 
       trigger = chatDTO?.trigger
       this.logger.debug('Validated messages', { messageCount: messages.length, id, trigger })
-      this.logger.debug('Validated messages content:', messages)
+      this.logger.debug('Validated messages content:', redactSensitiveData(messages) as Record<string, any>)
     } catch (e) {
       return reply.code(400).send({
         success: false,
