@@ -9,6 +9,7 @@ import { LoginUserUseCase } from '../../../../src/application/use-cases/login-us
 import { RefreshAccessTokenUseCase } from '../../../../src/application/use-cases/refresh-access-token.use-case.js'
 import { RegisterUserWithProviderUseCase } from '../../../../src/application/use-cases/register-user-with-provider.use-case.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
+import { EnvConfig } from '../../../../src/infrastructure/config/env.config.js'
 import { UnauthorizedException } from '../../../../src/shared/exceptions/unauthorized.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
 import { createMockLogger } from '../../../shared/factories/logger.factory.js'
@@ -41,6 +42,7 @@ describe('AuthController', () => {
     child: ReturnType<typeof vi.fn>
   }
   let mockChildLogger: typeof mockLogger
+  const ENVRate = EnvConfig.NODE_ENV === 'development' || EnvConfig.NODE_ENV === 'test' ? 200 : 10
 
   beforeEach(() => {
     // Reset all mocks before each test
@@ -153,7 +155,7 @@ describe('AuthController', () => {
         expect.objectContaining({
           config: expect.objectContaining({
             rateLimit: expect.objectContaining({
-              max: 5,
+              max: ENVRate,
               timeWindow: '1 minute',
             }),
           }),
@@ -178,7 +180,7 @@ describe('AuthController', () => {
         expect.objectContaining({
           config: expect.objectContaining({
             rateLimit: expect.objectContaining({
-              max: 5,
+              max: 30,
               timeWindow: '1 minute',
             }),
           }),
