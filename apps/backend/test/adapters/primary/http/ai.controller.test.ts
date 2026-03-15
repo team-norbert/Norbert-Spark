@@ -387,8 +387,8 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Invalid id format',
-          details: 'incorrect ChatId format',
+          error: 'Invalid request body',
+          details: 'Invalid id format',
         })
       })
 
