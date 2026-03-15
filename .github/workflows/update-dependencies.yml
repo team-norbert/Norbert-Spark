@@ -79,7 +79,7 @@ jobs:
       - name: Check for changes in package files
         id: check-changes
         run: |
-          if git diff --exit-code pnpm-lock.yaml **/package.json package.json apps/backend/env.d.ts; then
+          if git diff --exit-code pnpm-lock.yaml **/package.json package.json; then
             echo "changes=false" >> $GITHUB_OUTPUT
           else
             echo "changes=true" >> $GITHUB_OUTPUT
