@@ -32,14 +32,14 @@ describe('authOptions Configuration', () => {
       expect(authOptions.session?.strategy).toBe('jwt')
     })
 
-    it('should have 30-day session maxAge', async () => {
+    it('should have 7-day session maxAge', async () => {
       const authOptions = await getAuthOptions()
-      expect(authOptions.session?.maxAge).toBe(30 * 24 * 60 * 60)
+      expect(authOptions.session?.maxAge).toBe(7 * 24 * 60 * 60)
     })
 
-    it('should have 30-day jwt maxAge', async () => {
+    it('should have 7-day jwt maxAge', async () => {
       const authOptions = await getAuthOptions()
-      expect(authOptions.jwt?.maxAge).toBe(30 * 24 * 60 * 60)
+      expect(authOptions.jwt?.maxAge).toBe(7 * 24 * 60 * 60)
     })
 
     it('should have custom pages configured', async () => {

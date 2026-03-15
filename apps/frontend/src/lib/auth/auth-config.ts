@@ -2,6 +2,7 @@ import type { components } from '@norberts-spark/shared/openapi-types'
 import { type NextAuthOptions, type User } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
+import { signOut } from 'next-auth/react'
 
 import { env } from '@/env/index.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
@@ -388,10 +389,10 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 604800, // 7 days
   },
   jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 604800, // 7 days
   },
   secret: env.NEXTAUTH_SECRET,
   debug: env.NODE_ENV === 'development',
