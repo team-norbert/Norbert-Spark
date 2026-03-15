@@ -11,6 +11,7 @@ import { GetAllUsersUseCase } from '../../../../src/application/use-cases/get-al
 import { GetUserByIdUseCase } from '../../../../src/application/use-cases/get-user-by-id.use-case.js'
 import { RegisterUserUseCase } from '../../../../src/application/use-cases/register-user.use-case.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
+import { EnvConfig } from '../../../../src/infrastructure/config/env.config.js'
 import { HttpStatus } from '../../../../src/shared/constants/http-status.js'
 import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
@@ -51,6 +52,8 @@ function createMockRegisterResult(
 }
 
 describe('UserController', () => {
+  const ENVRate = EnvConfig.NODE_ENV === 'development' || EnvConfig.NODE_ENV === 'test' ? 200 : 10
+
   let controller: UserController
   let mockRegisterUserUseCase: RegisterUserUseCase
   let mockGetAllUsersUseCase: GetAllUsersUseCase
@@ -140,13 +143,23 @@ describe('UserController', () => {
       controller.registerRoutes(mockApp)
 
       expect(mockApp.post).toHaveBeenCalledTimes(1)
-      expect(mockApp.post).toHaveBeenCalledWith(
-        '/users/register',
+
+      const registerCall = vi
+        .mocked(mockApp.post)
+        .mock.calls.find((call) => call[0] === '/users/register')
+      expect(registerCall).toBeDefined()
+      const registerOptions = registerCall?.[1] as any
+      expect(registerOptions).toEqual(
         expect.objectContaining({
-          config: expect.objectContaining({ rateLimit: expect.any(Object) }),
-        }),
-        expect.any(Function)
+          config: expect.objectContaining({
+            rateLimit: expect.objectContaining({
+              max: ENVRate,
+              timeWindow: '1 minute',
+            }),
+          }),
+        })
       )
+      expect(registerCall?.[2]).toEqual(expect.any(Function))
     })
 
     it('should register GET /users/:id route', () => {
