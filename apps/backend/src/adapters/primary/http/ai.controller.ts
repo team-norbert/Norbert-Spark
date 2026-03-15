@@ -14,6 +14,7 @@ import {
 } from 'ai'
 import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import { createHash } from 'crypto'
 
 import { PostChatDto } from '../../../application/dtos/post-chat.dto.js'
 import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
@@ -182,7 +183,13 @@ export class AIController {
             score: assessment.score,
             decision: assessment.decision,
             reasons: assessment.reasons,
-            normalizedText: redactSensitiveData(assessment.normalizedText),
+            // Store only a non-reversible surrogate of normalizedText to avoid logging raw prompt content.
+            normalizedText: assessment.normalizedText
+              ? {
+                  hash: createHash('sha256').update(assessment.normalizedText).digest('hex'),
+                  length: assessment.normalizedText.length,
+                }
+              : null,
             messageIndex: assessment.messageIndex,
             messageId: assessment.messageId,
           },
