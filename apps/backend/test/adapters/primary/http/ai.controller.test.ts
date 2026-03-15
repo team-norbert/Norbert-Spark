@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIController } from '../../../../src/adapters/primary/http/ai.controller.js'
 import type { ChatWithType } from '../../../../src/application/ports/ai.port.js'
+import type { AuditLogPort } from '../../../../src/application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import type { AppendedChatUseCase } from '../../../../src/application/use-cases/append-chat.use-case.js'
 import type { GetChatUseCase } from '../../../../src/application/use-cases/get-chat.use-case.js'
@@ -71,6 +72,7 @@ describe('AIController', () => {
   let mockResolveChatTypeUseCase: ResolveChatTypeUseCase
   let mockPutChatDetailsUseCase: PutChatDetailsUseCase
   let mockPostChatTypesUseCase: PostChatTypesUseCase
+  let mockAuditLogPort: AuditLogPort
   let mockLogger: LoggerPort
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
@@ -125,6 +127,14 @@ describe('AIController', () => {
     // Create mock logger
     mockLogger = createMockLogger()
 
+    // Create mock audit log port
+    mockAuditLogPort = {
+      log: vi.fn().mockResolvedValue(undefined),
+      getByEntity: vi.fn().mockResolvedValue([]),
+      getByUser: vi.fn().mockResolvedValue([]),
+      getByAction: vi.fn().mockResolvedValue([]),
+    } as any
+
     // Create controller instance with mocked dependencies
     controller = new AIController(
       mockGetChatUseCase,
@@ -137,7 +147,8 @@ describe('AIController', () => {
       mockGetChatAiOptionsUseCase,
       mockResolveChatTypeUseCase,
       mockPutChatDetailsUseCase,
-      mockPostChatTypesUseCase
+      mockPostChatTypesUseCase,
+      mockAuditLogPort
     )
 
     // Create mock Fastify reply with chainable methods
@@ -179,7 +190,8 @@ describe('AIController', () => {
         mockGetChatAiOptionsUseCase,
         mockResolveChatTypeUseCase,
         mockPutChatDetailsUseCase,
-        mockPostChatTypesUseCase
+        mockPostChatTypesUseCase,
+        mockAuditLogPort
       )
 
       expect(instance).toBeInstanceOf(AIController)
@@ -198,7 +210,8 @@ describe('AIController', () => {
         mockGetChatAiOptionsUseCase,
         mockResolveChatTypeUseCase,
         mockPutChatDetailsUseCase,
-        mockPostChatTypesUseCase
+        mockPostChatTypesUseCase,
+        mockAuditLogPort
       )
 
       expect(instance).toBeDefined()

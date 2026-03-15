@@ -1,3 +1,6 @@
+// TODO: Refactor AIController — split into focused sub-controllers (e.g. ChatController,
+// ChatTypeController, ChatDetailsController) to bring the file under the 600-line limit.
+/* eslint-disable max-lines */
 import { google } from '@ai-sdk/google'
 import type { components, operations } from '@norberts-spark/shared/openapi-types'
 import {
@@ -13,6 +16,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { PostChatDto } from '../../../application/dtos/post-chat.dto.js'
 import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
 import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
+import type { AuditLogPort } from '../../../application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { AppendedChatUseCase } from '../../../application/use-cases/append-chat.use-case.js'
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
@@ -24,6 +28,7 @@ import { PostChatTypesUseCase } from '../../../application/use-cases/post-chat-t
 import { PutChatDetailsUseCase } from '../../../application/use-cases/put-chat-details.use-case.js'
 import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-chat-type.use-case.js'
 import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
+import { AuditAction, EntityType } from '../../../domain/audit/entity-type.enum.js'
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
 import type { UUIDType } from '../../../domain/value-objects/uuid.js'
@@ -32,10 +37,12 @@ import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
+import { ValidationException } from '../../../shared/exceptions/validation.exception.js'
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import type { AuditContextType } from '../../../shared/types/index.js'
 import { createAuditContext } from '../../../shared/types/index.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
+import { Sanitise } from '../../../shared/utils/sanitise.utils.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -51,7 +58,8 @@ export class AIController {
     private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase,
     private readonly resolveChatTypeUseCase: ResolveChatTypeUseCase,
     private readonly putChatDetailsUseCase: PutChatDetailsUseCase,
-    private readonly postChatTypesUseCase: PostChatTypesUseCase
+    private readonly postChatTypesUseCase: PostChatTypesUseCase,
+    private readonly auditLogPort: AuditLogPort
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
@@ -155,9 +163,40 @@ export class AIController {
         messages: body?.messages,
       })
 
-      console.dir(body, { depth: null })
-
       const chatDTO = PostChatDto.validate(body)
+
+      // Audit-log every prompt injection assessment that scored above 'allow'.
+      // AuditLogPort.log() never throws, so failures are silently swallowed.
+      for (const assessment of chatDTO.promptRiskAssessments) {
+        await this.auditLogPort.log({
+          userId: auditContext.userId,
+          entityType: EntityType.PROMPT_INJECTION,
+          entityId: chatDTO.id,
+          action:
+            assessment.decision === 'block'
+              ? AuditAction.PROMPT_INJECTION_BLOCKED
+              : AuditAction.PROMPT_INJECTION_FLAGGED,
+          changes: {
+            score: assessment.score,
+            decision: assessment.decision,
+            reasons: assessment.reasons,
+            normalizedText: assessment.normalizedText,
+            messageIndex: assessment.messageIndex,
+            messageId: assessment.messageId,
+          },
+          ipAddress: auditContext.ipAddress,
+          userAgent: auditContext.userAgent ?? undefined,
+        })
+      }
+
+      // Reject any request that triggered a block-level assessment.
+      const blocked = chatDTO.promptRiskAssessments.find((a) => a.decision === 'block')
+      if (blocked) {
+        throw new ValidationException('Prompt injection detected', {
+          score: blocked.score,
+          reasons: blocked.reasons,
+        })
+      }
 
       // Validate messages using validateUIMessages from 'ai' package
       messages = await validateUIMessages({
@@ -387,7 +426,21 @@ export class AIController {
         // Just the newly generated assistant message
         // Good for persisting only the latest response
         this.logger.debug('Response message', { responseMessage })
-        await this.appendChatUseCase.execute(chatId, [responseMessage], auditContext)
+
+        // Sanitise text parts before persisting to prevent stored XSS/prompt injection
+        // (Finding 6 - Prompt Injection Defence in SECURITY_THREAT_MODEL.md)
+        // Note: frontend rendering is already sanitised by Streamdown's rehype-sanitize pipeline
+        const sanitisedResponseMessage = {
+          ...responseMessage,
+          parts: responseMessage.parts.map((part) => {
+            if (part.type === 'text') {
+              return { ...part, text: Sanitise.sanitiseText(part.text) }
+            }
+            return part
+          }),
+        }
+
+        await this.appendChatUseCase.execute(chatId, [sanitisedResponseMessage], auditContext)
       },
     })
   }

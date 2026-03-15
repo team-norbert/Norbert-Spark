@@ -3,6 +3,10 @@ import type { components } from '@norberts-spark/shared/openapi-types'
 
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
+import {
+  PromptInjectionGuard,
+  type PromptRiskAssessment,
+} from '../../shared/utils/prompt-injection-guard.utils.js'
 
 /**
  * Represents a single part of a chat message.
@@ -43,6 +47,21 @@ export type PostChatMessage = {
   role: 'user' | 'assistant'
   /** Ordered content fragments that make up the message body. */
   parts: PostChatMessagePart[]
+}
+
+/**
+ * A prompt injection risk assessment result enriched with the source message
+ * context. Produced by {@link PostChatDto.validate} for every user-role message
+ * whose text parts trigger one or more classifier patterns.
+ *
+ * Only `flag` and `block` decisions are surfaced here — `allow` assessments are
+ * discarded so the array stays small.
+ */
+export type PostChatPromptAssessment = PromptRiskAssessment & {
+  /** Zero-based index of the message within the `messages` array. */
+  messageIndex: number
+  /** The `id` field of the assessed message. */
+  messageId: string
 }
 
 /**
@@ -92,6 +111,9 @@ export class PostChatDto {
    *   but at least one must be supplied.
    * @param chatTypeId - The direct UUID of the chat type. Mutually optional with
    *   `chatTypeParam` but at least one must be supplied.
+   * @param promptRiskAssessments - Prompt injection risk assessments for user
+   *   messages that scored above the `allow` threshold (`flag` or `block`).
+   *   Empty when all user messages were classified as safe.
    */
   constructor(
     /**
@@ -124,7 +146,13 @@ export class PostChatDto {
      *
      * @example '019c6003-28df-722a-a79d-0ce2b2f826df'
      */
-    public readonly chatTypeId: string | undefined
+    public readonly chatTypeId: string | undefined,
+    /**
+     * Prompt injection risk assessments for any user message that scored above
+     * the `allow` threshold. The controller reads this to write audit log entries
+     * and reject `block`-level messages before they reach the AI.
+     */
+    public readonly promptRiskAssessments: PostChatPromptAssessment[]
   ) {}
 
   /**
@@ -182,6 +210,7 @@ export class PostChatDto {
    * ```
    */
   static validate(data: components['schemas']['AIRequest']): PostChatDto {
+    console.log('PostChatDto.validate', data)
     if (!isDefined(data) || !isObject(data)) {
       throw new TypeException('Data must be a valid object')
     }
@@ -216,7 +245,36 @@ export class PostChatDto {
       throw new ValidationException('At least one of chatTypeParam or chatTypeId must be provided')
     }
 
-    return new PostChatDto(d.id, validatedMessages, d.trigger, chatTypeParam, chatTypeId)
+    // Assess every user-role message for prompt injection patterns.
+    // Only flag/block results are collected; allow results are discarded.
+    const guard = new PromptInjectionGuard()
+    const promptRiskAssessments: PostChatPromptAssessment[] = []
+
+    for (const [i, msg] of validatedMessages.entries()) {
+      if (msg.role !== 'user') continue
+
+      for (const part of msg.parts) {
+        if (part.type !== 'text' || !isString(part.text) || part.text === '') continue
+
+        const assessment = guard.assess(part.text)
+        if (assessment.decision !== 'allow') {
+          promptRiskAssessments.push({
+            ...assessment,
+            messageIndex: i,
+            messageId: msg.id,
+          })
+        }
+      }
+    }
+
+    return new PostChatDto(
+      d.id,
+      validatedMessages,
+      d.trigger,
+      chatTypeParam,
+      chatTypeId,
+      promptRiskAssessments
+    )
   }
 
   /**

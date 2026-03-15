@@ -121,6 +121,25 @@ export interface FetchChatFailedChanges {
 }
 
 /**
+ * Metadata recorded when a user message is assessed for prompt injection.
+ * Only written when the decision is 'flag' or 'block'.
+ */
+export interface PromptInjectionChanges {
+  /** Risk score produced by the classifier (sum of matched pattern weights). */
+  score: number
+  /** Classifier verdict for this message. */
+  decision: 'flag' | 'block'
+  /** Human-readable labels for each matched pattern, e.g. 'instruction-override'. */
+  reasons: string[]
+  /** The NFKC-normalised, zero-width-stripped, lowercase text that was assessed. */
+  normalizedText: string
+  /** Zero-based index of the offending message within the request messages array. */
+  messageIndex: number
+  /** The `id` field of the offending message. */
+  messageId: string
+}
+
+/**
  * Union type of all possible change structures
  * This provides type safety while allowing flexibility for different audit actions
  */
@@ -139,4 +158,5 @@ export type AuditChanges =
   | FetchChatFailedChanges
   | ChatTypeChange
   | FileUploadChanges
+  | PromptInjectionChanges
   | Record<string, unknown> // Fallback for custom change structures

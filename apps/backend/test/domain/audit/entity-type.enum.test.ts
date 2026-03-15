@@ -162,7 +162,8 @@ describe('EntityType Enum', () => {
       expect(values).toContain('company')
       expect(values).toContain('key_person')
       expect(values).toContain('token')
-      expect(values).toHaveLength(10)
+      expect(values).toContain('prompt_injection')
+      expect(values).toHaveLength(11)
     })
 
     it('should allow iteration for validation', () => {
@@ -471,7 +472,9 @@ describe('AuditAction Enum', () => {
       expect(values).toContain('refresh_family_revoked')
       expect(values).toContain('user_logout')
       expect(values).toContain('refresh_tokens_expired_cleanup')
-      expect(values).toHaveLength(17)
+      expect(values).toContain('prompt_injection_flagged')
+      expect(values).toContain('prompt_injection_blocked')
+      expect(values).toHaveLength(19)
     })
 
     it('should allow iteration for validation', () => {
