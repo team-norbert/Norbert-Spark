@@ -9,6 +9,7 @@ export const EntityType = {
   COMPANY: 'company',
   KEY_PERSON: 'key_person',
   TOKEN: 'token',
+  PROMPT_INJECTION: 'prompt_injection',
 } as const
 
 export const AuditAction = {
@@ -29,6 +30,8 @@ export const AuditAction = {
   REFRESH_FAMILY_REVOKED: 'refresh_family_revoked', // Entire token family revoked due to replay
   USER_LOGOUT: 'user_logout', // User explicitly logged out
   REFRESH_TOKENS_EXPIRED_CLEANUP: 'refresh_tokens_expired_cleanup', // Periodic cleanup task removing expired refresh tokens
+  PROMPT_INJECTION_FLAGGED: 'prompt_injection_flagged', // Suspicious message passed threshold but not blocked
+  PROMPT_INJECTION_BLOCKED: 'prompt_injection_blocked', // Message blocked due to high-confidence injection attack
 } as const
 
 export type EntityType = (typeof EntityType)[keyof typeof EntityType]

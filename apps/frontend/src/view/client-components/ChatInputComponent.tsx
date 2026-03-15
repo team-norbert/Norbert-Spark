@@ -31,6 +31,8 @@ export const ChatInput = ({
       borderColor: 'divider',
       bgcolor: 'background.paper',
     }}
+    className="chat-input"
+    data-testid="chat-input"
   >
     {enableFileUpload && selectedFile && (
       <Box sx={{ mb: 1 }}>

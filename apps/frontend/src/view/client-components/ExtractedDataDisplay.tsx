@@ -43,6 +43,8 @@ export function ExtractedDataDisplay({ data, fileName }: ExtractedDataDisplayPro
         borderColor: 'success.light',
         backgroundColor: 'success.50',
       }}
+      className="extracted-data-display"
+      data-testid="extracted-data-display"
     >
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>

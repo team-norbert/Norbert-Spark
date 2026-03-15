@@ -109,7 +109,7 @@ export function AIAdminPage({
   ]
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }} id="ai-admin-page" data-testid="ai-admin-page">
       <header>
         <PageHeader
           title="AI Chat Configuration"

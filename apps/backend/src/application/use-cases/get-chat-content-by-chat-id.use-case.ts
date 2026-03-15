@@ -21,6 +21,7 @@ export class GetChatContentByChatIdUseCase {
       event: 'chat_content.fetch.attempt',
       chatId,
     })
+
     const chatContent = await this.aiService.getAIChatByChatId(chatId)
 
     const auditEntry: CreateAuditLogDTO = {

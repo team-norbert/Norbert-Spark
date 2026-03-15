@@ -551,7 +551,7 @@ export function ChatTypesPage({
   ]
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }} id="chat-types-page" data-testid="chat-types-page">
       <header>
         <PageHeader
           title="Chat Types Configuration"

@@ -186,7 +186,12 @@ export function CreateVectorStoreForm({
   }
 
   return (
-    <Card elevation={3} sx={{ mt: 3 }}>
+    <Card
+      elevation={3}
+      sx={{ mt: 3 }}
+      id="create-vector-store-form"
+      data-testid="create-vector-store-form"
+    >
       <CardContent>
         <Typography id="create-vector-store-heading" variant="h6" gutterBottom>
           Create Vector Store

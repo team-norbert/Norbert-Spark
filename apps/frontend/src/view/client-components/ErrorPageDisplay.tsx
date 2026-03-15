@@ -29,7 +29,7 @@ export function ErrorPageDisplay({
   onGoHome,
 }: ErrorPageDisplayProps) {
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="md" id="error-page" data-testid="error-page">
       <Box
         sx={{
           minHeight: '100vh',

@@ -192,7 +192,7 @@ describe('useAIChat', () => {
     })
 
     it('should call useChat with provided id', () => {
-      renderHook(() => useAIChat({ id: 'custom-id' }))
+      renderHook(() => useAIChat({ id: 'custom-id', initialMessages: [] }))
 
       expect(useChat).toHaveBeenCalledWith(
         expect.objectContaining({

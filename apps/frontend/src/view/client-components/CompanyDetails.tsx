@@ -91,7 +91,7 @@ export function CompanyDetails({
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
+    <Container maxWidth="lg" sx={{ py: 8 }} id="company-details" data-testid="company-details">
       <header data-testid="company-details-heading">
         <PageHeader title="Company Details" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
       </header>

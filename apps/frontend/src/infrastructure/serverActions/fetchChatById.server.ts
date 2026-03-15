@@ -38,11 +38,24 @@ export async function fetchChatByIdAction(chatId: string): Promise<AIFetchChatRe
         Authorization: `Bearer ${token}`,
       },
       timeoutMs: 10000,
+      // 404 is expected for brand-new chats that have no messages yet
+      suppressLogForStatus: [404],
     })
 
     return response
   } catch (error) {
     const err = error as BackendError
+
+    // A 404 on a new chat is expected — the chat doesn't exist in the DB yet.
+    // Treat it as empty message history rather than a failure.
+    if (err.status === 404) {
+      logger.debug('Chat not found — new chat, returning empty messages', {
+        event: 'server-action.fetch-chat.not-found',
+        chatId,
+      })
+      return { success: true, data: { id: chatId, messages: [] } }
+    }
+
     logger.error('fetchChatByIdAction error', err, { event: 'server-action.fetch-chat.failed' })
 
     // Return empty response on error to prevent UI breaking

@@ -195,6 +195,8 @@ export const Message = ({
         '& div': { color: 'rgba(0, 0, 0, 0.87) !important' },
         '& *': { color: 'rgba(0, 0, 0, 0.87) !important' },
       }}
+      className="message-container"
+      data-testid={`message-${testId}`}
     >
       {/* Text container with data-testid set based on role (user | ai) */}
       <Box data-testid={testId}>

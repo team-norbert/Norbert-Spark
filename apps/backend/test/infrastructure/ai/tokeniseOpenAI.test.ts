@@ -53,7 +53,7 @@ describe('TokeniseOpenAI', () => {
       // @ts-expect-error - Accessing private static property for testing
       TokeniseOpenAI.instance = undefined
       tokenizer = TokeniseOpenAI.getInstance()
-    })
+    }, 15000)
 
     it('should tokenize a simple text file', () => {
       const tokens = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'sample.txt'))

@@ -59,6 +59,7 @@ interface AIChatViewProps {
   readonly currentChatId?: string
   readonly chats: ChatItem[] | undefined
   readonly isChatsError: boolean
+  readonly isFetchingChat: boolean
   readonly isLoadingChats: boolean
   readonly accordionHeader: string
   readonly accordionBody: ReactNode
@@ -83,6 +84,7 @@ export function AIChatView({
   errorMessage,
   input,
   isChatsError,
+  isFetchingChat,
   isLoading,
   isLoadingChats,
   messages,
@@ -172,6 +174,7 @@ export function AIChatView({
                   <ChatIcon fontSize="small" />
                 </ListItemIcon>
                 <ListItemText
+                  className="chat-item"
                   primary={
                     <Typography variant="body2" noWrap>
                       {/* TODO: will add full metadata at a later date */}
@@ -200,12 +203,16 @@ export function AIChatView({
   )
 
   return (
-    <Wrapper>
+    <Wrapper id="wrapper" data-testid="ai-chat-view">
       <PageHeader title="AI Chat" onNavigateHome={onNavigateHome} onSignOut={onSignOut} />
 
       <AccordionComponent header={accordionHeader} body={accordionBody} />
 
-      <Box sx={{ display: 'flex', flex: 1, mb: 2, gap: 2, minHeight: 0, overflow: 'hidden' }}>
+      <Box
+        sx={{ display: 'flex', flex: 1, mb: 2, gap: 2, minHeight: 0, overflow: 'hidden' }}
+        className="chat-container"
+        data-testid="chat-container"
+      >
         {/* Mobile drawer */}
         <Drawer
           variant="temporary"
@@ -277,8 +284,21 @@ export function AIChatView({
               p: 2,
               bgcolor: 'grey.50',
             }}
+            className="chat-text-output"
           >
-            {messages.length === 0 ? (
+            {isFetchingChat ? (
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                data-testid="chat-text-output-loading"
+              >
+                <CircularProgress aria-label="Loading previous messages" />
+              </Box>
+            ) : messages.length === 0 ? (
               <Box
                 sx={{
                   height: '100%',
@@ -291,7 +311,7 @@ export function AIChatView({
                 <MessageIntroComponent />
               </Box>
             ) : (
-              <Stack spacing={2}>
+              <Stack spacing={2} className="chat-text-output-messages" data-testid="chat-messages">
                 {messages.map((message, index) => {
                   // Only animate the last assistant message during streaming
                   const isLastAssistantMessage =

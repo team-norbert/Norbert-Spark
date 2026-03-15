@@ -53,7 +53,7 @@ export function SignInForm({
   togglePasswordVisibility,
 }: SignInFormProps) {
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="sm" id="sign-in-form" data-testid="sign-in-form">
       <Box
         sx={{
           minHeight: '100vh',

@@ -51,7 +51,7 @@ export function CreateChatTypeForm({
   successMessage,
 }: CreateChatTypeFormProps) {
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="md" id="create-chat-type-form" data-testid="create-chat-type-form">
       <Box sx={{ mt: 4, mb: 4 }}>
         <PageHeader
           title="Create Chat Type"
