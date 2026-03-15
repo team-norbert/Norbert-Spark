@@ -1324,7 +1324,12 @@ describe('AuthController', () => {
         expect(mockApp.post).toHaveBeenCalledWith(
           '/auth/refresh',
           expect.objectContaining({
-            config: expect.objectContaining({ rateLimit: expect.any(Object) }),
+            config: expect.objectContaining({
+              rateLimit: expect.objectContaining({
+                max: 30,
+                timeWindow: 60_000,
+              }),
+            }),
           }),
           expect.any(Function)
         )
