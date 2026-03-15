@@ -69,7 +69,7 @@ interface CredentialsInput {
  * NextAuth configuration options for authentication
  *
  * Configures authentication using credentials provider with backend API integration.
- * Uses JWT strategy for session management with 30-day expiration.
+ * Uses JWT strategy for session management with 7-day expiration.
  *
  * @property {Array} providers - Authentication providers (Credentials)
  * @property {object} callbacks - Custom callbacks for JWT and session handling
