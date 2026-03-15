@@ -34,6 +34,17 @@ import { createAuditContext } from '../../../shared/types/index.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 import { Sanitise } from '../../../shared/utils/sanitise.utils.js'
 
+/**
+ * HTTP controller responsible for live AI chat session endpoints.
+ *
+ * Handles streaming chat requests, chat history retrieval by user, and individual
+ * chat content lookup. All routes require JWT authentication.
+ *
+ * Chat requests are processed by validating the request body, resolving the chat type,
+ * persisting the conversation, and streaming the AI response via the Vercel AI SDK.
+ *
+ * @see {@link AIConfigController} for routes that manage chat type configuration.
+ */
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
 
@@ -51,6 +62,16 @@ export class AIController {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
 
+  /**
+   * Registers the AI chat routes on the given Fastify instance.
+   *
+   * Registers:
+   * - `POST /ai/chat`               — stream a new or continued AI chat message
+   * - `GET  /ai/chats/:userId`      — retrieve all chat IDs for a user
+   * - `GET  /ai/fetchChat/:chatId`  — retrieve full chat history by chat ID
+   *
+   * @param app - The Fastify instance to register routes on.
+   */
   registerRoutes(app: FastifyInstance): void {
     app.post(
       '/ai/chat',
@@ -76,19 +97,35 @@ export class AIController {
   }
 
   /**
-   * Handles AI chat requests
-   * The flow of chat is as follows: return FastifyUtil.createResponse('Last message must be from the user', 400)
-   * 1. Validate the request body against the AIReturnedResponseSchema
-   * 2. Retrieve the chat using the GetChatUseCase
-   * 3. Validate that the most recent message is from the user
-   * 4. If the chat does not exist, create a new chat
-   * 5. If the chat exists, append the most recent message to the chat
-   * 6. Run the streamText from the ai NPM package to get the AI response
+   * Handles a streaming AI chat request for a new or existing conversation.
    *
-   * @returns {Promise<void>}
+   * Flow:
+   * 1. Validates the request body and assesses messages for prompt-injection risk.
+   * 2. Resolves the chat type from `chatTypeParam` (slug, UUID, or base64 ID)
+   *    or falls back to `chatTypeId`.
+   * 3. If the chat does not yet exist, persists it via {@link SaveChatUseCase};
+   *    otherwise appends the latest user message via {@link AppendedChatUseCase}.
+   * 4. Retrieves the system prompt for the resolved chat type.
+   * 5. Streams the AI response using `streamText` from the Vercel AI SDK.
+   * 6. On completion, sanitises and persists the assistant response.
    *
-   * @param request
-   * @param reply
+   * **Route:** `POST /ai/chat`
+   * **Auth:** Requires a valid JWT (any authenticated user).
+   *
+   * @param request - The Fastify request object. Expected body fields:
+   *   - `id` — chat UUID v7
+   *   - `trigger` — event that initiated the request (e.g. `"submit"`)
+   *   - `messages` — array of UI messages in Vercel AI SDK format
+   *   - `chatTypeParam` — slug, UUID, or base64 ID of the chat type (optional if `chatTypeId` provided)
+   *   - `chatTypeId` — UUID of the chat type (optional if `chatTypeParam` provided)
+   * @param reply - The Fastify reply object used to send the streamed HTTP response.
+   * @returns A promise that resolves to a UI message stream response.
+   *
+   * @throws {400} When the request body fails validation, a required field is missing,
+   *   prompt injection is detected, the last message is not from the user,
+   *   or the chat type cannot be resolved.
+   * @throws {401} When the user is unauthenticated and a new chat needs to be created.
+   * @throws {500} When the AI model is not configured or an unexpected error occurs.
    */
   async chat(request: FastifyRequest, reply: FastifyReply) {
     this.logger.debug('Received chat request')
@@ -408,31 +445,33 @@ export class AIController {
   /**
    * Retrieves all chat IDs associated with a specific user.
    *
-   * This endpoint implements authorization checks to ensure users can only access their own chat history
-   * unless they have admin or moderator privileges. The authorization flow is:
-   * 1. User can access their own chat history (userId matches authenticated user's ID)
-   * 2. Admin or moderator can access any user's chat history
+   * Authorization ensures users can only access their own chat history unless they
+   * hold the `admin` or `moderator` role:
+   * 1. Users may access their own chat history (request `userId` matches the authenticated user).
+   * 2. Admins and moderators may access any user's chat history.
    *
-   * @param request - The Fastify request object containing the userId parameter and authenticated user info
-   * @param reply - The Fastify reply object for sending responses
-   * @returns A promise that resolves to an array of ChatIdType or void if an error response is sent
+   * **Route:** `GET /ai/chats/:userId`
+   * **Auth:** Requires a valid JWT. Users may only request their own history unless elevated.
    *
-   * @throws {400} When userId parameter is missing or has invalid format (not a valid UUID v7)
-   * @throws {403} When user attempts to access another user's chat history without admin/moderator role
-   * @throws {500} When an error occurs while fetching chats from the repository
+   * @param request - The Fastify request object containing the `:userId` path parameter
+   *   and the authenticated user information.
+   * @param reply - The Fastify reply object for sending responses.
+   * @returns A promise that resolves once the response has been sent.
+   *
+   * @throws {400} When the `userId` parameter is missing or not a valid UUID v7.
+   * @throws {403} When the authenticated user attempts to access another user's chat
+   *   history without the `admin` or `moderator` role.
+   * @throws {500} When an error occurs while fetching chats from the repository.
    *
    * @example
-   * ```typescript
-   * // Route: GET /ai/chats/:userId
-   * // Example request: GET /ai/chats/01935e8a-7890-7123-b456-123456789abc
-   * // Example response:
+   * // Success — 200 OK
+   * // GET /ai/chats/01935e8a-7890-7123-b456-123456789abc
+   * // Response:
    * // {
    * //   "success": true,
    * //   "data": ["01935e8a-1234-7abc-b456-111111111111", "01935e8a-5678-7def-b456-222222222222"]
    * // }
-   * ```
    */
-
   async getAIChatsByUserId(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received getAIChatsByUserId request')
 
@@ -518,21 +557,41 @@ export class AIController {
   }
 
   /**
-   * Retrieves a specific chat with all its messages and parts by chatId.
+   * Retrieves a specific chat with all its messages and parts by chat ID.
    *
-   * This endpoint fetches the complete chat history including all messages and their
-   * associated parts (text, tool calls, etc.) in the UI format expected by the frontend.
-   * Authorization is performed by fetching the chat and validating that the authenticated
-   * user owns the chat or has admin/moderator privileges.
+   * Fetches the complete chat history — all messages and their associated parts
+   * (text, tool calls, etc.) — in the UI message format expected by the frontend.
+   * Authorization is enforced by validating that the authenticated user owns the chat
+   * or holds the `admin` or `moderator` role. To avoid leaking information about chat
+   * existence, unauthorised access returns `404` rather than `403`.
    *
-   * @param request - The Fastify request object containing the chatId parameter
-   * @param reply - The Fastify reply object for sending responses
-   * @returns A promise that resolves to the chat data with messages and parts
+   * **Route:** `GET /ai/fetchChat/:chatId`
+   * **Auth:** Requires a valid JWT. Users may only fetch their own chats unless elevated.
    *
-   * @throws {400} When chatId parameter is missing or has invalid format (not a valid UUID v7)
-   * @throws {404} When no chat is found with the given chatId, or when the chat belongs to
-   *               a different user and the authenticated user doesn't have admin/moderator role
-   * @throws {500} When an error occurs while fetching the chat from the repository
+   * @param request - The Fastify request object containing the `:chatId` path parameter
+   *   and the authenticated user information.
+   * @param reply - The Fastify reply object for sending responses.
+   * @returns A promise that resolves once the response has been sent.
+   *
+   * @throws {400} When the `chatId` parameter is missing or not a valid UUID v7.
+   * @throws {404} When no chat is found with the given ID, or when the chat belongs to
+   *   a different user and the authenticated user lacks the `admin` or `moderator` role.
+   * @throws {500} When an error occurs while fetching the chat from the repository.
+   *
+   * @example
+   * // Success — 200 OK
+   * // GET /ai/fetchChat/01935e8a-7890-7123-b456-123456789abc
+   * // Response:
+   * // {
+   * //   "success": true,
+   * //   "data": {
+   * //     "id": "01935e8a-7890-7123-b456-123456789abc",
+   * //     "messages": [
+   * //       { "id": "msg-1", "role": "user",      "parts": [{ "type": "text", "text": "Hello" }] },
+   * //       { "id": "msg-2", "role": "assistant", "parts": [{ "type": "text", "text": "Hi there!" }] }
+   * //     ]
+   * //   }
+   * // }
    */
   async getAIChatByChatId(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received getAIChatByChatId request')

@@ -12,6 +12,18 @@ import { requireRole } from '../../../infrastructure/http/middleware/role.middle
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 
+/**
+ * HTTP controller responsible for AI chat configuration endpoints.
+ *
+ * Handles CRUD operations for chat types — the tenant-level configuration objects
+ * that define the system prompt, SEO identifiers, and RAG settings used when
+ * starting a new AI conversation.
+ *
+ * All routes registered by this controller require JWT authentication.
+ * Mutating routes (`PUT`, `POST`) additionally require the `admin` or `moderator` role.
+ *
+ * @see {@link AIController} for routes that handle live chat sessions and history retrieval.
+ */
 export class AIConfigController {
   constructor(
     private readonly logger: LoggerPort,
@@ -20,6 +32,16 @@ export class AIConfigController {
     private readonly postChatTypesUseCase: PostChatTypesUseCase
   ) {}
 
+  /**
+   * Registers the AI configuration routes on the given Fastify instance.
+   *
+   * Registers:
+   * - `GET  /ai/chats/config` — retrieve all chat types (any authenticated user)
+   * - `PUT  /ai/chats/config` — update an existing chat type (`admin` | `moderator`)
+   * - `POST /ai/chats/config` — create a new chat type (`admin` | `moderator`)
+   *
+   * @param app - The Fastify instance to register routes on.
+   */
   registerRoutes(app: FastifyInstance): void {
     app.get(
       '/ai/chats/config',
@@ -47,44 +69,38 @@ export class AIConfigController {
   /**
    * Retrieves all available chat types with their details and SEO-friendly identifiers.
    *
-   * This endpoint fetches all chat type options from the database, ensuring each has
-   * complete SEO-friendly fields (slug and base64 ID). The chat types are returned
-   * in descending order by creation date. This endpoint requires authentication and
-   * admin or moderator role and is typically used to populate chat type selection interfaces.
+   * Fetches all chat type options from the database, ensuring each entry has complete
+   * SEO-friendly fields (URL slug and base64 ID). Results are returned in descending
+   * order by creation date and are typically used to populate chat type selection
+   * interfaces.
    *
-   * The response includes:
-   * - Chat type ID (UUIDv7)
-   * - Name and description
-   * - SEO-friendly ID (URL-safe slug)
-   * - SEO-friendly base64 ID (22-character encoded UUID)
-   * - Creation and update timestamps
+   * **Route:** `GET /ai/chats/config`
+   * **Auth:** Requires a valid JWT (any authenticated user).
    *
-   * @param {FastifyRequest} request - The Fastify request object containing optional user information
-   * @param {FastifyReply} reply - The Fastify reply object for sending responses
+   * @param request - The Fastify request object. No body or query parameters required.
+   * @param reply - The Fastify reply object used to send the HTTP response.
+   * @returns A promise that resolves once the response has been sent.
    *
-   * @returns {Promise<void>} A promise that resolves when the response is sent
+   * @throws {500} When an unexpected error occurs during retrieval.
    *
    * @example
-   * Response format:
-   * ```json
-   * {
-   *   "success": true,
-   *   "data": [
-   *     {
-   *       "id": "019bda39-6197-7557-9071-d7ed1c719138",
-   *       "name": "General Assistant",
-   *       "description": "A general purpose AI assistant",
-   *       "seoFriendlyId": "general-assistant",
-   *       "seoFriendlyBase64Id": "AbCdEfGhIjKlMnOpQrStUv",
-   *       "createdAt": "2024-01-01T00:00:00.000Z",
-   *       "updatedAt": "2024-01-01T00:00:00.000Z"
-   *     }
-   *   ]
-   * }
-   * ```
-   *
-   * @throws {BaseException} When a domain-specific error occurs (returns appropriate status code)
-   * @throws {Error} When an unexpected error occurs (returns 500 status code)
+   * // Success — 200 OK
+   * // GET /ai/chats/config
+   * // Response:
+   * // {
+   * //   "success": true,
+   * //   "data": [
+   * //     {
+   * //       "id": "019bda39-6197-7557-9071-d7ed1c719138",
+   * //       "name": "General Assistant",
+   * //       "description": "A general purpose AI assistant",
+   * //       "seoFriendlyId": "general-assistant",
+   * //       "seoFriendlyBase64Id": "AbCdEfGhIjKlMnOpQrStUv",
+   * //       "createdAt": "2024-01-01T00:00:00.000Z",
+   * //       "updatedAt": "2024-01-01T00:00:00.000Z"
+   * //     }
+   * //   ]
+   * // }
    */
   async getAIChatDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received getAIChatDetails request')
@@ -123,31 +139,39 @@ export class AIConfigController {
   }
 
   /**
-   * Updates AI chat details (such as configuration or type) for the current tenant.
+   * Updates the configuration for an existing AI chat type.
    *
-   * Flow:
-   * - Logs the incoming request and builds an audit context from the authenticated user,
-   *   IP address, and User-Agent header.
-   * - Performs an authorization check to ensure the caller is authenticated and has
-   *   either the `admin` or `moderator` role.
-   * - Validates the request body using {@link PutChatTypeDto.validate}, mapping it to a
-   *   DTO that is passed to {@link PutChatDetailsUseCase}.
-   * - Executes the {@link PutChatDetailsUseCase} with the audit context and DTO to
-   *   persist the requested changes.
-   * - Returns:
-   *   - `401 Unauthorized` if the user is not authenticated.
-   *   - `403 Forbidden` if the user lacks the required role.
-   *   - `404 Not Found` if the AI chat type cannot be found or the update fails.
-   *   - `204 No Content` on successful update.
-   *   - `5xx` error codes with a JSON error payload on unexpected failures.
+   * Validates the request body using {@link PutChatTypeDto.validate}, then delegates
+   * to {@link PutChatDetailsUseCase} to persist the changes and write an audit log entry.
    *
-   * The response body follows the convention used by other controller methods:
-   * `{ success: boolean, error?: string }`.
+   * **Route:** `PUT /ai/chats/config`
+   * **Auth:** Requires a valid JWT and one of the roles: `admin`, `moderator`.
    *
-   * @param request - Fastify request containing the authenticated user, headers,
-   *   and JSON body with the chat details to update.
-   * @param reply - Fastify reply used to send the HTTP status code and response payload.
-   * @returns A promise that resolves when the response has been sent.
+   * @param request - The Fastify request object. Expected body shape:
+   *   ```json
+   *   {
+   *     "id": "019bda39-6197-7557-9071-d7ed1c719138",
+   *     "name": "Updated Name",
+   *     "description": "Updated description",
+   *     "seoFriendlyId": "updated-name"
+   *   }
+   *   ```
+   * @param reply - The Fastify reply object used to send the HTTP response.
+   * @returns A promise that resolves once the response has been sent.
+   *
+   * @throws {400} When the request body fails DTO validation.
+   * @throws {404} When no chat type matching the given ID is found.
+   * @throws {500} When an unexpected error occurs during the update.
+   *
+   * @example
+   * // Success — 204 No Content
+   * // PUT /ai/chats/config
+   * // Body: { "id": "019bda39-...", "name": "Updated Name", "description": "New description" }
+   * // Response: (empty body)
+   *
+   * @example
+   * // Not Found — 404
+   * // Response: { "success": false, "error": "AI chat type not found or update failed" }
    */
   async updateAIChatDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received updateAIChatDetails request')
