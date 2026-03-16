@@ -273,9 +273,7 @@ export class PostChatDto {
 
         if (part.text.length > MAX_USER_TEXT_PART_LENGTH) {
           throw new ValidationException(
-            'Text part exceeds maximum length of ' +
-              MAX_USER_TEXT_PART_LENGTH +
-              ' characters'
+            'Text part exceeds maximum length of ' + MAX_USER_TEXT_PART_LENGTH + ' characters'
           )
         }
 
