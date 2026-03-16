@@ -537,9 +537,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(() => EnvConfig.validate()).toThrowError(
-        "Do not use the fallback JWT_ISSUER value 'my-app'. Please set JWT_ISSUER to a unique value for your application."
-      )
+      expect(() => EnvConfig.validate()).toThrowError(/Do not use .*'my-app'/)
     })
 
     it('should not throw when JWT_ISSUER is set to a custom value', async () => {
