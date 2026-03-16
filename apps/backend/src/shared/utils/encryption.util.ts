@@ -40,22 +40,16 @@ function deriveKey(masterKey: string, salt: Buffer): Buffer {
 
 /**
  * Gets the master encryption key from environment variables.
- * Falls back to a warning message if not set (for development).
  *
  * @returns Master encryption key
- * @throws {Error} If ENCRYPTION_KEY is not set in production
+ * @throws {Error} If ENCRYPTION_KEY is not set
  */
-function getMasterKey(): string | undefined {
-  const key = EnvConfig.ENCRYPTION_KEY
-  if (!key) {
-    if (EnvConfig.NODE_ENV === 'production') {
-      throw new Error('ENCRYPTION_KEY must be set in production environment')
-    }
-    // Development fallback - log warning
-    console.warn('WARNING: ENCRYPTION_KEY not set. Using default key. DO NOT use in production!')
-    return 'dev-key-change-in-production-please-use-secure-random-key'
+function getMasterKey(): string {
+  const value = EnvConfig.ENCRYPTION_KEY ? obscured.value(EnvConfig.ENCRYPTION_KEY) : undefined
+  if (!value) {
+    throw new Error('ENCRYPTION_KEY must be set')
   }
-  return obscured.value(key)
+  return value
 }
 
 /**
@@ -80,9 +74,6 @@ export function encryptTwoFactorSecret(plaintext: string): string {
   }
 
   const masterKey = getMasterKey()
-  if (!masterKey) {
-    throw new Error('Master key is required for encryption')
-  }
   const salt = randomBytes(SALT_LENGTH)
   const iv = randomBytes(IV_LENGTH)
   const key = deriveKey(masterKey, salt)
@@ -132,9 +123,6 @@ export function decryptTwoFactorSecret(encrypted: string): string {
   }
 
   const masterKey = getMasterKey()
-  if (!masterKey) {
-    throw new Error('Master key is required for decryption')
-  }
   const salt = Buffer.from(saltB64, 'base64')
   const iv = Buffer.from(ivB64, 'base64')
   const authTag = Buffer.from(authTagB64, 'base64')

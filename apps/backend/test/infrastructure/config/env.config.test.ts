@@ -522,6 +522,54 @@ describe('EnvConfig', () => {
       expect(content).toMatch(/requiredEnvs.*=.*\[[\s\S]*'RESEND_API_KEY'/m)
     })
 
+    it('should include ENCRYPTION_KEY in required environment variables', async () => {
+      const fs = await import('fs/promises')
+      const path = await import('path')
+      const envConfigPath = path.join(process.cwd(), 'src/infrastructure/config/env.config.ts')
+      const content = await fs.readFile(envConfigPath, 'utf-8')
+
+      expect(content).toContain('ENCRYPTION_KEY')
+      expect(content).toMatch(/requiredEnvs.*=.*\[[\s\S]*'ENCRYPTION_KEY'/m)
+    })
+
+    it('should throw when ENCRYPTION_KEY is missing', async () => {
+      process.env.JWT_ISSUER = 'norberts-spark'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
+      process.env.MODEL_NAME = 'gemini-pro'
+      process.env.RESEND_API_KEY = 'resend-test-key'
+      process.env.JWT_SECRET = 'test-jwt-secret'
+      process.env.API_VERSION = 'v1'
+      process.env.OAUTH_SYNC_SECRET = 'test-oauth-secret'
+      process.env.CLOUDFLARE_API = 'test-cloudflare-api'
+      delete process.env.ENCRYPTION_KEY
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(() => EnvConfig.validate()).toThrowError(
+        /Missing required environment variables:.*ENCRYPTION_KEY/
+      )
+    })
+
+    it('should not throw when ENCRYPTION_KEY is present alongside all other required vars', async () => {
+      process.env.JWT_ISSUER = 'norberts-spark'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
+      process.env.MODEL_NAME = 'gemini-pro'
+      process.env.RESEND_API_KEY = 'resend-test-key'
+      process.env.JWT_SECRET = 'test-jwt-secret'
+      process.env.API_VERSION = 'v1'
+      process.env.OAUTH_SYNC_SECRET = 'test-oauth-secret'
+      process.env.CLOUDFLARE_API = 'test-cloudflare-api'
+      process.env.ENCRYPTION_KEY = 'a-valid-32-byte-encryption-key!!'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(() => EnvConfig.validate()).not.toThrow()
+    })
+
     it('should throw when JWT_ISSUER is the placeholder "my-app"', async () => {
       process.env.JWT_ISSUER = 'my-app'
       // Satisfy all other required vars so the only failure is the JWT_ISSUER guard

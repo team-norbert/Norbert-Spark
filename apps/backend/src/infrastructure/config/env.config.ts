@@ -17,6 +17,7 @@ const requiredEnvs: string[] = [
   'OAUTH_SYNC_SECRET',
   'CLOUDFLARE_API',
   'JWT_ISSUER',
+  'ENCRYPTION_KEY',
 ]
 
 export class EnvConfig {
