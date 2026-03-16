@@ -8,14 +8,21 @@
       "example": false
     },
     "error": {
-      "message": "Too many requests, please try again later.",
-      "limit": {
-        "type": "integer",
-        "example": 1000
-      },
-      "timeWindow": {
-        "type": "string",
-        "example": "1 minute"
+      "type": "object",
+      "required": ["message", "limit", "timeWindow"],
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Too many requests, please try again later."
+        },
+        "limit": {
+          "type": "integer",
+          "example": 1000
+        },
+        "timeWindow": {
+          "type": "string",
+          "example": "1 minute"
+        }
       }
     }
   }
