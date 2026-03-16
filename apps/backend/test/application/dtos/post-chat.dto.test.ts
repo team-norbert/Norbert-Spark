@@ -461,6 +461,67 @@ describe('PostChatDto', () => {
     })
   })
 
+  // ─── validate() — text part length limit ────────────────────────────────────
+
+  describe('validate() — text part length limit', () => {
+    it('should throw ValidationException when the last user text part exceeds 8000 characters', () => {
+      const longText = 'a'.repeat(8001)
+      expect(() =>
+        PostChatDto.validate(validBase({ messages: [userMessage('m1', longText)] }))
+      ).toThrow(ValidationException)
+      expect(() =>
+        PostChatDto.validate(validBase({ messages: [userMessage('m1', longText)] }))
+      ).toThrow('Text part exceeds maximum length of 8000 characters')
+    })
+
+    it('should accept exactly 8000 characters without throwing', () => {
+      const maxText = 'a'.repeat(8000)
+      expect(() =>
+        PostChatDto.validate(validBase({ messages: [userMessage('m1', maxText)] }))
+      ).not.toThrow()
+    })
+
+    it('should accept text well under 8000 characters', () => {
+      expect(() =>
+        PostChatDto.validate(validBase({ messages: [userMessage('m1', 'short message')] }))
+      ).not.toThrow()
+    })
+
+    it('should NOT throw when the overlong text is in an earlier (non-last) user message', () => {
+      // Earlier user messages are history — only the last user message is checked.
+      const longText = 'a'.repeat(8001)
+      expect(() =>
+        PostChatDto.validate(
+          validBase({
+            messages: [userMessage('m1', longText), userMessage('m2', 'short last message')],
+          })
+        )
+      ).not.toThrow()
+    })
+
+    it('should NOT apply the length check to non-text parts', () => {
+      // A step-start part has no text property — must not be length-checked.
+      const msg: PostChatMessage = {
+        id: 'm1',
+        role: 'user',
+        parts: [stepStartPart(), textPart('short')],
+      }
+      expect(() => PostChatDto.validate(validBase({ messages: [msg] }))).not.toThrow()
+    })
+
+    it('should throw on the first overlong text part even when a second text part is present', () => {
+      const longText = 'a'.repeat(8001)
+      const msg: PostChatMessage = {
+        id: 'm1',
+        role: 'user',
+        parts: [textPart(longText), textPart('fine')],
+      }
+      expect(() => PostChatDto.validate(validBase({ messages: [msg] }))).toThrow(
+        'Text part exceeds maximum length of 8000 characters'
+      )
+    })
+  })
+
   // ─── validate() — prompt injection assessment ───────────────────────────────
 
   describe('validate() — prompt injection assessment', () => {

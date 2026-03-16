@@ -269,6 +269,10 @@ export class PostChatDto {
       for (const part of lastUserEntry.msg.parts) {
         if (part.type !== 'text' || !isString(part.text) || part.text === '') continue
 
+        if (part.text.length > 8000) {
+          throw new ValidationException('Text part exceeds maximum length of 8000 characters')
+        }
+
         const assessment = guard.assess(part.text)
         if (assessment.decision !== 'allow') {
           promptRiskAssessments.push({
