@@ -590,9 +590,7 @@ describe('EnvConfig', () => {
       vi.resetModules()
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(() => EnvConfig.validate()).toThrowError(
-        `Invalid JWT_ISSUER value 'my-app'.`
-      )
+      expect(() => EnvConfig.validate()).toThrowError(`Invalid JWT_ISSUER value 'my-app'.`)
     })
   })
 
