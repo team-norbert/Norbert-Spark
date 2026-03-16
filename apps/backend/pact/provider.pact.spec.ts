@@ -11,7 +11,9 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const PACT_BROKER_URL = process.env.PACT_BROKER_URL ?? 'http://localhost:9293'
+const PACT_BROKER_PORT = process.env.PACT_BROKER_PORT ?? '9292'
+const PACT_BROKER_URL =
+  process.env.PACT_BROKER_URL ?? `http://localhost:${PACT_BROKER_PORT}`
 
 /**
  * PROVIDER VERIFICATION TEST (Backend)
