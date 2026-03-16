@@ -52,7 +52,6 @@ function getMasterKey(): string | undefined {
       throw new Error('ENCRYPTION_KEY must be set in production environment')
     }
     // Development fallback - log warning
-    console.warn('WARNING: ENCRYPTION_KEY not set. Using default key. DO NOT use in production!')
     return 'dev-key-change-in-production-please-use-secure-random-key'
   }
   return obscured.value(key)
