@@ -78,9 +78,9 @@ export class EnvConfig {
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !Reflect.get(ENV, key))
 
-    if (ENV.JWT_ISSUER === 'my-app') {
+    if (EnvConfig.JWT_ISSUER === 'my-app') {
       throw new Error(
-        `Do not use the fallback JWT_ISSUER value 'my-app'. Please set JWT_ISSUER to a unique value for your application.`
+        `Invalid JWT_ISSUER value 'my-app'. Please set JWT_ISSUER to a unique, non-default value for your application.`
       )
     }
 
