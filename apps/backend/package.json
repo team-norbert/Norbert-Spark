@@ -58,6 +58,7 @@
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
     "fastify": "^5.8.2",
+    "file-type": "^21.3.2",
     "isomorphic-dompurify": "^3.3.0",
     "js-tiktoken": "^1.0.21",
     "jsonwebtoken": "^9.0.3",
