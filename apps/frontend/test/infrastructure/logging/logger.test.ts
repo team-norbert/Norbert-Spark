@@ -564,13 +564,27 @@ describe('UnifiedLogger', () => {
       expect(consoleErrorSpy.mock.calls[0][0].err?.name).toBe('RangeError')
     })
 
-    it('should not include err.message (PII safety — only name and stack are serialised)', () => {
+    it('should include err.message in non-production (NODE_ENV=test) to aid debugging', () => {
       const logger = new UnifiedLogger({ minLevel: 'error' })
 
       logger.error('test', new Error('sensitive info in message'))
 
       const err = consoleErrorSpy.mock.calls[0][0].err as Record<string, unknown> | undefined
-      expect(err?.message).toBeUndefined()
+      expect(err?.message).toBe('sensitive info in message')
+    })
+
+    it('should exclude err.message when process.env.NODE_ENV is production (PII safety)', async () => {
+      ;(process.env as { NODE_ENV?: string }).NODE_ENV = 'production'
+      vi.resetModules()
+      try {
+        const { UnifiedLogger: ProdLogger } = await import('@/infrastructure/logging/logger.js')
+        const logger = new ProdLogger({ minLevel: 'error' })
+        logger.error('test', new Error('sensitive info in message'))
+        expect(consoleErrorSpy.mock.calls[0][0].err?.message).toBeUndefined()
+      } finally {
+        ;(process.env as { NODE_ENV?: string }).NODE_ENV = 'test'
+        vi.resetModules()
+      }
     })
 
     it('should include err.stack in non-production (NODE_ENV=test)', () => {
@@ -583,16 +597,17 @@ describe('UnifiedLogger', () => {
       expect(entry.err?.stack).toContain('at ')
     })
 
-    it('should strip the error message from err.stack to avoid re-introducing PII', () => {
+    it('should include the full err.stack (including Error: header) in non-production to aid debugging', () => {
       const logger = new UnifiedLogger({ minLevel: 'error' })
       const error = new Error('sensitive message in stack header')
 
       logger.error('test', error)
 
       const stack = consoleErrorSpy.mock.calls[0][0].err?.stack as string | undefined
-      // The first line of the raw stack is "Error: sensitive message..." — it must be stripped
-      expect(stack).not.toMatch(/^Error:/)
-      expect(stack).not.toContain('sensitive message in stack header')
+      // In non-production the full raw stack is preserved, including the first
+      // "Error: <message>" line, so engineers can see the complete trace.
+      expect(stack).toMatch(/^Error:/)
+      expect(stack).toContain('sensitive message in stack header')
     })
 
     // Step 12 test case: Error stack excluded in production

@@ -152,11 +152,17 @@ export interface StructuredLogEntry {
    */
   event?: string
   /**
-   * Serialised error details. `message` is deliberately omitted because error
-   * messages may contain PII. `stack` is only included outside production and
-   * has the first line (which repeats the message) stripped.
+   * Serialised error details.
+   * - `name` — always present (e.g. `'TypeError'`).
+   * - `message` — included outside production to aid debugging. Omitted in
+   *   production because error messages may contain PII.
+   * - `stack` — included outside production with the full stack trace.
+   * - `cause` — included outside production when `error.cause` is set (Node.js
+   *   16.9+ wraps underlying errors here, e.g. the root cause of a fetch failure).
+   * - Additional own enumerable properties (e.g. `code`, `errno`, `statusCode`)
+   *   are captured outside production so that network/HTTP error details are visible.
    */
-  err?: { name: string; stack?: string }
+  err?: { name: string; message?: string; stack?: string; cause?: unknown; [key: string]: unknown }
   /**
    * Application-specific error code for programmatic error handling
    * (e.g. `'UNAUTHORIZED'`, `'NETWORK_ERROR'`, `'VALIDATION_FAILED'`).
@@ -336,32 +342,67 @@ export class UnifiedLogger implements LoggerPort {
   }
 
   /**
-   * Converts an `Error` into a GDPR-safe `err` object for inclusion in a
+   * Converts an `Error` into a serialised `err` object for inclusion in a
    * {@link StructuredLogEntry}.
    *
    * - `err.name` is always included (e.g. `'TypeError'`, `'RangeError'`).
-   * - `err.message` is **never** included — error messages frequently contain
-   *   PII such as email addresses or request payloads.
-   * - `err.stack` is included only outside production. The first line of the
-   *   raw stack (which repeats `"ErrorName: message"`) is stripped to prevent
-   *   the message from being reintroduced via the stack trace.
+   * - `err.message` is included outside production even when it is an empty
+   *   string, so that `Error()` with no message is still distinguishable from
+   *   a missing message. Omitted in production because messages may contain PII.
+   * - `err.stack` is included only outside production with the full stack trace.
+   * - `err.cause` is included outside production when `error.cause` is set
+   *   (Node.js 16.9+). If the cause is itself an `Error` it is recursively
+   *   serialised; otherwise it is converted to a string. This surfaces the
+   *   underlying network/system error that wrapping errors (e.g. `fetch failed`)
+   *   hide behind a generic top-level message.
+   * - Any additional own enumerable properties (e.g. `code`, `errno`,
+   *   `statusCode`, `syscall`) are captured outside production so that
+   *   Node.js system and HTTP errors expose their full context.
    *
    * @param error - The `Error` instance to serialise.
-   * @returns A plain object containing `name` and, in non-production, `stack`.
+   * @returns A plain object containing `name`, and outside production, `message`,
+   *   `stack`, `cause`, and any extra enumerable own properties.
    */
-  private serializeError(error: Error): { name: string; stack?: string } {
-    const serialized: { name: string; stack?: string } = {
-      name: error.name,
-    }
-    if (UnifiedLogger.ENV !== 'production' && error.stack) {
-      // Strip the first line ("ErrorName: message") so the error message —
-      // which may contain PII — is not reintroduced via the stack trace.
-      const lines = error.stack.split('\n')
-      const sanitizedStack = lines.slice(1).join('\n').trim()
-      if (sanitizedStack) {
-        serialized.stack = sanitizedStack
+  private serializeError(error: Error): {
+    name: string
+    message?: string
+    stack?: string
+    cause?: unknown
+    [key: string]: unknown
+  } {
+    const serialized: {
+      name: string
+      message?: string
+      stack?: string
+      cause?: unknown
+      [key: string]: unknown
+    } = { name: error.name }
+
+    if (UnifiedLogger.ENV !== 'production') {
+      // Use !== undefined so that an empty-string message is still surfaced
+      if (error.message !== undefined) {
+        serialized.message = error.message
+      }
+      if (error.stack) {
+        serialized.stack = error.stack
+      }
+      // Capture error.cause (Node.js 16.9+) — this is where fetch/undici wraps
+      // the real underlying network error (e.g. ECONNREFUSED, ECONNRESET)
+      const cause = (error as Error & { cause?: unknown }).cause
+      if (cause !== undefined) {
+        serialized.cause = cause instanceof Error ? this.serializeError(cause) : String(cause)
+      }
+      // Capture any additional own enumerable properties such as `code`, `errno`,
+      // `statusCode`, or `syscall` that are common on Node.js system/network errors
+      const STANDARD_KEYS = new Set(['name', 'message', 'stack', 'cause'])
+      const errorRecord = error as unknown as Record<string, unknown>
+      for (const key of Object.keys(error)) {
+        if (!STANDARD_KEYS.has(key)) {
+          Reflect.set(serialized, key, Reflect.get(errorRecord, key))
+        }
       }
     }
+
     return serialized
   }
 
@@ -390,8 +431,9 @@ export class UnifiedLogger implements LoggerPort {
    * attention (e.g. a failed backend request, an uncaught exception).
    *
    * When an `Error` is provided it is serialised via {@link serializeError}:
-   * `err.name` and (outside production) `err.stack` are added to the entry.
-   * `err.message` is deliberately omitted because error messages may contain PII.
+   * `err.name` is always present; outside production `err.message` and
+   * `err.stack` are also included. In production `err.message` is omitted
+   * because error messages may contain PII.
    *
    * @param message - Human-readable description of the failure. Must not contain PII.
    * @param error - Optional `Error` instance to serialise into the `err` field.

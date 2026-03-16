@@ -1,5 +1,5 @@
 import path from 'path'
-import { getHeader } from 'pdf-parse/node'
+import { PDFParse } from 'pdf-parse'
 import unzipper from 'unzipper'
 
 import type { LoggerPort } from '../../application/ports/logger.port.js'
@@ -143,13 +143,22 @@ export class PDFUtils {
     return null
   }
 
-  async validatePDF(file: string): Promise<boolean> {
+  async validatePDF(buffer: Buffer | Uint8Array): Promise<boolean> {
     try {
-      const result = await getHeader(file, true)
-      if (result.ok) {
-        return true
-      }
-      throw new ValidationException('Invalid PDF')
+      // IMPORTANT: copy the buffer before passing to PDFParse / PDF.js.
+      //
+      // PDF.js transfers the underlying ArrayBuffer to its internal worker thread
+      // for parsing. Transfer is a move — the original ArrayBuffer is detached,
+      // causing any Uint8Array or Buffer that shared it (including the caller's
+      // `buffer`) to have its byteLength set to 0 after this call returns.
+      //
+      // By making a copy here we hand PDF.js its own ArrayBuffer to transfer,
+      // leaving the caller's buffer intact so it can still be sent to the AI
+      // model (or used elsewhere) after validation completes.
+      const copy = Buffer.from(buffer)
+      const parser = new PDFParse({ data: copy })
+      await parser.getInfo()
+      return true
     } catch (_error) {
       throw new ValidationException('Invalid PDF')
     }
