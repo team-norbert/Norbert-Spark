@@ -16,6 +16,7 @@ const requiredEnvs: string[] = [
   'API_VERSION',
   'OAUTH_SYNC_SECRET',
   'CLOUDFLARE_API',
+  'JWT_ISSUER',
 ]
 
 export class EnvConfig {
@@ -76,6 +77,12 @@ export class EnvConfig {
   }
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !Reflect.get(ENV, key))
+
+    if (ENV.JWT_ISSUER === 'my-app') {
+      throw new Error(
+        `Do not use the fallback JWT_ISSUER value 'my-app'. Please set JWT_ISSUER to a unique value for your application.`
+      )
+    }
 
     if (missing.length > 0) {
       throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
