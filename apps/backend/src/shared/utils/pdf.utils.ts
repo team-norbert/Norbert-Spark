@@ -1,5 +1,5 @@
 import path from 'path'
-import { getHeader } from 'pdf-parse/node'
+import { PDFParse } from 'pdf-parse'
 import unzipper from 'unzipper'
 
 import type { LoggerPort } from '../../application/ports/logger.port.js'
@@ -143,13 +143,11 @@ export class PDFUtils {
     return null
   }
 
-  async validatePDF(file: string): Promise<boolean> {
+  async validatePDF(buffer: Buffer | Uint8Array): Promise<boolean> {
     try {
-      const result = await getHeader(file, true)
-      if (result.ok) {
-        return true
-      }
-      throw new ValidationException('Invalid PDF')
+      const parser = new PDFParse({ data: buffer })
+      await parser.getInfo()
+      return true
     } catch (_error) {
       throw new ValidationException('Invalid PDF')
     }

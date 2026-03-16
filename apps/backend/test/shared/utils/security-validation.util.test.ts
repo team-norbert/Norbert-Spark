@@ -1,4 +1,4 @@
-import { fileTypeFromFile } from 'file-type'
+import { fileTypeFromBuffer } from 'file-type'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
@@ -15,7 +15,7 @@ import {
 } from '../../../src/shared/utils/security-validation.util.js'
 
 vi.mock('file-type', () => ({
-  fileTypeFromFile: vi.fn(),
+  fileTypeFromBuffer: vi.fn(),
 }))
 
 describe('Security Validation Utilities', () => {
@@ -280,59 +280,83 @@ describe('Security Validation Utilities', () => {
   })
 
   describe('validatePDF', () => {
-    it('should resolve true when file-type detects a PDF', async () => {
-      vi.mocked(fileTypeFromFile).mockResolvedValue({ ext: 'pdf', mime: 'application/pdf' })
+    const PDF_BUFFER = Buffer.from([0x25, 0x50, 0x44, 0x46]) // %PDF magic bytes
 
-      await expect(validatePDF('/uploads/document.pdf')).resolves.toBe(true)
+    it('should resolve true when file-type detects a PDF', async () => {
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'pdf', mime: 'application/pdf' })
+
+      await expect(validatePDF(PDF_BUFFER)).resolves.toBe(true)
     })
 
-    it('should resolve true when file-type returns undefined (unrecognised bytes)', async () => {
-      // file-type cannot identify the content — we give it the benefit of the doubt
-      vi.mocked(fileTypeFromFile).mockResolvedValue(undefined)
+    it('should throw ValidationException when file-type returns undefined (unrecognised bytes)', async () => {
+      // Fail closed: unrecognised content must be rejected, not accepted
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue(undefined)
 
-      await expect(validatePDF('/uploads/unknown.pdf')).resolves.toBe(true)
+      await expect(validatePDF(PDF_BUFFER)).rejects.toThrow(ValidationException)
+    })
+
+    it('should include "unknown" in the error message when file-type returns undefined', async () => {
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue(undefined)
+
+      await expect(validatePDF(PDF_BUFFER)).rejects.toThrow(
+        'Invalid file type: unknown. Only PDF files are allowed.'
+      )
     })
 
     it('should throw ValidationException when file-type detects a non-PDF type', async () => {
-      vi.mocked(fileTypeFromFile).mockResolvedValue({ ext: 'zip', mime: 'application/zip' })
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'zip', mime: 'application/zip' })
 
-      await expect(validatePDF('/uploads/malicious.zip')).rejects.toThrow(ValidationException)
+      await expect(validatePDF(PDF_BUFFER)).rejects.toThrow(ValidationException)
     })
 
     it('should include the detected extension in the error message', async () => {
-      vi.mocked(fileTypeFromFile).mockResolvedValue({
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({
         ext: 'exe',
         mime: 'application/x-msdownload',
       })
 
-      await expect(validatePDF('/uploads/malicious.exe')).rejects.toThrow(
+      await expect(validatePDF(PDF_BUFFER)).rejects.toThrow(
         'Invalid file type: exe. Only PDF files are allowed.'
       )
     })
 
-    it('should pass the file path straight through to fileTypeFromFile', async () => {
-      vi.mocked(fileTypeFromFile).mockResolvedValue({ ext: 'pdf', mime: 'application/pdf' })
-      const filePath = '/some/path/report.pdf'
+    it('should pass the buffer straight through to fileTypeFromBuffer', async () => {
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'pdf', mime: 'application/pdf' })
 
-      await validatePDF(filePath)
+      await validatePDF(PDF_BUFFER)
 
-      expect(fileTypeFromFile).toHaveBeenCalledWith(filePath)
+      expect(fileTypeFromBuffer).toHaveBeenCalledWith(PDF_BUFFER)
     })
 
-    it('should propagate unexpected errors thrown by fileTypeFromFile', async () => {
-      vi.mocked(fileTypeFromFile).mockRejectedValue(new Error('ENOENT: no such file or directory'))
+    it('should accept a Uint8Array input', async () => {
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'pdf', mime: 'application/pdf' })
+      const uint8 = new Uint8Array([0x25, 0x50, 0x44, 0x46])
 
-      await expect(validatePDF('/nonexistent/file.pdf')).rejects.toThrow(
-        'ENOENT: no such file or directory'
-      )
+      await expect(validatePDF(uint8)).resolves.toBe(true)
+    })
+
+    it('should propagate unexpected errors thrown by fileTypeFromBuffer', async () => {
+      vi.mocked(fileTypeFromBuffer).mockRejectedValue(new Error('Unexpected read error'))
+
+      await expect(validatePDF(PDF_BUFFER)).rejects.toThrow('Unexpected read error')
     })
   })
 
   describe('hasZIPSignature', () => {
-    const ZIP_MAGIC = new Uint8Array([0x50, 0x4b, 0x03, 0x04]) // PK\x03\x04
+    const ZIP_LOCAL = new Uint8Array([0x50, 0x4b, 0x03, 0x04]) // PK\x03\x04 — local file header
+    const ZIP_EOCD = new Uint8Array([0x50, 0x4b, 0x05, 0x06]) // PK\x05\x06 — end of central directory
+    const ZIP_DATA_DESC = new Uint8Array([0x50, 0x4b, 0x07, 0x08]) // PK\x07\x08 — data descriptor
 
-    it('should return true for a buffer with a valid ZIP signature', () => {
-      expect(hasZIPSignature(ZIP_MAGIC)).toBe(true)
+    it('should return true for a buffer with a PK\\x03\\x04 ZIP signature', () => {
+      expect(hasZIPSignature(ZIP_LOCAL)).toBe(true)
+    })
+
+    it('should return true for a buffer with a PK\\x05\\x06 ZIP signature', () => {
+      expect(hasZIPSignature(ZIP_EOCD)).toBe(true)
+    })
+
+    it('should return true for a buffer with a PK\\x07\\x08 ZIP signature', () => {
+      expect(hasZIPSignature(ZIP_DATA_DESC)).toBe(true)
     })
 
     it('should return true when the ZIP signature appears at the start of a larger buffer', () => {

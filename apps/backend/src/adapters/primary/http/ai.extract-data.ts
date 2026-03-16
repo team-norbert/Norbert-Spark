@@ -261,9 +261,9 @@ export class AIExtractDataController {
       }
 
       if (fileType === 'pdf') {
-        // Validate PDF
-        await validatePDF(fileKey)
-        await this.pdfUtils.validatePDF(fileKey)
+        // Validate PDF using the in-memory buffer (not the object-storage key)
+        await validatePDF(buffer)
+        await this.pdfUtils.validatePDF(buffer)
 
         // Set headers for streaming newline-delimited JSON
         reply.raw.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8')
