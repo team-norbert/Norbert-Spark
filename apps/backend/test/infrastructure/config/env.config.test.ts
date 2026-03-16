@@ -521,6 +521,77 @@ describe('EnvConfig', () => {
       expect(content).toContain('RESEND_API_KEY')
       expect(content).toMatch(/requiredEnvs.*=.*\[[\s\S]*'RESEND_API_KEY'/m)
     })
+
+    it('should throw when JWT_ISSUER is the placeholder "my-app"', async () => {
+      process.env.JWT_ISSUER = 'my-app'
+      // Satisfy all other required vars so the only failure is the JWT_ISSUER guard
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
+      process.env.MODEL_NAME = 'gemini-pro'
+      process.env.RESEND_API_KEY = 'resend-test-key'
+      process.env.JWT_SECRET = 'test-jwt-secret'
+      process.env.API_VERSION = 'v1'
+      process.env.OAUTH_SYNC_SECRET = 'test-oauth-secret'
+      process.env.CLOUDFLARE_API = 'test-cloudflare-api'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(() => EnvConfig.validate()).toThrowError(
+        `Invalid JWT_ISSUER value 'my-app'. Please set JWT_ISSUER to a unique, non-default value for your application.`
+      )
+    })
+
+    it('should throw when JWT_ISSUER is not set (falls back to "my-app")', async () => {
+      // EnvConfig.JWT_ISSUER uses `ENV.JWT_ISSUER || 'my-app'`, so an unset
+      // JWT_ISSUER resolves to 'my-app' and must also be rejected by validate()
+      delete process.env.JWT_ISSUER
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
+      process.env.MODEL_NAME = 'gemini-pro'
+      process.env.RESEND_API_KEY = 'resend-test-key'
+      process.env.JWT_SECRET = 'test-jwt-secret'
+      process.env.API_VERSION = 'v1'
+      process.env.OAUTH_SYNC_SECRET = 'test-oauth-secret'
+      process.env.CLOUDFLARE_API = 'test-cloudflare-api'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(() => EnvConfig.validate()).toThrowError(
+        `Invalid JWT_ISSUER value 'my-app'. Please set JWT_ISSUER to a unique, non-default value for your application.`
+      )
+    })
+
+    it('should not throw when JWT_ISSUER is set to a custom value', async () => {
+      process.env.JWT_ISSUER = 'norberts-spark'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
+      process.env.MODEL_NAME = 'gemini-pro'
+      process.env.RESEND_API_KEY = 'resend-test-key'
+      process.env.JWT_SECRET = 'test-jwt-secret'
+      process.env.API_VERSION = 'v1'
+      process.env.OAUTH_SYNC_SECRET = 'test-oauth-secret'
+      process.env.CLOUDFLARE_API = 'test-cloudflare-api'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(() => EnvConfig.validate()).not.toThrow()
+    })
+
+    it('should throw the JWT_ISSUER error before reporting missing required vars', async () => {
+      // JWT_ISSUER is 'my-app' AND required vars are missing — the JWT_ISSUER
+      // check must fire first so it is never silently swallowed by the missing-vars error
+      process.env.JWT_ISSUER = 'my-app'
+      delete process.env.DATABASE_URL
+      delete process.env.GOOGLE_GENERATIVE_AI_API_KEY
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(() => EnvConfig.validate()).toThrowError(`Invalid JWT_ISSUER value 'my-app'.`)
+    })
   })
 
   describe('EnvConfig class', () => {
