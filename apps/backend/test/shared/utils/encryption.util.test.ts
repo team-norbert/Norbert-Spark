@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
 import {
   decryptTwoFactorSecret,
   encryptTwoFactorSecret,
@@ -16,6 +17,22 @@ describe('Encryption Utility', () => {
   afterEach(() => {
     // Restore original environment
     process.env.ENCRYPTION_KEY = originalEnv
+    vi.restoreAllMocks()
+  })
+
+  describe('getMasterKey (via encrypt/decrypt)', () => {
+    it('should throw when ENCRYPTION_KEY is not set', () => {
+      vi.spyOn(EnvConfig, 'ENCRYPTION_KEY', 'get').mockReturnValue('')
+      expect(() => encryptTwoFactorSecret('JBSWY3DPEHPK3PXP')).toThrow('ENCRYPTION_KEY must be set')
+    })
+
+    it('should throw on decrypt when ENCRYPTION_KEY is not set', () => {
+      // Encrypt with the real test key (set in beforeEach) to get a valid ciphertext,
+      // then verify that decryption throws when the key is subsequently removed.
+      const encrypted = encryptTwoFactorSecret('JBSWY3DPEHPK3PXP')
+      vi.spyOn(EnvConfig, 'ENCRYPTION_KEY', 'get').mockReturnValue('')
+      expect(() => decryptTwoFactorSecret(encrypted)).toThrow('ENCRYPTION_KEY must be set')
+    })
   })
 
   describe('encryptTwoFactorSecret', () => {
