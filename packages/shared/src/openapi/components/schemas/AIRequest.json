@@ -60,6 +60,33 @@
               }
             }
           }
+        },
+        "if": {
+          "properties": {
+            "role": { "const": "user" }
+          },
+          "required": ["role"]
+        },
+        "then": {
+          "properties": {
+            "parts": {
+              "items": {
+                "if": {
+                  "properties": {
+                    "type": { "const": "text" }
+                  },
+                  "required": ["type"]
+                },
+                "then": {
+                  "properties": {
+                    "text": {
+                      "maxLength": 8000
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },

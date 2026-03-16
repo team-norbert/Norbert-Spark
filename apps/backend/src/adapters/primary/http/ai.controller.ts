@@ -47,6 +47,8 @@ import { Sanitise } from '../../../shared/utils/sanitise.utils.js'
  */
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
+  private NODE_ENV = EnvConfig.NODE_ENV
+  private rateLimit = this.NODE_ENV === 'development' || this.NODE_ENV === 'test' ? 200 : 10
 
   constructor(
     private readonly getChatUseCase: GetChatUseCase,
@@ -77,6 +79,7 @@ export class AIController {
       '/ai/chat',
       {
         preHandler: [authMiddleware],
+        config: { rateLimit: { max: this.rateLimit, timeWindow: '1 minute' } },
       },
       this.chat.bind(this)
     )

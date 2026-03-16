@@ -16,6 +16,7 @@ import type { ResolveChatTypeUseCase } from '../../../../src/application/use-cas
 import type { SaveChatUseCase } from '../../../../src/application/use-cases/save-chat.use-case.js'
 import { ChatId } from '../../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
+import { EnvConfig } from '../../../../src/infrastructure/config/env.config.js'
 import { InternalErrorException } from '../../../../src/shared/exceptions/internal-error.exception.js'
 import { NotFoundException } from '../../../../src/shared/exceptions/not-found.exception.js'
 import { createMockLogger } from '../../../shared/factories/logger.factory.js'
@@ -58,6 +59,8 @@ vi.mock('../../../../src/infrastructure/ai/tools/getText.js', () => {
 
 describe('AIController', () => {
   let controller: AIController
+  const ENVRate = EnvConfig.NODE_ENV === 'development' || EnvConfig.NODE_ENV === 'test' ? 200 : 10
+
   let mockGetChatUseCase: GetChatUseCase
   let mockAppendChatUseCase: AppendedChatUseCase
   let mockSaveChatUseCase: SaveChatUseCase
@@ -204,7 +207,15 @@ describe('AIController', () => {
       expect(mockApp.post).toHaveBeenCalledTimes(1)
       expect(mockApp.post).toHaveBeenCalledWith(
         '/ai/chat',
-        expect.objectContaining({ preHandler: expect.any(Array) }),
+        expect.objectContaining({
+          preHandler: expect.any(Array),
+          config: expect.objectContaining({
+            rateLimit: expect.objectContaining({
+              max: ENVRate,
+              timeWindow: '1 minute',
+            }),
+          }),
+        }),
         expect.any(Function)
       )
     })
@@ -274,6 +285,80 @@ describe('AIController', () => {
         expect.objectContaining({ preHandler: expect.any(Array) }),
         expect.any(Function)
       )
+    })
+  })
+
+  // ─── registerRoutes() — rate limiting ────────────────────────────────────
+
+  describe('registerRoutes() — rate limiting', () => {
+    it('should register POST /ai/chat with rate limit config', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      const chatCall = vi.mocked(mockApp.post).mock.calls.find((call) => call[0] === '/ai/chat')
+      expect(chatCall).toBeDefined()
+      const chatOptions = chatCall?.[1] as any
+      expect(chatOptions?.config?.rateLimit).toEqual(
+        expect.objectContaining({
+          max: ENVRate,
+          timeWindow: '1 minute',
+        })
+      )
+    })
+
+    it('should use a higher rate limit in development/test than in production', () => {
+      // In dev/test NODE_ENV the rate is 200; in production it would be 10.
+      // This test verifies the environment-aware value matches what the controller uses.
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      const chatCall = vi.mocked(mockApp.post).mock.calls.find((call) => call[0] === '/ai/chat')
+      const chatOptions = chatCall?.[1] as any
+      const registeredMax = chatOptions?.config?.rateLimit?.max
+
+      // In the test environment NODE_ENV === 'test', so ENVRate === 200
+      expect(registeredMax).toBe(ENVRate)
+      expect(registeredMax).toBe(200)
+    })
+
+    it('should NOT apply a rate limit config to GET /ai/chats/:userId', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      const chatsCall = vi
+        .mocked(mockApp.get)
+        .mock.calls.find((call) => call[0] === '/ai/chats/:userId')
+      expect(chatsCall).toBeDefined()
+      const chatsOptions = chatsCall?.[1] as any
+      expect(chatsOptions?.config?.rateLimit).toBeUndefined()
+    })
+
+    it('should NOT apply a rate limit config to GET /ai/fetchChat/:chatId', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      const fetchCall = vi
+        .mocked(mockApp.get)
+        .mock.calls.find((call) => call[0] === '/ai/fetchChat/:chatId')
+      expect(fetchCall).toBeDefined()
+      const fetchOptions = fetchCall?.[1] as any
+      expect(fetchOptions?.config?.rateLimit).toBeUndefined()
     })
   })
 
