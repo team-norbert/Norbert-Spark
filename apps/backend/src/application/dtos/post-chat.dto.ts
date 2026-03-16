@@ -9,6 +9,8 @@ import {
   type PromptRiskAssessment,
 } from '../../shared/utils/prompt-injection-guard.utils.js'
 
+const MAX_USER_TEXT_PART_LENGTH = 8000
+
 /**
  * Represents a single part of a chat message.
  *
@@ -269,8 +271,12 @@ export class PostChatDto {
       for (const part of lastUserEntry.msg.parts) {
         if (part.type !== 'text' || !isString(part.text) || part.text === '') continue
 
-        if (part.text.length > 8000) {
-          throw new ValidationException('Text part exceeds maximum length of 8000 characters')
+        if (part.text.length > MAX_USER_TEXT_PART_LENGTH) {
+          throw new ValidationException(
+            'Text part exceeds maximum length of ' +
+              MAX_USER_TEXT_PART_LENGTH +
+              ' characters'
+          )
         }
 
         const assessment = guard.assess(part.text)
