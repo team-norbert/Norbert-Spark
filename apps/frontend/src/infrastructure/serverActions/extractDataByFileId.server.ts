@@ -163,6 +163,17 @@ export async function extractDataByFileIdAction(fileKey: string): Promise<{
     logger.error('extractDataByFileIdAction error', err, {
       event: 'server-action.extract-data.failed',
       fileKey,
+      // Surface the class name (e.g. 'TypeError', 'FetchError') separately from
+      // err.name, which can be an empty string on some undici/fetch errors
+      errorClass: error instanceof Error ? error.constructor.name : typeof error,
+      // Surface the cause chain as a plain string so it appears even if
+      // serializeError doesn't recurse deeply enough
+      errorCause:
+        err.cause instanceof Error
+          ? `${err.cause.constructor.name}: ${err.cause.message}`
+          : err.cause !== undefined
+            ? String(err.cause)
+            : undefined,
     })
 
     return { success: false, error: err.message || 'Failed to extract data' }

@@ -1,15 +1,22 @@
-import { describe, expect, it } from 'vitest'
+import { fileTypeFromBuffer } from 'file-type'
+import { describe, expect, it, vi } from 'vitest'
 
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 import {
+  hasZIPSignature,
   sanitizeFilename,
   sanitizeForShell,
   validateFileExtension,
   validateFileSize,
   validateMimeType,
   validatePathWithinBase,
+  validatePDF,
   validateSafeIdentifier,
 } from '../../../src/shared/utils/security-validation.util.js'
+
+vi.mock('file-type', () => ({
+  fileTypeFromBuffer: vi.fn(),
+}))
 
 describe('Security Validation Utilities', () => {
   describe('validatePathWithinBase', () => {
@@ -269,6 +276,128 @@ describe('Security Validation Utilities', () => {
       expect(() => validateFileSize('1024' as unknown as number, MAX_SIZE)).toThrow(
         ValidationException
       )
+    })
+  })
+
+  describe('validatePDF', () => {
+    const PDF_BUFFER = Buffer.from([0x25, 0x50, 0x44, 0x46]) // %PDF magic bytes
+
+    it('should resolve true when file-type detects a PDF', async () => {
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'pdf', mime: 'application/pdf' })
+
+      await expect(validatePDF(PDF_BUFFER)).resolves.toBe(true)
+    })
+
+    it('should throw ValidationException when file-type returns undefined (unrecognised bytes)', async () => {
+      // Fail closed: unrecognised content must be rejected, not accepted
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue(undefined)
+
+      await expect(validatePDF(PDF_BUFFER)).rejects.toThrow(ValidationException)
+    })
+
+    it('should include "unknown" in the error message when file-type returns undefined', async () => {
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue(undefined)
+
+      await expect(validatePDF(PDF_BUFFER)).rejects.toThrow(
+        'Invalid file type: unknown. Only PDF files are allowed.'
+      )
+    })
+
+    it('should throw ValidationException when file-type detects a non-PDF type', async () => {
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'zip', mime: 'application/zip' })
+
+      await expect(validatePDF(PDF_BUFFER)).rejects.toThrow(ValidationException)
+    })
+
+    it('should include the detected extension in the error message', async () => {
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({
+        ext: 'exe',
+        mime: 'application/x-msdownload',
+      })
+
+      await expect(validatePDF(PDF_BUFFER)).rejects.toThrow(
+        'Invalid file type: exe. Only PDF files are allowed.'
+      )
+    })
+
+    it('should pass the buffer straight through to fileTypeFromBuffer', async () => {
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'pdf', mime: 'application/pdf' })
+
+      await validatePDF(PDF_BUFFER)
+
+      expect(fileTypeFromBuffer).toHaveBeenCalledWith(PDF_BUFFER)
+    })
+
+    it('should accept a Uint8Array input', async () => {
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'pdf', mime: 'application/pdf' })
+      const uint8 = new Uint8Array([0x25, 0x50, 0x44, 0x46])
+
+      await expect(validatePDF(uint8)).resolves.toBe(true)
+    })
+
+    it('should propagate unexpected errors thrown by fileTypeFromBuffer', async () => {
+      vi.mocked(fileTypeFromBuffer).mockRejectedValue(new Error('Unexpected read error'))
+
+      await expect(validatePDF(PDF_BUFFER)).rejects.toThrow('Unexpected read error')
+    })
+  })
+
+  describe('hasZIPSignature', () => {
+    const ZIP_LOCAL = new Uint8Array([0x50, 0x4b, 0x03, 0x04]) // PK\x03\x04 — local file header
+    const ZIP_EOCD = new Uint8Array([0x50, 0x4b, 0x05, 0x06]) // PK\x05\x06 — end of central directory
+    const ZIP_DATA_DESC = new Uint8Array([0x50, 0x4b, 0x07, 0x08]) // PK\x07\x08 — data descriptor
+
+    it('should return true for a buffer with a PK\\x03\\x04 ZIP signature', () => {
+      expect(hasZIPSignature(ZIP_LOCAL)).toBe(true)
+    })
+
+    it('should return true for a buffer with a PK\\x05\\x06 ZIP signature', () => {
+      expect(hasZIPSignature(ZIP_EOCD)).toBe(true)
+    })
+
+    it('should return true for a buffer with a PK\\x07\\x08 ZIP signature', () => {
+      expect(hasZIPSignature(ZIP_DATA_DESC)).toBe(true)
+    })
+
+    it('should return true when the ZIP signature appears at the start of a larger buffer', () => {
+      const buf = new Uint8Array([0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x00, 0x00])
+      expect(hasZIPSignature(buf)).toBe(true)
+    })
+
+    it('should throw ValidationException for a buffer with PDF magic bytes', () => {
+      // PDF starts with %PDF = 0x25 0x50 0x44 0x46
+      const pdfBuf = new Uint8Array([0x25, 0x50, 0x44, 0x46])
+      expect(() => hasZIPSignature(pdfBuf)).toThrow(ValidationException)
+    })
+
+    it('should throw ValidationException for arbitrary non-ZIP bytes', () => {
+      const buf = new Uint8Array([0x00, 0x01, 0x02, 0x03])
+      expect(() => hasZIPSignature(buf)).toThrow(ValidationException)
+    })
+
+    it('should throw ValidationException for a buffer shorter than 4 bytes', () => {
+      expect(() => hasZIPSignature(new Uint8Array([0x50, 0x4b, 0x03]))).toThrow(ValidationException)
+    })
+
+    it('should throw ValidationException for an empty buffer', () => {
+      expect(() => hasZIPSignature(new Uint8Array([]))).toThrow(ValidationException)
+    })
+
+    it('should throw ValidationException when first byte matches but remaining bytes do not', () => {
+      expect(() => hasZIPSignature(new Uint8Array([0x50, 0x00, 0x00, 0x00]))).toThrow(
+        ValidationException
+      )
+    })
+
+    it('should throw ValidationException when first three bytes match but fourth does not', () => {
+      expect(() => hasZIPSignature(new Uint8Array([0x50, 0x4b, 0x03, 0x00]))).toThrow(
+        ValidationException
+      )
+    })
+
+    it('should include a descriptive message in the thrown exception', () => {
+      const buf = new Uint8Array([0x00, 0x01, 0x02, 0x03])
+      expect(() => hasZIPSignature(buf)).toThrow('ZIP file signature not found')
     })
   })
 })

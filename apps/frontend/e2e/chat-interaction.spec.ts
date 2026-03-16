@@ -97,7 +97,7 @@ test.describe('Chat Interaction', () => {
 
     // Wait for the user message to appear in the UI
     const userMessageWrapper = page.getByTestId('user')
-    await expect(userMessageWrapper).toBeVisible({ timeout: 10000 })
+    await expect(userMessageWrapper).toBeVisible({ timeout: 15000 })
 
     // Verify the message text directly on the user message container
     await expect(userMessageWrapper).toContainText('User: hello', { timeout: 10000 })

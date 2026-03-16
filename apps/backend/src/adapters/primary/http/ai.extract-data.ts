@@ -18,6 +18,7 @@ import { UnprocessableEntityException } from '../../../shared/exceptions/unproce
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 import {
+  hasZIPSignature,
   sanitizeFilename,
   validateFileExtension,
   validateMimeType,
@@ -166,6 +167,8 @@ export class AIExtractDataController {
       const { buffer, fileType } = await this.extractDataUseCase.execute(dto, auditContext)
 
       if (fileType === 'zip') {
+        hasZIPSignature(buffer) // Basic validation to check ZIP signature before processing
+
         const { pdfFiles } = await this.pdfUtils.extractFromBuffer(Buffer.from(buffer))
 
         // Set headers for streaming newline-delimited JSON
@@ -257,6 +260,12 @@ export class AIExtractDataController {
       }
 
       if (fileType === 'pdf') {
+        // Validate PDF structure using the in-memory buffer.
+        // Note: magic-byte detection already confirmed this is a PDF (via detectFileType
+        // in ExtractDataUseCase). This call validates the internal PDF structure using
+        // pdf-parse, catching corrupt or truncated files before they reach the AI model.
+        await this.pdfUtils.validatePDF(buffer)
+
         // Set headers for streaming newline-delimited JSON
         reply.raw.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8')
         reply.raw.setHeader('Transfer-Encoding', 'chunked')
