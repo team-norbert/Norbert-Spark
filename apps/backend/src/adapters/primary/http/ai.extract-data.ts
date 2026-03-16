@@ -22,7 +22,6 @@ import {
   sanitizeFilename,
   validateFileExtension,
   validateMimeType,
-  validatePDF,
 } from '../../../shared/utils/security-validation.util.js'
 
 /**
@@ -261,8 +260,10 @@ export class AIExtractDataController {
       }
 
       if (fileType === 'pdf') {
-        // Validate PDF using the in-memory buffer (not the object-storage key)
-        await validatePDF(buffer)
+        // Validate PDF structure using the in-memory buffer.
+        // Note: magic-byte detection already confirmed this is a PDF (via detectFileType
+        // in ExtractDataUseCase). This call validates the internal PDF structure using
+        // pdf-parse, catching corrupt or truncated files before they reach the AI model.
         await this.pdfUtils.validatePDF(buffer)
 
         // Set headers for streaming newline-delimited JSON

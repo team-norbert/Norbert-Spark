@@ -31,6 +31,7 @@ type NDJSONResult = {
  */
 function parseNDJSONLine(line: string): ExtractedInvoiceData | null {
   try {
+    console.log('Parsing NDJSON line:', line)
     const result = JSON.parse(line) as NDJSONResult
 
     if (result.success && result.data) {
