@@ -22,7 +22,7 @@
     "test:e2e": "cross-env E2E_CLEANUP_PROCESSES=true playwright test",
     "test:e2e:headed": "cross-env E2E_CLEANUP_PROCESSES=true playwright test --headed",
     "test:pact": "vitest run --config vitest.config.pact.ts pacts/consumer.pact.spec.ts",
-    "test:publish": "pact-broker publish ../../infrastructure/pact-broker/results --consumer-app-version=\"$(node -p 'require(\"./package.json\").version')\" --auto-detect-version-properties --broker-base-url=${PACT_BROKER_URL:-http://localhost:9293}",
+    "test:publish": "node -e \"const { spawnSync } = require('child_process'); const pkg = require('./package.json'); const brokerUrl = process.env.PACT_BROKER_URL || 'http://localhost:9292'; const args = ['publish', '../../infrastructure/pact-broker/results', '--consumer-app-version=' + pkg.version, '--auto-detect-version-properties', '--broker-base-url=' + brokerUrl]; const result = spawnSync('pact-broker', args, { stdio: 'inherit' }); process.exit(result.status ?? 0);\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
