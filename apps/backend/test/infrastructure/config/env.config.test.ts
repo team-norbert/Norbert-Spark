@@ -522,7 +522,6 @@ describe('EnvConfig', () => {
       expect(content).toMatch(/requiredEnvs.*=.*\[[\s\S]*'RESEND_API_KEY'/m)
     })
 
-    it('should throw when JWT_ISSUER is the placeholder "my-app"', async () => {
     it('should include ENCRYPTION_KEY in required environment variables', async () => {
       const fs = await import('fs/promises')
       const path = await import('path')
@@ -571,7 +570,7 @@ describe('EnvConfig', () => {
       expect(() => EnvConfig.validate()).not.toThrow()
     })
 
-    it('should throw when JWT_ISSUER is the default placeholder "my-app"', async () => {
+    it('should throw when JWT_ISSUER is the placeholder "my-app"', async () => {
       process.env.JWT_ISSUER = 'my-app'
       // Satisfy all other required vars so the only failure is the JWT_ISSUER guard
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
