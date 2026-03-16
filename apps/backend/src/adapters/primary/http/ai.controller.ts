@@ -1,7 +1,3 @@
-// TODO: Refactor AIController — split into focused sub-controllers (e.g. ChatController,
-// ChatTypeController, ChatDetailsController) to bring the file under the 600-line limit.
-/* eslint-disable max-lines */
-
 import { google } from '@ai-sdk/google'
 import type { components, operations } from '@norberts-spark/shared/openapi-types'
 import {
@@ -15,18 +11,13 @@ import { createHash } from 'crypto'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
 import { PostChatDto } from '../../../application/dtos/post-chat.dto.js'
-import { PostChatType } from '../../../application/dtos/post-chat-types.dto.js'
-import { PutChatTypeDto } from '../../../application/dtos/put-chat-type.dto.js'
 import type { AuditLogPort } from '../../../application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { AppendedChatUseCase } from '../../../application/use-cases/append-chat.use-case.js'
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
 import { GetChatAiOptionsUseCase } from '../../../application/use-cases/get-chat-ai-options.use-case.js'
 import { GetChatContentByChatIdUseCase } from '../../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
-import { GetChatDetailsUseCase } from '../../../application/use-cases/get-chat-details.use-case.js'
 import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
-import { PostChatTypesUseCase } from '../../../application/use-cases/post-chat-types.use-case.js'
-import { PutChatDetailsUseCase } from '../../../application/use-cases/put-chat-details.use-case.js'
 import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-chat-type.use-case.js'
 import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
 import { AuditAction, EntityType } from '../../../domain/audit/entity-type.enum.js'
@@ -36,8 +27,6 @@ import type { UUIDType } from '../../../domain/value-objects/uuid.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
-import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
-import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { ValidationException } from '../../../shared/exceptions/validation.exception.js'
 import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import type { AuditContextType } from '../../../shared/types/index.js'
@@ -45,6 +34,17 @@ import { createAuditContext } from '../../../shared/types/index.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 import { Sanitise } from '../../../shared/utils/sanitise.utils.js'
 
+/**
+ * HTTP controller responsible for live AI chat session endpoints.
+ *
+ * Handles streaming chat requests, chat history retrieval by user, and individual
+ * chat content lookup. All routes require JWT authentication.
+ *
+ * Chat requests are processed by validating the request body, resolving the chat type,
+ * persisting the conversation, and streaming the AI response via the Vercel AI SDK.
+ *
+ * @see {@link AIConfigController} for routes that manage chat type configuration.
+ */
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
 
@@ -55,16 +55,23 @@ export class AIController {
     private readonly saveChatUseCase: SaveChatUseCase,
     private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase,
     private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase,
-    private readonly getChatDetailsUseCase: GetChatDetailsUseCase,
     private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase,
     private readonly resolveChatTypeUseCase: ResolveChatTypeUseCase,
-    private readonly putChatDetailsUseCase: PutChatDetailsUseCase,
-    private readonly postChatTypesUseCase: PostChatTypesUseCase,
     private readonly auditLogPort: AuditLogPort
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
 
+  /**
+   * Registers the AI chat routes on the given Fastify instance.
+   *
+   * Registers:
+   * - `POST /ai/chat`               — stream a new or continued AI chat message
+   * - `GET  /ai/chats/:userId`      — retrieve all chat IDs for a user
+   * - `GET  /ai/fetchChat/:chatId`  — retrieve full chat history by chat ID
+   *
+   * @param app - The Fastify instance to register routes on.
+   */
   registerRoutes(app: FastifyInstance): void {
     app.post(
       '/ai/chat',
@@ -87,43 +94,37 @@ export class AIController {
       },
       this.getAIChatByChatId.bind(this)
     )
-    app.get(
-      '/ai/chats/config',
-      {
-        preHandler: [authMiddleware],
-      },
-      this.getAIChatDetails.bind(this)
-    )
-    app.put(
-      '/ai/chats/config',
-      {
-        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
-      },
-      this.updateAIChatDetails.bind(this)
-    )
-    app.post(
-      '/ai/chats/config',
-      {
-        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
-      },
-      this.createAIChatType.bind(this)
-    )
   }
 
   /**
-   * Handles AI chat requests
-   * The flow of chat is as follows: return FastifyUtil.createResponse('Last message must be from the user', 400)
-   * 1. Validate the request body against the AIReturnedResponseSchema
-   * 2. Retrieve the chat using the GetChatUseCase
-   * 3. Validate that the most recent message is from the user
-   * 4. If the chat does not exist, create a new chat
-   * 5. If the chat exists, append the most recent message to the chat
-   * 6. Run the streamText from the ai NPM package to get the AI response
+   * Handles a streaming AI chat request for a new or existing conversation.
    *
-   * @returns {Promise<void>}
+   * Flow:
+   * 1. Validates the request body and assesses messages for prompt-injection risk.
+   * 2. Resolves the chat type from `chatTypeParam` (slug, UUID, or base64 ID)
+   *    or falls back to `chatTypeId`.
+   * 3. If the chat does not yet exist, persists it via {@link SaveChatUseCase};
+   *    otherwise appends the latest user message via {@link AppendedChatUseCase}.
+   * 4. Retrieves the system prompt for the resolved chat type.
+   * 5. Streams the AI response using `streamText` from the Vercel AI SDK.
+   * 6. On completion, sanitises and persists the assistant response.
    *
-   * @param request
-   * @param reply
+   * **Route:** `POST /ai/chat`
+   * **Auth:** Requires a valid JWT (any authenticated user).
+   *
+   * @param request - The Fastify request object. Expected body fields:
+   *   - `id` — chat UUID v7
+   *   - `trigger` — event that initiated the request (e.g. `"submit"`)
+   *   - `messages` — array of UI messages in Vercel AI SDK format
+   *   - `chatTypeParam` — slug, UUID, or base64 ID of the chat type (optional if `chatTypeId` provided)
+   *   - `chatTypeId` — UUID of the chat type (optional if `chatTypeParam` provided)
+   * @param reply - The Fastify reply object used to send the streamed HTTP response.
+   * @returns A promise that resolves to a UI message stream response.
+   *
+   * @throws {400} When the request body fails validation, a required field is missing,
+   *   prompt injection is detected, the last message is not from the user,
+   *   or the chat type cannot be resolved.
+   * @throws {500} When the AI model is not configured or an unexpected error occurs.
    */
   async chat(request: FastifyRequest, reply: FastifyReply) {
     this.logger.debug('Received chat request')
@@ -443,31 +444,33 @@ export class AIController {
   /**
    * Retrieves all chat IDs associated with a specific user.
    *
-   * This endpoint implements authorization checks to ensure users can only access their own chat history
-   * unless they have admin or moderator privileges. The authorization flow is:
-   * 1. User can access their own chat history (userId matches authenticated user's ID)
-   * 2. Admin or moderator can access any user's chat history
+   * Authorization ensures users can only access their own chat history unless they
+   * hold the `admin` or `moderator` role:
+   * 1. Users may access their own chat history (request `userId` matches the authenticated user).
+   * 2. Admins and moderators may access any user's chat history.
    *
-   * @param request - The Fastify request object containing the userId parameter and authenticated user info
-   * @param reply - The Fastify reply object for sending responses
-   * @returns A promise that resolves to an array of ChatIdType or void if an error response is sent
+   * **Route:** `GET /ai/chats/:userId`
+   * **Auth:** Requires a valid JWT. Users may only request their own history unless elevated.
    *
-   * @throws {400} When userId parameter is missing or has invalid format (not a valid UUID v7)
-   * @throws {403} When user attempts to access another user's chat history without admin/moderator role
-   * @throws {500} When an error occurs while fetching chats from the repository
+   * @param request - The Fastify request object containing the `:userId` path parameter
+   *   and the authenticated user information.
+   * @param reply - The Fastify reply object for sending responses.
+   * @returns A promise that resolves once the response has been sent.
+   *
+   * @throws {400} When the `userId` parameter is missing or not a valid UUID v7.
+   * @throws {403} When the authenticated user attempts to access another user's chat
+   *   history without the `admin` or `moderator` role.
+   * @throws {500} When an error occurs while fetching chats from the repository.
    *
    * @example
-   * ```typescript
-   * // Route: GET /ai/chats/:userId
-   * // Example request: GET /ai/chats/01935e8a-7890-7123-b456-123456789abc
-   * // Example response:
+   * // Success — 200 OK
+   * // GET /ai/chats/01935e8a-7890-7123-b456-123456789abc
+   * // Response:
    * // {
    * //   "success": true,
    * //   "data": ["01935e8a-1234-7abc-b456-111111111111", "01935e8a-5678-7def-b456-222222222222"]
    * // }
-   * ```
    */
-
   async getAIChatsByUserId(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received getAIChatsByUserId request')
 
@@ -553,258 +556,41 @@ export class AIController {
   }
 
   /**
-   * Retrieves all available chat types with their details and SEO-friendly identifiers.
+   * Retrieves a specific chat with all its messages and parts by chat ID.
    *
-   * This endpoint fetches all chat type options from the database, ensuring each has
-   * complete SEO-friendly fields (slug and base64 ID). The chat types are returned
-   * in descending order by creation date. This endpoint requires authentication and
-   * admin or moderator role and is typically used to populate chat type selection interfaces.
+   * Fetches the complete chat history — all messages and their associated parts
+   * (text, tool calls, etc.) — in the UI message format expected by the frontend.
+   * Authorization is enforced by validating that the authenticated user owns the chat
+   * or holds the `admin` or `moderator` role. To avoid leaking information about chat
+   * existence, unauthorised access returns `404` rather than `403`.
    *
-   * The response includes:
-   * - Chat type ID (UUIDv7)
-   * - Name and description
-   * - SEO-friendly ID (URL-safe slug)
-   * - SEO-friendly base64 ID (22-character encoded UUID)
-   * - Creation and update timestamps
+   * **Route:** `GET /ai/fetchChat/:chatId`
+   * **Auth:** Requires a valid JWT. Users may only fetch their own chats unless elevated.
    *
-   * @param {FastifyRequest} request - The Fastify request object containing optional user information
-   * @param {FastifyReply} reply - The Fastify reply object for sending responses
-   *
-   * @returns {Promise<void>} A promise that resolves when the response is sent
-   *
-   * @example
-   * Response format:
-   * ```json
-   * {
-   *   "success": true,
-   *   "data": [
-   *     {
-   *       "id": "019bda39-6197-7557-9071-d7ed1c719138",
-   *       "name": "General Assistant",
-   *       "description": "A general purpose AI assistant",
-   *       "seoFriendlyId": "general-assistant",
-   *       "seoFriendlyBase64Id": "AbCdEfGhIjKlMnOpQrStUv",
-   *       "createdAt": "2024-01-01T00:00:00.000Z",
-   *       "updatedAt": "2024-01-01T00:00:00.000Z"
-   *     }
-   *   ]
-   * }
-   * ```
-   *
-   * @throws {BaseException} When a domain-specific error occurs (returns appropriate status code)
-   * @throws {Error} When an unexpected error occurs (returns 500 status code)
-   */
-  async getAIChatDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    this.logger.debug('Received getAIChatDetails request')
-    // Extract audit context from request
-    const auditContext = {
-      userId: request.user?.sub ?? null,
-      ipAddress: safelyMaskIp(request.ip),
-      userAgent: request.headers['user-agent'] ?? null,
-    }
-
-    try {
-      const result = await this.getChatDetailsUseCase.execute(auditContext)
-
-      this.logger.debug(JSON.stringify(result))
-
-      reply.code(200).send({
-        success: true,
-        data: result,
-      })
-    } catch (error) {
-      this.logger.error(
-        'Error in getAIChatDetails',
-        error instanceof Error ? error : new Error(String(error))
-      )
-      const err = error as Error
-      const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage =
-        error instanceof BaseException
-          ? error.message // These are intentionally user-facing
-          : 'An unexpected error occurred' // Everything else: hide internals
-      reply.code(statusCode).send({
-        success: false,
-        error: errorMessage,
-      })
-    }
-  }
-
-  /**
-   * Updates AI chat details (such as configuration or type) for the current tenant.
-   *
-   * Flow:
-   * - Logs the incoming request and builds an audit context from the authenticated user,
-   *   IP address, and User-Agent header.
-   * - Performs an authorization check to ensure the caller is authenticated and has
-   *   either the `admin` or `moderator` role.
-   * - Validates the request body using {@link PutChatTypeDto.validate}, mapping it to a
-   *   DTO that is passed to {@link PutChatDetailsUseCase}.
-   * - Executes the {@link PutChatDetailsUseCase} with the audit context and DTO to
-   *   persist the requested changes.
-   * - Returns:
-   *   - `401 Unauthorized` if the user is not authenticated.
-   *   - `403 Forbidden` if the user lacks the required role.
-   *   - `404 Not Found` if the AI chat type cannot be found or the update fails.
-   *   - `204 No Content` on successful update.
-   *   - `5xx` error codes with a JSON error payload on unexpected failures.
-   *
-   * The response body follows the convention used by other controller methods:
-   * `{ success: boolean, error?: string }`.
-   *
-   * @param request - Fastify request containing the authenticated user, headers,
-   *   and JSON body with the chat details to update.
-   * @param reply - Fastify reply used to send the HTTP status code and response payload.
-   * @returns A promise that resolves when the response has been sent.
-   */
-  async updateAIChatDetails(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    this.logger.debug('Received updateAIChatDetails request')
-    // Extract audit context from request
-    const auditContext = {
-      userId: request.user?.sub ?? null,
-      ipAddress: safelyMaskIp(request.ip),
-      userAgent: request.headers['user-agent'] ?? null,
-    }
-
-    try {
-      const body = request.body as components['schemas']['UpdateAIChatTypeRequest']
-      const dto = PutChatTypeDto.validate(body)
-      const result = await this.putChatDetailsUseCase.execute(auditContext, dto)
-      if (!result) {
-        reply.code(404).send({
-          success: false,
-          error: 'AI chat type not found or update failed',
-        })
-        return
-      }
-      reply.status(204).send()
-    } catch (error) {
-      this.logger.error(
-        'Error in updateAIChatDetails',
-        error instanceof Error ? error : new Error(String(error))
-      )
-      const err = error as Error
-      const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage =
-        error instanceof BaseException
-          ? error.message // These are intentionally user-facing
-          : 'An unexpected error occurred' // Everything else: hide internals
-      reply.code(statusCode).send({
-        success: false,
-        error: errorMessage,
-      })
-    }
-  }
-
-  /**
-   * Creates a new chat type.
-   *
-   * Validates the request body using {@link PostChatType.validate}, then delegates
-   * to {@link PostChatTypesUseCase} to persist the record and write an audit log entry.
-   *
-   * **Route:** `POST /ai/chats/config`
-   * **Auth:** Requires a valid JWT and one of the roles: `admin`, `moderator`.
-   *
-   * @param request - The Fastify request object. Expected body shape:
-   *   ```json
-   *   { "name": "General Assistant", "description": "A general-purpose AI assistant" }
-   *   ```
-   * @param reply - The Fastify reply object used to send the HTTP response.
+   * @param request - The Fastify request object containing the `:chatId` path parameter
+   *   and the authenticated user information.
+   * @param reply - The Fastify reply object for sending responses.
    * @returns A promise that resolves once the response has been sent.
    *
-   * @throws {400} When `name` or `description` fail DTO validation
-   *   (missing, empty, whitespace-only, or exceeds length limits).
-   * @throws {409} When a chat type with the same name or SEO identifier already exists.
-   * @throws {500} When the request body is not a plain object, or an unexpected
-   *   error occurs during persistence.
+   * @throws {400} When the `chatId` parameter is missing or not a valid UUID v7.
+   * @throws {404} When no chat is found with the given ID, or when the chat belongs to
+   *   a different user and the authenticated user lacks the `admin` or `moderator` role.
+   * @throws {500} When an error occurs while fetching the chat from the repository.
    *
    * @example
-   * // Success — 201 Created
-   * // POST /ai/chats/config
-   * // Body: { "name": "Creative Writing", "description": "Helps with creative tasks" }
-   * // Response: {
+   * // Success — 200 OK
+   * // GET /ai/fetchChat/01935e8a-7890-7123-b456-123456789abc
+   * // Response:
+   * // {
    * //   "success": true,
    * //   "data": {
-   * //     "id": "01234567-89ab-cdef-0123-456789abcdef",
-   * //     "name": "Creative Writing",
-   * //     "description": "Helps with creative tasks",
-   * //     "seoFriendlyId": "creative-writing",
-   * //     "seoFriendlyBase64Id": "AbCdEfGhIjKlMnOpQrStUv",
-   * //     "createdAt": "2024-01-01T00:00:00.000Z",
-   * //     "updatedAt": "2024-01-01T00:00:00.000Z"
+   * //     "id": "01935e8a-7890-7123-b456-123456789abc",
+   * //     "messages": [
+   * //       { "id": "msg-1", "role": "user",      "parts": [{ "type": "text", "text": "Hello" }] },
+   * //       { "id": "msg-2", "role": "assistant", "parts": [{ "type": "text", "text": "Hi there!" }] }
+   * //     ]
    * //   }
    * // }
-   *
-   * @example
-   * // Validation failure — 400 Bad Request
-   * // Body: { "name": "" }
-   * // Response: { "success": false, "error": "Invalid name: must be a non-empty string" }
-   *
-   * @example
-   * // Conflict — 409 Conflict
-   * // Body: { "name": "Creative Writing", "description": "Duplicate" }
-   * // Response: { "success": false, "error": "A chat type with this name or identifier already exists" }
-   */
-  async createAIChatType(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    this.logger.debug('Received createAIChatType request')
-    // Extract audit context from request
-    const auditContext = {
-      userId: request.user?.sub ?? null,
-      ipAddress: safelyMaskIp(request.ip),
-      userAgent: request.headers['user-agent'] ?? null,
-    }
-
-    try {
-      const body = request.body as components['schemas']['CreateAIChatTypeRequest']
-      const dto = PostChatType.validate(body)
-      const createdChatType = await this.postChatTypesUseCase.execute(auditContext, dto)
-      reply.code(201).send({
-        success: true,
-        data: {
-          id: createdChatType.id,
-          name: createdChatType.name,
-          description: createdChatType.description,
-          rag: createdChatType.rag,
-          seoFriendlyId: createdChatType.seoFriendlyId,
-          seoFriendlyBase64Id: createdChatType.seoFriendlyBase64Id,
-          createdAt: createdChatType.createdAt,
-          updatedAt: createdChatType.updatedAt,
-        },
-      })
-    } catch (error) {
-      this.logger.error(
-        'Error in createAIChatType',
-        error instanceof Error ? error : new Error(String(error))
-      )
-      const err = error as Error
-      const statusCode = err instanceof BaseException ? err.statusCode : 500
-      const errorMessage =
-        error instanceof BaseException
-          ? error.message // These are intentionally user-facing
-          : 'An unexpected error occurred' // Everything else: hide internals
-      reply.code(statusCode).send({
-        success: false,
-        error: errorMessage,
-      })
-    }
-  }
-
-  /**
-   * Retrieves a specific chat with all its messages and parts by chatId.
-   *
-   * This endpoint fetches the complete chat history including all messages and their
-   * associated parts (text, tool calls, etc.) in the UI format expected by the frontend.
-   * Authorization is performed by fetching the chat and validating that the authenticated
-   * user owns the chat or has admin/moderator privileges.
-   *
-   * @param request - The Fastify request object containing the chatId parameter
-   * @param reply - The Fastify reply object for sending responses
-   * @returns A promise that resolves to the chat data with messages and parts
-   *
-   * @throws {400} When chatId parameter is missing or has invalid format (not a valid UUID v7)
-   * @throws {404} When no chat is found with the given chatId, or when the chat belongs to
-   *               a different user and the authenticated user doesn't have admin/moderator role
-   * @throws {500} When an error occurs while fetching the chat from the repository
    */
   async getAIChatByChatId(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received getAIChatByChatId request')

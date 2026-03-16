@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 
 // Primary Controllers
+import { AIConfigController } from '../../adapters/primary/http/ai.config.controller.js'
 import { AIController } from '../../adapters/primary/http/ai.controller.js'
 import { AIExtractDataController } from '../../adapters/primary/http/ai.extract-data.js'
 import { AiRagController } from '../../adapters/primary/http/ai.rag.controller.js'
@@ -143,6 +144,7 @@ export class Container {
   public readonly userController: UserController
   public readonly authController: AuthController
   public readonly aiController: AIController
+  public readonly aiConfigController: AIConfigController
   public readonly aiExtractDataController: AIExtractDataController
   public readonly aiAdminController: AIAdminController
   public readonly companyController: CompanyController
@@ -374,12 +376,15 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.saveChatUseCase,
       this.getChatsByUserIdUseCase,
       this.getChatContentByChatIdUseCase,
-      this.getChatDetailsUseCase,
       this.getChatAiOptionsUseCase,
       this.resolveChatTypeUseCase,
-      this.putChatDetailsUseCase,
-      this.postChatTypesUseCase,
       this.auditLog
+    )
+    this.aiConfigController = new AIConfigController(
+      this.logger,
+      this.getChatDetailsUseCase,
+      this.putChatDetailsUseCase,
+      this.postChatTypesUseCase
     )
     this.aiExtractDataController = new AIExtractDataController(
       this.logger,
@@ -423,6 +428,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
         this.userController.registerRoutes(instance)
         this.authController.registerRoutes(instance)
         this.aiController.registerRoutes(instance)
+        this.aiConfigController.registerRoutes(instance)
         this.aiExtractDataController.registerRoutes(instance)
         this.aiAdminController.registerRoutes(instance)
         this.companyController.registerRoutes(instance)
