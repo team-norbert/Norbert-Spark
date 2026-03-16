@@ -169,6 +169,12 @@ describe('AuthController', () => {
       expect(oauthSyncOptions).toEqual(
         expect.objectContaining({
           preHandler: expect.any(Function),
+          config: expect.objectContaining({
+            rateLimit: expect.objectContaining({
+              max: ENVRate,
+              timeWindow: '1 minute',
+            }),
+          }),
         })
       )
       expect(oauthSyncCall?.[2]).toEqual(expect.any(Function))
@@ -1762,7 +1768,7 @@ describe('AuthController', () => {
     })
 
     describe('route registration', () => {
-      it('should register POST /auth/oauth-sync route with preHandler', () => {
+      it('should register POST /auth/oauth-sync route with preHandler and rate limit', () => {
         const mockApp = {
           post: vi.fn(),
         } as unknown as FastifyInstance
@@ -1771,8 +1777,33 @@ describe('AuthController', () => {
 
         expect(mockApp.post).toHaveBeenCalledWith(
           '/auth/oauth-sync',
-          expect.objectContaining({ preHandler: expect.any(Function) }),
+          expect.objectContaining({
+            preHandler: expect.any(Function),
+            config: expect.objectContaining({
+              rateLimit: expect.objectContaining({
+                max: ENVRate,
+                timeWindow: '1 minute',
+              }),
+            }),
+          }),
           expect.any(Function)
+        )
+      })
+
+      it('should apply the same rate limit to /auth/oauth-sync as /auth/login', () => {
+        const mockApp = {
+          post: vi.fn(),
+        } as unknown as FastifyInstance
+
+        controller.registerRoutes(mockApp)
+
+        const calls = vi.mocked(mockApp.post).mock.calls
+        const loginOptions = calls.find((c) => c[0] === '/auth/login')?.[1] as any
+        const oauthSyncOptions = calls.find((c) => c[0] === '/auth/oauth-sync')?.[1] as any
+
+        expect(loginOptions?.config?.rateLimit?.max).toBe(oauthSyncOptions?.config?.rateLimit?.max)
+        expect(loginOptions?.config?.rateLimit?.timeWindow).toBe(
+          oauthSyncOptions?.config?.rateLimit?.timeWindow
         )
       })
 

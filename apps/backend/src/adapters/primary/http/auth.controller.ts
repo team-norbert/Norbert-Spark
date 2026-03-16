@@ -114,7 +114,14 @@ export class AuthController {
       { config: { rateLimit: { max: this.rateLimit, timeWindow: '1 minute' } } },
       this.login.bind(this)
     )
-    app.post('/auth/oauth-sync', { preHandler: oauthSyncAuthMiddleware }, this.oauthSync.bind(this))
+    app.post(
+      '/auth/oauth-sync',
+      {
+        preHandler: oauthSyncAuthMiddleware,
+        config: { rateLimit: { max: this.rateLimit, timeWindow: '1 minute' } },
+      },
+      this.oauthSync.bind(this)
+    )
     app.post(
       '/auth/refresh',
       { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } },
