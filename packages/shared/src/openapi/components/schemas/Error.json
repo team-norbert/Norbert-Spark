@@ -9,7 +9,7 @@
     },
     "error": {
       "type": "string",
-      "example": "Invalid request data"
+      "example": "An unexpected error occurred"
     }
   }
 }

@@ -75,6 +75,16 @@
           }
         }
       },
+      "429": {
+        "description": "Too many requests - Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../components/schemas/RateLimitError.json"
+            }
+          }
+        }
+      },
       "500": {
         "description": "Server error",
         "content": {
