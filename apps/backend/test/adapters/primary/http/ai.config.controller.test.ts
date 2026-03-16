@@ -4,7 +4,6 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIConfigController } from '../../../../src/adapters/primary/http/ai.config.controller.js'
-import type { AuditLogPort } from '../../../../src/application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import type { GetChatDetailsUseCase } from '../../../../src/application/use-cases/get-chat-details.use-case.js'
 import type { PostChatTypesUseCase } from '../../../../src/application/use-cases/post-chat-types.use-case.js'
@@ -20,7 +19,6 @@ describe('AIConfigController', () => {
   let mockGetChatDetailsUseCase: GetChatDetailsUseCase
   let mockPutChatDetailsUseCase: PutChatDetailsUseCase
   let mockPostChatTypesUseCase: PostChatTypesUseCase
-  let mockAuditLogPort: AuditLogPort
   let mockLogger: LoggerPort
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
@@ -41,13 +39,6 @@ describe('AIConfigController', () => {
     } as any
 
     mockLogger = createMockLogger()
-
-    mockAuditLogPort = {
-      log: vi.fn().mockResolvedValue(undefined),
-      getByEntity: vi.fn().mockResolvedValue([]),
-      getByUser: vi.fn().mockResolvedValue([]),
-      getByAction: vi.fn().mockResolvedValue([]),
-    } as any
 
     controller = new AIConfigController(
       mockLogger,
