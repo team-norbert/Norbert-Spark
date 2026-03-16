@@ -37,7 +37,7 @@ const PACT_BROKER_URL = process.env.PACT_BROKER_URL ?? 'http://localhost:9293'
 describe('Provider Verification: BackendAPI', () => {
   let serverUrl: string
   let stopContainer: () => Promise<void>
-   
+
   let diContainer: any
 
   beforeAll(async () => {
