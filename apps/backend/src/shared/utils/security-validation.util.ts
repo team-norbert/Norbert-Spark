@@ -1,5 +1,7 @@
 import * as path from 'node:path'
 
+import { fileTypeFromFile } from 'file-type'
+
 import { ValidationException } from '../exceptions/validation.exception.js'
 
 /**
@@ -270,4 +272,36 @@ export function validateFileSize(sizeBytes: number, maxSizeBytes: number): boole
   }
 
   return true
+}
+
+/**
+ * Validates that a file is a genuine PDF by inspecting its magic bytes.
+ *
+ * Uses `file-type` to read the actual file content rather than relying on
+ * the filename extension or a caller-supplied MIME type, both of which can
+ * be spoofed.
+ *
+ * @param file - Absolute or relative path to the file to inspect.
+ * @returns A promise that resolves to `true` when the file is a valid PDF.
+ * @throws {ValidationException} When the detected file type is not `pdf`.
+ *
+ * @example
+ * ```typescript
+ * await validatePDF('/uploads/document.pdf') // resolves true
+ * await validatePDF('/uploads/malicious.exe') // throws ValidationException
+ * ```
+ */
+export async function validatePDF(file: string): Promise<boolean> {
+  const fileType = await fileTypeFromFile(file)
+  if (fileType && fileType.ext !== 'pdf') {
+    throw new ValidationException(`Invalid file type: ${fileType.ext}. Only PDF files are allowed.`)
+  }
+  return true
+}
+
+export function hasZIPSignature(buf: Uint8Array): boolean {
+  if (buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04) {
+    return true
+  }
+  throw new ValidationException(`Invalid file type: ZIP file signature not found.`)
 }

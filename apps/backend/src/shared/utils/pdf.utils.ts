@@ -1,7 +1,9 @@
 import path from 'path'
+import { getHeader } from 'pdf-parse/node'
 import unzipper from 'unzipper'
 
 import type { LoggerPort } from '../../application/ports/logger.port.js'
+import { ValidationException } from '../exceptions/validation.exception.js'
 
 /**
  * Security limits for ZIP extraction to prevent zip bomb and DoS attacks
@@ -139,6 +141,18 @@ export class PDFUtils {
     }
 
     return null
+  }
+
+  async validatePDF(file: string): Promise<boolean> {
+    try {
+      const result = await getHeader(file, true)
+      if (result.ok) {
+        return true
+      }
+      throw new ValidationException('Invalid PDF')
+    } catch (_error) {
+      throw new ValidationException('Invalid PDF')
+    }
   }
 
   /**
