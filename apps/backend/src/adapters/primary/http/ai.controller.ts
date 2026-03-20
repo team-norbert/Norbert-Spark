@@ -365,13 +365,14 @@ export class AIController {
       })
     }
 
-    const wrappedModel = wrapLanguageModel({
-      model: google(EnvConfig.MODEL_NAME),
-      middleware: cacheMiddleware,
-    })
-
     const result = streamText({
-      model: EnvConfig.NODE_ENV === 'production' ? wrappedModel : google(EnvConfig.MODEL_NAME),
+      model:
+        EnvConfig.NODE_ENV === 'production'
+          ? wrapLanguageModel({
+              model: google(EnvConfig.MODEL_NAME),
+              middleware: cacheMiddleware,
+            })
+          : google(EnvConfig.MODEL_NAME),
       messages: await convertToModelMessages(messages as UIMessage[]),
       system: systemPrompt.prompt,
       experimental_telemetry: {
