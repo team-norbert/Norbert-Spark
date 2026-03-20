@@ -108,14 +108,15 @@ export class RegisterUserUseCase {
     const password = dto.password ? await Password.create(dto.password) : undefined
 
     // Create user entity without ID - PostgreSQL will generate UUIDv7 via uuidv7() function
+    const now = UtcDate.now().toDate()
     const user = new User(
       undefined,
       email,
       dto.name,
       role,
       password,
-      UtcDate.now().toDate(),
-      UtcDate.now().toDate(),
+      now,
+      now,
       dto.provider
     )
 

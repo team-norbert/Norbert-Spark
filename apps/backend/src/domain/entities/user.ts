@@ -139,8 +139,8 @@ export class User {
    *   'John Smith',
    *   role,
    *   password,
-   *   UtcDate.now('2024-01-15').toDate(),
-   *   UtcDate.now('2024-01-15').toDate()
+   *   UtcDate.fromIsoString('2024-01-15T00:00:00Z').toDate(),
+   *   UtcDate.fromIsoString('2024-01-15T00:00:00Z').toDate()
    * )
    *
    * // OAuth user without password
@@ -179,7 +179,7 @@ export class User {
     private role: RoleType,
     private password?: PasswordType,
     private createdAt: Date = UtcDate.now().toDate(),
-    private updatedAt: Date = UtcDate.now().toDate(),
+    private updatedAt: Date = new Date(createdAt.getTime()),
     private provider?: string,
     private providerId?: string,
     private twoFactorEnabled: boolean = false,
