@@ -1,5 +1,6 @@
 'use client'
 import { Box, Chip, Container, Divider, Link, Paper, Typography } from '@mui/material'
+import { UtcDate } from '@norberts-spark/shared'
 
 import type {
   CompanyDetails as CompanyDetailsType,
@@ -7,6 +8,15 @@ import type {
 } from '@/infrastructure/serverActions/getCompanyDetails.server.js'
 
 import { PageHeader } from './PageHeader.js'
+
+function formatUtcDate(value: string | null | undefined): string {
+  if (!value) return ''
+  try {
+    return UtcDate.create(value).toDate().toLocaleString()
+  } catch {
+    return ''
+  }
+}
 
 interface CompanyDetailsProps {
   company: CompanyDetailsType | null
@@ -207,7 +217,7 @@ export function CompanyDetails({
                   Created At
                 </Typography>
                 <Typography variant="body1" data-testid="company-created-at">
-                  {new Date(company.createdAt).toLocaleString()}
+                  {formatUtcDate(company.createdAt)}
                 </Typography>
               </Box>
               <Box>
@@ -215,7 +225,7 @@ export function CompanyDetails({
                   Last Updated
                 </Typography>
                 <Typography variant="body1" data-testid="company-updated-at">
-                  {new Date(company.updatedAt).toLocaleString()}
+                  {formatUtcDate(company.updatedAt)}
                 </Typography>
               </Box>
             </Box>
@@ -296,17 +306,13 @@ export function CompanyDetails({
                 <Typography variant="caption" color="text.secondary" fontWeight="medium">
                   Created At
                 </Typography>
-                <Typography variant="body1">
-                  {new Date(keyPerson.createdAt).toLocaleString()}
-                </Typography>
+                <Typography variant="body1">{formatUtcDate(keyPerson.createdAt)}</Typography>
               </Box>
               <Box>
                 <Typography variant="caption" color="text.secondary" fontWeight="medium">
                   Last Updated
                 </Typography>
-                <Typography variant="body1">
-                  {new Date(keyPerson.updatedAt).toLocaleString()}
-                </Typography>
+                <Typography variant="body1">{formatUtcDate(keyPerson.updatedAt)}</Typography>
               </Box>
             </Box>
           </Box>

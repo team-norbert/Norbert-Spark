@@ -2,6 +2,7 @@
 
 import { Alert, Box, Button, Container, TextField, Typography } from '@mui/material'
 import { DataGrid, type GridColDef, type GridPaginationModel } from '@mui/x-data-grid'
+import { UtcDate } from '@norberts-spark/shared'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
 
@@ -72,8 +73,12 @@ export function AIAdminPage({
       width: 180,
       valueFormatter: (value) => {
         if (!value) return ''
-        const date = new Date(value)
-        return isNaN(date.getTime()) ? '' : date.toLocaleDateString()
+        try {
+          const date = UtcDate.create(value).toDate()
+          return isNaN(date.getTime()) ? '' : date.toLocaleDateString()
+        } catch {
+          return ''
+        }
       },
     },
     {
@@ -82,8 +87,12 @@ export function AIAdminPage({
       width: 180,
       valueFormatter: (value) => {
         if (!value) return ''
-        const date = new Date(value)
-        return isNaN(date.getTime()) ? '' : date.toLocaleDateString()
+        try {
+          const date = UtcDate.create(value).toDate()
+          return isNaN(date.getTime()) ? '' : date.toLocaleDateString()
+        } catch {
+          return ''
+        }
       },
     },
     {

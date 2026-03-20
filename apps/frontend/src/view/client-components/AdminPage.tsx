@@ -18,6 +18,7 @@ import {
   type GridPaginationModel,
   type GridRowSelectionModel,
 } from '@mui/x-data-grid'
+import { UtcDate } from '@norberts-spark/shared'
 
 import type { User } from '@/domain/user/user.js'
 
@@ -83,7 +84,14 @@ export function AdminPage({
       field: 'createdAt',
       headerName: 'Created At',
       width: 200,
-      valueFormatter: (value) => new Date(value).toLocaleDateString(),
+      valueFormatter: (value) => {
+        if (!value) return ''
+        try {
+          return UtcDate.create(value).toDate().toLocaleDateString()
+        } catch {
+          return ''
+        }
+      },
     },
   ]
 
