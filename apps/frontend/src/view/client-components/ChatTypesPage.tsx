@@ -24,7 +24,7 @@ import {
   type GridRenderEditCellParams,
   type GridRowModel,
 } from '@mui/x-data-grid'
-import { UtcDate,validateKebabCase } from '@norberts-spark/shared'
+import { UtcDate, validateKebabCase } from '@norberts-spark/shared'
 import { useEffect, useState } from 'react'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
