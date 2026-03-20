@@ -38,6 +38,7 @@ vi.mock('ai', () => ({
     }
     return messages
   }),
+  wrapLanguageModel: vi.fn(({ model }) => model),
 }))
 
 vi.mock('@ai-sdk/google', () => ({
