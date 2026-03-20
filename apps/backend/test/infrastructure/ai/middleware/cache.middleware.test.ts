@@ -64,9 +64,9 @@ vi.mock('obscured', () => {
 })
 
 // Mock logger
-const _mockLogger = createMockLogger()
+const mockLogger = createMockLogger()
 
-describe('cacheMiddleware', () => {
+describe('createCacheMiddleware', () => {
   beforeEach(() => {
     // Reset mock values
     mockRedisUrl = undefined
@@ -85,8 +85,10 @@ describe('cacheMiddleware', () => {
       mockRedisUrl = 'https://test-redis.upstash.io'
       mockRedisToken = 'test-token-12345'
 
-      const { cacheMiddleware } =
+      const { createCacheMiddleware: createMiddleware } =
         await import('../../../../src/infrastructure/ai/middleware/cache.middleware.js')
+
+      const cacheMiddleware = createMiddleware(mockLogger)
 
       expect(cacheMiddleware).toBeDefined()
       expect(cacheMiddleware.specificationVersion).toBe('v3')
@@ -101,8 +103,10 @@ describe('cacheMiddleware', () => {
       // Clear module cache to test fresh import
       vi.resetModules()
 
-      const { cacheMiddleware } =
+      const { createCacheMiddleware: createMiddleware } =
         await import('../../../../src/infrastructure/ai/middleware/cache.middleware.js')
+
+      const cacheMiddleware = createMiddleware(mockLogger)
 
       expect(cacheMiddleware).toBeDefined()
       // Redis client should not be instantiated when credentials are missing
@@ -116,8 +120,10 @@ describe('cacheMiddleware', () => {
       // Clear module cache to test fresh import
       vi.resetModules()
 
-      const { cacheMiddleware } =
+      const { createCacheMiddleware: createMiddleware } =
         await import('../../../../src/infrastructure/ai/middleware/cache.middleware.js')
+
+      const cacheMiddleware = createMiddleware(mockLogger)
 
       expect(cacheMiddleware).toBeDefined()
       // Redis client should not be instantiated when credentials are obscured
