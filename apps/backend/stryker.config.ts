@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./test/setup.ts'],
-    exclude: ['node_modules/**', 'dist/**', 'pact/**', '.stryker-tmp/**'],
+    exclude: ['node_modules/**', 'dist/**', 'pact/**'],
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: ['node_modules/', 'dist/', '**/*.test.ts', '**/*.spec.ts'],
