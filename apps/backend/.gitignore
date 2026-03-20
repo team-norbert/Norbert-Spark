@@ -19,3 +19,5 @@ data/file-system-db.local/
 src/shared/data/embedding_models.json
 
 !.env.schema
+# stryker temp files
+.stryker-tmp

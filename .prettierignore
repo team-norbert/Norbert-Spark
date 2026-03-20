@@ -1,1 +1,2 @@
 apps/frontend/next-env.d.ts
+apps/backend/.stryker-tmp/*

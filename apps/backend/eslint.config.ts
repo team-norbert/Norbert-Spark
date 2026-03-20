@@ -6,6 +6,9 @@ import rootConfig from '../../eslint.config.js'
 const config: Linter.Config[] = [
   ...rootConfig,
   {
+    ignores: ['.stryker-tmp/**'],
+  },
+  {
     plugins: {
       vitest: vitestPlugin,
     },
