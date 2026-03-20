@@ -306,17 +306,13 @@ export function CompanyDetails({
                 <Typography variant="caption" color="text.secondary" fontWeight="medium">
                   Created At
                 </Typography>
-                <Typography variant="body1">
-                  {formatUtcDate(keyPerson.createdAt)}
-                </Typography>
+                <Typography variant="body1">{formatUtcDate(keyPerson.createdAt)}</Typography>
               </Box>
               <Box>
                 <Typography variant="caption" color="text.secondary" fontWeight="medium">
                   Last Updated
                 </Typography>
-                <Typography variant="body1">
-                  {formatUtcDate(keyPerson.updatedAt)}
-                </Typography>
+                <Typography variant="body1">{formatUtcDate(keyPerson.updatedAt)}</Typography>
               </Box>
             </Box>
           </Box>
