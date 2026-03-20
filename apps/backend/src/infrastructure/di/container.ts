@@ -61,7 +61,6 @@ import { PDFUtils } from '../../shared/utils/pdf.utils.js'
 import { EnvConfig } from '../config/env.config.js'
 import { pool } from '../database/index.js'
 import { createFastifyApp } from '../http/fastify.config.js'
-import { connectRedis } from '../redis/index.js'
 
 /**
  * Dependency Injection Container implementing the Singleton pattern
