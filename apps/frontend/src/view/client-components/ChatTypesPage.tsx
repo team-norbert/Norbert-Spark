@@ -462,8 +462,13 @@ export function ChatTypesPage({
       width: 180,
       renderCell: (params) => {
         if (!params.value) return ''
-        const date = UtcDate.create(params.value).toDate()
-        const formattedDate = isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-US')
+        let formattedDate = ''
+        try {
+          const date = UtcDate.create(params.value).toDate()
+          formattedDate = isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-US')
+        } catch {
+          // formattedDate stays ''
+        }
         return (
           <Tooltip
             title={formattedDate}
@@ -498,8 +503,13 @@ export function ChatTypesPage({
       width: 180,
       renderCell: (params) => {
         if (!params.value) return ''
-        const date = UtcDate.create(params.value).toDate()
-        const formattedDate = isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-US')
+        let formattedDate = ''
+        try {
+          const date = UtcDate.create(params.value).toDate()
+          formattedDate = isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-US')
+        } catch {
+          // formattedDate stays ''
+        }
         return (
           <Tooltip
             title={formattedDate}

@@ -73,8 +73,12 @@ export function AIAdminPage({
       width: 180,
       valueFormatter: (value) => {
         if (!value) return ''
-        const date = UtcDate.create(value).toDate()
-        return isNaN(date.getTime()) ? '' : date.toLocaleDateString()
+        try {
+          const date = UtcDate.create(value).toDate()
+          return isNaN(date.getTime()) ? '' : date.toLocaleDateString()
+        } catch {
+          return ''
+        }
       },
     },
     {
@@ -83,8 +87,12 @@ export function AIAdminPage({
       width: 180,
       valueFormatter: (value) => {
         if (!value) return ''
-        const date = UtcDate.create(value).toDate()
-        return isNaN(date.getTime()) ? '' : date.toLocaleDateString()
+        try {
+          const date = UtcDate.create(value).toDate()
+          return isNaN(date.getTime()) ? '' : date.toLocaleDateString()
+        } catch {
+          return ''
+        }
       },
     },
     {
