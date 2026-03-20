@@ -48,9 +48,14 @@ services:
     volumes:
       - ./infrastructure/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf:ro
       - redis_data:/data
-    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    environment:
+      # Default password is for local development only — set REDIS_PASSWORD to a strong value in production
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
+      # REDISCLI_AUTH lets redis-cli pick up the password without exposing it on the command line
+      REDISCLI_AUTH: ${REDIS_PASSWORD:-changeme}
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf", "--requirepass", "${REDIS_PASSWORD:-changeme}" ]
     healthcheck:
-      test: [ "CMD", "redis-cli", "PING" ]
+      test: [ "CMD-SHELL", "redis-cli --no-auth-warning PING" ]
       interval: 10s
       timeout: 5s
       retries: 5
