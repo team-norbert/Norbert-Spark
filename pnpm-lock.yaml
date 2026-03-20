@@ -246,7 +246,7 @@ importers:
         version: 1.22.0
       '@testcontainers/postgresql':
         specifier: ^11.12.0
-        version: 11.12.0
+        version: 11.13.0
       '@total-typescript/ts-reset':
         specifier: ^0.6.1
         version: 0.6.1
