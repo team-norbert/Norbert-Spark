@@ -1,3 +1,4 @@
+import { UtcDate } from '@norberts-spark/shared'
 import { eq } from 'drizzle-orm'
 
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
@@ -219,7 +220,7 @@ export class RefreshTokenRepository implements RefreshTokenRepositoryPort {
     try {
       const result = await db
         .update(refreshTokens)
-        .set({ revokedAt: new Date() })
+        .set({ revokedAt: UtcDate.now().toDate() })
         .where(eq(refreshTokens.tokenHash, tokenHash))
 
       this.logger.debug('Revoked refresh token by hash', {
@@ -280,7 +281,7 @@ export class RefreshTokenRepository implements RefreshTokenRepositoryPort {
     try {
       const result = await db
         .update(refreshTokens)
-        .set({ revokedAt: new Date() })
+        .set({ revokedAt: UtcDate.now().toDate() })
         .where(eq(refreshTokens.tokenFamily, tokenFamily))
 
       this.logger.info('Revoked all tokens in family', {
@@ -335,7 +336,7 @@ export class RefreshTokenRepository implements RefreshTokenRepositoryPort {
     try {
       const result = await db
         .update(refreshTokens)
-        .set({ revokedAt: new Date() })
+        .set({ revokedAt: UtcDate.now().toDate() })
         .where(eq(refreshTokens.userId, userId))
 
       this.logger.info('Revoked all refresh tokens for user', {

@@ -1,3 +1,5 @@
+import { UtcDate } from '@norberts-spark/shared'
+
 import type { UserIdType } from '../value-objects/userID.js'
 import type { UUIDType } from '../value-objects/uuid.js'
 
@@ -28,8 +30,8 @@ import type { UUIDType } from '../value-objects/uuid.js'
  *   tokenFamily,
  *   new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // expires in 7 days
  *   null,
- *   new Date(),
- *   new Date()
+ *   UtcDate.now().toDate(),
+ *   UtcDate.now().toDate()
  * )
  *
  * // Check validity
@@ -72,7 +74,7 @@ export class RefreshTokenRecord {
     private readonly tokenFamily: UUIDType,
     private readonly expiresAt: Date,
     private revokedAt: Date | null = null,
-    private readonly createdAt: Date = new Date(),
+    private readonly createdAt: Date = UtcDate.now().toDate(),
     private readonly lastUsedAt: Date | null = null
   ) {}
 
@@ -90,7 +92,7 @@ export class RefreshTokenRecord {
    * }
    */
   public isExpired(): boolean {
-    return new Date() > this.expiresAt
+    return UtcDate.now().toDate() > this.expiresAt
   }
 
   /**
@@ -162,7 +164,7 @@ export class RefreshTokenRecord {
    */
   public revoke(): void {
     if (this.revokedAt === null) {
-      this.revokedAt = new Date()
+      this.revokedAt = UtcDate.now().toDate()
     }
   }
 

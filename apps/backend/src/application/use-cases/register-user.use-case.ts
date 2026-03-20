@@ -1,3 +1,5 @@
+import { UtcDate } from '@norberts-spark/shared'
+
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { User } from '../../domain/entities/user.js'
@@ -112,8 +114,8 @@ export class RegisterUserUseCase {
       dto.name,
       role,
       password,
-      new Date(),
-      new Date(),
+      UtcDate.now().toDate(),
+      UtcDate.now().toDate(),
       dto.provider
     )
 

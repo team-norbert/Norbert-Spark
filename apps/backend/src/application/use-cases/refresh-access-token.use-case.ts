@@ -1,3 +1,5 @@
+import { UtcDate } from '@norberts-spark/shared'
+
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { User } from '../../domain/entities/user.js'
@@ -222,7 +224,7 @@ export class RefreshAccessTokenUseCase {
         Number.isFinite(configuredExpiration) && configuredExpiration > 0
           ? configuredExpiration
           : 7 * 24 * 60 * 60
-      const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
+      const expiresAt = UtcDate.create(Date.now() + expiresInSeconds * 1000).toDate()
 
       try {
         // Store the refresh token in the database

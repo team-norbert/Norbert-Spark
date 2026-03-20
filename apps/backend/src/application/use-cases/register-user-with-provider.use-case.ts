@@ -1,3 +1,4 @@
+import { UtcDate } from '@norberts-spark/shared'
 import { uuidv7 } from 'uuidv7'
 
 import type { AuditContext } from '../../domain/audit/audit-context.js'
@@ -130,8 +131,8 @@ export class RegisterUserWithProviderUseCase {
       dto.name,
       role,
       undefined,
-      new Date(),
-      new Date(),
+      UtcDate.now().toDate(),
+      UtcDate.now().toDate(),
       dto.provider,
       dto.providerId
     )
@@ -219,7 +220,7 @@ export class RegisterUserWithProviderUseCase {
       Number.isFinite(parsedExpiration) && parsedExpiration > 0
         ? parsedExpiration
         : 7 * 24 * 60 * 60
-    const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
+    const expiresAt = UtcDate.create(Date.now() + expiresInSeconds * 1000).toDate()
 
     try {
       // Store the refresh token in the database
