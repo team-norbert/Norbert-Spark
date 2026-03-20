@@ -8,9 +8,7 @@
   "coverageAnalysis": "perTest",
   "plugins": ["@stryker-mutator/vitest-runner", "@stryker-mutator/typescript-checker"],
   "checkers": ["typescript"],
-  "typescriptChecker": {
-    "tsconfigFile": "./tsconfig.json"
-  },
+  "tsconfigFile": "./stryker.tsconfig.json",
   "vitest": {
     "configFile": "./stryker.config.ts",
     "related": true

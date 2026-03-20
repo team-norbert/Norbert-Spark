@@ -6,7 +6,10 @@
     "paths": {
       "@norberts-spark/shared": ["../../packages/shared/dist/index.js"],
       "@norberts-spark/shared/*": ["../../packages/shared/dist/*"]
-    }
+    },
+    "allowUnreachableCode": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "include": ["src/**/*", "env.d.ts"],
   "exclude": ["node_modules", "dist", "../../.history", "eslint.config.ts"]
