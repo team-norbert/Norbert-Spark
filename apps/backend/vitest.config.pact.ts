@@ -6,5 +6,8 @@ export default defineConfig({
     environment: 'node',
     include: ['pact/**/*.spec.ts'],
     exclude: ['**/node_modules/**', '**/dist/**'],
+    setupFiles: ['./test/setup.ts'],
+    testTimeout: 120_000,
+    hookTimeout: 120_000,
   },
 })

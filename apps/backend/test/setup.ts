@@ -101,3 +101,15 @@ if (!process.env.NODE_ENV) {
 if (!process.env.ENCRYPTION_KEY) {
   process.env.ENCRYPTION_KEY = 'test-encryption-key'
 }
+
+if (!process.env.API_VERSION) {
+  process.env.API_VERSION = 'v1'
+}
+
+if (!process.env.CLOUDFLARE_API) {
+  process.env.CLOUDFLARE_API = 'test-cloudflare-api-key'
+}
+
+if (!process.env.USE_HTTPS) {
+  process.env.USE_HTTPS = 'false'
+}

@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 const { like } = MatchersV3
 
-const PACT_DIR = path.resolve(process.cwd(), 'pacts')
+const PACT_DIR = path.resolve(process.cwd(), '../../infrastructure/pact-broker/results')
 const CONSUMER = 'FrontendWebsite'
 const PROVIDER = 'BackendAPI'
 
@@ -60,6 +60,48 @@ describe('Consumer Contract: Health API', () => {
         expect(response.status).toBe(200)
         expect(body.status).toBe('ok')
         expect(body).toHaveProperty('timestamp')
+      })
+  })
+})
+
+describe('Consumer Contract: Company Details API', () => {
+  it('returns Company Details from the backend', async () => {
+    await pact
+      .addInteraction()
+      .given('the server is running')
+      .uponReceiving('a request to get company details')
+      .withRequest('GET', '/api/v1/company/details')
+      .willRespondWith(200, (builder) => {
+        builder.jsonBody({
+          success: like(true),
+          data: {
+            company: like({
+              companyId: like('019c0027-c91d-7ea6-b833-e44d18ac8021'),
+              legalName: like('Acme Corporation Ltd.'),
+              displayName: like('Acme Corp'),
+              status: like('active'),
+              timezone: like('America/New_York'),
+              createdAt: like('2024-01-15T10:30:00.000Z'),
+              updatedAt: like('2024-06-01T12:00:00.000Z'),
+            }),
+          },
+        })
+      })
+      .executeTest(async (mockServer) => {
+        const response = await fetch(`${mockServer.url}/api/v1/company/details`)
+        const body = (await response.json()) as {
+          success: boolean
+          data: { company: Record<string, unknown> | null }
+        }
+
+        expect(response.status).toBe(200)
+        expect(body.success).toBe(true)
+        expect(body.data).toHaveProperty('company')
+        expect(body.data.company).toHaveProperty('companyId')
+        expect(body.data.company).toHaveProperty('legalName')
+        expect(body.data.company).toHaveProperty('displayName')
+        expect(body.data.company).toHaveProperty('status')
+        expect(body.data.company).toHaveProperty('timezone')
       })
   })
 })
