@@ -1,3 +1,4 @@
+import { UtcDate } from '@norberts-spark/shared'
 import { count, eq, inArray } from 'drizzle-orm'
 
 import type {
@@ -50,7 +51,7 @@ import { DatabaseUtil } from '../../../shared/utils/database.util.js'
  * const email = new Email('user@example.com').getValue()
  * const password = await Password.create('password123')
  * const role = new Role('user')
- * const user = new User(undefined, email, 'John Doe', role, password, new Date(), new Date())
+ * const user = new User(undefined, email, 'John Doe', role, password, UtcDate.now().toDate(), UtcDate.now().toDate())
  * await userRepo.save(user)
  *
  * // Query users with pagination
@@ -90,8 +91,8 @@ export class UserRepository implements UserRepositoryPort {
    *   'John Doe',
    *   role,
    *   password,
-   *   new Date(),
-   *   new Date()
+   *   UtcDate.now().toDate(),
+   *   UtcDate.now().toDate()
    * )
    *
    * try {
@@ -117,7 +118,7 @@ export class UserRepository implements UserRepositoryPort {
         providerId: null,
         twoFactorEnabled: userEntity.isTwoFactorEnabled(),
         twoFactorSecret: userEntity.getTwoFactorSecret() ?? null,
-        createdAt: new Date(),
+        createdAt: UtcDate.now().toDate(),
       }
 
       const insertValues =
@@ -169,8 +170,8 @@ export class UserRepository implements UserRepositoryPort {
    *   'John Doe',
    *   role,
    *   undefined, // No password for OAuth
-   *   new Date(),
-   *   new Date(),
+   *   UtcDate.now().toDate(),
+   *   UtcDate.now().toDate(),
    *   'google',    // provider
    *   'google123'  // providerId
    * )
@@ -245,7 +246,7 @@ export class UserRepository implements UserRepositoryPort {
         providerId: providerId || null,
         twoFactorEnabled: userEntity.isTwoFactorEnabled(),
         twoFactorSecret: userEntity.getTwoFactorSecret() ?? null,
-        createdAt: new Date(),
+        createdAt: UtcDate.now().toDate(),
       }
 
       const insertValues =
@@ -290,7 +291,7 @@ export class UserRepository implements UserRepositoryPort {
         providerId: userEntity.getProviderId() ? userEntity.getProviderId() : null,
         twoFactorEnabled: userEntity.isTwoFactorEnabled(),
         twoFactorSecret: userEntity.getTwoFactorSecret() ?? null,
-        createdAt: new Date(),
+        createdAt: UtcDate.now().toDate(),
       }
 
       const insertValues =

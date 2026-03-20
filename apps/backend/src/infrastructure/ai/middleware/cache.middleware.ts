@@ -121,7 +121,7 @@ export function createCacheMiddleware(logger: LoggerPort): LanguageModelV3Middle
               response: {
                 ...cached.response,
                 timestamp: cached?.response?.timestamp
-                  ? new Date(cached?.response?.timestamp)
+                  ? UtcDate.create(cached?.response?.timestamp).toDate()
                   : undefined,
               },
             }

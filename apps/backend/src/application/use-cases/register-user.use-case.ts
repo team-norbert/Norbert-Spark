@@ -1,3 +1,5 @@
+import { UtcDate } from '@norberts-spark/shared'
+
 import type { AuditContext } from '../../domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import { User } from '../../domain/entities/user.js'
@@ -106,16 +108,8 @@ export class RegisterUserUseCase {
     const password = dto.password ? await Password.create(dto.password) : undefined
 
     // Create user entity without ID - PostgreSQL will generate UUIDv7 via uuidv7() function
-    const user = new User(
-      undefined,
-      email,
-      dto.name,
-      role,
-      password,
-      new Date(),
-      new Date(),
-      dto.provider
-    )
+    const now = UtcDate.now().toDate()
+    const user = new User(undefined, email, dto.name, role, password, now, now, dto.provider)
 
     // Persist user with race condition handling
     // The database has a unique constraint on email, so if two concurrent requests

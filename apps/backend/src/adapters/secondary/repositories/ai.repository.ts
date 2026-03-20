@@ -1,4 +1,4 @@
-import { isArray } from '@norberts-spark/shared'
+import { isArray, UtcDate } from '@norberts-spark/shared'
 import type { UIMessage } from 'ai'
 import { asc, desc, eq, sql } from 'drizzle-orm'
 
@@ -174,7 +174,7 @@ export class AIRepository implements AIServicePort {
     this.logger.info('isArray', { isArrayString })
 
     // 1. Update the chat table updated_at column
-    await db.update(chats).set({ updatedAt: new Date() }).where(eq(chats.id, chatId))
+    await db.update(chats).set({ updatedAt: UtcDate.now().toDate() }).where(eq(chats.id, chatId))
 
     // 2. Insert the new messages into the messages table
     await this.insertMessagesWithParts(chatId, messagesToAppend)

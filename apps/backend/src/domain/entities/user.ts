@@ -1,3 +1,5 @@
+import { UtcDate } from '@norberts-spark/shared'
+
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 import type { EmailType } from '../value-objects/email.js'
 import type { PasswordType } from '../value-objects/password.js'
@@ -43,8 +45,8 @@ import type { UserIdType } from '../value-objects/userID.js'
  *   'John Doe',
  *   role,
  *   password,
- *   new Date(),
- *   new Date()
+ *   UtcDate.now().toDate(),
+ *   UtcDate.now().toDate()
  * )
  *
  * // OAuth user without password
@@ -54,8 +56,8 @@ import type { UserIdType } from '../value-objects/userID.js'
  *   'Jane Smith',
  *   role,
  *   undefined,      // No password for OAuth
- *   new Date(),
- *   new Date(),
+ *   UtcDate.now().toDate(),
+ *   UtcDate.now().toDate(),
  *   'google',       // provider
  *   'google123456'  // providerId
  * )
@@ -67,8 +69,8 @@ import type { UserIdType } from '../value-objects/userID.js'
  *   'Secure User',
  *   role,
  *   password,
- *   new Date(),
- *   new Date(),
+ *   UtcDate.now().toDate(),
+ *   UtcDate.now().toDate(),
  *   undefined,
  *   undefined,
  *   true,             // twoFactorEnabled
@@ -125,8 +127,8 @@ export class User {
    *   'John Smith',
    *   role,
    *   password,
-   *   new Date(),     // createdAt
-   *   new Date()      // updatedAt
+   *   UtcDate.now().toDate(),     // createdAt
+   *   UtcDate.now().toDate()      // updatedAt
    * )
    *
    * // Existing user with provided ID
@@ -137,8 +139,8 @@ export class User {
    *   'John Smith',
    *   role,
    *   password,
-   *   new Date('2024-01-15'),
-   *   new Date('2024-02-15')
+   *   UtcDate.fromIsoString('2024-01-15T00:00:00Z').toDate(),
+   *   UtcDate.fromIsoString('2024-01-15T00:00:00Z').toDate()
    * )
    *
    * // OAuth user without password
@@ -148,8 +150,8 @@ export class User {
    *   'Jane Doe',
    *   role,
    *   undefined,      // No password for OAuth
-   *   new Date(),
-   *   new Date(),
+   *   UtcDate.now().toDate(),
+   *   UtcDate.now().toDate(),
    *   'google',       // provider
    *   'google1234567' // providerId
    * )
@@ -161,8 +163,8 @@ export class User {
    *   'Secure User',
    *   role,
    *   password,
-   *   new Date(),
-   *   new Date(),
+   *   UtcDate.now().toDate(),
+   *   UtcDate.now().toDate(),
    *   undefined,      // Not OAuth
    *   undefined,
    *   true,           // 2FA enabled
@@ -176,8 +178,8 @@ export class User {
     private name: string,
     private role: RoleType,
     private password?: PasswordType,
-    private createdAt: Date = new Date(),
-    private updatedAt: Date = new Date(),
+    private createdAt: Date = UtcDate.now().toDate(),
+    private updatedAt: Date = new Date(createdAt.getTime()),
     private provider?: string,
     private providerId?: string,
     private twoFactorEnabled: boolean = false,

@@ -1,3 +1,4 @@
+import { UtcDate } from '@norberts-spark/shared'
 import { uuidv7 } from 'uuidv7'
 
 import type { LoginChanges, LoginFailedChanges } from '../../domain/audit/audit-changes.types.js'
@@ -236,7 +237,7 @@ export class LoginUserUseCase {
       typeof configuredExpiration === 'number' && configuredExpiration > 0
         ? configuredExpiration
         : 7 * 24 * 60 * 60
-    const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
+    const expiresAt = UtcDate.create(Date.now() + expiresInSeconds * 1000).toDate()
 
     try {
       // Store the refresh token in the database
