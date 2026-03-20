@@ -24,7 +24,7 @@ import {
   type GridRenderEditCellParams,
   type GridRowModel,
 } from '@mui/x-data-grid'
-import { validateKebabCase } from '@norberts-spark/shared'
+import { UtcDate,validateKebabCase } from '@norberts-spark/shared'
 import { useEffect, useState } from 'react'
 
 import type { ChatType } from '@/domain/ai/chat-config.js'
@@ -462,7 +462,7 @@ export function ChatTypesPage({
       width: 180,
       renderCell: (params) => {
         if (!params.value) return ''
-        const date = new Date(params.value)
+        const date = UtcDate.create(params.value).toDate()
         const formattedDate = isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-US')
         return (
           <Tooltip
@@ -498,7 +498,7 @@ export function ChatTypesPage({
       width: 180,
       renderCell: (params) => {
         if (!params.value) return ''
-        const date = new Date(params.value)
+        const date = UtcDate.create(params.value).toDate()
         const formattedDate = isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-US')
         return (
           <Tooltip

@@ -1,5 +1,6 @@
 'use client'
 import { Box, Chip, Container, Divider, Link, Paper, Typography } from '@mui/material'
+import { UtcDate } from '@norberts-spark/shared'
 
 import type {
   CompanyDetails as CompanyDetailsType,
@@ -207,7 +208,7 @@ export function CompanyDetails({
                   Created At
                 </Typography>
                 <Typography variant="body1" data-testid="company-created-at">
-                  {new Date(company.createdAt).toLocaleString()}
+                  {UtcDate.create(company.updatedAt).toDate().toLocaleString()}
                 </Typography>
               </Box>
               <Box>
@@ -215,7 +216,7 @@ export function CompanyDetails({
                   Last Updated
                 </Typography>
                 <Typography variant="body1" data-testid="company-updated-at">
-                  {new Date(company.updatedAt).toLocaleString()}
+                  {UtcDate.create(company.updatedAt).toDate().toLocaleString()}
                 </Typography>
               </Box>
             </Box>
@@ -297,7 +298,7 @@ export function CompanyDetails({
                   Created At
                 </Typography>
                 <Typography variant="body1">
-                  {new Date(keyPerson.createdAt).toLocaleString()}
+                  {UtcDate.create(keyPerson.createdAt).toDate().toLocaleString()}
                 </Typography>
               </Box>
               <Box>
@@ -305,7 +306,7 @@ export function CompanyDetails({
                   Last Updated
                 </Typography>
                 <Typography variant="body1">
-                  {new Date(keyPerson.updatedAt).toLocaleString()}
+                  {UtcDate.create(keyPerson.updatedAt).toDate().toLocaleString()}
                 </Typography>
               </Box>
             </Box>

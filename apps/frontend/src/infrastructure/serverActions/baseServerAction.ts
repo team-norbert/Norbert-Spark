@@ -1,5 +1,6 @@
 'use server'
 // Shared utilities (error handling, logging, SSL handling)
+import { UtcDate } from '@norberts-spark/shared'
 import { redirect } from 'next/navigation.js'
 import { getServerSession } from 'next-auth'
 
@@ -313,7 +314,7 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
     const nodeFetch = (await import('node-fetch')).default
     const agent = new https.Agent({ rejectUnauthorized: false })
 
-    const startTime = Date.now()
+    const startTime = UtcDate.now().toEpochMilliseconds()
 
     const controller = new AbortController()
     const combinedSignal = options.signal
@@ -336,7 +337,7 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         event: 'server-action.backend-request.completed',
         endpoint: options.endpoint,
         statusCode: res.status,
-        durationMs: Math.round(Date.now() - startTime),
+        durationMs: Math.round(UtcDate.now().toEpochMilliseconds() - startTime),
       })
 
       return result
@@ -352,7 +353,7 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
           {
             event: 'server-action.backend-request.failed',
             endpoint: options.endpoint,
-            durationMs: Math.round(Date.now() - startTime),
+            durationMs: Math.round(UtcDate.now().toEpochMilliseconds() - startTime),
           }
         )
       }
@@ -361,7 +362,7 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
       clearTimeout(timeout)
     }
   } else {
-    const startTime = Date.now()
+    const startTime = UtcDate.now().toEpochMilliseconds()
     const controller = new AbortController()
     const combinedSignal = options.signal
       ? AbortSignal.any([options.signal, controller.signal])
@@ -382,7 +383,7 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
         event: 'server-action.backend-request.completed',
         endpoint: options.endpoint,
         statusCode: res.status,
-        durationMs: Math.round(Date.now() - startTime),
+        durationMs: Math.round(UtcDate.now().toEpochMilliseconds() - startTime),
       })
 
       return result
@@ -398,7 +399,7 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
           {
             event: 'server-action.backend-request.failed',
             endpoint: options.endpoint,
-            durationMs: Math.round(Date.now() - startTime),
+            durationMs: Math.round(UtcDate.now().toEpochMilliseconds() - startTime),
           }
         )
       }

@@ -1,3 +1,4 @@
+import { UtcDate } from '@norberts-spark/shared'
 import { type UIMessage, type UIMessagePart } from 'ai'
 import { z } from 'zod'
 
@@ -96,7 +97,7 @@ export type CreateAuditContextInput = Omit<
 export function createAuditContext(input: CreateAuditContextInput): AuditContextType {
   return {
     ...input,
-    time: new Date(),
+    time: UtcDate.now().toDate(),
     service: input.service ?? 'norberts-spark-backend',
     version: EnvConfig.API_VERSION,
     env: EnvConfig.NODE_ENV,
