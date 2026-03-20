@@ -127,7 +127,9 @@ export function createCacheMiddleware(logger: LoggerPort): LanguageModelV3Middle
             }
           }
 
-          logger.debug('wrapGenerate: cache miss — calling model', { middleware: 'cache-middleware' })
+          logger.debug('wrapGenerate: cache miss — calling model', {
+            middleware: 'cache-middleware',
+          })
         } catch (error) {
           logger.error(
             'Cache read error in wrapGenerate',
@@ -145,7 +147,9 @@ export function createCacheMiddleware(logger: LoggerPort): LanguageModelV3Middle
         try {
           const compressed = (await gzip(Buffer.from(JSON.stringify(result)))).toString('base64')
           await redis.set(cacheKey, compressed, { ex: 3600 })
-          logger.debug('wrapGenerate: response written to cache', { middleware: 'cache-middleware' })
+          logger.debug('wrapGenerate: response written to cache', {
+            middleware: 'cache-middleware',
+          })
         } catch (error) {
           logger.error(
             'Cache write error in wrapGenerate',
@@ -218,9 +222,9 @@ export function createCacheMiddleware(logger: LoggerPort): LanguageModelV3Middle
           // Try to store the full response in the cache after streaming is complete if Redis is configured
           if (redis) {
             try {
-              const compressed = (
-                await gzip(Buffer.from(JSON.stringify(fullResponse)))
-              ).toString('base64')
+              const compressed = (await gzip(Buffer.from(JSON.stringify(fullResponse)))).toString(
+                'base64'
+              )
               await redis.set(cacheKey, compressed, { ex: 3600 })
               logger.debug('wrapStream: response written to cache', {
                 middleware: 'cache-middleware',
