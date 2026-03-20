@@ -61,6 +61,7 @@ import { PDFUtils } from '../../shared/utils/pdf.utils.js'
 import { EnvConfig } from '../config/env.config.js'
 import { pool } from '../database/index.js'
 import { createFastifyApp } from '../http/fastify.config.js'
+import { connectRedis } from '../redis/index.js'
 
 /**
  * Dependency Injection Container implementing the Singleton pattern
@@ -482,6 +483,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       const host = String(EnvConfig.HOST)
       const isDevelopment = EnvConfig.NODE_ENV !== 'production'
       const useHttps = isDevelopment && String(EnvConfig.USE_HTTPS) === 'true'
+
+      //await connectRedis()
 
       await this.app.listen({ port, host })
       const protocol = useHttps ? 'https' : 'http'

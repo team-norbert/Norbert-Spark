@@ -22,7 +22,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-norbertsSpark}
-      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_US.UTF-8}
+      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_GB.UTF-8}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./apps/backend/init-scripts:/docker-entrypoint-initdb.d:ro
@@ -37,6 +37,24 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+  redis:
+    image: redis:8.6.1-trixie
+    container_name: norbertsSpark-redis
+    restart: unless-stopped
+    networks:
+      - norbertsSpark-network
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis_data:/data
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "PING" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   norbertsSpark-network:
@@ -46,4 +64,6 @@ volumes:
   postgres_data:
     driver: local
   postgres_wal:
+    driver: local
+  redis_data:
     driver: local
