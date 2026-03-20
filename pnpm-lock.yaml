@@ -20576,7 +20576,7 @@ snapshots:
       react-tabs: 6.1.0(react@17.0.2)
       slugify: 1.4.7
       stickyfill: 1.1.1
-      styled-components: 5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@19.2.4))(react-is@19.2.4)(react@19.2.4)
+      styled-components: 5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@17.0.2))(react-is@19.2.4)(react@17.0.2)
       swagger2openapi: 7.0.8
       url-template: 2.0.8
     transitivePeerDependencies:
