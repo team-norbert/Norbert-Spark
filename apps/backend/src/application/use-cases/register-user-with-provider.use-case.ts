@@ -125,14 +125,15 @@ export class RegisterUserWithProviderUseCase {
     const role = new Role(dto.role)
 
     // Create user entity without ID - PostgreSQL will generate UUIDv7 via uuidv7() function
+    const now = UtcDate.now().toDate()
     const user = new User(
       undefined,
       email,
       dto.name,
       role,
       undefined,
-      UtcDate.now().toDate(),
-      UtcDate.now().toDate(),
+      now,
+      now,
       dto.provider,
       dto.providerId
     )

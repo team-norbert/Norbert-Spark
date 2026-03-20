@@ -108,16 +108,8 @@ export class RegisterUserUseCase {
     const password = dto.password ? await Password.create(dto.password) : undefined
 
     // Create user entity without ID - PostgreSQL will generate UUIDv7 via uuidv7() function
-    const user = new User(
-      undefined,
-      email,
-      dto.name,
-      role,
-      password,
-      UtcDate.now().toDate(),
-      UtcDate.now().toDate(),
-      dto.provider
-    )
+    const now = UtcDate.now().toDate()
+    const user = new User(undefined, email, dto.name, role, password, now, now, dto.provider)
 
     // Persist user with race condition handling
     // The database has a unique constraint on email, so if two concurrent requests
