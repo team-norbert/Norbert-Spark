@@ -22,7 +22,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-norbertsSpark}
-      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_US.UTF-8}
+      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_GB.UTF-8}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./apps/backend/init-scripts:/docker-entrypoint-initdb.d:ro
@@ -37,6 +37,29 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+  redis:
+    image: redis:8.6.1-trixie
+    container_name: norbertsSpark-redis
+    restart: unless-stopped
+    networks:
+      - norbertsSpark-network
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./infrastructure/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis_data:/data
+    environment:
+      # Default password is for local development only — set REDIS_PASSWORD to a strong value in production
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
+      # REDISCLI_AUTH lets redis-cli pick up the password without exposing it on the command line
+      REDISCLI_AUTH: ${REDIS_PASSWORD:-changeme}
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf", "--requirepass", "${REDIS_PASSWORD:-changeme}" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli --no-auth-warning PING" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   norbertsSpark-network:
@@ -46,4 +69,6 @@ volumes:
   postgres_data:
     driver: local
   postgres_wal:
+    driver: local
+  redis_data:
     driver: local

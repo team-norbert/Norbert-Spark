@@ -6,6 +6,7 @@ import {
   streamText,
   type UIMessage,
   validateUIMessages,
+  wrapLanguageModel,
 } from 'ai'
 import { createHash } from 'crypto'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
@@ -24,6 +25,7 @@ import { AuditAction, EntityType } from '../../../domain/audit/entity-type.enum.
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
 import type { UUIDType } from '../../../domain/value-objects/uuid.js'
+import { createCacheMiddleware } from '../../../infrastructure/ai/middleware/cache.middleware.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
@@ -47,6 +49,7 @@ import { Sanitise } from '../../../shared/utils/sanitise.utils.js'
  */
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
+  private readonly cacheMiddleware: ReturnType<typeof createCacheMiddleware>
   private NODE_ENV = EnvConfig.NODE_ENV
   private rateLimit = this.NODE_ENV === 'development' || this.NODE_ENV === 'test' ? 200 : 10
 
@@ -62,6 +65,7 @@ export class AIController {
     private readonly auditLogPort: AuditLogPort
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
+    this.cacheMiddleware = createCacheMiddleware(this.logger)
   }
 
   /**
@@ -364,7 +368,13 @@ export class AIController {
     }
 
     const result = streamText({
-      model: google(EnvConfig.MODEL_NAME),
+      model:
+        EnvConfig.NODE_ENV === 'production'
+          ? wrapLanguageModel({
+              model: google(EnvConfig.MODEL_NAME),
+              middleware: this.cacheMiddleware,
+            })
+          : google(EnvConfig.MODEL_NAME),
       messages: await convertToModelMessages(messages as UIMessage[]),
       system: systemPrompt.prompt,
       experimental_telemetry: {

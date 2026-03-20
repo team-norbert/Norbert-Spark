@@ -61,6 +61,7 @@ export class EnvConfig {
   static readonly ACCESS_TOKEN_BUFFER = ENV.ACCESS_TOKEN_BUFFER ?? 300 // 5 minutes in seconds
   static readonly SERVICE_NAME = ENV.SERVICE_NAME || 'norberts-spark-backend'
   static readonly APP_VERSION = version
+  static readonly REDIS_URL = obscured.make(ENV.REDIS_URL)
   private static parseBooleanEnv(value: unknown, defaultValue: boolean): boolean {
     if (typeof value === 'boolean') {
       return value
