@@ -73,7 +73,7 @@ describe('Consumer Contract: Company Details API', () => {
       .withRequest('GET', '/api/v1/company/details')
       .willRespondWith(200, (builder) => {
         builder.jsonBody({
-          success: like(true),
+          success: true,
           data: {
             company: like({
               companyId: like('019c0027-c91d-7ea6-b833-e44d18ac8021'),

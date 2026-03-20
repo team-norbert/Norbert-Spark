@@ -35,11 +35,18 @@ const PACT_BROKER_URL = process.env.PACT_BROKER_URL ?? `http://localhost:${PACT_
  *
  * Run:  cd apps/backend && pnpm test:pact
  */
+interface TestDiContainer {
+  app: {
+    listen: (options: { port: number; host: string }) => string | Promise<string>
+  }
+  stop: () => Promise<void>
+}
+
 describe('Provider Verification: BackendAPI', () => {
   let serverUrl: string
   let stopContainer: () => Promise<void>
 
-  let diContainer: any
+  let diContainer: TestDiContainer
 
   beforeAll(async () => {
     // ── 1. Start PostgreSQL via Testcontainers ───────────────────────────────
@@ -61,25 +68,31 @@ describe('Provider Verification: BackendAPI', () => {
 
     const schemaClient = new Client({ connectionString })
     await schemaClient.connect()
-    await schemaClient.query(schemaSql)
-    await schemaClient.end()
+    try {
+      await schemaClient.query(schemaSql)
+    } finally {
+      await schemaClient.end()
+    }
 
     // ── 3. Seed a company record ─────────────────────────────────────────────
     const seedClient = new Client({ connectionString })
     await seedClient.connect()
-    await seedClient.query(`
-      INSERT INTO company
-        (company_id, legal_name, display_name, status, timezone, singleton_check)
-      VALUES
-        ('019c0027-c91d-7ea6-b833-e44d18ac8021',
-         'Acme Corporation Ltd.',
-         'Acme Corp',
-         'active',
-         'America/New_York',
-         true)
-      ON CONFLICT DO NOTHING
-    `)
-    await seedClient.end()
+    try {
+      await seedClient.query(`
+        INSERT INTO company
+          (company_id, legal_name, display_name, status, timezone, singleton_check)
+        VALUES
+          ('019c0027-c91d-7ea6-b833-e44d18ac8021',
+           'Acme Corporation Ltd.',
+           'Acme Corp',
+           'active',
+           'America/New_York',
+           true)
+        ON CONFLICT DO NOTHING
+      `)
+    } finally {
+      await seedClient.end()
+    }
 
     // ── 4. Wire env vars BEFORE importing Container ──────────────────────────
     // DATABASE_URL must be set here so the module-level pool in database/index.ts
