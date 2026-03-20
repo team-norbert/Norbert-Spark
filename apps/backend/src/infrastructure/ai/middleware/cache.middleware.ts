@@ -5,78 +5,10 @@ import {
   type LanguageModelV3Middleware,
   type LanguageModelV3StreamPart,
 } from '@ai-sdk/provider'
-import { Redis } from '@upstash/redis'
+import { UtcDate } from '@norberts-spark/shared'
 import { simulateReadableStream } from 'ai'
-import { obscured } from 'obscured'
 
-import { EnvConfig } from '../../config/env.config.js'
-
-/**
- * Cache the evaluated Redis configuration to avoid repeated obscured.value() calls
- */
-let isConfiguredCache: boolean | null = null
-let cachedRedisUrl: string | undefined
-let cachedRedisToken: string | undefined
-
-/**
- * Check if Redis credentials are properly configured
- */
-function isRedisConfigured(): boolean {
-  // Return cached result if already computed
-  if (isConfiguredCache !== null) {
-    return isConfiguredCache
-  }
-
-  cachedRedisUrl = obscured.value(EnvConfig.UPSTASH_REDIS_REST_URL)
-  cachedRedisToken = obscured.value(EnvConfig.UPSTASH_REDIS_REST_TOKEN)
-
-  // Check if credentials exist and are not obscured placeholder values
-  isConfiguredCache =
-    !!cachedRedisUrl &&
-    !!cachedRedisToken &&
-    cachedRedisUrl !== '[OBSCURED]' &&
-    cachedRedisToken !== '[OBSCURED]' &&
-    cachedRedisUrl !== 'undefined' &&
-    cachedRedisToken !== 'undefined'
-
-  return isConfiguredCache
-}
-
-/**
- * Lazily initialize Redis client only when credentials are configured
- */
-let redisClient: Redis | null = null
-let initializationAttempted = false
-
-function getRedisClient(): Redis | null {
-  // Return existing client if already initialized
-  if (redisClient !== null) {
-    return redisClient
-  }
-
-  // Check if Redis is configured
-  if (!isRedisConfigured()) {
-    return null
-  }
-
-  // Only attempt initialization once to avoid repeated errors
-  if (initializationAttempted) {
-    return null
-  }
-
-  initializationAttempted = true
-
-  try {
-    redisClient = new Redis({
-      url: cachedRedisUrl!,
-      token: cachedRedisToken!,
-    })
-    return redisClient
-  } catch (error) {
-    console.error('Failed to initialize Redis client:', error)
-    return null
-  }
-}
+import { getRedisClient } from '../../redis/index.js'
 
 /**
  * LanguageModelMiddleware has two methods: wrapGenerate and wrapStream. wrapGenerate is called when using generateText and generateObject, while wrapStream is called when using streamText and streamObject.
@@ -93,9 +25,10 @@ export const cacheMiddleware: LanguageModelV3Middleware = {
     // Try to get from cache if Redis is configured
     if (redis) {
       try {
-        const cached = (await redis.get(cacheKey)) as Awaited<
-          ReturnType<LanguageModelV3['doGenerate']>
-        > | null
+        const raw = await redis.get(cacheKey)
+        const cached = raw
+          ? (JSON.parse(raw) as Awaited<ReturnType<LanguageModelV3['doGenerate']>>)
+          : null
 
         if (cached !== null) {
           return {
@@ -103,7 +36,7 @@ export const cacheMiddleware: LanguageModelV3Middleware = {
             response: {
               ...cached.response,
               timestamp: cached?.response?.timestamp
-                ? new Date(cached?.response?.timestamp)
+                ? UtcDate.create(cached.response.timestamp).toDate()
                 : undefined,
             },
           }
@@ -119,7 +52,7 @@ export const cacheMiddleware: LanguageModelV3Middleware = {
     // Try to cache the result if Redis is configured
     if (redis) {
       try {
-        await redis.set(cacheKey, result)
+        await redis.set(cacheKey, JSON.stringify(result))
       } catch (error) {
         console.error('Cache write error in wrapGenerate:', error)
         // Continue without caching - graceful degradation
@@ -135,16 +68,18 @@ export const cacheMiddleware: LanguageModelV3Middleware = {
     // Try to check if the result is in the cache if Redis is configured
     if (redis) {
       try {
-        const cached = await redis.get(cacheKey)
+        const rawStream = await redis.get(cacheKey)
 
         // If cached, return a simulated ReadableStream that yields the cached result
-        if (cached !== null) {
+        if (rawStream !== null) {
           // Format the timestamps in the cached response
-          const formattedChunks = (cached as LanguageModelV3StreamPart[]).map((p) => {
-            if (p.type === 'response-metadata' && p.timestamp) {
-              return { ...p, timestamp: new Date(p.timestamp) }
-            } else return p
-          })
+          const formattedChunks = (JSON.parse(rawStream) as LanguageModelV3StreamPart[]).map(
+            (p) => {
+              if (p.type === 'response-metadata' && p.timestamp) {
+                return { ...p, timestamp: UtcDate.create(p.timestamp).toDate() }
+              } else return p
+            }
+          )
           return {
             stream: simulateReadableStream({
               initialDelayInMs: 0,
@@ -176,7 +111,7 @@ export const cacheMiddleware: LanguageModelV3Middleware = {
         // Try to store the full response in the cache after streaming is complete if Redis is configured
         if (redis) {
           try {
-            await redis.set(cacheKey, fullResponse)
+            await redis.set(cacheKey, JSON.stringify(fullResponse))
           } catch (error) {
             console.error('Cache write error in wrapStream flush:', error)
             // Continue without caching - graceful degradation
