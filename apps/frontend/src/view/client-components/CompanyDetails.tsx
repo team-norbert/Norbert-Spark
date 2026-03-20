@@ -9,6 +9,15 @@ import type {
 
 import { PageHeader } from './PageHeader.js'
 
+function formatUtcDate(value: string | null | undefined): string {
+  if (!value) return ''
+  try {
+    return UtcDate.create(value).toDate().toLocaleString()
+  } catch {
+    return ''
+  }
+}
+
 interface CompanyDetailsProps {
   company: CompanyDetailsType | null
   keyPerson: KeyPersonDetails | null
@@ -208,7 +217,7 @@ export function CompanyDetails({
                   Created At
                 </Typography>
                 <Typography variant="body1" data-testid="company-created-at">
-                  {UtcDate.create(company.updatedAt).toDate().toLocaleString()}
+                  {formatUtcDate(company.createdAt)}
                 </Typography>
               </Box>
               <Box>
@@ -216,7 +225,7 @@ export function CompanyDetails({
                   Last Updated
                 </Typography>
                 <Typography variant="body1" data-testid="company-updated-at">
-                  {UtcDate.create(company.updatedAt).toDate().toLocaleString()}
+                  {formatUtcDate(company.updatedAt)}
                 </Typography>
               </Box>
             </Box>
@@ -298,7 +307,7 @@ export function CompanyDetails({
                   Created At
                 </Typography>
                 <Typography variant="body1">
-                  {UtcDate.create(keyPerson.createdAt).toDate().toLocaleString()}
+                  {formatUtcDate(keyPerson.createdAt)}
                 </Typography>
               </Box>
               <Box>
@@ -306,7 +315,7 @@ export function CompanyDetails({
                   Last Updated
                 </Typography>
                 <Typography variant="body1">
-                  {UtcDate.create(keyPerson.updatedAt).toDate().toLocaleString()}
+                  {formatUtcDate(keyPerson.updatedAt)}
                 </Typography>
               </Box>
             </Box>
