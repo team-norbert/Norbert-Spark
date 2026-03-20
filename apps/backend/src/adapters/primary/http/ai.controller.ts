@@ -25,7 +25,7 @@ import { AuditAction, EntityType } from '../../../domain/audit/entity-type.enum.
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
 import type { UUIDType } from '../../../domain/value-objects/uuid.js'
-import { cacheMiddleware } from '../../../infrastructure/ai/middleware/remote-cache.middleware.js'
+import { cacheMiddleware } from '../../../infrastructure/ai/middleware/cache.middleware.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
@@ -371,7 +371,7 @@ export class AIController {
     })
 
     const result = streamText({
-      model: wrappedModel,
+      model: EnvConfig.NODE_ENV === 'production' ? wrappedModel : google(EnvConfig.MODEL_NAME),
       messages: await convertToModelMessages(messages as UIMessage[]),
       system: systemPrompt.prompt,
       experimental_telemetry: {
