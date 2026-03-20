@@ -38,7 +38,7 @@
     "@mui/x-data-grid-generator": "^8.27.5",
     "@norberts-spark/shared": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.10",
-    "@tanstack/react-query": "^5.91.0",
+    "@tanstack/react-query": "^5.91.2",
     "@upstash/ratelimit": "^0.4.4",
     "@upstash/redis": "^1.37.0",
     "ai": "^6.0.116",
