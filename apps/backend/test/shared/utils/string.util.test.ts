@@ -79,6 +79,27 @@ describe('StringUtil', () => {
     it('should handle unicode characters', () => {
       expect(StringUtil.slugify('café résumé')).toBe('caf-rsum')
     })
+
+    it('should remove a single leading hyphen from the result', () => {
+      expect(StringUtil.slugify('-hello')).toBe('hello')
+    })
+
+    it('should remove a single trailing hyphen from the result', () => {
+      expect(StringUtil.slugify('hello-')).toBe('hello')
+    })
+
+    it('should return empty string for a string containing only hyphens', () => {
+      expect(StringUtil.slugify('-')).toBe('')
+      expect(StringUtil.slugify('---')).toBe('')
+    })
+
+    it('should handle strings with leading and trailing tab/newline whitespace', () => {
+      expect(StringUtil.slugify('\thello world\n')).toBe('hello-world')
+    })
+
+    it('should collapse consecutive hyphens generated from mixed separators', () => {
+      expect(StringUtil.slugify('hello _ - world')).toBe('hello-world')
+    })
   })
 
   describe('truncate', () => {
@@ -123,6 +144,19 @@ describe('StringUtil', () => {
       const result = StringUtil.truncate(longText, 20)
       expect(result).toBe('This is a very lo...')
       expect(result).toHaveLength(20)
+    })
+
+    it('should handle empty suffix', () => {
+      expect(StringUtil.truncate('Hello World', 8, '')).toBe('Hello Wo')
+    })
+
+    it('should truncate to exactly the suffix when maxLength equals suffix length', () => {
+      expect(StringUtil.truncate('Hello World', 3, '...')).toBe('...')
+    })
+
+    it('should return full string when maxLength is exactly string length minus one would truncate', () => {
+      expect(StringUtil.truncate('Hello', 5)).toBe('Hello')
+      expect(StringUtil.truncate('Hello', 4)).toBe('H...')
     })
   })
 
@@ -185,6 +219,19 @@ describe('StringUtil', () => {
     it('should throw ValidationException for negative length -1', () => {
       expect(() => StringUtil.randomString(-1)).toThrow(ValidationException)
     })
+
+    it('should return empty string for length 0 (returns early before loop)', () => {
+      const result = StringUtil.randomString(0)
+      expect(result).toBe('')
+      expect(result.length).toBe(0)
+      expect(result).toMatch(/^[A-Za-z0-9]*$/)
+    })
+
+    it('should generate correct length string for length 2', () => {
+      const result = StringUtil.randomString(2)
+      expect(result).toHaveLength(2)
+      expect(result).toMatch(/^[A-Za-z0-9]+$/)
+    })
   })
 
   describe('maskEmail', () => {
@@ -244,6 +291,18 @@ describe('StringUtil', () => {
 
     it('should throw error for string with multiple @ symbols in different positions', () => {
       expect(() => StringUtil.maskEmail('user@domain@example.com')).toThrow('Invalid email format')
+    })
+
+    it('should handle local part of exactly 3 characters', () => {
+      expect(StringUtil.maskEmail('abc@example.com')).toBe('abc***@example.com')
+    })
+
+    it('should handle email with numeric local part', () => {
+      expect(StringUtil.maskEmail('123@example.com')).toBe('123***@example.com')
+    })
+
+    it('should handle email with subdomain and show full domain', () => {
+      expect(StringUtil.maskEmail('user@mail.example.co.uk')).toBe('use***@mail.example.co.uk')
     })
   })
 

@@ -399,5 +399,210 @@ describe('Security Validation Utilities', () => {
       const buf = new Uint8Array([0x00, 0x01, 0x02, 0x03])
       expect(() => hasZIPSignature(buf)).toThrow('ZIP file signature not found')
     })
+
+    // Targeting survived mutants for individual byte checks
+    it('should throw when buf[0] is not 0x50 (P)', () => {
+      // buf[0] = 0x51 instead of 0x50
+      expect(() => hasZIPSignature(new Uint8Array([0x51, 0x4b, 0x03, 0x04]))).toThrow(
+        ValidationException
+      )
+    })
+
+    it('should throw when buf[1] is not 0x4b (K)', () => {
+      // buf[1] = 0x4c instead of 0x4b
+      expect(() => hasZIPSignature(new Uint8Array([0x50, 0x4c, 0x03, 0x04]))).toThrow(
+        ValidationException
+      )
+    })
+
+    it('should throw when PK bytes match but bytes 2-3 are not a recognized ZIP variant', () => {
+      // PK but bytes 2-3 are 0x01, 0x02 — central directory header, not a supported variant
+      expect(() => hasZIPSignature(new Uint8Array([0x50, 0x4b, 0x01, 0x02]))).toThrow(
+        ValidationException
+      )
+    })
+
+    it('should throw when PK\\x05 matches but byte 3 is not 0x06 (EOCD variant)', () => {
+      expect(() => hasZIPSignature(new Uint8Array([0x50, 0x4b, 0x05, 0x07]))).toThrow(
+        ValidationException
+      )
+    })
+
+    it('should throw when PK\\x07 matches but byte 3 is not 0x08 (data descriptor variant)', () => {
+      expect(() => hasZIPSignature(new Uint8Array([0x50, 0x4b, 0x07, 0x09]))).toThrow(
+        ValidationException
+      )
+    })
+
+    it('should not accept PK\\x06\\x06 as a valid ZIP signature', () => {
+      // 0x06, 0x06 is ZIP64 EOCD, which the function does not support
+      expect(() => hasZIPSignature(new Uint8Array([0x50, 0x4b, 0x06, 0x06]))).toThrow(
+        ValidationException
+      )
+    })
+
+    it('should not treat buf.length === 4 as "too short"', () => {
+      // Exactly 4 bytes with a valid signature should succeed (buf.length >= 4)
+      expect(hasZIPSignature(new Uint8Array([0x50, 0x4b, 0x03, 0x04]))).toBe(true)
+    })
+  })
+
+  describe('validatePathWithinBase — secondary check', () => {
+    const baseDir = '/app/data'
+
+    it('should throw for absolute paths caught by TRAVERSAL_PATTERNS before base-path check', () => {
+      // /etc/passwd is an absolute path — it is rejected by the TRAVERSAL_PATTERNS
+      // absolute-path guard before the relativePath.startsWith('..') check is reached.
+      // This verifies the error message template ("contains prohibited pattern") is intact.
+      expect(() => validatePathWithinBase('/etc/passwd', baseDir)).toThrow(
+        'contains prohibited pattern'
+      )
+    })
+
+    it('should throw with the user-supplied path in the error for traversal patterns', () => {
+      expect(() => validatePathWithinBase('../secret', baseDir)).toThrow(
+        'Access denied: Path "../secret" contains prohibited pattern'
+      )
+    })
+
+    it('should resolve a normal in-base path successfully', () => {
+      // This test documents the successful behavior for a standard, in-base relative path.
+      // It ensures that valid paths that do not match traversal patterns are resolved
+      // correctly under the configured base directory.
+      const result = validatePathWithinBase('sub/file.txt', baseDir)
+      expect(result).toBe('/app/data/sub/file.txt')
+    })
+  })
+
+  describe('sanitizeFilename — additional coverage', () => {
+    it('should throw for null input (falsy non-string)', () => {
+      expect(() => sanitizeFilename(null as unknown as string)).toThrow(ValidationException)
+    })
+
+    it('should throw for undefined input', () => {
+      expect(() => sanitizeFilename(undefined as unknown as string)).toThrow(ValidationException)
+    })
+
+    it('should throw with "Filename is required" for falsy input', () => {
+      expect(() => sanitizeFilename(null as unknown as string)).toThrow('Filename is required')
+    })
+
+    it('should preserve a single dot between name and extension (not collapse valid dot)', () => {
+      // Regex /^\.+|\.+$/g only removes leading/trailing dots, not internal ones
+      // document.pdf should stay document.pdf
+      expect(sanitizeFilename('document.pdf')).toBe('document.pdf')
+    })
+
+    it('should only strip trailing sequences of dots, not a single trailing dot that is an extension', () => {
+      // file.. → strip trailing dots → file
+      expect(sanitizeFilename('file..')).toBe('file')
+      // file.pdf.. → strip trailing dots → file.pdf
+      expect(sanitizeFilename('file.pdf..')).toBe('file.pdf')
+    })
+
+    it('should throw with "Filename is invalid after sanitization" for all-dangerous chars', () => {
+      expect(() => sanitizeFilename('<>')).toThrow('Filename is invalid after sanitization')
+    })
+  })
+
+  describe('validateFileExtension — additional coverage', () => {
+    it('should include the disallowed extension in the error message', () => {
+      expect(() => validateFileExtension('malware.exe', ['pdf', 'zip'])).toThrow('.exe')
+    })
+
+    it('should include all allowed extensions in the error message', () => {
+      expect(() => validateFileExtension('file.bat', ['pdf', 'zip'])).toThrow('.pdf')
+      expect(() => validateFileExtension('file.bat', ['pdf', 'zip'])).toThrow('.zip')
+    })
+
+    it('should throw "File must have an extension" for no-extension file', () => {
+      expect(() => validateFileExtension('noext', ['pdf'])).toThrow('File must have an extension')
+    })
+
+    it('should return true (not just truthy) for a valid extension', () => {
+      expect(validateFileExtension('report.pdf', ['pdf'])).toBe(true)
+    })
+  })
+
+  describe('validateMimeType — additional coverage', () => {
+    it('should include the disallowed MIME type in the error message', () => {
+      expect(() => validateMimeType('text/html', ['application/pdf'])).toThrow('text/html')
+    })
+
+    it('should include all allowed MIME types in the error message', () => {
+      expect(() =>
+        validateMimeType('application/octet-stream', ['application/pdf', 'application/zip'])
+      ).toThrow('application/pdf')
+    })
+
+    it('should handle allowed types that have surrounding whitespace in the list', () => {
+      // The normalisation trims allowedMimeTypes entries too (m.toLowerCase().trim())
+      expect(validateMimeType('application/pdf', [' application/pdf '])).toBe(true)
+    })
+  })
+
+  describe('sanitizeForShell — additional coverage', () => {
+    it('should return the original string unchanged when it has no metacharacters', () => {
+      expect(sanitizeForShell('helloworld')).toBe('helloworld')
+    })
+
+    it('should remove backslashes', () => {
+      expect(sanitizeForShell('path\\to\\file')).toBe('pathtofile')
+    })
+
+    it('should trim leading/trailing whitespace after removal', () => {
+      expect(sanitizeForShell('  hello  ')).toBe('hello')
+    })
+  })
+
+  describe('validateSafeIdentifier — additional coverage', () => {
+    it('should throw "Identifier is required" for null input', () => {
+      expect(() => validateSafeIdentifier(null as unknown as string)).toThrow(
+        'Identifier is required'
+      )
+    })
+
+    it('should throw "Identifier is required" for undefined input', () => {
+      expect(() => validateSafeIdentifier(undefined as unknown as string)).toThrow(
+        'Identifier is required'
+      )
+    })
+
+    it('should include the invalid identifier in the error message', () => {
+      expect(() => validateSafeIdentifier('bad value!')).toThrow('"bad value!"')
+    })
+
+    it('should include the hint text in the error message', () => {
+      expect(() => validateSafeIdentifier('hello world')).toThrow(
+        'Only alphanumeric characters, hyphens, and underscores are allowed.'
+      )
+    })
+
+    it('should return true (not just truthy) for a valid identifier', () => {
+      expect(validateSafeIdentifier('valid-id_123')).toBe(true)
+    })
+  })
+
+  describe('validateFileSize — additional coverage', () => {
+    it('should not throw when sizeBytes equals maxSizeBytes (boundary === allowed)', () => {
+      expect(validateFileSize(1024, 1024)).toBe(true)
+    })
+
+    it('should throw when sizeBytes is exactly one byte over the limit', () => {
+      expect(() => validateFileSize(1025, 1024)).toThrow(ValidationException)
+    })
+
+    it('should include the correct MB values in the error message', () => {
+      const tenMB = 10 * 1024 * 1024
+      expect(() => validateFileSize(tenMB + 1, tenMB)).toThrow(/10\.00 MB/)
+    })
+
+    it('should reject NaN size values as invalid input', () => {
+      expect(() => validateFileSize(NaN, 1024)).toThrow(ValidationException)
+    })
+
+    it('should return true for zero-byte files (edge: 0 === valid, not negative)', () => {
+      expect(validateFileSize(0, 1024)).toBe(true)
+    })
   })
 })

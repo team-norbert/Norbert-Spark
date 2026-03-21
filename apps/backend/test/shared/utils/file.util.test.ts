@@ -152,6 +152,19 @@ describe('FileUtil', () => {
       expect(result.success).toBe(true)
       expect(fs.existsSync(TEST_BASE_DIR)).toBe(true)
     })
+
+    it('should include "writing file" in error message when a file system error occurs', async () => {
+      fileUtil.createDirectory(TEST_FILE)
+      await expect(fileUtil.writeFile(TEST_FILE, TEST_CONTENT)).rejects.toThrow(
+        'Error writing file:'
+      )
+    })
+
+    it('should re-throw ValidationException without wrapping it in a new error', async () => {
+      await expect(fileUtil.writeFile('../outside.txt', TEST_CONTENT)).rejects.toMatchObject({
+        message: expect.stringMatching(/^Access denied:/),
+      })
+    })
   })
 
   describe('readFile', () => {
@@ -201,6 +214,11 @@ describe('FileUtil', () => {
 
       expect(result.success).toBe(true)
       expect(result.content).toBe(specialContent)
+    })
+
+    it('should include "reading file" in error message when a file system error occurs', async () => {
+      fileUtil.createDirectory(TEST_DIR)
+      await expect(fileUtil.readFile(TEST_DIR)).rejects.toThrow('Error reading file:')
     })
   })
 
@@ -342,6 +360,13 @@ describe('FileUtil', () => {
       expect(file).toBeDefined()
       expect(file!.size).toBe(Buffer.byteLength(content, 'utf8'))
     })
+
+    it('should include "listing directory" in error message when a file system error occurs', () => {
+      fileUtil.createDirectory(TEST_DIR)
+      const symlinkPath = path.join(TEST_BASE_DIR, TEST_DIR, 'broken-link')
+      fs.symlinkSync('/nonexistent/target/path', symlinkPath)
+      expect(() => fileUtil.listDirectory(TEST_DIR)).toThrow('listing directory')
+    })
   })
 
   describe('createDirectory', () => {
@@ -389,6 +414,11 @@ describe('FileUtil', () => {
 
       expect(result.success).toBe(true)
       expect(fs.existsSync(TEST_BASE_DIR)).toBe(true)
+    })
+
+    it('should include "creating directory" in error message when a file system error occurs', async () => {
+      await fileUtil.writeFile(TEST_FILE, TEST_CONTENT)
+      expect(() => fileUtil.createDirectory(`${TEST_FILE}/subdir`)).toThrow('creating directory')
     })
   })
 
@@ -535,6 +565,19 @@ describe('FileUtil', () => {
       expect(result.files!.length).toBeGreaterThanOrEqual(2)
       expect(result.files).toContain('file1.txt')
       expect(result.files).toContain('file2.txt')
+    })
+
+    it('should find nested files when searching by exact filename from root directory', () => {
+      const result = fileUtil.searchFiles('nested.txt')
+
+      expect(result.success).toBe(true)
+      expect(result.files).toContain('subdir/nested.txt')
+    })
+
+    it('should include "searching files" in error message when a file system error occurs', () => {
+      const symlinkPath = path.join(TEST_BASE_DIR, 'broken-link.lnk')
+      fs.symlinkSync('/nonexistent/target/path', symlinkPath)
+      expect(() => fileUtil.searchFiles('*')).toThrow('searching files')
     })
   })
 
