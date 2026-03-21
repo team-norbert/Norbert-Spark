@@ -1,5 +1,5 @@
 import { uuidv7 } from 'uuidv7'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LoginUserDto } from '../../../src/application/dtos/login-user.dto.js'
 import type { AuditLogPort } from '../../../src/application/ports/audit-log.port.js'
@@ -13,6 +13,8 @@ import { Email } from '../../../src/domain/value-objects/email.js'
 import { Password } from '../../../src/domain/value-objects/password.js'
 import { Role } from '../../../src/domain/value-objects/role.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
+import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
+import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
 import { UnauthorizedException } from '../../../src/shared/exceptions/unauthorized.exception.js'
 import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
@@ -332,6 +334,20 @@ describe('LoginUserUseCase', () => {
           'Invalid email or password'
         )
       })
+
+      it('should log audit entry with reason user_not_found when user does not exist', async () => {
+        const dto = new LoginUserDto('nonexistent@example.com', 'Password123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
+
+        expect(mockAuditLog.log).toHaveBeenCalledWith(
+          expect.objectContaining({
+            changes: expect.objectContaining({ reason: 'user_not_found' }),
+          })
+        )
+      })
     })
 
     describe('invalid password', () => {
@@ -396,6 +412,21 @@ describe('LoginUserUseCase', () => {
 
         await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
           'Invalid email or password'
+        )
+      })
+
+      it('should log audit entry with reason invalid_password when password is wrong', async () => {
+        const dto = new LoginUserDto('john@example.com', 'WrongPassword123!')
+        const mockUser = await createMockUser('john@example.com', 'CorrectPassword123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
+
+        expect(mockAuditLog.log).toHaveBeenCalledWith(
+          expect.objectContaining({
+            changes: expect.objectContaining({ reason: 'invalid_password' }),
+          })
         )
       })
     })
@@ -840,6 +871,115 @@ describe('LoginUserUseCase', () => {
 
         const createCall = vi.mocked(mockRefreshTokenRepository.create).mock.calls[0][0]
         expect(createCall.userId).toBe(mockUser.id)
+      })
+
+      it('should include ipAddress in failure audit log when refresh token storage fails', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+        vi.mocked(mockRefreshTokenRepository.create).mockRejectedValue(
+          new Error('Database error: Unable to store refresh token')
+        )
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow()
+
+        // verify the catch-block audit entry carries the ipAddress (kills mutant 3922: ?? → &&)
+        expect(mockAuditLog.log).toHaveBeenCalledWith(
+          expect.objectContaining({
+            action: 'token_issued',
+            changes: { reason: 'refresh_token_storage_failed' },
+            ipAddress: '127.0.0.1',
+          })
+        )
+      })
+    })
+
+    describe('user found but has no ID', () => {
+      let userWithNoId: User
+
+      beforeEach(() => {
+        userWithNoId = {
+          id: undefined,
+          verifyPassword: vi.fn(),
+          getEmail: vi.fn().mockReturnValue('john@example.com'),
+          getRole: vi.fn().mockReturnValue('user'),
+        } as unknown as User
+      })
+
+      it('should throw InternalErrorException with message "User found but has no ID"', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(userWithNoId)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(InternalErrorException)
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow('User found but has no ID')
+      })
+
+      it('should log error with correct message and context when user has no ID', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(userWithNoId)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow()
+
+        // kills 3862 (first arg), 3863 (second arg message), 3864/3865/3866 (third arg object)
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'User found but has no ID',
+          expect.objectContaining({ message: 'Missing user ID' }),
+          {
+            event: 'user.login.failed',
+            reason: 'missing_user_id',
+          }
+        )
+      })
+
+      it('should include email in thrown InternalErrorException details', async () => {
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(userWithNoId)
+
+        // kills 3867 (message string) and 3868 ({ email: dto.email } → {})
+        await expect(useCase.execute(dto, auditContext)).rejects.toMatchObject({
+          message: 'User found but has no ID',
+          details: { email: 'john@example.com' },
+        })
+      })
+    })
+
+    describe('expiration boundary conditions', () => {
+      afterEach(() => {
+        // Restore the string mock value used by the rest of the suite
+
+        ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = '604800'
+      })
+
+      it('should use configured value when REFRESH_TOKEN_EXPIRATION is a positive number', async () => {
+        // Setting to a numeric value != fallback (7*24*60*60=604800) lets us verify
+        // configuredExpiration > 0 is evaluated (kills mutant 3888: replaces with false)
+
+        ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 3600
+
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        const result = await useCase.execute(dto, auditContext)
+
+        expect(result.expiresInSeconds).toBe(3600)
+      })
+
+      it('should use fallback value when REFRESH_TOKEN_EXPIRATION is 0', async () => {
+        // 0 is a number but not > 0, so fallback (7*24*60*60) is used.
+        // Mutants 3893 (>0 → true), 3894 (> → >=), 3895 (> → <=) would each use 0
+        // instead of the fallback, causing this assertion to fail.
+
+        ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 0
+
+        const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
+        const mockUser = await createMockUser('john@example.com', 'SecurePass123!')
+        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
+
+        const result = await useCase.execute(dto, auditContext)
+
+        expect(result.expiresInSeconds).toBe(7 * 24 * 60 * 60)
       })
     })
   })

@@ -7,6 +7,7 @@ import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { GetChatDetailsUseCase } from '../../../src/application/use-cases/get-chat-details.use-case.js'
 import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import type { DBChatType } from '../../../src/infrastructure/database/schema.js'
+import { Uuid7Util } from '../../../src/shared/utils/uuid7.util.js'
 import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
 // Mock the SEO utility
@@ -248,6 +249,31 @@ describe('GetChatDetailsUseCase', () => {
       expect(result[2]!.seoFriendlyBase64Id).toBeTruthy()
     })
 
+    it('should preserve existing seoFriendlyId when it differs from what the SEO utility would generate', async () => {
+      // This test kills mutant 3699: `!seoFriendlyId` mutated to `true`.
+      // The existing slug 'my-custom-slug' differs from what the mock SEO utility
+      // would generate ('custom-name-type') from the name 'Custom Name Type'.
+      const chatTypeId = uuidv7()
+      const mockChatTypes: DBChatType[] = [
+        {
+          id: chatTypeId,
+          name: 'Custom Name Type',
+          seoFriendlyId: 'my-custom-slug',
+          seoFriendlyBase64Id: 'AbCdEfGhIjKlMnOpQrStUv',
+          description: 'Has a custom non-generated slug',
+          rag: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]
+
+      vi.mocked(mockAiChatContent.fetchChatContent).mockResolvedValue(mockChatTypes)
+
+      const result = await useCase.execute(mockAuditContext)
+
+      expect(result[0]!.seoFriendlyId).toBe('my-custom-slug')
+    })
+
     it('should preserve all original chat type properties', async () => {
       const chatTypeId = uuidv7()
       const createdAt = new Date('2026-01-15T08:00:00Z')
@@ -276,6 +302,91 @@ describe('GetChatDetailsUseCase', () => {
       expect(result[0]!.rag).toBe(false)
       expect(result[0]!.createdAt).toBe(createdAt)
       expect(result[0]!.updatedAt).toBe(updatedAt)
+    })
+  })
+
+  describe('execute() - base64 generation failure', () => {
+    it('should throw when Uuid7Util.toBase64 returns falsy for a missing seoFriendlyBase64Id', async () => {
+      const chatTypeId = uuidv7()
+      const mockChatTypes: DBChatType[] = [
+        {
+          id: chatTypeId,
+          name: 'Test Type',
+          seoFriendlyId: 'test-type',
+          seoFriendlyBase64Id: null as any,
+          description: 'Test',
+          rag: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]
+
+      vi.mocked(mockAiChatContent.fetchChatContent).mockResolvedValue(mockChatTypes)
+      vi.mocked(Uuid7Util.toBase64).mockReturnValueOnce(null as any)
+
+      await expect(useCase.execute(mockAuditContext)).rejects.toThrow(
+        'Failed to generate seoFriendlyBase64Id from chat type ID'
+      )
+    })
+
+    it('should call logger.error with exact message when toBase64 returns falsy', async () => {
+      const chatTypeId = uuidv7()
+      const mockChatTypes: DBChatType[] = [
+        {
+          id: chatTypeId,
+          name: 'Test Type',
+          seoFriendlyId: 'test-type',
+          seoFriendlyBase64Id: null as any,
+          description: 'Test',
+          rag: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]
+
+      vi.mocked(mockAiChatContent.fetchChatContent).mockResolvedValue(mockChatTypes)
+      vi.mocked(Uuid7Util.toBase64).mockReturnValueOnce(null as any)
+
+      await expect(useCase.execute(mockAuditContext)).rejects.toThrow()
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Failed to generate seoFriendlyBase64Id',
+        expect.any(Error),
+        {
+          event: 'chat_types.base64_generation.failed',
+          chatTypeId,
+        }
+      )
+    })
+
+    it('should include correct event and chatTypeId in logger.error payload when toBase64 fails', async () => {
+      const chatTypeId = uuidv7()
+      const mockChatTypes: DBChatType[] = [
+        {
+          id: chatTypeId,
+          name: 'Test Type',
+          seoFriendlyId: 'test-type',
+          seoFriendlyBase64Id: null as any,
+          description: 'Test',
+          rag: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]
+
+      vi.mocked(mockAiChatContent.fetchChatContent).mockResolvedValue(mockChatTypes)
+      vi.mocked(Uuid7Util.toBase64).mockReturnValueOnce('' as any)
+
+      await expect(useCase.execute(mockAuditContext)).rejects.toThrow()
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(Error),
+        expect.objectContaining({
+          event: 'chat_types.base64_generation.failed',
+          chatTypeId,
+        })
+      )
     })
   })
 

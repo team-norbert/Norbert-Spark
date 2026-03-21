@@ -1,5 +1,5 @@
 import { uuidv7 } from 'uuidv7'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { RegisterUserDto } from '../../../src/application/dtos/register-user.dto.js'
 import type { AuditLogPort } from '../../../src/application/ports/audit-log.port.js'
@@ -12,7 +12,9 @@ import { RegisterUserWithProviderUseCase } from '../../../src/application/use-ca
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { User } from '../../../src/domain/entities/user.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
+import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
 import { ConflictException } from '../../../src/shared/exceptions/conflict.exception.js'
+import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
@@ -599,6 +601,279 @@ describe('RegisterUserWithProviderUseCase', () => {
           await expect(useCase.execute(dto, auditContext)).resolves.toBeDefined()
         }
       })
+    })
+  })
+
+  describe('duplicate email - ConflictException details', () => {
+    it('should include dto.email in ConflictException details when duplicate email is rejected', async () => {
+      const dto = new RegisterUserDto(
+        'duplicate@example.com',
+        'John Doe',
+        'user',
+        undefined,
+        'google'
+      )
+      const duplicateKeyError = Object.assign(
+        new Error('duplicate key value violates unique constraint'),
+        { code: '23505' }
+      )
+      vi.mocked(mockUserRepository.saveProvider).mockRejectedValue(duplicateKeyError)
+
+      await expect(useCase.execute(dto, auditContext)).rejects.toMatchObject({
+        details: { email: 'duplicate@example.com' },
+      })
+    })
+  })
+
+  describe('returning user (isNewUser = false)', () => {
+    it('should not write user CREATE audit entry for a returning user', async () => {
+      const dto = new RegisterUserDto(
+        'returning@example.com',
+        'Returning User',
+        'user',
+        undefined,
+        'google'
+      )
+      const mockUserId = createMockUserId()
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: mockUserId,
+        isNewUser: false,
+      })
+
+      await useCase.execute(dto, auditContext)
+
+      // Only the token audit should be called, not the user CREATE audit
+      expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
+      const auditCall = vi.mocked(mockAuditLog.log).mock.calls[0][0]
+      expect(auditCall.action).toBe(AuditAction.TOKEN_ISSUED)
+      expect(auditCall.action).not.toBe(AuditAction.CREATE)
+    })
+
+    it('should not send welcome email for a returning user', async () => {
+      const dto = new RegisterUserDto(
+        'returning@example.com',
+        'Returning User',
+        'user',
+        undefined,
+        'google'
+      )
+      const mockUserId = createMockUserId()
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: mockUserId,
+        isNewUser: false,
+      })
+
+      await useCase.execute(dto, auditContext)
+
+      expect(mockEmailService.sendWelcomeEmail).not.toHaveBeenCalled()
+    })
+
+    it('should log "Returning user signed in" with event "user.oauth_login.success"', async () => {
+      const dto = new RegisterUserDto(
+        'returning@example.com',
+        'Returning User',
+        'user',
+        undefined,
+        'google'
+      )
+      const mockUserId = createMockUserId()
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: mockUserId,
+        isNewUser: false,
+      })
+
+      await useCase.execute(dto, auditContext)
+
+      expect(mockLogger.info).toHaveBeenCalledWith('Returning user signed in', {
+        event: 'user.oauth_login.success',
+        userId: mockUserId,
+      })
+    })
+
+    it('should still return access token and refresh token for returning user', async () => {
+      const dto = new RegisterUserDto(
+        'returning@example.com',
+        'Returning User',
+        'user',
+        undefined,
+        'google'
+      )
+      const mockUserId = createMockUserId()
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: mockUserId,
+        isNewUser: false,
+      })
+
+      const result = await useCase.execute(dto, auditContext)
+
+      expect(result.accessToken).toBe('mock-jwt-token')
+      expect(result.refreshToken).toBeDefined()
+      expect(result.expiresInSeconds).toBeGreaterThan(0)
+    })
+  })
+
+  describe('expiration boundary conditions', () => {
+    let originalExpiration: unknown
+
+    beforeEach(() => {
+      originalExpiration = EnvConfig.REFRESH_TOKEN_EXPIRATION
+    })
+
+    afterEach(() => {
+      ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = originalExpiration
+    })
+
+    it('should use configured expiration when REFRESH_TOKEN_EXPIRATION is a positive number', async () => {
+      ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 3600
+      const dto = new RegisterUserDto('john@example.com', 'John', 'user', undefined, 'google')
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: createMockUserId(),
+        isNewUser: true,
+      })
+      vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+
+      const result = await useCase.execute(dto, auditContext)
+
+      expect(result.expiresInSeconds).toBe(3600)
+    })
+
+    it('should use fallback value 604800 when REFRESH_TOKEN_EXPIRATION is 0', async () => {
+      ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 0
+      const dto = new RegisterUserDto('john@example.com', 'John', 'user', undefined, 'google')
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: createMockUserId(),
+        isNewUser: true,
+      })
+      vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+
+      const result = await useCase.execute(dto, auditContext)
+
+      expect(result.expiresInSeconds).toBe(604800)
+    })
+
+    it('should use fallback value 604800 when REFRESH_TOKEN_EXPIRATION is not a finite number', async () => {
+      ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 'not-a-number'
+      const dto = new RegisterUserDto('john@example.com', 'John', 'user', undefined, 'google')
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: createMockUserId(),
+        isNewUser: true,
+      })
+      vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+
+      const result = await useCase.execute(dto, auditContext)
+
+      expect(result.expiresInSeconds).toBe(604800)
+    })
+
+    it('should set expiresAt to a future date approximately expiresInSeconds seconds from now', async () => {
+      ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 3600
+      const dto = new RegisterUserDto('john@example.com', 'John', 'user', undefined, 'google')
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: createMockUserId(),
+        isNewUser: true,
+      })
+      vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+
+      const beforeExecute = Date.now()
+      await useCase.execute(dto, auditContext)
+      const afterExecute = Date.now()
+
+      const createCall = vi.mocked(mockRefreshTokenRepository.create).mock.calls[0][0]
+      const expiresAtMs = createCall.expiresAt.getTime()
+      expect(expiresAtMs).toBeGreaterThanOrEqual(beforeExecute + 3600 * 1000)
+      expect(expiresAtMs).toBeLessThanOrEqual(afterExecute + 3600 * 1000 + 1000)
+    })
+  })
+
+  describe('refresh token storage failure', () => {
+    it('should log error with correct message and context when create throws', async () => {
+      const dto = new RegisterUserDto('john@example.com', 'John', 'user', undefined, 'google')
+      const mockUserId = createMockUserId()
+      const storageError = new Error('DB write failed')
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: mockUserId,
+        isNewUser: true,
+      })
+      vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+      vi.mocked(mockRefreshTokenRepository.create).mockRejectedValue(storageError)
+
+      await expect(useCase.execute(dto, auditContext)).rejects.toThrow()
+
+      expect(mockLogger.error).toHaveBeenCalledWith('Failed to store refresh token', storageError, {
+        event: 'token.store.failed',
+        userId: mockUserId,
+      })
+    })
+
+    it('should log audit entry with reason refresh_token_storage_failed when create throws', async () => {
+      const dto = new RegisterUserDto('john@example.com', 'John', 'user', undefined, 'google')
+      const storageError = new Error('DB write failed')
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: createMockUserId(),
+        isNewUser: true,
+      })
+      vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+      vi.mocked(mockRefreshTokenRepository.create).mockRejectedValue(storageError)
+
+      await expect(useCase.execute(dto, auditContext)).rejects.toThrow()
+
+      // The last audit log call should be the failure entry
+      const allCalls = vi.mocked(mockAuditLog.log).mock.calls
+      const failureAuditCall = allCalls[allCalls.length - 1][0]
+      expect(failureAuditCall.changes).toEqual({ reason: 'refresh_token_storage_failed' })
+      expect(failureAuditCall.action).toBe(AuditAction.TOKEN_ISSUED)
+    })
+
+    it('should include ipAddress in failure audit entry when create throws', async () => {
+      const dto = new RegisterUserDto('john@example.com', 'John', 'user', undefined, 'google')
+      const storageError = new Error('DB write failed')
+      const contextWithIp = { userId: null, ipAddress: '10.20.30.40', userAgent: 'agent' }
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: createMockUserId(),
+        isNewUser: true,
+      })
+      vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+      vi.mocked(mockRefreshTokenRepository.create).mockRejectedValue(storageError)
+
+      await expect(useCase.execute(dto, contextWithIp)).rejects.toThrow()
+
+      const allCalls = vi.mocked(mockAuditLog.log).mock.calls
+      const failureAuditCall = allCalls[allCalls.length - 1][0]
+      expect(failureAuditCall.ipAddress).toBe('10.20.30.40')
+    })
+
+    it('should throw InternalErrorException with "Failed to store refresh token" when create throws', async () => {
+      const dto = new RegisterUserDto('john@example.com', 'John', 'user', undefined, 'google')
+      const storageError = new Error('DB write failed')
+
+      vi.mocked(mockUserRepository.saveProvider).mockResolvedValue({
+        userId: createMockUserId(),
+        isNewUser: true,
+      })
+      vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+      vi.mocked(mockRefreshTokenRepository.create).mockRejectedValue(storageError)
+
+      let thrownError: unknown
+      try {
+        await useCase.execute(dto, auditContext)
+        throw new Error('Expected useCase.execute to throw')
+      } catch (error) {
+        thrownError = error
+      }
+
+      expect(thrownError).toBeInstanceOf(InternalErrorException)
+      expect((thrownError as Error).message).toBe('Failed to store refresh token')
     })
   })
 })

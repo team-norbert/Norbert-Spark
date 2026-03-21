@@ -56,11 +56,11 @@ test.describe('Admin Page - Delete Users', () => {
 
     // Verify the delete button is enabled
     const deleteButton = page.getByTestId('delete-users-button')
-    await expect(deleteButton).toBeEnabled()
-    await expect(deleteButton).toContainText('Delete Users (1)')
+    await expect(deleteButton.last()).toBeEnabled()
+    await expect(deleteButton.last()).toContainText('Delete Users (1)')
 
     // Step 4: Click the delete users button
-    await deleteButton.click()
+    await deleteButton.last().click()
 
     // Verify the confirmation dialog appears
     await expect(page.getByText('Confirm Delete')).toBeVisible()

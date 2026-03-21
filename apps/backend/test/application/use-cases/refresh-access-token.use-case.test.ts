@@ -17,6 +17,8 @@ import { RefreshToken } from '../../../src/domain/value-objects/refreshToken.js'
 import { Role } from '../../../src/domain/value-objects/role.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { Uuid, type UUIDType } from '../../../src/domain/value-objects/uuid.js'
+import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
+import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
 import { UnauthorizedException } from '../../../src/shared/exceptions/unauthorized.exception.js'
 import { createMockLogger } from '../../shared/factories/logger.factory.js'
 
@@ -640,6 +642,316 @@ describe('RefreshAccessTokenUseCase', () => {
         await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow(
           'Token generation failed'
         )
+      })
+    })
+
+    describe('replay attack - audit context ip handling', () => {
+      it('should include ipAddress in replay detection audit entry', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockRecord = createMockTokenRecord({ isRevoked: true })
+        const contextWithIp: AuditContext = {
+          userId: null,
+          ipAddress: '10.0.0.1',
+          userAgent: 'test-agent',
+        }
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+
+        await expect(useCase.execute(rawToken, contextWithIp)).rejects.toThrow()
+
+        const replayAuditCall = vi.mocked(mockAuditLog.log).mock.calls[0][0]
+        expect(replayAuditCall.ipAddress).toBe('10.0.0.1')
+      })
+
+      it('should include ipAddress in family revocation success audit entry', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockRecord = createMockTokenRecord({ isRevoked: true })
+        const contextWithIp: AuditContext = {
+          userId: null,
+          ipAddress: '10.0.0.1',
+          userAgent: 'test-agent',
+        }
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+
+        await expect(useCase.execute(rawToken, contextWithIp)).rejects.toThrow()
+
+        const familyRevocationAuditCall = vi.mocked(mockAuditLog.log).mock.calls[1][0]
+        expect(familyRevocationAuditCall.ipAddress).toBe('10.0.0.1')
+      })
+
+      it('should convert null ipAddress to undefined in replay detection audit entry', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockRecord = createMockTokenRecord({ isRevoked: true })
+        const contextWithNoIp: AuditContext = {
+          userId: null,
+          ipAddress: null,
+          userAgent: 'test-agent',
+        }
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+
+        await expect(useCase.execute(rawToken, contextWithNoIp)).rejects.toThrow()
+
+        const replayAuditCall = vi.mocked(mockAuditLog.log).mock.calls[0][0]
+        expect(replayAuditCall.ipAddress).toBeUndefined()
+      })
+    })
+
+    describe('replay attack - revokeFamily failure', () => {
+      it('should log error with correct message and context when revokeFamily throws', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const userId = createUserId()
+        const tokenFamily = createUUID()
+        const mockRecord = createMockTokenRecord({ isRevoked: true, userId, tokenFamily })
+        const revokeFamilyError = new Error('DB error during revokeFamily')
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockRefreshTokenRepo.revokeFamily).mockRejectedValue(revokeFamilyError)
+
+        await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow()
+
+        expect(mockLogger.error).toHaveBeenNthCalledWith(
+          1,
+          'Failed to revoke refresh token family after replay attack',
+          revokeFamilyError,
+          {
+            event: 'token.family_revoke.failed',
+            userId,
+            tokenFamily,
+          }
+        )
+      })
+
+      it('should log failure audit entry with reason refresh_family_revoke_failed when revokeFamily throws', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockRecord = createMockTokenRecord({ isRevoked: true })
+        const revokeFamilyError = new Error('DB error')
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockRefreshTokenRepo.revokeFamily).mockRejectedValue(revokeFamilyError)
+
+        await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow()
+
+        expect(mockAuditLog.log).toHaveBeenCalledTimes(2)
+        const failureAuditCall = vi.mocked(mockAuditLog.log).mock.calls[1][0]
+        expect(failureAuditCall.changes).toEqual({ reason: 'refresh_family_revoke_failed' })
+        expect(failureAuditCall.action).toBe(AuditAction.REFRESH_FAMILY_REVOKED)
+      })
+
+      it('should include ipAddress in failure audit entry when revokeFamily throws', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockRecord = createMockTokenRecord({ isRevoked: true })
+        const revokeFamilyError = new Error('DB error')
+        const contextWithIp: AuditContext = {
+          userId: null,
+          ipAddress: '192.168.1.100',
+          userAgent: 'test-agent',
+        }
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockRefreshTokenRepo.revokeFamily).mockRejectedValue(revokeFamilyError)
+
+        await expect(useCase.execute(rawToken, contextWithIp)).rejects.toThrow()
+
+        const failureAuditCall = vi.mocked(mockAuditLog.log).mock.calls[1][0]
+        expect(failureAuditCall.ipAddress).toBe('192.168.1.100')
+      })
+
+      it('should throw UnauthorizedException with "Refresh token has been revoked" when revokeFamily throws', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockRecord = createMockTokenRecord({ isRevoked: true })
+        const revokeFamilyError = new Error('DB error')
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockRefreshTokenRepo.revokeFamily).mockRejectedValue(revokeFamilyError)
+
+        await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow(
+          'Refresh token has been revoked'
+        )
+      })
+
+      it('should throw UnauthorizedException (not a generic Error) when revokeFamily throws', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockRecord = createMockTokenRecord({ isRevoked: true })
+        const revokeFamilyError = new Error('DB error')
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockRefreshTokenRepo.revokeFamily).mockRejectedValue(revokeFamilyError)
+
+        await expect(useCase.execute(rawToken, auditContext)).rejects.toBeInstanceOf(
+          UnauthorizedException
+        )
+      })
+    })
+
+    describe('expiration boundary conditions', () => {
+      let originalExpiration: unknown
+
+      beforeEach(() => {
+        originalExpiration = EnvConfig.REFRESH_TOKEN_EXPIRATION
+      })
+
+      afterEach(() => {
+        ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = originalExpiration
+      })
+
+      it('should use configured expiration when REFRESH_TOKEN_EXPIRATION is a positive number', async () => {
+        ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 3600
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockUser = await createMockUser()
+        const mockRecord = createMockTokenRecord({ userId: mockUser.id as UserIdType })
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockUserRepo.findById).mockResolvedValue(mockUser)
+
+        const result = await useCase.execute(rawToken, auditContext)
+
+        expect(result.expiresInSeconds).toBe(3600)
+      })
+
+      it('should use fallback value 604800 when REFRESH_TOKEN_EXPIRATION is 0', async () => {
+        ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 0
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockUser = await createMockUser()
+        const mockRecord = createMockTokenRecord({ userId: mockUser.id as UserIdType })
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockUserRepo.findById).mockResolvedValue(mockUser)
+
+        const result = await useCase.execute(rawToken, auditContext)
+
+        expect(result.expiresInSeconds).toBe(604800)
+      })
+
+      it('should use fallback value 604800 when REFRESH_TOKEN_EXPIRATION is not a finite number', async () => {
+        ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 'not-a-number'
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockUser = await createMockUser()
+        const mockRecord = createMockTokenRecord({ userId: mockUser.id as UserIdType })
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockUserRepo.findById).mockResolvedValue(mockUser)
+
+        const result = await useCase.execute(rawToken, auditContext)
+
+        expect(result.expiresInSeconds).toBe(604800)
+      })
+
+      it('should set expiresAt to a future date approximately expiresInSeconds seconds from now', async () => {
+        ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 3600
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockUser = await createMockUser()
+        const mockRecord = createMockTokenRecord({ userId: mockUser.id as UserIdType })
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockUserRepo.findById).mockResolvedValue(mockUser)
+
+        const beforeExecute = Date.now()
+        await useCase.execute(rawToken, auditContext)
+        const afterExecute = Date.now()
+
+        const createCall = vi.mocked(mockRefreshTokenRepo.create).mock.calls[0][0]
+        const expiresAtMs = createCall.expiresAt.getTime()
+        expect(expiresAtMs).toBeGreaterThanOrEqual(beforeExecute + 3600 * 1000)
+        expect(expiresAtMs).toBeLessThanOrEqual(afterExecute + 3600 * 1000 + 1000)
+      })
+    })
+
+    describe('refresh token storage failure', () => {
+      it('should log error with correct message and context when refresh token storage fails', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockUser = await createMockUser()
+        const mockRecord = createMockTokenRecord({ userId: mockUser.id as UserIdType })
+        const storageError = new Error('Failed to write to database')
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockUserRepo.findById).mockResolvedValue(mockUser)
+        vi.mocked(mockRefreshTokenRepo.create).mockRejectedValue(storageError)
+
+        await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow()
+
+        expect(mockLogger.error).toHaveBeenNthCalledWith(
+          1,
+          'Failed to store refresh token',
+          storageError,
+          {
+            event: 'token.store.failed',
+            userId: mockUser.id,
+          }
+        )
+      })
+
+      it('should log audit entry with reason refresh_token_storage_failed when storage fails', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockUser = await createMockUser()
+        const mockRecord = createMockTokenRecord({ userId: mockUser.id as UserIdType })
+        const storageError = new Error('Storage error')
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockUserRepo.findById).mockResolvedValue(mockUser)
+        vi.mocked(mockRefreshTokenRepo.create).mockRejectedValue(storageError)
+
+        await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow()
+
+        expect(mockAuditLog.log).toHaveBeenCalledTimes(1)
+        const failureAuditCall = vi.mocked(mockAuditLog.log).mock.calls[0][0]
+        expect(failureAuditCall.changes).toEqual({ reason: 'refresh_token_storage_failed' })
+        expect(failureAuditCall.action).toBe(AuditAction.TOKEN_REFRESHED)
+      })
+
+      it('should include ipAddress in storage failure audit entry', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockUser = await createMockUser()
+        const mockRecord = createMockTokenRecord({ userId: mockUser.id as UserIdType })
+        const storageError = new Error('Storage error')
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockUserRepo.findById).mockResolvedValue(mockUser)
+        vi.mocked(mockRefreshTokenRepo.create).mockRejectedValue(storageError)
+
+        await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow()
+
+        const failureAuditCall = vi.mocked(mockAuditLog.log).mock.calls[0][0]
+        expect(failureAuditCall.ipAddress).toBe('127.0.0.1')
+      })
+
+      it('should throw InternalErrorException with message "Failed to store refresh token"', async () => {
+        const mockToken = RefreshToken.generate()
+        const rawToken = mockToken.getRawToken()
+        const mockUser = await createMockUser()
+        const mockRecord = createMockTokenRecord({ userId: mockUser.id as UserIdType })
+        const storageError = new Error('Storage error')
+
+        vi.mocked(mockRefreshTokenRepo.findByHash).mockResolvedValue(mockRecord)
+        vi.mocked(mockUserRepo.findById).mockResolvedValue(mockUser)
+        vi.mocked(mockRefreshTokenRepo.create).mockRejectedValue(storageError)
+
+        let error: unknown
+        try {
+          await useCase.execute(rawToken, auditContext)
+          throw new Error('Expected useCase.execute to throw')
+        } catch (err) {
+          error = err
+        }
+
+        expect(error).toBeInstanceOf(InternalErrorException)
+        expect((error as InternalErrorException).message).toBe('Failed to store refresh token')
       })
     })
   })
