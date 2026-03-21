@@ -564,5 +564,172 @@ describe('ExtractDataUseCase', () => {
         )
       })
     })
+
+    describe('magic byte near-miss boundary tests', () => {
+      // Kills mutant 3549: buffer.length <= 4 instead of < 4
+      it('should accept a buffer of exactly 4 bytes with valid PDF magic bytes', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'file.pdf')
+        const exactFourBytes = new Uint8Array([0x25, 0x50, 0x44, 0x46])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(exactFourBytes)
+
+        const result = await useCase.execute(dto, auditContext)
+
+        expect(result.fileType).toBe('pdf')
+      })
+
+      // Kills mutants 3555, 3556, 3558, 3559, 3560: byte 0 of PDF signature wrong
+      it('should reject buffer where only bytes 1–3 match PDF signature (byte 0 differs)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'file.pdf')
+        const buffer = new Uint8Array([0x00, 0x50, 0x44, 0x46, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutants 3556, 3562: byte 1 of PDF signature wrong
+      it('should reject buffer where only bytes 0, 2, 3 match PDF signature (byte 1 differs)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'file.pdf')
+        const buffer = new Uint8Array([0x25, 0x00, 0x44, 0x46, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutants 3556, 3564: byte 2 of PDF signature wrong
+      it('should reject buffer where only bytes 0, 1, 3 match PDF signature (byte 2 differs)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'file.pdf')
+        const buffer = new Uint8Array([0x25, 0x50, 0x00, 0x46, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutants 3555, 3566: byte 3 of PDF signature wrong
+      it('should reject buffer where only bytes 0, 1, 2 match PDF signature (byte 3 differs)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'file.pdf')
+        const buffer = new Uint8Array([0x25, 0x50, 0x44, 0x00, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutants 3557, 3558, 3560: only bytes 2 and 3 match PDF signature
+      it('should reject buffer where only bytes 2 and 3 match PDF signature', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'file.pdf')
+        const buffer = new Uint8Array([0x00, 0x00, 0x44, 0x46, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutants 3570, 3572, 3573: ZIP byte 0 wrong (0x25 instead of 0x50)
+      it('should reject buffer where byte 1 matches ZIP PK but byte 0 does not (0x25 0x4b)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'archive.zip')
+        const buffer = new Uint8Array([0x25, 0x4b, 0x03, 0x04, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutants 3570, 3572, 3575: ZIP byte 1 wrong (0x00 instead of 0x4b)
+      it('should reject buffer where byte 0 matches ZIP PK but byte 1 does not (0x50 0x00)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'archive.zip')
+        const buffer = new Uint8Array([0x50, 0x00, 0x03, 0x04, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutants 3584, 3587: ZIP first inner variant with wrong byte 3 (0x03 0x05)
+      it('should reject ZIP header where byte 3 mismatches first inner variant (0x03 0x05)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'archive.zip')
+        const buffer = new Uint8Array([0x50, 0x4b, 0x03, 0x05, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutant 3585: ZIP first inner variant with wrong byte 2 (0x00 0x04)
+      it('should reject ZIP header where byte 2 mismatches first inner variant (0x00 0x04)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'archive.zip')
+        const buffer = new Uint8Array([0x50, 0x4b, 0x00, 0x04, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutants 3590, 3593: ZIP second inner variant with wrong byte 3 (0x05 0x07)
+      it('should reject ZIP header where byte 3 mismatches second inner variant (0x05 0x07)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'archive.zip')
+        const buffer = new Uint8Array([0x50, 0x4b, 0x05, 0x07, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutant 3591: ZIP second inner variant with wrong byte 2 (0x00 0x06)
+      it('should reject ZIP header where byte 2 mismatches second inner variant (0x00 0x06)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'archive.zip')
+        const buffer = new Uint8Array([0x50, 0x4b, 0x00, 0x06, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutants 3596, 3599: ZIP third inner variant with wrong byte 3 (0x07 0x09)
+      it('should reject ZIP header where byte 3 mismatches third inner variant (0x07 0x09)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'archive.zip')
+        const buffer = new Uint8Array([0x50, 0x4b, 0x07, 0x09, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutant 3597: ZIP third inner variant with wrong byte 2 (0x00 0x08)
+      it('should reject ZIP header where byte 2 mismatches third inner variant (0x00 0x08)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'archive.zip')
+        const buffer = new Uint8Array([0x50, 0x4b, 0x00, 0x08, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+
+      // Kills mutant 3599: ZIP third inner variant with wrong byte 3 (0x07 0x00)
+      it('should reject ZIP header where byte 3 mismatches third inner variant (0x07 0x00)', async () => {
+        const dto = new ExtractDataDto('test-bucket', 'archive.zip')
+        const buffer = new Uint8Array([0x50, 0x4b, 0x07, 0x00, ...Array(10).fill(0)])
+        vi.mocked(mockBucketService.getFileUrl).mockResolvedValue(buffer)
+
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid file type. Only PDF and ZIP files are supported.'
+        )
+      })
+    })
   })
 })
