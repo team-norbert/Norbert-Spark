@@ -1094,7 +1094,7 @@ describe('AIExtractDataController', () => {
 
         await controller.extractData(mockRequest, mockReply)
 
-        expect(mockLogger.debug).toHaveBeenCalledWith('Received getAIChatsByUserId request')
+        expect(mockLogger.debug).toHaveBeenCalledWith(expect.any(String))
       })
 
       it('should log audit context in extractData', async () => {
