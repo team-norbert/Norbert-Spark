@@ -482,9 +482,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       const host = String(EnvConfig.HOST)
       const isDevelopment = EnvConfig.NODE_ENV !== 'production'
       const useHttps = isDevelopment && String(EnvConfig.USE_HTTPS) === 'true'
+      const APP_NAME = EnvConfig.APPLICATION_NAME
 
       await this.app.listen({ port, host })
       const protocol = useHttps ? 'https' : 'http'
+      this.logger.info(`Server started successfully  ${APP_NAME}`)
       this.logger.info(`Server listening on ${protocol}://${host}:${port}`)
       this.logger.info(`📚 API Documentation: ${protocol}://${host}:${port}/docs`)
     } catch (error) {

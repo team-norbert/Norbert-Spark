@@ -19,6 +19,7 @@ COPY packages/shared ./packages/shared
 COPY apps/backend/src ./apps/backend/src
 COPY apps/backend/tsconfig.json ./apps/backend/
 COPY apps/backend/eslint.config.ts ./apps/backend/
+COPY apps/backend/.env.schema ./apps/backend/
 
 RUN pnpm --filter @norberts-spark/shared build && \
     pnpm --filter @norberts-spark/backend build && \
@@ -54,6 +55,7 @@ RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
+COPY --from=builder /app/apps/backend/.env.schema ./apps/backend/
 
 RUN mkdir -p ./apps/backend/certs
 RUN chown -R node:node /app

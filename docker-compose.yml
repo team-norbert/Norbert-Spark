@@ -22,9 +22,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-norbertsSpark}
-      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_GB.UTF-8}
+      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_US.UTF-8}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./apps/backend/init-scripts:/docker-entrypoint-initdb.d:ro
       - ./apps/backend/postgres-config/postgresql.conf:/etc/postgresql.conf:ro
       - postgres_wal:/var/lib/postgresql/wal_archive
@@ -37,29 +37,96 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-  redis:
-    image: redis:8.6.1-trixie
-    container_name: norbertsSpark-redis
+
+  app:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      args:
+        APP_VERSION: 0.1.2
+    image: norberts-spark-backend:0.1.2
+    container_name: norbertsSpark-backend-1
     restart: unless-stopped
     networks:
       - norbertsSpark-network
     ports:
-      - '6379:6379'
-    volumes:
-      - ./infrastructure/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf:ro
-      - redis_data:/data
+      - '3001:3001'
+    env_file:
+      - ./apps/backend/.env.prod
     environment:
-      # Default password is for local development only — set REDIS_PASSWORD to a strong value in production
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
-      # REDISCLI_AUTH lets redis-cli pick up the password without exposing it on the command line
-      REDISCLI_AUTH: ${REDIS_PASSWORD:-changeme}
-    command: [ "redis-server", "/usr/local/etc/redis/redis.conf", "--requirepass", "${REDIS_PASSWORD:-changeme}" ]
+      APPLICATION_NAME: norbertsSpark-backend-1
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3001
     healthcheck:
-      test: [ "CMD-SHELL", "redis-cli --no-auth-warning PING" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      test: ['CMD-SHELL', 'curl -f http://localhost:3001/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app2:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      args:
+        APP_VERSION: 0.1.2
+    image: norberts-spark-backend:0.1.2
+    container_name: norbertsSpark-backend-2
+    restart: unless-stopped
+    networks:
+      - norbertsSpark-network
+    ports:
+      - '3002:3001'
+    env_file:
+      - ./apps/backend/.env.prod
+    environment:
+      APPLICATION_NAME: norbertsSpark-backend-2
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3001
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3001/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app3:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      args:
+        APP_VERSION: 0.1.2
+    image: norberts-spark-backend:0.1.2
+    container_name: norbertsSpark-backend-3
+    restart: unless-stopped
+    networks:
+      - norbertsSpark-network
+    ports:
+      - '3003:3001'
+    env_file:
+      - ./apps/backend/.env.prod
+    environment:
+      APPLICATION_NAME: norbertsSpark-backend-3
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3001
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3001/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 networks:
   norbertsSpark-network:
@@ -69,6 +136,4 @@ volumes:
   postgres_data:
     driver: local
   postgres_wal:
-    driver: local
-  redis_data:
     driver: local

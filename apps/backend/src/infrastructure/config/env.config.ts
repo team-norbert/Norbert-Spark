@@ -62,6 +62,7 @@ export class EnvConfig {
   static readonly SERVICE_NAME = ENV.SERVICE_NAME || 'norberts-spark-backend'
   static readonly APP_VERSION = version
   static readonly REDIS_URL = obscured.make(ENV.REDIS_URL)
+  static readonly APPLICATION_NAME = ENV.APPLICATION_NAME || 'Norberts Spark Backend'
   private static parseBooleanEnv(value: unknown, defaultValue: boolean): boolean {
     if (typeof value === 'boolean') {
       return value
