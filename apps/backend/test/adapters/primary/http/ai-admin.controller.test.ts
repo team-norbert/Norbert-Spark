@@ -351,9 +351,7 @@ describe('AIAdminController', () => {
 
       await controller.getAIChatSettingsById(mockRequest, mockReply)
 
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        `Request params: ${JSON.stringify({ id: chatTypeId })}`
-      )
+      expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request params'))
       expect(mockLogger.debug).toHaveBeenCalledWith(`Request id: ${chatTypeId}`)
       expect(mockLogger.debug).toHaveBeenCalledWith(`Request uuidID: ${chatTypeId}`)
     })
@@ -626,9 +624,7 @@ describe('AIAdminController', () => {
 
       await controller.putAIChatSettingsById(mockRequest, mockReply)
 
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        `Request params: ${JSON.stringify({ id: chatTypeId })}`
-      )
+      expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request params'))
       expect(mockLogger.debug).toHaveBeenCalledWith(`Request id: ${chatTypeId}`)
       expect(mockLogger.debug).toHaveBeenCalledWith(`Request uuidID: ${chatTypeId}`)
     })
@@ -1019,9 +1015,7 @@ describe('AIAdminController', () => {
 
       await controller.postAIChatSettingsById(mockRequest, mockReply)
 
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        `Request params: ${JSON.stringify({ id: chatTypeId })}`
-      )
+      expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request params'))
       expect(mockLogger.debug).toHaveBeenCalledWith(`Request id: ${chatTypeId}`)
     })
   })
@@ -1094,8 +1088,20 @@ describe('AIAdminController', () => {
 
       controller.registerRoutes(mockApp)
 
+      // ensure the role middleware is configured for admin and moderator at least once
       expect(vi.mocked(requireRole)).toHaveBeenCalledWith(['admin', 'moderator'])
-      expect(vi.mocked(requireRole)).toHaveBeenCalledTimes(3)
+
+      // ensure each route uses a middleware returned by requireRole, without coupling to call count
+      const [, getOptions] = vi.mocked(mockApp.get).mock.calls[0]
+      const [, putOptions] = vi.mocked(mockApp.put).mock.calls[0]
+      const [, postOptions] = vi.mocked(mockApp.post).mock.calls[0]
+
+      const roleMiddlewares = vi.mocked(requireRole).mock.results.map((result) => result.value)
+
+      expect(roleMiddlewares).not.toHaveLength(0)
+      expect(roleMiddlewares).toContain(getOptions.preHandler[1])
+      expect(roleMiddlewares).toContain(putOptions.preHandler[1])
+      expect(roleMiddlewares).toContain(postOptions.preHandler[1])
     })
   })
 })

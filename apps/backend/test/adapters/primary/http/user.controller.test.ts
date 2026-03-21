@@ -13,7 +13,6 @@ import { RegisterUserUseCase } from '../../../../src/application/use-cases/regis
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { EnvConfig } from '../../../../src/infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../../src/infrastructure/http/middleware/auth.middleware.js'
-import { requireRole } from '../../../../src/infrastructure/http/middleware/role.middleware.js'
 import { HttpStatus } from '../../../../src/shared/constants/http-status.js'
 import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
 import { ConflictException } from '../../../../src/shared/exceptions/conflict.exception.js'
@@ -2173,8 +2172,8 @@ describe('UserController', () => {
 
       controller.registerRoutes(mockApp)
 
-      // GET /users is the first get call
-      const getUsersCall = vi.mocked(mockApp.get).mock.calls[0]
+      // Find GET /users by matching path rather than relying on call order
+      const getUsersCall = vi.mocked(mockApp.get).mock.calls.find((call) => call[0] === '/users')
       expect(getUsersCall?.[0]).toBe('/users')
       const options = getUsersCall?.[1] as any
       expect(options).toHaveProperty('preHandler')
@@ -2193,8 +2192,10 @@ describe('UserController', () => {
 
       controller.registerRoutes(mockApp)
 
-      // GET /users/:id is the second get call
-      const getUserByIdCall = vi.mocked(mockApp.get).mock.calls[1]
+      // Find GET /users/:id by matching path rather than relying on call order
+      const getUserByIdCall = vi
+        .mocked(mockApp.get)
+        .mock.calls.find((call) => call[0] === '/users/:id')
       expect(getUserByIdCall?.[0]).toBe('/users/:id')
       const options = getUserByIdCall?.[1] as any
       expect(options).toHaveProperty('preHandler')
