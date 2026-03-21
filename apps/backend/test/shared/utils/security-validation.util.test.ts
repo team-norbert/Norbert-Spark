@@ -470,17 +470,10 @@ describe('Security Validation Utilities', () => {
       )
     })
 
-    it('should throw with user-supplied path in error for outside-base paths', () => {
-      // Reach the second guard: a path with no TRAVERSAL_PATTERN hit but
-      // that resolves outside after normalization.
-      // We can trigger this by giving a path to the base dir's sibling via
-      // a clean relative path that doesn't match our patterns.
-      // Actually validatePathWithinBase calls path.resolve(baseDir, normalizedPath)
-      // which can never go above baseDir unless userPath tricks normalize.
-      // The only reliable way to hit line 82 branch in a pure unit test is to
-      // pass a path that path.relative detects as going up.
-      // Since userPath with '..' is blocked early we verify the second guard
-      // by confirming normal paths still return correctly (line 84 template literal).
+    it('should resolve a normal in-base path successfully', () => {
+      // This test documents the successful behavior for a standard, in-base relative path.
+      // It ensures that valid paths that do not match traversal patterns are resolved
+      // correctly under the configured base directory.
       const result = validatePathWithinBase('sub/file.txt', baseDir)
       expect(result).toBe('/app/data/sub/file.txt')
     })
