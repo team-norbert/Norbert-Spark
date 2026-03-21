@@ -24,7 +24,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-norbertsSpark}
       POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_US.UTF-8}
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data
       - ./apps/backend/init-scripts:/docker-entrypoint-initdb.d:ro
       - ./apps/backend/postgres-config/postgresql.conf:/etc/postgresql.conf:ro
       - postgres_wal:/var/lib/postgresql/wal_archive
@@ -49,8 +49,6 @@ services:
     restart: unless-stopped
     networks:
       - norbertsSpark-network
-    ports:
-      - '3001:3001'
     env_file:
       - ./apps/backend/.env.prod
     environment:
@@ -79,8 +77,6 @@ services:
     restart: unless-stopped
     networks:
       - norbertsSpark-network
-    ports:
-      - '3002:3001'
     env_file:
       - ./apps/backend/.env.prod
     environment:
@@ -109,8 +105,6 @@ services:
     restart: unless-stopped
     networks:
       - norbertsSpark-network
-    ports:
-      - '3003:3001'
     env_file:
       - ./apps/backend/.env.prod
     environment:
@@ -127,6 +121,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: norbertsSpark-nginx
+    restart: unless-stopped
+    networks:
+      - norbertsSpark-network
+    ports:
+      - '80:80'
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+      - app2
+      - app3
 
 networks:
   norbertsSpark-network:

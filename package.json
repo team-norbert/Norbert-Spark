@@ -21,8 +21,8 @@
     "docker:build": "docker build --build-arg APP_VERSION=0.1.2 -t norberts-spark-backend:0.1.2 -f apps/backend/Dockerfile .",
     "docker:db": "docker-compose up -d postgres",
     "docker:db:stop": "docker-compose down",
-    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
-    "docker:prod:stop": "docker-compose -f docker-compose.prod.yml down"
+    "docker:prod": "docker-compose up -d",
+    "docker:prod:stop": "docker-compose down"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
