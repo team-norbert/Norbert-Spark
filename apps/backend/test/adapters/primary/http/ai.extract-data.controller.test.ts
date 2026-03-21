@@ -1,3 +1,4 @@
+import { streamText } from 'ai'
 import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { uuidv7 } from 'uuidv7'
@@ -20,11 +21,33 @@ vi.mock('../../../../src/shared/utils/security-validation.util.js', () => ({
   sanitizeFilename: vi.fn(),
   validateFileExtension: vi.fn(),
   validateMimeType: vi.fn(),
+  hasZIPSignature: vi.fn(),
 }))
 
 // Mock auth middleware
 vi.mock('../../../../src/infrastructure/http/middleware/auth.middleware.js', () => ({
   authMiddleware: vi.fn((_request, _reply, done) => done()),
+}))
+
+// Mock AI SDK
+vi.mock('ai', () => ({
+  streamText: vi.fn(),
+  Output: {
+    object: vi.fn().mockReturnValue({}),
+  },
+}))
+
+vi.mock('@ai-sdk/google', () => ({
+  google: vi.fn().mockReturnValue('mock-model'),
+}))
+
+// Mock EnvConfig
+vi.mock('../../../../src/infrastructure/config/env.config.js', () => ({
+  EnvConfig: {
+    BUCKET: 'test-bucket',
+    MODEL_NAME: 'gemini-pro',
+    SENTRY_ENABLED: false,
+  },
 }))
 
 // Helper to set up default mock implementations
@@ -107,6 +130,11 @@ describe('AIExtractDataController', () => {
       status: vi.fn().mockReturnThis(),
       send: vi.fn().mockReturnThis(),
       code: vi.fn().mockReturnThis(),
+      raw: {
+        setHeader: vi.fn(),
+        write: vi.fn(),
+        end: vi.fn(),
+      },
     } as any
 
     // Create mock Fastify request
@@ -890,6 +918,373 @@ describe('AIExtractDataController', () => {
         await controller.generatePresignedUrls(mockRequest, mockReply)
 
         expect(mockReply.status).toHaveBeenCalledWith(200)
+      })
+
+      it('should restore original filename in response when sanitization changes it', async () => {
+        // Mock sanitizeFilename to change the filename (e.g. space → underscore)
+        vi.mocked(sanitizeFilename).mockImplementation((filename: string) => {
+          return filename.replace(/ /g, '_')
+        })
+
+        const sanitizedFilename = 'my_document.pdf'
+        const mockResult = {
+          uploadUrls: [
+            {
+              filename: sanitizedFilename,
+              uploadUrl: 'https://r2.example.com/presigned-url',
+              fileKey: `data-extraction/uuid/${sanitizedFilename}`,
+            },
+          ],
+        }
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
+
+        mockRequest.body = {
+          files: [{ filename: 'my document.pdf', mimetype: 'application/pdf' }],
+        }
+
+        await controller.generatePresignedUrls(mockRequest, mockReply)
+
+        // The response should contain the original filename (before sanitization)
+        expect(mockReply.status).toHaveBeenCalledWith(200)
+        const sendArg = vi.mocked(mockReply.send).mock.calls[0][0]
+        expect(sendArg.data.uploadUrls[0].filename).toBe('my document.pdf')
+      })
+
+      it('should use data-extraction as default flow when flow is not provided', async () => {
+        const mockResult = {
+          uploadUrls: [
+            {
+              filename: 'document.pdf',
+              uploadUrl: 'https://r2.example.com/presigned-url',
+              fileKey: 'data-extraction/uuid/document.pdf',
+            },
+          ],
+        }
+        vi.mocked(mockPresignedUploadUrlUseCase.execute).mockResolvedValue(mockResult)
+
+        // No flow property in the file object
+        mockRequest.body = {
+          files: [{ filename: 'document.pdf', mimetype: 'application/pdf' }],
+        }
+
+        await controller.generatePresignedUrls(mockRequest, mockReply)
+
+        expect(mockPresignedUploadUrlUseCase.execute).toHaveBeenCalledWith(
+          expect.any(Array),
+          expect.any(Object),
+          'data-extraction'
+        )
+      })
+    })
+  })
+
+  describe('registerRoutes() - GET route', () => {
+    it('should register GET /ai/extract-data/:fileId route', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      expect(mockApp.get).toHaveBeenCalledTimes(1)
+      expect(mockApp.get).toHaveBeenCalledWith(
+        '/ai/extract-data/:fileId',
+        expect.objectContaining({ preHandler: expect.any(Array) }),
+        expect.any(Function)
+      )
+    })
+
+    it('should register GET route with auth middleware in preHandler', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      const routeOptions = (mockApp.get as any).mock.calls[0][1]
+      expect(routeOptions.preHandler).toBeDefined()
+      expect(Array.isArray(routeOptions.preHandler)).toBe(true)
+      expect(routeOptions.preHandler.length).toBeGreaterThan(0)
+    })
+
+    it('should bind extractData handler to controller context', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      const handler = (mockApp.get as any).mock.calls[0][2]
+      expect(typeof handler).toBe('function')
+    })
+  })
+
+  describe('extractData()', () => {
+    function makeStreamTextMock(chunks: string[]) {
+      const textStream = (async function* () {
+        for (const chunk of chunks) {
+          yield chunk
+        }
+      })()
+      return { textStream }
+    }
+
+    describe('PDF file extraction', () => {
+      it('should stream extracted text for a PDF file and call raw.end()', async () => {
+        const mockBuffer = Buffer.from('%PDF-test')
+        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue({
+          buffer: mockBuffer,
+          fileType: 'pdf',
+        })
+        mockPdfUtils.validatePDF = vi.fn().mockResolvedValue(undefined)
+
+        vi.mocked(streamText).mockReturnValue(makeStreamTextMock(['Invoice data']) as any)
+
+        mockRequest.params = { fileId: 'invoices/invoice.pdf' }
+
+        await controller.extractData(mockRequest, mockReply)
+
+        expect(mockReply.raw.setHeader).toHaveBeenCalledWith(
+          'Content-Type',
+          'application/x-ndjson; charset=utf-8'
+        )
+        expect(mockReply.raw.setHeader).toHaveBeenCalledWith('Transfer-Encoding', 'chunked')
+        expect(mockReply.raw.write).toHaveBeenCalledWith(
+          expect.stringContaining('"fileName":"invoices/invoice.pdf"')
+        )
+        expect(mockReply.raw.write).toHaveBeenCalledWith(expect.stringContaining('"success":true'))
+        expect(mockReply.raw.end).toHaveBeenCalled()
+      })
+
+      it('should write correct NDJSON with extracted text for PDF', async () => {
+        const mockBuffer = Buffer.from('%PDF-test')
+        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue({
+          buffer: mockBuffer,
+          fileType: 'pdf',
+        })
+        mockPdfUtils.validatePDF = vi.fn().mockResolvedValue(undefined)
+        vi.mocked(streamText).mockReturnValue(makeStreamTextMock(['hello', ' world']) as any)
+
+        mockRequest.params = { fileId: 'doc.pdf' }
+
+        await controller.extractData(mockRequest, mockReply)
+
+        const writtenArgs = vi.mocked(mockReply.raw.write).mock.calls.map((c) => c[0] as string)
+        const ndjsonLine = writtenArgs.find((s) => s.includes('"data"'))
+        expect(ndjsonLine).toBeDefined()
+        const parsed = JSON.parse(ndjsonLine!.trim())
+        expect(parsed.fileName).toBe('doc.pdf')
+        expect(parsed.data).toBe('hello world')
+        expect(parsed.success).toBe(true)
+      })
+
+      it('should log debug message at start of extractData', async () => {
+        const mockBuffer = Buffer.from('%PDF-test')
+        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue({
+          buffer: mockBuffer,
+          fileType: 'pdf',
+        })
+        mockPdfUtils.validatePDF = vi.fn().mockResolvedValue(undefined)
+        vi.mocked(streamText).mockReturnValue(makeStreamTextMock([]) as any)
+
+        mockRequest.params = { fileId: 'doc.pdf' }
+
+        await controller.extractData(mockRequest, mockReply)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith(expect.any(String))
+      })
+
+      it('should log audit context in extractData', async () => {
+        const mockBuffer = Buffer.from('%PDF-test')
+        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue({
+          buffer: mockBuffer,
+          fileType: 'pdf',
+        })
+        mockPdfUtils.validatePDF = vi.fn().mockResolvedValue(undefined)
+        vi.mocked(streamText).mockReturnValue(makeStreamTextMock([]) as any)
+
+        mockRequest.params = { fileId: 'doc.pdf' }
+
+        await controller.extractData(mockRequest, mockReply)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith(
+          'Audit context for extractData',
+          expect.objectContaining({ userId: expect.anything(), ipAddress: expect.any(String) })
+        )
+      })
+
+      it('should handle PDF extraction error gracefully and stream error line', async () => {
+        const mockBuffer = Buffer.from('%PDF-test')
+        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue({
+          buffer: mockBuffer,
+          fileType: 'pdf',
+        })
+        mockPdfUtils.validatePDF = vi.fn().mockResolvedValue(undefined)
+        vi.mocked(streamText).mockImplementation(() => {
+          throw new Error('AI model error')
+        })
+
+        mockRequest.params = { fileId: 'doc.pdf' }
+
+        await controller.extractData(mockRequest, mockReply)
+
+        const writtenArgs = vi.mocked(mockReply.raw.write).mock.calls.map((c) => c[0] as string)
+        const errorLine = writtenArgs.find((s) => s.includes('"success":false'))
+        expect(errorLine).toBeDefined()
+        const parsed = JSON.parse(errorLine!.trim())
+        expect(parsed.success).toBe(false)
+        expect(parsed.fileName).toBe('doc.pdf')
+        expect(mockReply.raw.end).toHaveBeenCalled()
+      })
+
+      it('should log info after extracting data from PDF', async () => {
+        const mockBuffer = Buffer.from('%PDF-test')
+        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue({
+          buffer: mockBuffer,
+          fileType: 'pdf',
+        })
+        mockPdfUtils.validatePDF = vi.fn().mockResolvedValue(undefined)
+        vi.mocked(streamText).mockReturnValue(makeStreamTextMock(['result text']) as any)
+
+        mockRequest.params = { fileId: 'doc.pdf' }
+
+        await controller.extractData(mockRequest, mockReply)
+
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          'Extracted data from PDF',
+          expect.objectContaining({ data: expect.any(String) })
+        )
+      })
+    })
+
+    describe('ZIP file extraction', () => {
+      it('should stream NDJSON lines for each PDF in a ZIP', async () => {
+        const mockBuffer = Buffer.from('PK\x03\x04')
+        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue({
+          buffer: mockBuffer,
+          fileType: 'zip',
+        })
+
+        const mockFileEntry = {
+          path: 'invoice-a.pdf',
+          buffer: vi.fn().mockResolvedValue(Buffer.from('%PDF-a')),
+        }
+        mockPdfUtils.extractFromBuffer = vi.fn().mockResolvedValue({
+          pdfFiles: [mockFileEntry],
+        })
+        vi.mocked(streamText).mockReturnValue(makeStreamTextMock(['Invoice A data']) as any)
+
+        mockRequest.params = { fileId: 'batch/invoices.zip' }
+
+        await controller.extractData(mockRequest, mockReply)
+
+        expect(mockReply.raw.setHeader).toHaveBeenCalledWith(
+          'Content-Type',
+          'application/x-ndjson; charset=utf-8'
+        )
+        const writtenArgs = vi.mocked(mockReply.raw.write).mock.calls.map((c) => c[0] as string)
+        const ndjsonLine = writtenArgs.find((s) => s.includes('"invoice-a.pdf"'))
+        expect(ndjsonLine).toBeDefined()
+        const parsed = JSON.parse(ndjsonLine!.trim())
+        expect(parsed.fileName).toBe('invoice-a.pdf')
+        expect(parsed.data).toBe('Invoice A data')
+        expect(parsed.success).toBe(true)
+        expect(mockReply.raw.end).toHaveBeenCalled()
+      })
+
+      it('should handle per-file error in ZIP and continue streaming', async () => {
+        const mockBuffer = Buffer.from('PK\x03\x04')
+        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue({
+          buffer: mockBuffer,
+          fileType: 'zip',
+        })
+
+        const mockFileEntry = {
+          path: 'broken.pdf',
+          buffer: vi.fn().mockResolvedValue(Buffer.from('%PDF-broken')),
+        }
+        mockPdfUtils.extractFromBuffer = vi.fn().mockResolvedValue({
+          pdfFiles: [mockFileEntry],
+        })
+        vi.mocked(streamText).mockImplementation(() => {
+          throw new Error('PDF parse error')
+        })
+
+        mockRequest.params = { fileId: 'batch/invoices.zip' }
+
+        await controller.extractData(mockRequest, mockReply)
+
+        const writtenArgs = vi.mocked(mockReply.raw.write).mock.calls.map((c) => c[0] as string)
+        const errorLine = writtenArgs.find((s) => s.includes('"success":false'))
+        expect(errorLine).toBeDefined()
+        const parsed = JSON.parse(errorLine!.trim())
+        expect(parsed.fileName).toBe('broken.pdf')
+        expect(parsed.success).toBe(false)
+        expect(mockReply.raw.end).toHaveBeenCalled()
+      })
+
+      it('should log debug message when processing each PDF from ZIP', async () => {
+        const mockBuffer = Buffer.from('PK\x03\x04')
+        vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue({
+          buffer: mockBuffer,
+          fileType: 'zip',
+        })
+
+        const mockFileEntry = {
+          path: 'invoice.pdf',
+          buffer: vi.fn().mockResolvedValue(Buffer.from('%PDF-1')),
+        }
+        mockPdfUtils.extractFromBuffer = vi.fn().mockResolvedValue({
+          pdfFiles: [mockFileEntry],
+        })
+        vi.mocked(streamText).mockReturnValue(makeStreamTextMock([]) as any)
+
+        mockRequest.params = { fileId: 'batch.zip' }
+
+        await controller.extractData(mockRequest, mockReply)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith('Processing PDF from zip', {
+          path: 'invoice.pdf',
+        })
+      })
+    })
+
+    describe('error handling', () => {
+      it('should return 500 for unexpected errors in extractData', async () => {
+        vi.mocked(mockExtractDataUseCase.execute).mockRejectedValue(new Error('Database error'))
+
+        mockRequest.params = { fileId: 'doc.pdf' }
+
+        await controller.extractData(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'An unexpected error occurred',
+        })
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Error in extractData endpoint',
+          expect.any(Error)
+        )
+      })
+
+      it('should return BaseException status code in extractData', async () => {
+        vi.mocked(mockExtractDataUseCase.execute).mockRejectedValue(
+          new UnprocessableEntityException('Unsupported file type')
+        )
+
+        mockRequest.params = { fileId: 'doc.txt' }
+
+        await controller.extractData(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(422)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Unsupported file type',
+        })
       })
     })
   })

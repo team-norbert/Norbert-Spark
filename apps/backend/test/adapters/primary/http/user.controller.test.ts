@@ -12,6 +12,7 @@ import { GetUserByIdUseCase } from '../../../../src/application/use-cases/get-us
 import { RegisterUserUseCase } from '../../../../src/application/use-cases/register-user.use-case.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { EnvConfig } from '../../../../src/infrastructure/config/env.config.js'
+import { authMiddleware } from '../../../../src/infrastructure/http/middleware/auth.middleware.js'
 import { HttpStatus } from '../../../../src/shared/constants/http-status.js'
 import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
 import { ConflictException } from '../../../../src/shared/exceptions/conflict.exception.js'
@@ -2157,6 +2158,499 @@ describe('UserController', () => {
         await controller.getUserById(mockRequest, mockReply)
 
         expect(mockReply.code).toHaveBeenCalledBefore(mockReply.send as any)
+      })
+    })
+  })
+
+  describe('registerRoutes() - Mutation Coverage Tests', () => {
+    it('should register GET /users with exact preHandler array [authMiddleware, requireRole function]', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+        delete: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      // Find GET /users by matching path rather than relying on call order
+      const getUsersCall = vi.mocked(mockApp.get).mock.calls.find((call) => call[0] === '/users')
+      expect(getUsersCall?.[0]).toBe('/users')
+      const options = getUsersCall?.[1] as any
+      expect(options).toHaveProperty('preHandler')
+      expect(Array.isArray(options.preHandler)).toBe(true)
+      expect(options.preHandler).toHaveLength(2)
+      expect(options.preHandler[0]).toBe(authMiddleware)
+      expect(typeof options.preHandler[1]).toBe('function')
+    })
+
+    it('should register GET /users/:id with exact preHandler array [authMiddleware]', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+        delete: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      // Find GET /users/:id by matching path rather than relying on call order
+      const getUserByIdCall = vi
+        .mocked(mockApp.get)
+        .mock.calls.find((call) => call[0] === '/users/:id')
+      expect(getUserByIdCall?.[0]).toBe('/users/:id')
+      const options = getUserByIdCall?.[1] as any
+      expect(options).toHaveProperty('preHandler')
+      expect(Array.isArray(options.preHandler)).toBe(true)
+      expect(options.preHandler).toHaveLength(1)
+      expect(options.preHandler[0]).toBe(authMiddleware)
+    })
+
+    it('should register DELETE /users route with exact preHandler configuration', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+        delete: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      expect(mockApp.delete).toHaveBeenCalledTimes(1)
+      const deleteCall = vi.mocked(mockApp.delete).mock.calls[0]
+      expect(deleteCall?.[0]).toBe('/users')
+      const options = deleteCall?.[1] as any
+      expect(options).toHaveProperty('preHandler')
+      expect(Array.isArray(options.preHandler)).toBe(true)
+      expect(options.preHandler).toHaveLength(2)
+      expect(options.preHandler[0]).toBe(authMiddleware)
+      expect(typeof options.preHandler[1]).toBe('function')
+    })
+  })
+
+  describe('getAllUsers() - Pagination Validation Mutation Coverage Tests', () => {
+    describe('limit boundary validation', () => {
+      it('should reject limit = 0 (below minimum)', async () => {
+        mockRequest.query = { limit: '0' }
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid limit parameter. Must be between 1 and 100.',
+        })
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should accept limit = 1 (minimum boundary)', async () => {
+        mockRequest.query = { limit: '1' }
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: [],
+          total: 0,
+          limit: 1,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({ limit: 1, offset: undefined })
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+
+      it('should accept limit = 100 (maximum boundary)', async () => {
+        mockRequest.query = { limit: '100' }
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: [],
+          total: 0,
+          limit: 100,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({
+          limit: 100,
+          offset: undefined,
+        })
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+
+      it('should reject limit = 101 (above maximum)', async () => {
+        mockRequest.query = { limit: '101' }
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid limit parameter. Must be between 1 and 100.',
+        })
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should reject NaN limit', async () => {
+        mockRequest.query = { limit: 'not-a-number' }
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid limit parameter. Must be between 1 and 100.',
+        })
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should handle undefined limit (uses default)', async () => {
+        mockRequest.query = {}
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: [],
+          total: 0,
+          limit: 10,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({
+          limit: undefined,
+          offset: undefined,
+        })
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+    })
+
+    describe('offset boundary validation', () => {
+      it('should reject offset = -1 (below minimum)', async () => {
+        mockRequest.query = { offset: '-1' }
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid offset parameter. Must be 0 or greater.',
+        })
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should accept offset = 0 (minimum boundary)', async () => {
+        mockRequest.query = { offset: '0' }
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: [],
+          total: 0,
+          limit: 10,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({ limit: undefined, offset: 0 })
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+
+      it('should reject NaN offset', async () => {
+        mockRequest.query = { offset: 'not-a-number' }
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid offset parameter. Must be 0 or greater.',
+        })
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should handle undefined offset (uses default)', async () => {
+        mockRequest.query = {}
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: [],
+          total: 0,
+          limit: 10,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({
+          limit: undefined,
+          offset: undefined,
+        })
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+    })
+
+    describe('combined validation edge cases', () => {
+      it('should validate both limit and offset together', async () => {
+        mockRequest.query = { limit: '50', offset: '25' }
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: [],
+          total: 0,
+          limit: 50,
+          offset: 25,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({ limit: 50, offset: 25 })
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+
+      it('should reject when limit is invalid even if offset is valid', async () => {
+        mockRequest.query = { limit: '0', offset: '10' }
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid limit parameter. Must be between 1 and 100.',
+        })
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should reject when offset is invalid even if limit is valid', async () => {
+        mockRequest.query = { limit: '10', offset: '-1' }
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid offset parameter. Must be 0 or greater.',
+        })
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+      })
+    })
+  })
+
+  describe('getUserById() - Validation Mutation Coverage Tests', () => {
+    describe('rawId validation - empty after trim', () => {
+      it('should reject whitespace-only id parameter', async () => {
+        mockRequest.params = { id: '   ' }
+        mockRequest.user = { sub: uuidv7(), roles: ['admin'] } as any
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith('Empty id param')
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid user id',
+        })
+        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should reject tab-only id parameter', async () => {
+        mockRequest.params = { id: '\t\t' }
+        mockRequest.user = { sub: uuidv7(), roles: ['admin'] } as any
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid user id',
+        })
+        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should reject newline-only id parameter', async () => {
+        mockRequest.params = { id: '\n\n' }
+        mockRequest.user = { sub: uuidv7(), roles: ['admin'] } as any
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid user id',
+        })
+        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should accept id with surrounding whitespace (trimmed)', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: `  ${userId}  ` }
+        mockRequest.user = { sub: userId, roles: ['user'] } as any
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockGetUserByIdUseCase.execute).toHaveBeenCalledWith(userId, expect.any(Object))
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+    })
+
+    describe('debug logging assertions', () => {
+      it('should log "Request params" message', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = { sub: userId, roles: ['user'] } as any
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request params'))
+      })
+
+      it('should log "Request id" message with trimmed id', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = { sub: userId, roles: ['user'] } as any
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request id'))
+      })
+
+      it('should log "Request userId" message after successful parsing', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = { sub: userId, roles: ['user'] } as any
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request userId'))
+      })
+    })
+
+    describe('typeof rawId validation', () => {
+      it('should reject non-string id (number)', async () => {
+        mockRequest.params = { id: 123 as any }
+        mockRequest.user = { sub: uuidv7(), roles: ['admin'] } as any
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockLogger.debug).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid id param type')
+        )
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid user id',
+        })
+        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should reject non-string id (object)', async () => {
+        mockRequest.params = { id: {} as any }
+        mockRequest.user = { sub: uuidv7(), roles: ['admin'] } as any
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid user id',
+        })
+        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should reject non-string id (undefined)', async () => {
+        mockRequest.params = { id: undefined as any }
+        mockRequest.user = { sub: uuidv7(), roles: ['admin'] } as any
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid user id',
+        })
+        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('authorization with empty roles array', () => {
+      it('should reject access when user has empty roles array and not accessing own data', async () => {
+        const userId1 = uuidv7()
+        const userId2 = uuidv7()
+        mockRequest.params = { id: userId2 }
+        mockRequest.user = { sub: userId1, roles: [] } as any
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(403)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Forbidden: You can only access your own user data',
+        })
+        expect(mockGetUserByIdUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should allow access when user has empty roles array but accessing own data', async () => {
+        const userId = uuidv7()
+        mockRequest.params = { id: userId }
+        mockRequest.user = { sub: userId, roles: [] } as any
+
+        const mockUserData = {
+          id: userId,
+          getEmail: vi.fn().mockReturnValue('user@example.com'),
+          getName: vi.fn().mockReturnValue('John Doe'),
+          getRole: vi.fn().mockReturnValue('user'),
+          isTwoFactorEnabled: vi.fn().mockReturnValue(false),
+          getCreatedAt: vi.fn().mockReturnValue(new Date()),
+          getUpdatedAt: vi.fn().mockReturnValue(new Date()),
+        }
+
+        vi.mocked(mockGetUserByIdUseCase.execute).mockResolvedValue(mockUserData as any)
+
+        await controller.getUserById(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockGetUserByIdUseCase.execute).toHaveBeenCalled()
       })
     })
   })

@@ -8,10 +8,19 @@ import type { LoggerPort } from '../../../../src/application/ports/logger.port.j
 import type { GetAIAdminUseCase } from '../../../../src/application/use-cases/get-ai-admin.use-case.js'
 import type { PostAIAdminUseCase } from '../../../../src/application/use-cases/post-ai-admin.use-case.js'
 import type { PutAIAdminUseCase } from '../../../../src/application/use-cases/put-ai-admin.use-case.js'
+import { authMiddleware } from '../../../../src/infrastructure/http/middleware/auth.middleware.js'
+import { requireRole } from '../../../../src/infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../../src/shared/exceptions/base.exception.js'
 import { NotFoundException } from '../../../../src/shared/exceptions/not-found.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
 import { createMockLogger } from '../../../shared/factories/logger.factory.js'
+
+vi.mock('../../../../src/infrastructure/http/middleware/role.middleware.js', () => ({
+  requireRole: vi.fn().mockReturnValue(vi.fn()),
+}))
+vi.mock('../../../../src/infrastructure/http/middleware/auth.middleware.js', () => ({
+  authMiddleware: vi.fn(),
+}))
 
 describe('AIAdminController', () => {
   let controller: AIAdminController
@@ -320,6 +329,32 @@ describe('AIAdminController', () => {
 
       expect(mockLogger.info).toHaveBeenCalledWith('Received ai-admin request')
     })
+
+    it('should return 400 with exact error details for invalid UUID', async () => {
+      mockRequest.params = { id: 'not-a-valid-uuid' }
+
+      await controller.getAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(400)
+      expect(mockReply.send).toHaveBeenCalledWith({
+        success: false,
+        error: 'Invalid id format',
+        details: 'incorrect UUID format',
+      })
+      expect(mockGetAIAdminUseCase.execute).not.toHaveBeenCalled()
+    })
+
+    it('should log debug messages with request params, id, and uuidID', async () => {
+      const chatTypeId = uuidv7()
+      mockRequest.params = { id: chatTypeId }
+      vi.mocked(mockGetAIAdminUseCase.execute).mockResolvedValue({} as any)
+
+      await controller.getAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request params'))
+      expect(mockLogger.debug).toHaveBeenCalledWith(`Request id: ${chatTypeId}`)
+      expect(mockLogger.debug).toHaveBeenCalledWith(`Request uuidID: ${chatTypeId}`)
+    })
   })
 
   describe('putAIChatSettingsById', () => {
@@ -549,6 +584,49 @@ describe('AIAdminController', () => {
           userAgent: 'test-agent',
         })
       )
+    })
+
+    it('should return 404 when use case returns null', async () => {
+      const chatTypeId = uuidv7()
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = { prompt: 'Test prompt' }
+      vi.mocked(mockPutAIAdminUseCase.execute).mockResolvedValue(null)
+
+      await controller.putAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(404)
+      expect(mockReply.send).toHaveBeenCalledWith({
+        success: false,
+        error: 'AI Chat Configuration not found',
+      })
+    })
+
+    it('should return 400 with exact error details for invalid UUID', async () => {
+      mockRequest.params = { id: 'not-a-valid-uuid' }
+      mockRequest.body = { prompt: 'Test prompt' }
+
+      await controller.putAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(400)
+      expect(mockReply.send).toHaveBeenCalledWith({
+        success: false,
+        error: 'Invalid id format',
+        details: 'incorrect UUID format',
+      })
+      expect(mockPutAIAdminUseCase.execute).not.toHaveBeenCalled()
+    })
+
+    it('should log debug messages with request params, id, and uuidID', async () => {
+      const chatTypeId = uuidv7()
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = { prompt: 'Test prompt' }
+      vi.mocked(mockPutAIAdminUseCase.execute).mockResolvedValue({} as any)
+
+      await controller.putAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request params'))
+      expect(mockLogger.debug).toHaveBeenCalledWith(`Request id: ${chatTypeId}`)
+      expect(mockLogger.debug).toHaveBeenCalledWith(`Request uuidID: ${chatTypeId}`)
     })
   })
 
@@ -928,6 +1006,18 @@ describe('AIAdminController', () => {
 
       expect(mockLogger.info).toHaveBeenCalledWith('Received ai-admin POST request')
     })
+
+    it('should log debug messages with request params and id', async () => {
+      const chatTypeId = uuidv7()
+      mockRequest.params = { id: chatTypeId }
+      mockRequest.body = { prompt: 'Test prompt' }
+      vi.mocked(mockPostAIAdminUseCase.execute).mockResolvedValue({} as any)
+
+      await controller.postAIChatSettingsById(mockRequest, mockReply)
+
+      expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Request params'))
+      expect(mockLogger.debug).toHaveBeenCalledWith(`Request id: ${chatTypeId}`)
+    })
   })
 
   describe('registerRoutes', () => {
@@ -963,6 +1053,55 @@ describe('AIAdminController', () => {
         }),
         expect.any(Function)
       )
+    })
+
+    it('should register all routes with exactly 2 preHandlers', () => {
+      const mockApp = { get: vi.fn(), put: vi.fn(), post: vi.fn() } as any
+
+      controller.registerRoutes(mockApp)
+
+      const [, getOptions] = vi.mocked(mockApp.get).mock.calls[0]
+      const [, putOptions] = vi.mocked(mockApp.put).mock.calls[0]
+      const [, postOptions] = vi.mocked(mockApp.post).mock.calls[0]
+
+      expect(getOptions.preHandler).toHaveLength(2)
+      expect(putOptions.preHandler).toHaveLength(2)
+      expect(postOptions.preHandler).toHaveLength(2)
+    })
+
+    it('should register all routes with authMiddleware as first preHandler', () => {
+      const mockApp = { get: vi.fn(), put: vi.fn(), post: vi.fn() } as any
+
+      controller.registerRoutes(mockApp)
+
+      const [, getOptions] = vi.mocked(mockApp.get).mock.calls[0]
+      const [, putOptions] = vi.mocked(mockApp.put).mock.calls[0]
+      const [, postOptions] = vi.mocked(mockApp.post).mock.calls[0]
+
+      expect(getOptions.preHandler[0]).toBe(authMiddleware)
+      expect(putOptions.preHandler[0]).toBe(authMiddleware)
+      expect(postOptions.preHandler[0]).toBe(authMiddleware)
+    })
+
+    it('should require admin and moderator roles for all routes', () => {
+      const mockApp = { get: vi.fn(), put: vi.fn(), post: vi.fn() } as any
+
+      controller.registerRoutes(mockApp)
+
+      // ensure the role middleware is configured for admin and moderator at least once
+      expect(vi.mocked(requireRole)).toHaveBeenCalledWith(['admin', 'moderator'])
+
+      // ensure each route uses a middleware returned by requireRole, without coupling to call count
+      const [, getOptions] = vi.mocked(mockApp.get).mock.calls[0]
+      const [, putOptions] = vi.mocked(mockApp.put).mock.calls[0]
+      const [, postOptions] = vi.mocked(mockApp.post).mock.calls[0]
+
+      const roleMiddlewares = vi.mocked(requireRole).mock.results.map((result) => result.value)
+
+      expect(roleMiddlewares).not.toHaveLength(0)
+      expect(roleMiddlewares).toContain(getOptions.preHandler[1])
+      expect(roleMiddlewares).toContain(putOptions.preHandler[1])
+      expect(roleMiddlewares).toContain(postOptions.preHandler[1])
     })
   })
 })
