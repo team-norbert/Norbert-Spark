@@ -949,14 +949,14 @@ describe('LoginUserUseCase', () => {
     describe('expiration boundary conditions', () => {
       afterEach(() => {
         // Restore the string mock value used by the rest of the suite
-         
+
         ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = '604800'
       })
 
       it('should use configured value when REFRESH_TOKEN_EXPIRATION is a positive number', async () => {
         // Setting to a numeric value != fallback (7*24*60*60=604800) lets us verify
         // configuredExpiration > 0 is evaluated (kills mutant 3888: replaces with false)
-         
+
         ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 3600
 
         const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
@@ -972,7 +972,7 @@ describe('LoginUserUseCase', () => {
         // 0 is a number but not > 0, so fallback (7*24*60*60) is used.
         // Mutants 3893 (>0 → true), 3894 (> → >=), 3895 (> → <=) would each use 0
         // instead of the fallback, causing this assertion to fail.
-         
+
         ;(EnvConfig as any).REFRESH_TOKEN_EXPIRATION = 0
 
         const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
