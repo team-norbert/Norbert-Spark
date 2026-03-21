@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { PDFUtils, ZipSecurityError } from '../../../src/shared/utils/pdf.utils.js'
@@ -340,6 +340,10 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
     pdfUtils = new PDFUtils(mockLogger)
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('should skip files with null bytes in their path and log a warning', async () => {
     // Mutants 6854, 6860, 6862, 6863, 6864
     // Entry whose path contains a null byte — we inject it via a ZIP whose
@@ -356,9 +360,7 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       compressedSize: pdfData.length,
       buffer: vi.fn().mockResolvedValue(pdfData),
     }
-    const spy = vi
-      .spyOn(unzipper.default.Open, 'buffer')
-      .mockResolvedValue({ files: [mockFile] } as any)
+    vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({ files: [mockFile] } as any)
 
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
@@ -366,8 +368,6 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
     expect(mockLogger.warn).toHaveBeenCalledWith('Null byte detected in path', {
       path: 'evil\0file.pdf',
     })
-
-    spy.mockRestore()
   })
 
   it('should skip files with backslash path traversal (..\\\\) and log a warning', async () => {
@@ -381,9 +381,7 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       compressedSize: pdfData.length,
       buffer: vi.fn().mockResolvedValue(pdfData),
     }
-    const spy = vi
-      .spyOn(unzipper.default.Open, 'buffer')
-      .mockResolvedValue({ files: [mockFile] } as any)
+    vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({ files: [mockFile] } as any)
 
     const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
@@ -392,8 +390,6 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
     expect(mockLogger.warn).toHaveBeenCalledWith('Path traversal attempt detected', {
       path: '..\\evil.pdf',
     })
-
-    spy.mockRestore()
   })
 
   it('should skip files with absolute path starting with / and log warning', async () => {
@@ -407,9 +403,7 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       compressedSize: pdfData.length,
       buffer: vi.fn().mockResolvedValue(pdfData),
     }
-    const spy = vi
-      .spyOn(unzipper.default.Open, 'buffer')
-      .mockResolvedValue({ files: [mockFile] } as any)
+    vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({ files: [mockFile] } as any)
 
     const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
@@ -418,8 +412,6 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
     expect(mockLogger.warn).toHaveBeenCalledWith('Absolute path detected', {
       path: '/etc/evil.pdf',
     })
-
-    spy.mockRestore()
   })
 
   it('should normalise paths with dot segments (./subdir/file.pdf)', async () => {
@@ -433,17 +425,13 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       compressedSize: pdfData.length,
       buffer: vi.fn().mockResolvedValue(pdfData),
     }
-    const spy = vi
-      .spyOn(unzipper.default.Open, 'buffer')
-      .mockResolvedValue({ files: [mockFile] } as any)
+    vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({ files: [mockFile] } as any)
 
     const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     // The path is valid but contains '.' which should be filtered — file should be accepted
     expect(result.pdfFiles).toHaveLength(1)
-
-    spy.mockRestore()
   })
 
   it('should skip files whose path has a .. segment after normalisation and log warning', async () => {
@@ -461,9 +449,7 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       compressedSize: pdfData.length,
       buffer: vi.fn().mockResolvedValue(pdfData),
     }
-    const spy = vi
-      .spyOn(unzipper.default.Open, 'buffer')
-      .mockResolvedValue({ files: [mockFile] } as any)
+    vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({ files: [mockFile] } as any)
 
     const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
@@ -472,8 +458,6 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
     expect(mockLogger.warn).toHaveBeenCalledWith('Path traversal attempt detected', {
       path: 'subdir/../../secret.pdf',
     })
-
-    spy.mockRestore()
   })
 
   it('should log warn with path escape message when .. segment is found', async () => {
@@ -487,9 +471,7 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       compressedSize: pdfData.length,
       buffer: vi.fn().mockResolvedValue(pdfData),
     }
-    const spy = vi
-      .spyOn(unzipper.default.Open, 'buffer')
-      .mockResolvedValue({ files: [mockFile] } as any)
+    vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({ files: [mockFile] } as any)
 
     const zipBuf = Buffer.alloc(100)
     await pdfUtils.extractFromBuffer(zipBuf)
@@ -499,8 +481,6 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       expect.stringMatching(/traversal|escape/i),
       expect.objectContaining({ path: 'subdir/../../../evil.pdf' })
     )
-
-    spy.mockRestore()
   })
 })
 

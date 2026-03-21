@@ -259,7 +259,7 @@ export function validateSafeIdentifier(
  * @throws ValidationException if size exceeds limit
  */
 export function validateFileSize(sizeBytes: number, maxSizeBytes: number): boolean {
-  if (typeof sizeBytes !== 'number' || sizeBytes < 0) {
+  if (!Number.isFinite(sizeBytes) || sizeBytes < 0) {
     throw new ValidationException('Invalid file size')
   }
 
