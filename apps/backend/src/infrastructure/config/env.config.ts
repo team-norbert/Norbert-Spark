@@ -60,7 +60,7 @@ export class EnvConfig {
   static readonly REFRESH_TOKEN_EXPIRATION = ENV.REFRESH_TOKEN_EXPIRATION ?? 604800 // 7 days in seconds
   static readonly ACCESS_TOKEN_BUFFER = ENV.ACCESS_TOKEN_BUFFER ?? 300 // 5 minutes in seconds
   static readonly SERVICE_NAME = ENV.SERVICE_NAME || 'norberts-spark-backend'
-  static readonly APP_VERSION = version
+  static readonly APP_VERSION = ENV.APP_VERSION || version
   static readonly REDIS_URL = obscured.make(ENV.REDIS_URL)
   static readonly APPLICATION_NAME = ENV.APPLICATION_NAME || "Norbert's Spark Backend"
   private static parseBooleanEnv(value: unknown, defaultValue: boolean): boolean {
