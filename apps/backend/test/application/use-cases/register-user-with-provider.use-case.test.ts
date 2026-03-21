@@ -864,12 +864,16 @@ describe('RegisterUserWithProviderUseCase', () => {
       vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
       vi.mocked(mockRefreshTokenRepository.create).mockRejectedValue(storageError)
 
-      await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
-        'Failed to store refresh token'
-      )
-      await expect(useCase.execute(dto, auditContext)).rejects.toBeInstanceOf(
-        InternalErrorException
-      )
+      let thrownError: unknown
+      try {
+        await useCase.execute(dto, auditContext)
+        throw new Error('Expected useCase.execute to throw')
+      } catch (error) {
+        thrownError = error
+      }
+
+      expect(thrownError).toBeInstanceOf(InternalErrorException)
+      expect((thrownError as Error).message).toBe('Failed to store refresh token')
     })
   })
 })

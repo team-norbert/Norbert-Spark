@@ -942,12 +942,16 @@ describe('RefreshAccessTokenUseCase', () => {
         vi.mocked(mockUserRepo.findById).mockResolvedValue(mockUser)
         vi.mocked(mockRefreshTokenRepo.create).mockRejectedValue(storageError)
 
-        await expect(useCase.execute(rawToken, auditContext)).rejects.toThrow(
-          'Failed to store refresh token'
-        )
-        await expect(useCase.execute(rawToken, auditContext)).rejects.toBeInstanceOf(
-          InternalErrorException
-        )
+        let error: unknown
+        try {
+          await useCase.execute(rawToken, auditContext)
+          throw new Error('Expected useCase.execute to throw')
+        } catch (err) {
+          error = err
+        }
+
+        expect(error).toBeInstanceOf(InternalErrorException)
+        expect((error as InternalErrorException).message).toBe('Failed to store refresh token')
       })
     })
   })
