@@ -220,7 +220,7 @@ describe('StringUtil', () => {
       expect(() => StringUtil.randomString(-1)).toThrow(ValidationException)
     })
 
-    it('should return empty string without throwing for length 0 even when loop is evaluated', () => {
+    it('should return empty string for length 0 (returns early before loop)', () => {
       const result = StringUtil.randomString(0)
       expect(result).toBe('')
       expect(result.length).toBe(0)

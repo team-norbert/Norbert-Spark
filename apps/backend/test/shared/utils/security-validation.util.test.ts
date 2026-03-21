@@ -450,15 +450,10 @@ describe('Security Validation Utilities', () => {
   describe('validatePathWithinBase — secondary check', () => {
     const baseDir = '/app/data'
 
-    it('should throw for a path that resolves outside the base via normalization tricks', () => {
-      // Build a path that passes pattern checks but resolves outside when joined
-      // Manually construct a path that passes TRAVERSAL_PATTERNS but still escapes
-      // by exploiting e.g. symlink-like tricks — use baseDir itself as the user path
-      // to verify the relativePath.startsWith('..') branch.
-      // path.relative('/app/data', '/etc') = '../../etc'
-      // We cannot normally reach this branch without symlinks in unit tests,
-      // so we verify the message string literal is intact by checking a known escape.
-      // The test below confirms the error message template is correct (kills 7099).
+    it('should throw for absolute paths caught by TRAVERSAL_PATTERNS before base-path check', () => {
+      // /etc/passwd is an absolute path — it is rejected by the TRAVERSAL_PATTERNS
+      // absolute-path guard before the relativePath.startsWith('..') check is reached.
+      // This verifies the error message template ("contains prohibited pattern") is intact.
       expect(() => validatePathWithinBase('/etc/passwd', baseDir)).toThrow(
         'contains prohibited pattern'
       )
@@ -602,10 +597,8 @@ describe('Security Validation Utilities', () => {
       expect(() => validateFileSize(tenMB + 1, tenMB)).toThrow(/10\.00 MB/)
     })
 
-    it('should not throw for NaN size (NaN passes typeof number check and NaN < 0 is false)', () => {
-      // typeof NaN === 'number' so NaN slips through both guards and returns true
-      // (NaN > maxSizeBytes is also false). This is a known quirk of the implementation.
-      expect(validateFileSize(NaN, 1024)).toBe(true)
+    it('should reject NaN size values as invalid input', () => {
+      expect(() => validateFileSize(NaN, 1024)).toThrow(ValidationException)
     })
 
     it('should return true for zero-byte files (edge: 0 === valid, not negative)', () => {
