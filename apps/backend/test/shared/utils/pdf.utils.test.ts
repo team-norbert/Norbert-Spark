@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { crc32, deflateRawSync } from 'node:zlib'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -329,86 +328,6 @@ describe('PDFUtils', () => {
 })
 
 // ---------------------------------------------------------------------------
-// ZIP builder helper (uses only Node.js built-ins)
-// ---------------------------------------------------------------------------
-
-interface ZipEntry {
-  name: string
-  data: Buffer
-  /** Store uncompressed (method=0). Useful for keeping compressed/uncompressed equal. */
-  store?: boolean
-}
-
-function buildZip(entries: ZipEntry[]): Buffer {
-  const now = new Date()
-  const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1)
-  const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()
-
-  const centralDir: Buffer[] = []
-  const local: Buffer[] = []
-  let offset = 0
-
-  for (const { data, name, store } of entries) {
-    const nameBytes = Buffer.from(name)
-    const compressed = store ? data : deflateRawSync(data)
-    const method = store ? 0 : 8
-    // crc32(data, value?) — node:zlib signature
-    const crcVal = crc32(data) >>> 0
-
-    const lh = Buffer.alloc(30 + nameBytes.length)
-    lh.writeUInt32LE(0x04034b50, 0)
-    lh.writeUInt16LE(20, 4)
-    lh.writeUInt16LE(0, 6)
-    lh.writeUInt16LE(method, 8)
-    lh.writeUInt16LE(dosTime, 10)
-    lh.writeUInt16LE(dosDate, 12)
-    lh.writeUInt32LE(crcVal, 14)
-    lh.writeUInt32LE(compressed.length, 18)
-    lh.writeUInt32LE(data.length, 22)
-    lh.writeUInt16LE(nameBytes.length, 26)
-    lh.writeUInt16LE(0, 28)
-    nameBytes.copy(lh, 30)
-
-    const cd = Buffer.alloc(46 + nameBytes.length)
-    cd.writeUInt32LE(0x02014b50, 0)
-    cd.writeUInt16LE(20, 4)
-    cd.writeUInt16LE(20, 6)
-    cd.writeUInt16LE(0, 8)
-    cd.writeUInt16LE(method, 10)
-    cd.writeUInt16LE(dosTime, 12)
-    cd.writeUInt16LE(dosDate, 14)
-    cd.writeUInt32LE(crcVal, 16)
-    cd.writeUInt32LE(compressed.length, 20)
-    cd.writeUInt32LE(data.length, 24)
-    cd.writeUInt16LE(nameBytes.length, 28)
-    cd.writeUInt16LE(0, 30)
-    cd.writeUInt16LE(0, 32)
-    cd.writeUInt16LE(0, 34)
-    cd.writeUInt16LE(0, 36)
-    cd.writeUInt32LE(0, 38)
-    cd.writeUInt32LE(offset, 42)
-    nameBytes.copy(cd, 46)
-
-    local.push(lh, compressed)
-    centralDir.push(cd)
-    offset += lh.length + compressed.length
-  }
-
-  const cdBuf = Buffer.concat(centralDir)
-  const eocd = Buffer.alloc(22)
-  eocd.writeUInt32LE(0x06054b50, 0)
-  eocd.writeUInt16LE(0, 4)
-  eocd.writeUInt16LE(0, 6)
-  eocd.writeUInt16LE(entries.length, 8)
-  eocd.writeUInt16LE(entries.length, 10)
-  eocd.writeUInt32LE(cdBuf.length, 12)
-  eocd.writeUInt32LE(offset, 16)
-  eocd.writeUInt16LE(0, 20)
-
-  return Buffer.concat([...local, cdBuf, eocd])
-}
-
-// ---------------------------------------------------------------------------
 // Tests targeting surviving mutants
 // ---------------------------------------------------------------------------
 
@@ -426,7 +345,7 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
     // Entry whose path contains a null byte — we inject it via a ZIP whose
     // central-directory name contains \0.
     const pdfData = Buffer.from('%PDF-1.4 test')
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
 
     // Patch the unzipper result to return a file with a null-byte path
     const unzipper = await import('unzipper')
@@ -466,7 +385,7 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(0)
@@ -492,7 +411,7 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(0)
@@ -518,7 +437,7 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     // The path is valid but contains '.' which should be filtered — file should be accepted
@@ -529,13 +448,15 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
 
   it('should skip files whose path has a .. segment after normalisation and log warning', async () => {
     // Mutants 6891, 6892, 6893, 6895, 6897, 6898, 6899, 6900
-    // A path like "a/b/../../../etc/passwd.pdf" — does not trigger the ../literal check
-    // but segments.some(s === '..') should catch it
+    // A path containing `..` segments is rejected by sanitizePath.
+    // For paths ending in .pdf, the `../` literal check fires before the
+    // segments.some(s => s === '..') safety net, but both guards ensure the
+    // file is skipped. We verify the file is excluded AND the warning is logged.
     const pdfData = Buffer.from('%PDF-1.4 test')
     const unzipper = await import('unzipper')
     const mockFile = {
       type: 'File',
-      path: 'a/b/c/../../..evil.pdf',
+      path: 'subdir/../../secret.pdf',
       uncompressedSize: pdfData.length,
       compressedSize: pdfData.length,
       buffer: vi.fn().mockResolvedValue(pdfData),
@@ -544,16 +465,13 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
-    // The path traversal via ..\ or ../ was not in the literal string, so if
-    // sanitizePath correctly catches the remaining `..` segments the file gets skipped
-    // otherwise it gets included. What we assert is no crash and consistent result.
-    // Either path: file should not appear if path is malicious,
-    // or if it was legitimately named it goes through.
-    // This test primarily exercises the code path, not the exclusion
-    expect(result).toBeDefined()
+    expect(result.pdfFiles).toHaveLength(0)
+    expect(mockLogger.warn).toHaveBeenCalledWith('Path traversal attempt detected', {
+      path: 'subdir/../../secret.pdf',
+    })
 
     spy.mockRestore()
   })
@@ -573,7 +491,7 @@ describe('PDFUtils - sanitizePath (via extractFromBuffer)', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     await pdfUtils.extractFromBuffer(zipBuf)
 
     // The path contains ../ so it should be caught by the ../literal check first
@@ -616,7 +534,7 @@ describe('PDFUtils - validateFileEntry (via extractFromBuffer)', () => {
       maxCompressionRatio: Infinity,
       maxDecompressedSize: 500 * 1024 * 1024,
     })
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await specialPdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(0)
@@ -648,7 +566,7 @@ describe('PDFUtils - validateFileEntry (via extractFromBuffer)', () => {
       maxCompressionRatio: Infinity,
       maxDecompressedSize: 500 * 1024 * 1024,
     })
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await specialPdfUtils.extractFromBuffer(zipBuf)
 
     // uncompressedSize === maxFileSize should NOT be rejected (condition is >)
@@ -677,7 +595,7 @@ describe('PDFUtils - validateFileEntry (via extractFromBuffer)', () => {
 
     // The zip buffer is ~100 bytes; totalUncompressed = 200, ratio = ~2 — well below overall limit
     // No override needed, the per-file check fires first
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(0)
@@ -705,7 +623,7 @@ describe('PDFUtils - validateFileEntry (via extractFromBuffer)', () => {
       .mockResolvedValue({ files: [mockFile] } as any)
 
     // totalUncompressed = 100; buffer ~100 bytes → overallRatio ≈ 1, well below limit
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     // ratio === maxCompressionRatio should NOT be rejected (condition is >)
@@ -730,7 +648,7 @@ describe('PDFUtils - validateFileEntry (via extractFromBuffer)', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     await pdfUtils.extractFromBuffer(zipBuf)
 
     // Should not warn about per-file compression ratio when compressedSize is 0
@@ -764,7 +682,7 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
     }))
     const spy = vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({ files } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     // 100 files === maxFileCount (100), should NOT throw
@@ -786,7 +704,7 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
     }))
     const spy = vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({ files } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     await expect(pdfUtils.extractFromBuffer(zipBuf)).rejects.toThrow(ZipSecurityError)
 
     spy.mockRestore()
@@ -808,13 +726,17 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    // Need to raise maxCompressionRatio so the overallRatio check doesn't fire
-    // before the decompressedSize check: 100MB / ~100bytes ≫ 100 limit
-    const specialPdfUtils = new PDFUtils(mockLogger, { maxCompressionRatio: Infinity })
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    // Raise maxCompressionRatio so the overallRatio check doesn't fire first,
+    // and raise maxFileSize (default 50MB) above the 100MB file so validateFileEntry
+    // also passes — this isolates the totalUncompressedSize === maxDecompressedSize boundary.
+    const specialPdfUtils = new PDFUtils(mockLogger, {
+      maxCompressionRatio: Infinity,
+      maxFileSize: 200 * 1024 * 1024,
+    })
+    const zipBuf = Buffer.alloc(100)
     // totalUncompressedSize === maxDecompressedSize should NOT throw (condition is >)
     const result = await specialPdfUtils.extractFromBuffer(zipBuf)
-    expect(result).toBeDefined()
+    expect(result.pdfFiles).toHaveLength(1)
 
     spy.mockRestore()
   })
@@ -873,7 +795,7 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
       maxDecompressedSize: 500 * 1024 * 1024,
     })
     // Create a small buffer (> 22 bytes) so INVALID_ZIP_SIZE isn't triggered
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
 
     // overallRatio = 200MB / ~few hundred bytes >> 100
     await expect(specialPdfUtils.extractFromBuffer(zipBuf)).rejects.toThrow(ZipSecurityError)
@@ -900,7 +822,7 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
       .mockResolvedValue({ files: [mockFile] } as any)
 
     const specialPdfUtils = new PDFUtils(mockLogger, { maxDecompressedSize: 500 * 1024 * 1024 })
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
 
     const result = await specialPdfUtils.extractFromBuffer(zipBuf).catch((e: ZipSecurityError) => e)
     expect((result as ZipSecurityError).code).toBe('SUSPICIOUS_COMPRESSION_RATIO')
@@ -924,7 +846,7 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
       .mockResolvedValue({ files: [mockFile] } as any)
 
     const specialPdfUtils = new PDFUtils(mockLogger, { maxDecompressedSize: 500 * 1024 * 1024 })
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
 
     await specialPdfUtils.extractFromBuffer(zipBuf).catch(() => {})
     expect(mockLogger.error).toHaveBeenCalledWith(
@@ -936,14 +858,15 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
 
   it('should allow ratio exactly equal to maxCompressionRatio (overall)', async () => {
     // Mutant 6963: >= would reject equal ratio
+    // Set up overallRatio = exactly 100 (= maxCompressionRatio):
+    //   buffer.length = 100, totalUncompressedSize = 100 * 100 = 10 000
+    //   overallRatio = 10 000 / 100 = 100 — must NOT throw (condition is >)
     const pdfData = Buffer.from('%PDF-1.4 test')
     const unzipper = await import('unzipper')
-    // Create exact ratio = 100: uncompressedSize = 100 * compressedSize
-    // We know the zipBuf size will be ~few hundred bytes; use a mock file instead
     const mockFile = {
       type: 'File',
       path: 'exact.pdf',
-      uncompressedSize: 0, // ratio = 0/X = 0, well below 100
+      uncompressedSize: 10000, // ratio = 10 000 / 100 = 100 = maxCompressionRatio
       compressedSize: 100,
       buffer: vi.fn().mockResolvedValue(pdfData),
     }
@@ -951,9 +874,10 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
-    expect(result).toBeDefined()
+    // overallRatio === maxCompressionRatio should NOT be rejected (condition is >)
+    expect(result.pdfFiles).toHaveLength(1)
 
     spy.mockRestore()
   })
@@ -990,7 +914,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockDir, mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(1)
@@ -1021,7 +945,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockTxt, mockPdf] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(1)
@@ -1045,7 +969,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(1)
@@ -1068,7 +992,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(0)
@@ -1091,7 +1015,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(0)
@@ -1114,7 +1038,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     // docs_ doesn't start with _ or . so it should be ALLOWED
@@ -1138,7 +1062,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(0)
@@ -1161,7 +1085,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(1)
@@ -1184,7 +1108,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfFiles).toHaveLength(0)
@@ -1211,7 +1135,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     await pdfUtils.extractFromBuffer(zipBuf)
 
     // skippedFiles is included in the debug log
@@ -1240,7 +1164,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(mockLogger.debug).toHaveBeenCalledWith(
@@ -1268,7 +1192,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(mockLogger.debug).toHaveBeenCalledWith(
@@ -1301,7 +1225,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       maxCompressionRatio: Infinity,
       maxDecompressedSize: 500 * 1024 * 1024,
     })
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     await specialPdfUtils.extractFromBuffer(zipBuf)
 
     expect(mockLogger.debug).toHaveBeenCalledWith(
@@ -1329,7 +1253,7 @@ describe('PDFUtils - file filtering edge cases', () => {
       .spyOn(unzipper.default.Open, 'buffer')
       .mockResolvedValue({ files: [mockFile] } as any)
 
-    const zipBuf = buildZip([{ name: 'valid.pdf', data: pdfData }])
+    const zipBuf = Buffer.alloc(100)
     const result = await pdfUtils.extractFromBuffer(zipBuf)
 
     expect(result.pdfPaths).toEqual(['valid/file.pdf'])
