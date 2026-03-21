@@ -125,6 +125,115 @@ describe('SEO', () => {
 
       expect(result).toBe('javascript typescript tutorial')
     })
+
+    it('should remove the article "an"', () => {
+      expect(SEO.removeUnnecessaryWords('Pick an option')).toBe('pick option')
+    })
+
+    it('should remove conjunctions "nor", "yet", and "so"', () => {
+      expect(SEO.removeUnnecessaryWords('Neither hot nor cold yet so perfect')).toBe(
+        'neither hot cold perfect'
+      )
+    })
+
+    it('should remove prepositions "at", "from", and "by"', () => {
+      expect(SEO.removeUnnecessaryWords('Arrive at noon from London by train')).toBe(
+        'arrive noon london train'
+      )
+    })
+
+    it('should remove prepositions "about", "against", and "between"', () => {
+      expect(SEO.removeUnnecessaryWords('Talk about conflict against divide between teams')).toBe(
+        'talk conflict divide teams'
+      )
+    })
+
+    it('should remove prepositions "into", "through", and "during"', () => {
+      expect(SEO.removeUnnecessaryWords('Jump into pool through crowds during summer')).toBe(
+        'jump pool crowds summer'
+      )
+    })
+
+    it('should remove prepositions "before", "after", "above", and "below"', () => {
+      expect(
+        SEO.removeUnnecessaryWords('Check before submit above limit below threshold after review')
+      ).toBe('check submit limit threshold review')
+    })
+
+    it('should remove prepositions "over", "under", "within", and "without"', () => {
+      expect(
+        SEO.removeUnnecessaryWords('Working over time under pressure within budget without breaks')
+      ).toBe('working time pressure budget breaks')
+    })
+
+    it('should remove pronouns "me", "my", and "mine"', () => {
+      // 'about' and 'those' are also in the set; 'ideas' is kept
+      expect(SEO.removeUnnecessaryWords('Tell me about my ideas those mine')).toBe('tell ideas')
+    })
+
+    it('should remove pronouns "you", "us", "our", "ours", and "yours"', () => {
+      expect(SEO.removeUnnecessaryWords('You and us sharing our story yours and ours')).toBe(
+        'sharing story'
+      )
+    })
+
+    it('should remove pronouns "he", "him", "his", "she", "her", and "hers"', () => {
+      expect(SEO.removeUnnecessaryWords('He told him his secret she gave her hers')).toBe(
+        'told secret gave'
+      )
+    })
+
+    it('should remove pronouns "it", "its", "they", and "theirs"', () => {
+      expect(SEO.removeUnnecessaryWords('It lost its value they claimed theirs')).toBe(
+        'lost value claimed'
+      )
+    })
+
+    it('should remove auxiliary verbs "am", "are", "was", and "were"', () => {
+      expect(SEO.removeUnnecessaryWords('I am ready we are strong you was were nothing')).toBe(
+        'ready strong nothing'
+      )
+    })
+
+    it('should remove auxiliary verbs "be" and "being"', () => {
+      // 'to' and 'without' are prepositions also in the set
+      expect(SEO.removeUnnecessaryWords('Try to be brave without being afraid')).toBe(
+        'try brave afraid'
+      )
+    })
+
+    it('should remove auxiliary verbs "has" and "had"', () => {
+      // 'he' and 'she' are pronouns also in the set
+      expect(SEO.removeUnnecessaryWords('He has wisdom she had courage')).toBe('wisdom courage')
+    })
+
+    it('should remove auxiliary verbs "do", "does", and "did"', () => {
+      // 'we', 'he', 'she' are pronouns also in the set
+      expect(SEO.removeUnnecessaryWords('We do work he does help she did prove')).toBe(
+        'work help prove'
+      )
+    })
+
+    it('should remove low-value modifiers "quite", "only", "even", "almost", "mostly", and "maybe"', () => {
+      expect(
+        SEO.removeUnnecessaryWords(
+          'Quite interesting only child even counts almost always mostly right maybe correct'
+        )
+      ).toBe('interesting child counts always right correct')
+    })
+
+    it('should remove common fillers "these", "there", and "here"', () => {
+      // 'and' is a conjunction also in the set
+      expect(SEO.removeUnnecessaryWords('These problems there and here matter')).toBe(
+        'problems matter'
+      )
+    })
+
+    it('should remove common fillers "when", "where", and "why"', () => {
+      expect(SEO.removeUnnecessaryWords('When where why learning matters most')).toBe(
+        'learning matters most'
+      )
+    })
   })
 
   describe('generateSeoFriendlyTitle', () => {
