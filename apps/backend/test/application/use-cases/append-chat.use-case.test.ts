@@ -81,7 +81,10 @@ describe('AppendedChatUseCase', () => {
 
       await useCase.execute(testChatId, messages, auditContext)
 
-      expect(mockAIService.appendToChatMessages).toHaveBeenCalledExactlyOnceWith(testChatId, messages)
+      expect(mockAIService.appendToChatMessages).toHaveBeenCalledExactlyOnceWith(
+        testChatId,
+        messages
+      )
     })
 
     it('should call aiService.appendToChatMessages before returning', async () => {
