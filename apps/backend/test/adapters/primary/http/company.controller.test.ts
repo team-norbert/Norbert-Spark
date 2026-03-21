@@ -12,10 +12,25 @@ import type {
   DBCompanySelect,
   DBKeyPersonSelect,
 } from '../../../../src/infrastructure/database/schema.js'
+import { authMiddleware } from '../../../../src/infrastructure/http/middleware/auth.middleware.js'
+import { requireRole } from '../../../../src/infrastructure/http/middleware/role.middleware.js'
 import { NotFoundException } from '../../../../src/shared/exceptions/not-found.exception.js'
 import { UnauthorizedException } from '../../../../src/shared/exceptions/unauthorized.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
 import { createMockLogger } from '../../../shared/factories/logger.factory.js'
+
+vi.mock(
+  '../../../../src/infrastructure/http/middleware/role.middleware.js',
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import('../../../../src/infrastructure/http/middleware/role.middleware.js')
+      >()
+    return {
+      requireRole: vi.fn().mockImplementation(actual.requireRole),
+    }
+  }
+)
 
 describe('CompanyController', () => {
   let controller: CompanyController
@@ -98,7 +113,7 @@ describe('CompanyController', () => {
       expect(mockApp.get).toHaveBeenCalledWith(
         '/company/details',
         expect.objectContaining({
-          preHandler: expect.any(Array),
+          preHandler: [authMiddleware],
         }),
         expect.any(Function)
       )
@@ -115,6 +130,47 @@ describe('CompanyController', () => {
       const handler = (vi.mocked(mockApp.get).mock.calls[0] as any)?.[2]
 
       expect(handler).toBeTypeOf('function')
+    })
+
+    it('should register PUT /company/details route with auth and role middleware', () => {
+      const mockApp = {
+        get: vi.fn(),
+        put: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      expect(mockApp.put).toHaveBeenCalledTimes(1)
+      expect(mockApp.put).toHaveBeenCalledWith(
+        '/company/details',
+        expect.objectContaining({
+          preHandler: expect.any(Array),
+        }),
+        expect.any(Function)
+      )
+    })
+
+    it('should register PUT route with admin and moderator role requirement', () => {
+      const mockApp = {
+        get: vi.fn(),
+        put: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      expect(vi.mocked(requireRole)).toHaveBeenCalledWith(['admin', 'moderator'])
+    })
+
+    it('should register PUT route preHandler as non-empty array with two handlers', () => {
+      const mockApp = {
+        get: vi.fn(),
+        put: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      const putOptions = (vi.mocked(mockApp.put).mock.calls[0] as any)?.[1]
+      expect(putOptions.preHandler).toHaveLength(2)
     })
   })
 
@@ -214,6 +270,9 @@ describe('CompanyController', () => {
           success: false,
           error: 'Authentication required',
         })
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          'Authorization check failed: User not authenticated'
+        )
         expect(mockGetCompanyDetailsUseCase.execute).not.toHaveBeenCalled()
       })
 
@@ -737,6 +796,55 @@ describe('CompanyController', () => {
         await controller.updateCompanyDetails(mockRequest, mockReply)
 
         expect(mockLogger.info).toHaveBeenCalledWith('updateCompanyDetails called')
+      })
+    })
+
+    describe('no update data', () => {
+      it('should return 400 when execute returns null', async () => {
+        mockRequest.body = {
+          company: { companyId: '0193df0d-0000-7000-8000-000000000000', legalName: 'Test' },
+        }
+        mockRequest.user = {
+          sub: new UserId(uuidv7()).getValue(),
+          email: 'user-123@example.com',
+          roles: ['admin'],
+        }
+
+        vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue(null as any)
+
+        await controller.updateCompanyDetails(mockRequest, mockReply)
+
+        expect(mockLogger.warn).toHaveBeenCalledWith('No update data provided for company details')
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'No update data provided',
+        })
+      })
+
+      it('should return 400 when execute returns result with no company and no keyPerson', async () => {
+        mockRequest.body = {
+          company: { companyId: '0193df0d-0000-7000-8000-000000000000', legalName: 'Test' },
+        }
+        mockRequest.user = {
+          sub: new UserId(uuidv7()).getValue(),
+          email: 'user-123@example.com',
+          roles: ['admin'],
+        }
+
+        vi.mocked(mockPutCompanyDetailsUseCase.execute).mockResolvedValue({
+          company: undefined,
+          keyPerson: undefined,
+        } as any)
+
+        await controller.updateCompanyDetails(mockRequest, mockReply)
+
+        expect(mockLogger.warn).toHaveBeenCalledWith('No update data provided for company details')
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'No update data provided',
+        })
       })
     })
   })
