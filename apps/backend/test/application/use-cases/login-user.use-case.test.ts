@@ -911,10 +911,8 @@ describe('LoginUserUseCase', () => {
         const dto = new LoginUserDto('john@example.com', 'SecurePass123!')
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(userWithNoId)
 
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(InternalErrorException)
         await expect(useCase.execute(dto, auditContext)).rejects.toThrow('User found but has no ID')
-        await expect(useCase.execute(dto, auditContext)).rejects.toBeInstanceOf(
-          InternalErrorException
-        )
       })
 
       it('should log error with correct message and context when user has no ID', async () => {
