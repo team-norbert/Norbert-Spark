@@ -21,7 +21,7 @@
     "docker:build": "node -e \"const {execFileSync}=require('child_process'); const v=require('./package.json').version; execFileSync('docker', ['build', '--build-arg', 'APP_VERSION=' + v, '-t', 'norberts-spark-backend:' + v, '-f', 'apps/backend/Dockerfile', '.'], { stdio: 'inherit' });\"",
     "docker:db": "docker-compose up -d postgres",
     "docker:db:stop": "docker-compose down",
-    "docker:prod": "docker-compose up -d",
+    "docker:prod": "node -e \"const {execSync}=require('child_process'); const v=require('./package.json').version; execSync('docker-compose up -d', { stdio: 'inherit', env: { ...process.env, APP_VERSION: v } });\"",
     "docker:prod:stop": "docker-compose down"
   },
   "devDependencies": {
