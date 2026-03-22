@@ -1,6 +1,6 @@
 {
   "name": "norberts-spark",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "private": true,
   "description": "Monorepo for Norbert's Spark with frontend and backend and shared package",
   "type": "module",
@@ -18,7 +18,7 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\" --cache",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepare": "husky",
-    "docker:build": "docker build --build-arg APP_VERSION=0.1.2 -t norberts-spark-backend:0.1.2 -f apps/backend/Dockerfile .",
+    "docker:build": "node -e \"const {execFileSync}=require('child_process'); const v=require('./package.json').version; execFileSync('docker', ['build', '--build-arg', 'APP_VERSION=' + v, '-t', 'norberts-spark-backend:' + v, '-f', 'apps/backend/Dockerfile', '.'], { stdio: 'inherit' });\"",
     "docker:db": "docker-compose up -d postgres",
     "docker:db:stop": "docker-compose down",
     "docker:prod": "docker-compose up -d",

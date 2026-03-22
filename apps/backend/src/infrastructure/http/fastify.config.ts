@@ -269,7 +269,7 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
   }
 
   fastify.get('/health', async (_request, _reply) => {
-    return { status: 'ok', timestamp: new Date().toISOString() }
+    return { status: 'ok', timestamp: new Date().toISOString(), app: EnvConfig.APPLICATION_NAME }
   })
 
   return fastify
