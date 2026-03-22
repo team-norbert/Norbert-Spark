@@ -1,9 +1,5 @@
 import type { components, operations } from '@norberts-spark/shared/openapi-types'
-import {
-  type ToolSet,
-  type UIMessage,
-  validateUIMessages,
-} from 'ai'
+import { type ToolSet, type UIMessage, validateUIMessages } from 'ai'
 import { createHash } from 'crypto'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
