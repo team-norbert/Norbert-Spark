@@ -20,7 +20,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-norbertsSpark}
-      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_US.UTF-8}
+      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_US.UTF-8}\
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./apps/backend/init-scripts:/docker-entrypoint-initdb.d:ro
@@ -41,8 +41,9 @@ services:
       context: .
       dockerfile: apps/backend/Dockerfile
       args:
-        APP_VERSION: 0.1.2
-    image: norberts-spark-backend:0.1.2
+        APP_VERSION: 0.1.4
+        APPLICATION_NAME: app1
+    image: norberts-spark-backend:0.1.4
     container_name: norbertsSpark-backend-1
     restart: unless-stopped
     networks:
@@ -69,8 +70,9 @@ services:
       context: .
       dockerfile: apps/backend/Dockerfile
       args:
-        APP_VERSION: 0.1.2
-    image: norberts-spark-backend:0.1.2
+        APP_VERSION: 0.1.4
+        APPLICATION_NAME: app2
+    image: norberts-spark-backend:0.1.4
     container_name: norbertsSpark-backend-2
     restart: unless-stopped
     networks:
@@ -81,7 +83,7 @@ services:
       APPLICATION_NAME: norbertsSpark-backend-2
       NODE_ENV: production
       HOST: 0.0.0.0
-      PORT: 3002
+      PORT: 3001
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:3002/health || exit 1']
       interval: 30s
@@ -97,8 +99,9 @@ services:
       context: .
       dockerfile: apps/backend/Dockerfile
       args:
-        APP_VERSION: 0.1.2
-    image: norberts-spark-backend:0.1.2
+        APP_VERSION: 0.1.4
+        APPLICATION_NAME: app3
+    image: norberts-spark-backend:0.1.4
     container_name: norbertsSpark-backend-3
     restart: unless-stopped
     networks:
@@ -109,7 +112,7 @@ services:
       APPLICATION_NAME: norbertsSpark-backend-3
       NODE_ENV: production
       HOST: 0.0.0.0
-      PORT: 3003
+      PORT: 3001
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:3003/health || exit 1']
       interval: 30s
@@ -131,6 +134,14 @@ services:
       - '443:443'
     volumes:
       - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # TODO:
+      # nginx bind-mounts ./infrastructure/nginx/ssl:/ssl and the NGINX config
+      # expects /ssl/cert.pem + /ssl/key.pem, but the repository currently doesn’t
+      # include infrastructure/nginx/ssl/ (it’s also gitignored). On a clean checkout,
+      # docker compose up will fail if the host directory/files don’t exist.
+      # Add a checked-in README and a script/make target to generate dev certs
+      # (or switch to Docker secrets/explicit external path) so the stack is
+      # runnable for other developers/CI.
       - ./infrastructure/nginx/ssl:/ssl:ro
     depends_on:
       - app
