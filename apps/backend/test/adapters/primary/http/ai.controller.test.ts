@@ -2156,4 +2156,311 @@ describe('AIController', () => {
       })
     })
   })
+
+  // ─── Mutation Coverage Tests ──────────────────────────────────────────────
+
+  describe('registerRoutes() - Mutation Coverage', () => {
+    it('should register POST /ai/chat with exact preHandler array containing authMiddleware', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      const chatCall = vi.mocked(mockApp.post).mock.calls.find((call) => call[0] === '/ai/chat')
+      expect(chatCall).toBeDefined()
+      const chatOptions = chatCall?.[1] as any
+      expect(chatOptions?.preHandler).toBeDefined()
+      expect(Array.isArray(chatOptions?.preHandler)).toBe(true)
+      expect(chatOptions?.preHandler?.length).toBeGreaterThan(0)
+    })
+
+    it('should register GET /ai/chats/:userId with exact preHandler array containing authMiddleware', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      const chatsCall = vi
+        .mocked(mockApp.get)
+        .mock.calls.find((call) => call[0] === '/ai/chats/:userId')
+      expect(chatsCall).toBeDefined()
+      const chatsOptions = chatsCall?.[1] as any
+      expect(chatsOptions?.preHandler).toBeDefined()
+      expect(Array.isArray(chatsOptions?.preHandler)).toBe(true)
+      expect(chatsOptions?.preHandler?.length).toBeGreaterThan(0)
+    })
+
+    it('should register GET /ai/fetchChat/:chatId with exact preHandler array containing authMiddleware', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      const fetchCall = vi
+        .mocked(mockApp.get)
+        .mock.calls.find((call) => call[0] === '/ai/fetchChat/:chatId')
+      expect(fetchCall).toBeDefined()
+      const fetchOptions = fetchCall?.[1] as any
+      expect(fetchOptions?.preHandler).toBeDefined()
+      expect(Array.isArray(fetchOptions?.preHandler)).toBe(true)
+      expect(fetchOptions?.preHandler?.length).toBeGreaterThan(0)
+    })
+
+    it('should register POST /ai/chat with rate limit timeWindow as "1 minute"', () => {
+      const mockApp = {
+        post: vi.fn(),
+        get: vi.fn(),
+      } as unknown as FastifyInstance
+
+      controller.registerRoutes(mockApp)
+
+      const chatCall = vi.mocked(mockApp.post).mock.calls.find((call) => call[0] === '/ai/chat')
+      const chatOptions = chatCall?.[1] as any
+      expect(chatOptions?.config?.rateLimit?.timeWindow).toBe('1 minute')
+    })
+  })
+
+  describe('chat() - Request Body Logging Mutation Coverage', () => {
+    it('should log request body with all optional fields present', async () => {
+      const chatId = uuidv7()
+      const chatTypeId = uuidv7()
+      const chatTypeParam = 'test-chat-type'
+
+      mockRequest.body = {
+        id: chatId,
+        trigger: 'user-input',
+        chatTypeParam: chatTypeParam,
+        chatTypeId: chatTypeId,
+        messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+      }
+
+      vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+        id: chatId,
+        userId: 'user-123',
+        messages: [],
+      } as any)
+
+      vi.mocked(mockResolveChatTypeUseCase.execute).mockResolvedValue(chatTypeId)
+
+      await controller.chat(mockRequest, mockReply)
+
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        'Request body:',
+        expect.objectContaining({
+          id: chatId,
+          trigger: 'user-input',
+          chatTypeParam: chatTypeParam,
+          chatTypeId: chatTypeId,
+          messageCount: 1,
+        })
+      )
+    })
+
+    it('should log request body with undefined optional fields', async () => {
+      const chatId = uuidv7()
+      const chatTypeId = uuidv7()
+
+      mockRequest.body = {
+        id: chatId,
+        trigger: 'user-input',
+        chatTypeId: chatTypeId,
+        messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+        // chatTypeParam is undefined
+      }
+
+      vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+        id: chatId,
+        userId: 'user-123',
+        messages: [],
+      } as any)
+
+      await controller.chat(mockRequest, mockReply)
+
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        'Request body:',
+        expect.objectContaining({
+          id: chatId,
+          trigger: 'user-input',
+          chatTypeId: chatTypeId,
+          messageCount: 1,
+        })
+      )
+    })
+
+    it('should log "Validated messages" with correct metadata including id and trigger', async () => {
+      const chatId = uuidv7()
+      const chatTypeId = uuidv7()
+      const trigger = 'user-input'
+
+      mockRequest.body = {
+        id: chatId,
+        trigger: trigger,
+        chatTypeId: chatTypeId,
+        messages: [
+          { id: '1', role: 'user', parts: [{ type: 'text', text: 'Message 1' }] },
+          { id: '2', role: 'user', parts: [{ type: 'text', text: 'Message 2' }] },
+        ],
+      }
+
+      vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+        id: chatId,
+        userId: 'user-123',
+        messages: [],
+      } as any)
+
+      await controller.chat(mockRequest, mockReply)
+
+      expect(mockLogger.debug).toHaveBeenCalledWith('Validated messages', {
+        messageCount: 2,
+        id: chatId,
+        trigger: trigger,
+      })
+    })
+
+    it('should log "Validated messages summary" with roles array', async () => {
+      const chatId = uuidv7()
+      const chatTypeId = uuidv7()
+
+      mockRequest.body = {
+        id: chatId,
+        trigger: 'user-input',
+        chatTypeId: chatTypeId,
+        messages: [
+          { id: '1', role: 'user', parts: [{ type: 'text', text: 'Message 1' }] },
+          { id: '2', role: 'assistant', parts: [{ type: 'text', text: 'Message 2' }] },
+          { id: '3', role: 'user', parts: [{ type: 'text', text: 'Message 3' }] },
+        ],
+      }
+
+      vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+        id: chatId,
+        userId: 'user-123',
+        messages: [],
+      } as any)
+
+      await controller.chat(mockRequest, mockReply)
+
+      expect(mockLogger.debug).toHaveBeenCalledWith('Validated messages summary', {
+        messageCount: 3,
+        roles: ['user', 'assistant', 'user'],
+      })
+    })
+
+    it('should log "Processing chat request" with chatId, chatTypeId, userId, and messageCount', async () => {
+      const chatId = uuidv7()
+      const chatTypeId = uuidv7()
+      const userId = new UserId(uuidv7()).getValue()
+
+      mockRequest.body = {
+        id: chatId,
+        trigger: 'user-input',
+        chatTypeId: chatTypeId,
+        messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+      }
+      mockRequest.user = {
+        sub: userId,
+        email: 'user@example.com',
+      }
+
+      vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+        id: chatId,
+        userId: userId,
+        messages: [],
+      } as any)
+
+      await controller.chat(mockRequest, mockReply)
+
+      expect(mockLogger.debug).toHaveBeenCalledWith('Processing chat request', {
+        chatId,
+        chatTypeId,
+        userId,
+        messageCount: 1,
+      })
+    })
+  })
+
+  describe('chat() - Chat Type Resolution Mutation Coverage', () => {
+    it('should use chatTypeParam when both chatTypeParam and chatTypeId are provided', async () => {
+      const chatId = uuidv7()
+      const chatTypeId = uuidv7()
+      const chatTypeParam = 'test-chat-slug'
+      const resolvedChatTypeId = uuidv7()
+
+      mockRequest.body = {
+        id: chatId,
+        trigger: 'user-input',
+        chatTypeParam: chatTypeParam,
+        chatTypeId: chatTypeId, // This should be ignored
+        messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+      }
+
+      vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+        id: chatId,
+        userId: 'user-123',
+        messages: [],
+      } as any)
+
+      vi.mocked(mockResolveChatTypeUseCase.execute).mockResolvedValue(resolvedChatTypeId)
+
+      await controller.chat(mockRequest, mockReply)
+
+      expect(mockResolveChatTypeUseCase.execute).toHaveBeenCalledWith(
+        chatTypeParam,
+        expect.objectContaining({
+          userId: expect.any(String),
+          ipAddress: '127.0.0.xxx',
+          userAgent: 'test-user-agent',
+        })
+      )
+    })
+
+    it('should use chatTypeId when chatTypeParam is undefined', async () => {
+      const chatId = uuidv7()
+      const chatTypeId = uuidv7()
+
+      mockRequest.body = {
+        id: chatId,
+        trigger: 'user-input',
+        chatTypeId: chatTypeId,
+        messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+        // chatTypeParam is undefined
+      }
+
+      vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+        id: chatId,
+        userId: 'user-123',
+        messages: [],
+      } as any)
+
+      await controller.chat(mockRequest, mockReply)
+
+      expect(mockResolveChatTypeUseCase.execute).not.toHaveBeenCalled()
+    })
+
+    it('should return 400 when chatTypeId is provided but has invalid format', async () => {
+      const chatId = uuidv7()
+
+      mockRequest.body = {
+        id: chatId,
+        trigger: 'user-input',
+        chatTypeId: 'not-a-uuid',
+        messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+      }
+
+      await controller.chat(mockRequest, mockReply)
+
+      expect(mockReply.code).toHaveBeenCalledWith(400)
+      expect(mockReply.send).toHaveBeenCalledWith({
+        success: false,
+        error: 'Invalid chatTypeId format',
+        details: 'chatTypeId must be a valid UUID v7',
+      })
+    })
+  })
 })
