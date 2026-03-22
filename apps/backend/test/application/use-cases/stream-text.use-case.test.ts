@@ -28,11 +28,16 @@ vi.mock('../../../src/infrastructure/ai/middleware/cache.middleware.js', () => (
   createCacheMiddleware: vi.fn().mockReturnValue('mock-cache-middleware'),
 }))
 
+// Mutable EnvConfig for testing different environments
+const mockEnvConfig = {
+  NODE_ENV: 'test',
+  MODEL_NAME: 'gemini-pro',
+  SENTRY_ENABLED: false,
+}
+
 vi.mock('../../../src/infrastructure/config/env.config.js', () => ({
-  EnvConfig: {
-    NODE_ENV: 'test',
-    MODEL_NAME: 'gemini-pro',
-    SENTRY_ENABLED: false,
+  get EnvConfig() {
+    return mockEnvConfig
   },
 }))
 
@@ -488,6 +493,223 @@ describe('StreamTextUseCase', () => {
         chatId,
         messageCount: undefined,
       })
+    })
+  })
+
+  // ── Mutation Coverage Tests ───────────────────────────────────────────
+
+  describe('Production mode - Mutation Coverage', () => {
+    it('should use wrapLanguageModel when NODE_ENV is "production"', async () => {
+      // Temporarily set production mode
+      const originalNodeEnv = mockEnvConfig.NODE_ENV
+      mockEnvConfig.NODE_ENV = 'production'
+
+      const { streamTextReturn } = makeStreamTextResult()
+      vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
+
+      const messages = [
+        { role: 'user', parts: [{ type: 'text', text: 'Hello' }], id: uuidv7() },
+      ] as any
+
+      // Create new use case instance to pick up production config
+      const productionUseCase = new StreamTextUseCase<ToolSet>(logger, appendChatUseCase)
+      await productionUseCase.execute(auditContext, messages, systemPrompt, chatId, mockTools)
+
+      const callArgs = vi.mocked(streamText).mock.calls[0][0]
+      expect(callArgs.model).toBe('wrapped-model')
+
+      // Restore original value
+      mockEnvConfig.NODE_ENV = originalNodeEnv
+    })
+
+    it('should NOT log text-delta chunks in production mode', async () => {
+      // Temporarily set production mode
+      const originalNodeEnv = mockEnvConfig.NODE_ENV
+      mockEnvConfig.NODE_ENV = 'production'
+
+      const { streamTextReturn } = makeStreamTextResult()
+      vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
+
+      const messages = [
+        { role: 'user', parts: [{ type: 'text', text: 'Hello' }], id: uuidv7() },
+      ] as any
+
+      // Create new use case instance to pick up production config
+      const productionUseCase = new StreamTextUseCase<ToolSet>(logger, appendChatUseCase)
+      await productionUseCase.execute(auditContext, messages, systemPrompt, chatId, mockTools)
+
+      const callArgs = vi.mocked(streamText).mock.calls[0][0]
+      const onChunk = callArgs.onChunk as (args: { chunk: any }) => void
+
+      vi.mocked(logger.debug).mockClear()
+      onChunk({ chunk: { type: 'text-delta', text: 'hello world' } })
+
+      expect(logger.debug).not.toHaveBeenCalledWith('AI stream text-delta chunk', expect.anything())
+
+      // Restore original value
+      mockEnvConfig.NODE_ENV = originalNodeEnv
+    })
+  })
+
+  describe('streamText configuration - Mutation Coverage', () => {
+    it('should configure stopWhen array with non-empty value', async () => {
+      const { streamTextReturn } = makeStreamTextResult()
+      vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
+
+      const messages = [
+        { role: 'user', parts: [{ type: 'text', text: 'Hello' }], id: uuidv7() },
+      ] as any
+      await useCase.execute(auditContext, messages, systemPrompt, chatId, mockTools)
+
+      const callArgs = vi.mocked(streamText).mock.calls[0][0]
+      expect(callArgs.stopWhen).toBeDefined()
+      expect(Array.isArray(callArgs.stopWhen)).toBe(true)
+      expect(callArgs.stopWhen.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('onFinish logging - Mutation Coverage', () => {
+    it('should log exact "Stream messages metadata" string with messageCount property', async () => {
+      const { streamTextReturn } = makeStreamTextResult()
+      vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
+
+      const messages = [
+        { role: 'user', parts: [{ type: 'text', text: 'Hello' }], id: uuidv7() },
+      ] as any
+      await useCase.execute(auditContext, messages, systemPrompt, chatId, mockTools)
+
+      const callArgs = vi.mocked(streamText).mock.calls[0][0]
+      const onFinish = callArgs.onFinish as (args: any) => void
+
+      vi.mocked(logger.debug).mockClear()
+      onFinish({
+        finishReason: 'stop',
+        response: { messages: [] },
+        text: 'Hello!',
+        totalUsage: { promptTokens: 10, completionTokens: 5 },
+        usage: { promptTokens: 10, completionTokens: 5 },
+      })
+
+      expect(logger.debug).toHaveBeenCalledWith('Stream messages metadata', {
+        messageCount: 1,
+      })
+    })
+
+    it('should log exact "Stream response metadata" string with responseMessageCount property', async () => {
+      const { streamTextReturn } = makeStreamTextResult()
+      vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
+
+      const messages = [
+        { role: 'user', parts: [{ type: 'text', text: 'Hello' }], id: uuidv7() },
+      ] as any
+      await useCase.execute(auditContext, messages, systemPrompt, chatId, mockTools)
+
+      const callArgs = vi.mocked(streamText).mock.calls[0][0]
+      const onFinish = callArgs.onFinish as (args: any) => void
+
+      vi.mocked(logger.debug).mockClear()
+      onFinish({
+        finishReason: 'stop',
+        response: { messages: [{ role: 'assistant', content: 'Hi' }] },
+        text: 'Hello!',
+        totalUsage: { promptTokens: 10, completionTokens: 5 },
+        usage: { promptTokens: 10, completionTokens: 5 },
+      })
+
+      expect(logger.debug).toHaveBeenCalledWith('Stream response metadata', {
+        responseMessageCount: 1,
+      })
+    })
+
+    it('should handle response without messages property gracefully (optional chaining)', async () => {
+      const { streamTextReturn } = makeStreamTextResult()
+      vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
+
+      const messages = [
+        { role: 'user', parts: [{ type: 'text', text: 'Hello' }], id: uuidv7() },
+      ] as any
+      await useCase.execute(auditContext, messages, systemPrompt, chatId, mockTools)
+
+      const callArgs = vi.mocked(streamText).mock.calls[0][0]
+      const onFinish = callArgs.onFinish as (args: any) => void
+
+      vi.mocked(logger.debug).mockClear()
+      // Pass response object without messages property
+      onFinish({
+        finishReason: 'stop',
+        response: {}, // No messages property
+        text: 'Hello!',
+        totalUsage: { promptTokens: 10, completionTokens: 5 },
+        usage: { promptTokens: 10, completionTokens: 5 },
+      })
+
+      expect(logger.debug).toHaveBeenCalledWith('Stream response metadata', {
+        responseMessageCount: undefined,
+      })
+    })
+
+    it('should verify messageCount property exists in logged metadata object', async () => {
+      const { streamTextReturn } = makeStreamTextResult()
+      vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
+
+      const messages = [
+        { role: 'user', parts: [{ type: 'text', text: 'Hello' }], id: uuidv7() },
+        { role: 'assistant', parts: [{ type: 'text', text: 'Hi' }], id: uuidv7() },
+      ] as any
+      await useCase.execute(auditContext, messages, systemPrompt, chatId, mockTools)
+
+      const callArgs = vi.mocked(streamText).mock.calls[0][0]
+      const onFinish = callArgs.onFinish as (args: any) => void
+
+      vi.mocked(logger.debug).mockClear()
+      onFinish({
+        finishReason: 'stop',
+        response: { messages: [] },
+        text: 'Hello!',
+        totalUsage: { promptTokens: 10, completionTokens: 5 },
+        usage: { promptTokens: 10, completionTokens: 5 },
+      })
+
+      const metadataCall = vi
+        .mocked(logger.debug)
+        .mock.calls.find((call) => call[0] === 'Stream messages metadata')
+      expect(metadataCall).toBeDefined()
+      expect(metadataCall![1]).toHaveProperty('messageCount')
+      expect(metadataCall![1].messageCount).toBe(2)
+    })
+
+    it('should verify responseMessageCount property exists in logged metadata object', async () => {
+      const { streamTextReturn } = makeStreamTextResult()
+      vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
+
+      const messages = [
+        { role: 'user', parts: [{ type: 'text', text: 'Hello' }], id: uuidv7() },
+      ] as any
+      await useCase.execute(auditContext, messages, systemPrompt, chatId, mockTools)
+
+      const callArgs = vi.mocked(streamText).mock.calls[0][0]
+      const onFinish = callArgs.onFinish as (args: any) => void
+
+      vi.mocked(logger.debug).mockClear()
+      onFinish({
+        finishReason: 'stop',
+        response: {
+          messages: [
+            { role: 'assistant', content: 'Hi' },
+            { role: 'assistant', content: 'How are you?' },
+          ],
+        },
+        text: 'Hello!',
+        totalUsage: { promptTokens: 10, completionTokens: 5 },
+        usage: { promptTokens: 10, completionTokens: 5 },
+      })
+
+      const metadataCall = vi
+        .mocked(logger.debug)
+        .mock.calls.find((call) => call[0] === 'Stream response metadata')
+      expect(metadataCall).toBeDefined()
+      expect(metadataCall![1]).toHaveProperty('responseMessageCount')
+      expect(metadataCall![1].responseMessageCount).toBe(2)
     })
   })
 })
