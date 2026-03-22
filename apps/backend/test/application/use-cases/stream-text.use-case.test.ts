@@ -197,7 +197,7 @@ describe('StreamTextUseCase', () => {
   // ── onChunk callback ──────────────────────────────────────────────────
 
   describe('onChunk callback', () => {
-    it('should write text-delta chunks to stdout', async () => {
+    it('should log text-delta chunks via logger.debug in non-production', async () => {
       const { streamTextReturn } = makeStreamTextResult()
       vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
 
@@ -209,14 +209,14 @@ describe('StreamTextUseCase', () => {
       const callArgs = vi.mocked(streamText).mock.calls[0][0]
       const onChunk = callArgs.onChunk as (args: { chunk: any }) => void
 
-      const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
       onChunk({ chunk: { type: 'text-delta', text: 'hello world' } })
 
-      expect(stdoutSpy).toHaveBeenCalledWith('hello world')
-      stdoutSpy.mockRestore()
+      expect(logger.debug).toHaveBeenCalledWith('AI stream text-delta chunk', {
+        text: 'hello world',
+      })
     })
 
-    it('should not write non-text-delta chunks to stdout', async () => {
+    it('should not log non-text-delta chunks', async () => {
       const { streamTextReturn } = makeStreamTextResult()
       vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
 
@@ -228,14 +228,13 @@ describe('StreamTextUseCase', () => {
       const callArgs = vi.mocked(streamText).mock.calls[0][0]
       const onChunk = callArgs.onChunk as (args: { chunk: any }) => void
 
-      const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
+      vi.mocked(logger.debug).mockClear()
       onChunk({ chunk: { type: 'reasoning-delta', text: 'thinking...' } })
 
-      expect(stdoutSpy).not.toHaveBeenCalled()
-      stdoutSpy.mockRestore()
+      expect(logger.debug).not.toHaveBeenCalledWith('AI stream text-delta chunk', expect.anything())
     })
 
-    it('should not write text-delta chunks with empty text', async () => {
+    it('should not log text-delta chunks with empty text', async () => {
       const { streamTextReturn } = makeStreamTextResult()
       vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
 
@@ -247,11 +246,10 @@ describe('StreamTextUseCase', () => {
       const callArgs = vi.mocked(streamText).mock.calls[0][0]
       const onChunk = callArgs.onChunk as (args: { chunk: any }) => void
 
-      const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
+      vi.mocked(logger.debug).mockClear()
       onChunk({ chunk: { type: 'text-delta', text: '' } })
 
-      expect(stdoutSpy).not.toHaveBeenCalled()
-      stdoutSpy.mockRestore()
+      expect(logger.debug).not.toHaveBeenCalledWith('AI stream text-delta chunk', expect.anything())
     })
   })
 
@@ -447,7 +445,7 @@ describe('StreamTextUseCase', () => {
       })
     })
 
-    it('should log responseMessage', async () => {
+    it('should log chatId and messageCount on finish', async () => {
       const { streamTextReturn, triggerOnFinish } = makeStreamTextResult()
       vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
 
@@ -463,7 +461,10 @@ describe('StreamTextUseCase', () => {
 
       await triggerOnFinish(responseMessage, messages)
 
-      expect(logger.debug).toHaveBeenCalledWith('Response message', { responseMessage })
+      expect(logger.debug).toHaveBeenCalledWith('toUIMessageStreamResponse.onFinish', {
+        chatId,
+        messageCount: 1,
+      })
     })
 
     it('should handle messages that is not an array gracefully', async () => {

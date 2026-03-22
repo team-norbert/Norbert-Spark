@@ -356,10 +356,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.tokenGenerator
     )
     this.logOutUseCase = new LogOutUseCase(this.logger, this.auditLog, this.refreshTokenRepo)
-    this.streamTextUseCase = new StreamTextUseCase(
-      this.logger,
-      this.appendChatUseCase
-    )
+    this.streamTextUseCase = new StreamTextUseCase(this.logger, this.appendChatUseCase)
 
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
