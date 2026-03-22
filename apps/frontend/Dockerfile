@@ -17,6 +17,7 @@ WORKDIR /app
 # Copy workspace config and all package.json files for dependency resolution
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/shared/package.json ./packages/shared/
+COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package.json ./apps/frontend/
 
 # Install project dependencies with frozen lockfile for reproducible builds
@@ -46,6 +47,10 @@ COPY apps/frontend ./apps/frontend
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# Skip env validation at build time: server-only secrets (NEXTAUTH_SECRET,
+# GOOGLE_ID, etc.) must not be baked into the image as build args. NEXT_PUBLIC_*
+# vars are still inlined via the ARGs below.
+ENV SKIP_ENV_VALIDATION=true
 
 # Pass required NEXT_PUBLIC_* vars as build args so they are inlined into the
 # client bundle at build time (runtime env vars cannot replace baked-in values).
