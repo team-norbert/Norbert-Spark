@@ -358,7 +358,6 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.logOutUseCase = new LogOutUseCase(this.logger, this.auditLog, this.refreshTokenRepo)
     this.streamTextUseCase = new StreamTextUseCase(
       this.logger,
-      this.auditLog,
       this.appendChatUseCase
     )
 

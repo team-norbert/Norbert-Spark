@@ -18,7 +18,6 @@ import { AuditAction, EntityType } from '../../../domain/audit/entity-type.enum.
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
 import type { UUIDType } from '../../../domain/value-objects/uuid.js'
-import { createCacheMiddleware } from '../../../infrastructure/ai/middleware/cache.middleware.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
@@ -27,7 +26,6 @@ import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import type { AuditContextType } from '../../../shared/types/index.js'
 import { createAuditContext } from '../../../shared/types/index.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
-import { Sanitise } from '../../../shared/utils/sanitise.utils.js'
 
 /**
  * HTTP controller responsible for live AI chat session endpoints.

@@ -9,12 +9,10 @@ import {
 } from 'ai'
 
 import type { AuditContext } from '../../domain/audit/audit-context.js'
-import { AuditAction, EntityType } from '../../domain/audit/entity-type.enum.js'
 import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 import { createCacheMiddleware } from '../../infrastructure/ai/middleware/cache.middleware.js'
 import { EnvConfig } from '../../infrastructure/config/env.config.js'
 import { Sanitise } from '../../shared/utils/sanitise.utils.js'
-import type { AuditLogPort, CreateAuditLogDTO } from '../ports/audit-log.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
 import { AppendedChatUseCase } from './append-chat.use-case.js'
 
@@ -22,7 +20,6 @@ export class StreamTextUseCase<T extends ToolSet> {
   private readonly cacheMiddleware: ReturnType<typeof createCacheMiddleware>
   constructor(
     private readonly logger: LoggerPort,
-    private readonly auditLog: AuditLogPort,
     private readonly appendChatUseCase: AppendedChatUseCase
   ) {
     this.cacheMiddleware = createCacheMiddleware(this.logger)
@@ -52,20 +49,14 @@ export class StreamTextUseCase<T extends ToolSet> {
       },
       tools,
       stopWhen: [stepCountIs(5)],
-      onChunk({ chunk }) {
+      onChunk: ({ chunk }) => {
         // Called for each partial piece of output
         const c = chunk as { type: string; text?: string }
-        if (c.type === 'text-delta' && c.text) {
-          process.stdout.write(c.text)
-          // For debugging, prefer using the application logger at debug level instead of stdout,
-          // and ensure such logging is disabled or minimized in production.
-          // Example:
-          // logger.debug({ text: chunk.text }, 'AI stream text-delta chunk')        }
-          // you can also inspect chunk.reasoning / chunk.sources / etc.
+        if (c.type === 'text-delta' && c.text && EnvConfig.NODE_ENV !== 'production') {
+          this.logger.debug('AI stream text-delta chunk', { text: c.text })
         }
-        // you can also inspect chunk.reasoning / chunk.sources / etc.
       },
-      onFinish: ({ finishReason, response, text, totalUsage, usage }) => {
+      onFinish: ({ finishReason, response, totalUsage, usage }) => {
         // Called once when the full output is complete
         // The reason the model finished generating the text.
         // "stop" | "length" | "content-filter" | "tool-calls" | "error" | "other" | "unknown"
@@ -73,14 +64,18 @@ export class StreamTextUseCase<T extends ToolSet> {
         this.logger.debug('Stream usage info', { usage, totalUsage })
         this.logger.debug('streamText.onFinish')
 
-        // Model messages (AssistantModelMessage or ToolModelMessage)
-        // Minimal information, no UI data
-        // Not suitable for UI applications
-        this.logger.debug('Stream messages', { messages: JSON.stringify(messages) })
-        // 'response.messages' is an array of ToolModelMessage and AssistantModelMessage,
-        // which are the model messages that were generated during the stream.
-        // This is useful if you don't need UIMessages - for simpler applications.
-        this.logger.debug('Stream response', { response: JSON.stringify(response) })
+        // Log only non-sensitive metadata to avoid storing raw prompt/model content.
+        this.logger.debug('Stream messages metadata', {
+          messageCount: messages.length,
+        })
+
+        const responseMessages = (response as any)?.messages
+        const responseMessageCount = Array.isArray(responseMessages)
+          ? responseMessages.length
+          : undefined
+        this.logger.debug('Stream response metadata', {
+          responseMessageCount,
+        })
       },
       onError: ({ error }) => {
         this.logger.error('Stream error', error instanceof Error ? error : new Error(String(error)))
@@ -98,11 +93,6 @@ export class StreamTextUseCase<T extends ToolSet> {
           messageCount: Array.isArray(messages) ? messages.length : undefined,
         })
 
-        // Single message
-        // Just the newly generated assistant message
-        // Good for persisting only the latest response
-        this.logger.debug('Response message', { responseMessage })
-
         // Sanitise text parts before persisting to prevent stored XSS/prompt injection
         // (Finding 6 - Prompt Injection Defence in SECURITY_THREAT_MODEL.md)
         // Note: frontend rendering is already sanitised by Streamdown's rehype-sanitize pipeline
@@ -115,18 +105,6 @@ export class StreamTextUseCase<T extends ToolSet> {
             return part
           }),
         }
-
-        const auditEntry: CreateAuditLogDTO = {
-          userId: auditContext.userId,
-          entityType: EntityType.CHAT,
-          entityId: chatId,
-          action: AuditAction.CREATE,
-          changes: { reason: 'chat_successfully_on_finish' },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        }
-        // AuditLogPort.log() never throws per contract
-        await this.auditLog.log(auditEntry)
 
         await this.appendChatUseCase.execute(chatId, [sanitisedResponseMessage], auditContext)
       },

@@ -2,12 +2,10 @@ import { streamText, type ToolSet } from 'ai'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { AuditLogPort } from '../../../src/application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import { AppendedChatUseCase } from '../../../src/application/use-cases/append-chat.use-case.js'
 import { StreamTextUseCase } from '../../../src/application/use-cases/stream-text.use-case.js'
 import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
-import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { ChatId, type ChatIdType } from '../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
 import { Sanitise } from '../../../src/shared/utils/sanitise.utils.js'
@@ -45,15 +43,6 @@ vi.mock('../../../src/shared/utils/sanitise.utils.js', () => ({
 }))
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-
-function createMockAuditLog(): AuditLogPort {
-  return {
-    log: vi.fn().mockResolvedValue(undefined),
-    getByEntity: vi.fn().mockResolvedValue([]),
-    getByUser: vi.fn().mockResolvedValue([]),
-    getByAction: vi.fn().mockResolvedValue([]),
-  }
-}
 
 function createAuditContext(): AuditContext {
   return {
@@ -98,7 +87,6 @@ function makeStreamTextResult() {
 
 describe('StreamTextUseCase', () => {
   let logger: LoggerPort
-  let auditLog: AuditLogPort
   let appendChatUseCase: AppendedChatUseCase
   let useCase: StreamTextUseCase<ToolSet>
   let chatId: ChatIdType
@@ -110,11 +98,10 @@ describe('StreamTextUseCase', () => {
     vi.clearAllMocks()
 
     logger = createMockLogger()
-    auditLog = createMockAuditLog()
     appendChatUseCase = {
       execute: vi.fn().mockResolvedValue(null),
     } as unknown as AppendedChatUseCase
-    useCase = new StreamTextUseCase<ToolSet>(logger, auditLog, appendChatUseCase)
+    useCase = new StreamTextUseCase<ToolSet>(logger, appendChatUseCase)
     chatId = new ChatId(uuidv7()).getValue()
     auditContext = createAuditContext()
   })
@@ -383,7 +370,7 @@ describe('StreamTextUseCase', () => {
       expect(Sanitise.sanitiseText).not.toHaveBeenCalled()
     })
 
-    it('should log audit entry on finish', async () => {
+    it('should call appendChatUseCase.execute once on finish (audit is delegated)', async () => {
       const { streamTextReturn, triggerOnFinish } = makeStreamTextResult()
       vi.mocked(streamText).mockReturnValue(streamTextReturn as any)
 
@@ -399,17 +386,7 @@ describe('StreamTextUseCase', () => {
 
       await triggerOnFinish(responseMessage, messages)
 
-      expect(auditLog.log).toHaveBeenCalledExactlyOnceWith(
-        expect.objectContaining({
-          userId: auditContext.userId,
-          entityType: EntityType.CHAT,
-          entityId: chatId,
-          action: AuditAction.CREATE,
-          changes: { reason: 'chat_successfully_on_finish' },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        })
-      )
+      expect(appendChatUseCase.execute).toHaveBeenCalledTimes(1)
     })
 
     it('should call appendChatUseCase.execute with sanitised message', async () => {
@@ -431,7 +408,8 @@ describe('StreamTextUseCase', () => {
 
       await triggerOnFinish(responseMessage, messages)
 
-      expect(appendChatUseCase.execute).toHaveBeenCalledExactlyOnceWith(
+      expect(appendChatUseCase.execute).toHaveBeenCalledTimes(1)
+      expect(appendChatUseCase.execute).toHaveBeenCalledWith(
         chatId,
         [
           expect.objectContaining({
