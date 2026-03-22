@@ -1,0 +1,15 @@
+# NOTE: This .dockerignore is intentionally NOT used.
+#
+# Docker only reads `.dockerignore` from the build context root.
+# In this project, compose.yml sets:
+#   context: .
+# so the effective ignore file is the one at the repository root.
+#
+# This file is kept only as documentation / a template for a
+# potential future setup where the frontend is built with:
+#   context: ./apps/frontend
+#
+# Do NOT rely on any patterns here to affect Docker builds.
+# If you need to adjust Docker ignore rules, edit the root
+# .dockerignore instead.
+############################################################

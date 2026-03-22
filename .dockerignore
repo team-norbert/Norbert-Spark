@@ -1,0 +1,93 @@
+# =============================================================
+# Root .dockerignore for monorepo Docker builds
+# Docker reads .dockerignore from the build context root only.
+# =============================================================
+
+# ---- Version control & editors ----
+.git/
+.gitignore
+.gitattributes
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---- All node_modules (reinstalled inside Docker) ----
+**/node_modules/
+**/.pnpm-store/
+
+# ---- Next.js / build outputs (regenerated in Docker) ----
+**/.next/
+**/out/
+**/dist/
+**/build/
+**/.vercel/
+
+# ---- Tests (not needed in production) ----
+**/coverage/
+**/__tests__/
+**/__mocks__/
+**/playwright-report/
+**/test-results/
+**/.vitest/
+**/*.test.*
+**/*.spec.*
+**/vitest.config.*
+**/playwright.config.*
+**/e2e/
+**/evals/
+**/pacts/
+
+# ---- Backend (not needed for frontend build) ----
+apps/backend/data/
+apps/backend/coverage/
+apps/backend/certs/
+apps/backend/postgres-config/
+apps/backend/sql/
+apps/backend/scripts/
+apps/backend/.env
+apps/backend/.env.*
+
+# ---- Infrastructure (not needed in builds) ----
+infrastructure/
+
+# ---- Docker files ----
+**/Dockerfile*
+**/.dockerignore
+docker-compose*.yml
+compose.yml
+
+# ---- Documentation ----
+*.md
+**/docs/
+
+# ---- CI/CD ----
+.github/
+.gitlab-ci.yml
+
+# ---- Cache & temp ----
+**/.cache/
+**/.turbo/
+**/.swc/
+**/.tmp/
+**/.eslintcache
+**/*.tsbuildinfo
+
+# ---- Sensitive / config files not needed at build ----
+**/*.pem
+.editorconfig
+.prettierrc*
+commitlint.config.js
+
+# ---- OS junk ----
+.DS_Store
+Thumbs.db
+
+# ---- AI tool metadata ----
+.cursor/
+.copilot/
+.gemini/
+.anthropic/
+.kiro/
+.claude/
+AGENTS.md
