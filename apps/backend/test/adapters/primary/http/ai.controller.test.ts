@@ -1,3 +1,4 @@
+import type { ToolSet } from 'ai'
 import { DrizzleQueryError } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { uuidv7 } from 'uuidv7'
@@ -14,6 +15,7 @@ import type { GetChatContentByChatIdUseCase } from '../../../../src/application/
 import type { GetChatsByUserIdUseCase } from '../../../../src/application/use-cases/get-chats-by-userid.use-case.js'
 import type { ResolveChatTypeUseCase } from '../../../../src/application/use-cases/resolve-chat-type.use-case.js'
 import type { SaveChatUseCase } from '../../../../src/application/use-cases/save-chat.use-case.js'
+import type { StreamTextUseCase } from '../../../../src/application/use-cases/stream-text.use-case.js'
 import { ChatId } from '../../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { EnvConfig } from '../../../../src/infrastructure/config/env.config.js'
@@ -70,6 +72,7 @@ describe('AIController', () => {
   let mockGetChatAiOptionsUseCase: GetChatAiOptionsUseCase
   let mockResolveChatTypeUseCase: ResolveChatTypeUseCase
   let mockAuditLogPort: AuditLogPort
+  let mockStreamTextUseCase: StreamTextUseCase<ToolSet>
   let mockLogger: LoggerPort
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
@@ -120,6 +123,16 @@ describe('AIController', () => {
       getByAction: vi.fn().mockResolvedValue([]),
     } as any
 
+    // Create mock stream text use case
+    mockStreamTextUseCase = {
+      execute: vi.fn().mockResolvedValue(
+        new Response('mock-stream', {
+          status: 200,
+          headers: { 'Content-Type': 'text/event-stream' },
+        })
+      ),
+    } as any
+
     // Create controller instance with mocked dependencies
     controller = new AIController(
       mockGetChatUseCase,
@@ -130,7 +143,8 @@ describe('AIController', () => {
       mockGetChatContentByChatIdUseCase,
       mockGetChatAiOptionsUseCase,
       mockResolveChatTypeUseCase,
-      mockAuditLogPort
+      mockAuditLogPort,
+      mockStreamTextUseCase
     )
 
     // Create mock Fastify reply with chainable methods
@@ -170,7 +184,8 @@ describe('AIController', () => {
         mockGetChatContentByChatIdUseCase,
         mockGetChatAiOptionsUseCase,
         mockResolveChatTypeUseCase,
-        mockAuditLogPort
+        mockAuditLogPort,
+        mockStreamTextUseCase
       )
 
       expect(instance).toBeInstanceOf(AIController)
@@ -187,7 +202,8 @@ describe('AIController', () => {
         mockGetChatContentByChatIdUseCase,
         mockGetChatAiOptionsUseCase,
         mockResolveChatTypeUseCase,
-        mockAuditLogPort
+        mockAuditLogPort,
+        mockStreamTextUseCase
       )
 
       expect(instance).toBeDefined()
@@ -778,8 +794,7 @@ describe('AIController', () => {
     })
 
     describe('AI streaming', () => {
-      it('should call streamText with correct parameters', async () => {
-        const { streamText } = await import('ai')
+      it('should call streamTextUseCase.execute with correct parameters', async () => {
         const chatId = uuidv7()
         const chatTypeId = uuidv7()
 
@@ -809,19 +824,22 @@ describe('AIController', () => {
 
         await controller.chat(mockRequest, mockReply)
 
-        expect(streamText).toHaveBeenCalledWith(
+        expect(mockStreamTextUseCase.execute).toHaveBeenCalledWith(
           expect.objectContaining({
-            model: expect.any(String),
-            messages: expect.any(Array),
-            system: expect.stringContaining('literary expert'),
-            tools: expect.objectContaining({
-              heartOfDarknessQA: expect.any(Object),
-            }),
-          })
+            userId: expect.any(String),
+            ipAddress: '127.0.0.xxx',
+            userAgent: 'test-user-agent',
+          }),
+          expect.any(Array), // messages
+          expect.stringContaining('literary expert'), // systemPrompt
+          chatId, // chatId
+          expect.objectContaining({
+            heartOfDarknessQA: expect.any(Object),
+          }) // tools
         )
       })
 
-      it('should return stream response', async () => {
+      it('should return stream response from streamTextUseCase', async () => {
         const chatId = uuidv7()
         const chatTypeId = uuidv7()
         mockRequest.body = {
@@ -840,7 +858,9 @@ describe('AIController', () => {
         const result = await controller.chat(mockRequest, mockReply)
 
         expect(result).toBeDefined()
-        expect(result).toHaveProperty('status')
+        expect(result).toBeInstanceOf(Response)
+        expect((result as Response).status).toBe(200)
+        expect(mockStreamTextUseCase.execute).toHaveBeenCalledOnce()
       })
     })
 

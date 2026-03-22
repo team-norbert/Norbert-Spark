@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import type { ToolSet } from 'ai'
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 
 // Primary Controllers
@@ -56,6 +57,7 @@ import { RegisterUserUseCase } from '../../application/use-cases/register-user.u
 import { RegisterUserWithProviderUseCase } from '../../application/use-cases/register-user-with-provider.use-case.js'
 import { ResolveChatTypeUseCase } from '../../application/use-cases/resolve-chat-type.use-case.js'
 import { SaveChatUseCase } from '../../application/use-cases/save-chat.use-case.js'
+import { StreamTextUseCase } from '../../application/use-cases/stream-text.use-case.js'
 // Utils
 import { PDFUtils } from '../../shared/utils/pdf.utils.js'
 import { EnvConfig } from '../config/env.config.js'
@@ -136,6 +138,7 @@ export class Container {
   private readonly getEmbeddingModelUseCase: GetEmbeddingModelUseCase
   private readonly refreshAccessTokenUseCase: RefreshAccessTokenUseCase
   private readonly logOutUseCase: LogOutUseCase
+  private readonly streamTextUseCase: StreamTextUseCase<ToolSet>
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -353,6 +356,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.tokenGenerator
     )
     this.logOutUseCase = new LogOutUseCase(this.logger, this.auditLog, this.refreshTokenRepo)
+    this.streamTextUseCase = new StreamTextUseCase(this.logger, this.appendChatUseCase)
 
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
@@ -378,7 +382,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.getChatContentByChatIdUseCase,
       this.getChatAiOptionsUseCase,
       this.resolveChatTypeUseCase,
-      this.auditLog
+      this.auditLog,
+      this.streamTextUseCase
     )
     this.aiConfigController = new AIConfigController(
       this.logger,

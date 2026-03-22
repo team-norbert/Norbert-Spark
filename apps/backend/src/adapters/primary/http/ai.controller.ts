@@ -1,13 +1,5 @@
-import { google } from '@ai-sdk/google'
 import type { components, operations } from '@norberts-spark/shared/openapi-types'
-import {
-  convertToModelMessages,
-  stepCountIs,
-  streamText,
-  type UIMessage,
-  validateUIMessages,
-  wrapLanguageModel,
-} from 'ai'
+import { type ToolSet, type UIMessage, validateUIMessages } from 'ai'
 import { createHash } from 'crypto'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
@@ -21,11 +13,11 @@ import { GetChatContentByChatIdUseCase } from '../../../application/use-cases/ge
 import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
 import { ResolveChatTypeUseCase } from '../../../application/use-cases/resolve-chat-type.use-case.js'
 import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
+import type { StreamTextUseCase } from '../../../application/use-cases/stream-text.use-case.js'
 import { AuditAction, EntityType } from '../../../domain/audit/entity-type.enum.js'
 import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
 import { UserId, type UserIdType } from '../../../domain/value-objects/userID.js'
 import type { UUIDType } from '../../../domain/value-objects/uuid.js'
-import { createCacheMiddleware } from '../../../infrastructure/ai/middleware/cache.middleware.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
@@ -34,7 +26,6 @@ import { mapDBPartToUIMessagePart } from '../../../shared/mapper/index.js'
 import type { AuditContextType } from '../../../shared/types/index.js'
 import { createAuditContext } from '../../../shared/types/index.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
-import { Sanitise } from '../../../shared/utils/sanitise.utils.js'
 
 /**
  * HTTP controller responsible for live AI chat session endpoints.
@@ -49,7 +40,6 @@ import { Sanitise } from '../../../shared/utils/sanitise.utils.js'
  */
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
-  private readonly cacheMiddleware: ReturnType<typeof createCacheMiddleware>
   private NODE_ENV = EnvConfig.NODE_ENV
   private rateLimit = this.NODE_ENV === 'development' || this.NODE_ENV === 'test' ? 200 : 10
 
@@ -62,10 +52,10 @@ export class AIController {
     private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase,
     private readonly getChatAiOptionsUseCase: GetChatAiOptionsUseCase,
     private readonly resolveChatTypeUseCase: ResolveChatTypeUseCase,
-    private readonly auditLogPort: AuditLogPort
+    private readonly auditLogPort: AuditLogPort,
+    private readonly streamTextUseCase: StreamTextUseCase<ToolSet>
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
-    this.cacheMiddleware = createCacheMiddleware(this.logger)
   }
 
   /**
@@ -367,90 +357,8 @@ export class AIController {
       })
     }
 
-    const result = streamText({
-      model:
-        EnvConfig.NODE_ENV === 'production'
-          ? wrapLanguageModel({
-              model: google(EnvConfig.MODEL_NAME),
-              middleware: this.cacheMiddleware,
-            })
-          : google(EnvConfig.MODEL_NAME),
-      messages: await convertToModelMessages(messages as UIMessage[]),
-      system: systemPrompt.prompt,
-      experimental_telemetry: {
-        isEnabled: EnvConfig.SENTRY_ENABLED,
-        recordInputs: true,
-        recordOutputs: true,
-      },
-      tools: {
-        heartOfDarknessQA: this.heartOfDarknessTool.getTool(),
-      },
-      stopWhen: [stepCountIs(5)],
-      onChunk({ chunk }) {
-        // Called for each partial piece of output
-        if (chunk.type === 'text-delta') {
-          process.stdout.write(chunk.text)
-          // For debugging, prefer using the application logger at debug level instead of stdout,
-          // and ensure such logging is disabled or minimized in production.
-          // Example:
-          // logger.debug({ text: chunk.text }, 'AI stream text-delta chunk')        }
-          // you can also inspect chunk.reasoning / chunk.sources / etc.
-        }
-        // you can also inspect chunk.reasoning / chunk.sources / etc.
-      },
-      onFinish: ({ finishReason, response, text, totalUsage, usage }) => {
-        // Called once when the full output is complete
-        // The reason the model finished generating the text.
-        // "stop" | "length" | "content-filter" | "tool-calls" | "error" | "other" | "unknown"
-        this.logger.debug('Stream finished', { finishReason })
-        this.logger.debug('Stream usage info', { usage, totalUsage })
-        this.logger.debug('streamText.onFinish')
-
-        // Model messages (AssistantModelMessage or ToolModelMessage)
-        // Minimal information, no UI data
-        // Not suitable for UI applications
-        this.logger.debug('Stream messages', { messages: JSON.stringify(messages) })
-        // 'response.messages' is an array of ToolModelMessage and AssistantModelMessage,
-        // which are the model messages that were generated during the stream.
-        // This is useful if you don't need UIMessages - for simpler applications.
-        this.logger.debug('Stream response', { response: JSON.stringify(response) })
-      },
-      onError: ({ error }) => {
-        this.logger.error('Stream error', error instanceof Error ? error : new Error(String(error)))
-      },
-    })
-
-    return result.toUIMessageStreamResponse({
-      originalMessages: messages as UIMessage[],
-      onFinish: async ({ messages, responseMessage }) => {
-        // 'messages' is the full message history, including the original messages
-        // Includes original user message and assistant's response with all parts
-        // Ideal for persisting entire conversations
-        this.logger.debug('toUIMessageStreamResponse.onFinish', {
-          chatId: id,
-          messageCount: Array.isArray(messages) ? messages.length : undefined,
-        })
-
-        // Single message
-        // Just the newly generated assistant message
-        // Good for persisting only the latest response
-        this.logger.debug('Response message', { responseMessage })
-
-        // Sanitise text parts before persisting to prevent stored XSS/prompt injection
-        // (Finding 6 - Prompt Injection Defence in SECURITY_THREAT_MODEL.md)
-        // Note: frontend rendering is already sanitised by Streamdown's rehype-sanitize pipeline
-        const sanitisedResponseMessage = {
-          ...responseMessage,
-          parts: responseMessage.parts.map((part) => {
-            if (part.type === 'text') {
-              return { ...part, text: Sanitise.sanitiseText(part.text) }
-            }
-            return part
-          }),
-        }
-
-        await this.appendChatUseCase.execute(chatId, [sanitisedResponseMessage], auditContext)
-      },
+    return this.streamTextUseCase.execute(auditContext, messages, systemPrompt.prompt, id, {
+      heartOfDarknessQA: this.heartOfDarknessTool.getTool(),
     })
   }
 
