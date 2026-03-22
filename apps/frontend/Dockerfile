@@ -46,7 +46,16 @@ COPY apps/frontend ./apps/frontend
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV SKIP_ENV_VALIDATION=true
+
+# Pass required NEXT_PUBLIC_* vars as build args so they are inlined into the
+# client bundle at build time (runtime env vars cannot replace baked-in values).
+# These must be supplied when running `docker build` or via compose build.args.
+ARG NEXT_PUBLIC_POST_AI_CALLBACK_URL
+ARG NEXT_PUBLIC_BASE_URL
+ARG NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_POST_AI_CALLBACK_URL=${NEXT_PUBLIC_POST_AI_CALLBACK_URL}
+ENV NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
+ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 
 # Build shared package first, then the frontend
 RUN pnpm --filter @norberts-spark/shared build
@@ -72,7 +81,7 @@ WORKDIR /app
 # Set production environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+ENV HOSTNAME=0.0.0.0
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Set the correct permission for prerender cache
