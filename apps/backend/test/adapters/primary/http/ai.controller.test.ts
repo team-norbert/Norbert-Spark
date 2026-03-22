@@ -19,6 +19,7 @@ import type { StreamTextUseCase } from '../../../../src/application/use-cases/st
 import { ChatId } from '../../../../src/domain/value-objects/chatID.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { EnvConfig } from '../../../../src/infrastructure/config/env.config.js'
+import { authMiddleware } from '../../../../src/infrastructure/http/middleware/auth.middleware.js'
 import { InternalErrorException } from '../../../../src/shared/exceptions/internal-error.exception.js'
 import { NotFoundException } from '../../../../src/shared/exceptions/not-found.exception.js'
 import { createMockLogger } from '../../../shared/factories/logger.factory.js'
@@ -2171,9 +2172,7 @@ describe('AIController', () => {
       const chatCall = vi.mocked(mockApp.post).mock.calls.find((call) => call[0] === '/ai/chat')
       expect(chatCall).toBeDefined()
       const chatOptions = chatCall?.[1] as any
-      expect(chatOptions?.preHandler).toBeDefined()
-      expect(Array.isArray(chatOptions?.preHandler)).toBe(true)
-      expect(chatOptions?.preHandler?.length).toBeGreaterThan(0)
+      expect(chatOptions?.preHandler).toEqual([authMiddleware])
     })
 
     it('should register GET /ai/chats/:userId with exact preHandler array containing authMiddleware', () => {
@@ -2189,9 +2188,7 @@ describe('AIController', () => {
         .mock.calls.find((call) => call[0] === '/ai/chats/:userId')
       expect(chatsCall).toBeDefined()
       const chatsOptions = chatsCall?.[1] as any
-      expect(chatsOptions?.preHandler).toBeDefined()
-      expect(Array.isArray(chatsOptions?.preHandler)).toBe(true)
-      expect(chatsOptions?.preHandler?.length).toBeGreaterThan(0)
+      expect(chatsOptions?.preHandler).toEqual([authMiddleware])
     })
 
     it('should register GET /ai/fetchChat/:chatId with exact preHandler array containing authMiddleware', () => {
@@ -2207,9 +2204,7 @@ describe('AIController', () => {
         .mock.calls.find((call) => call[0] === '/ai/fetchChat/:chatId')
       expect(fetchCall).toBeDefined()
       const fetchOptions = fetchCall?.[1] as any
-      expect(fetchOptions?.preHandler).toBeDefined()
-      expect(Array.isArray(fetchOptions?.preHandler)).toBe(true)
-      expect(fetchOptions?.preHandler?.length).toBeGreaterThan(0)
+      expect(fetchOptions?.preHandler).toEqual([authMiddleware])
     })
 
     it('should register POST /ai/chat with rate limit timeWindow as "1 minute"', () => {
