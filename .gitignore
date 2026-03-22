@@ -196,3 +196,4 @@ packages/shared/src/openapi.json
 apps/backend/env.d.ts
 SECURITY_THREAT_MODEL.md
 infrastructure/pact-broker/results/*
+infrastructure/nginx/ssl/*

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: pgvector/pgvector:0.8.1-pg18-trixie
@@ -24,7 +22,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-norbertsSpark}
       POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:--E UTF8 --locale=en_US.UTF-8}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./apps/backend/init-scripts:/docker-entrypoint-initdb.d:ro
       - ./apps/backend/postgres-config/postgresql.conf:/etc/postgresql.conf:ro
       - postgres_wal:/var/lib/postgresql/wal_archive
@@ -83,7 +81,7 @@ services:
       APPLICATION_NAME: norbertsSpark-backend-2
       NODE_ENV: production
       HOST: 0.0.0.0
-      PORT: 3001
+      PORT: 3002
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:3001/health || exit 1']
       interval: 30s
@@ -111,7 +109,7 @@ services:
       APPLICATION_NAME: norbertsSpark-backend-3
       NODE_ENV: production
       HOST: 0.0.0.0
-      PORT: 3001
+      PORT: 3003
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:3001/health || exit 1']
       interval: 30s
@@ -130,8 +128,10 @@ services:
       - norbertsSpark-network
     ports:
       - '80:80'
+      - '443:443'
     volumes:
       - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/ssl:/ssl:ro
     depends_on:
       - app
       - app2
