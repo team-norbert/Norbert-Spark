@@ -42,7 +42,6 @@ services:
       dockerfile: apps/backend/Dockerfile
       args:
         APP_VERSION: 0.1.4
-        APPLICATION_NAME: app1
     image: norberts-spark-backend:0.1.4
     container_name: norbertsSpark-backend-1
     restart: unless-stopped
@@ -71,7 +70,6 @@ services:
       dockerfile: apps/backend/Dockerfile
       args:
         APP_VERSION: 0.1.4
-        APPLICATION_NAME: app2
     image: norberts-spark-backend:0.1.4
     container_name: norbertsSpark-backend-2
     restart: unless-stopped
@@ -100,7 +98,6 @@ services:
       dockerfile: apps/backend/Dockerfile
       args:
         APP_VERSION: 0.1.4
-        APPLICATION_NAME: app3
     image: norberts-spark-backend:0.1.4
     container_name: norbertsSpark-backend-3
     restart: unless-stopped
