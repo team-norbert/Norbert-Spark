@@ -41,8 +41,8 @@ services:
       context: .
       dockerfile: apps/backend/Dockerfile
       args:
-        APP_VERSION: 0.1.4
-    image: norberts-spark-backend:0.1.4
+        APP_VERSION: ${APP_VERSION:-0.1.4}
+    image: norberts-spark-backend:${APP_VERSION:-0.1.4}
     container_name: norbertsSpark-backend-1
     restart: unless-stopped
     networks:
@@ -69,8 +69,8 @@ services:
       context: .
       dockerfile: apps/backend/Dockerfile
       args:
-        APP_VERSION: 0.1.4
-    image: norberts-spark-backend:0.1.4
+        APP_VERSION: ${APP_VERSION:-0.1.4}
+    image: norberts-spark-backend:${APP_VERSION:-0.1.4}
     container_name: norbertsSpark-backend-2
     restart: unless-stopped
     networks:
@@ -97,8 +97,8 @@ services:
       context: .
       dockerfile: apps/backend/Dockerfile
       args:
-        APP_VERSION: 0.1.4
-    image: norberts-spark-backend:0.1.4
+        APP_VERSION: ${APP_VERSION:-0.1.4}
+    image: norberts-spark-backend:${APP_VERSION:-0.1.4}
     container_name: norbertsSpark-backend-3
     restart: unless-stopped
     networks:
