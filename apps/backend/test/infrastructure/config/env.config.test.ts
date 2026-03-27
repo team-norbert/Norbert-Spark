@@ -114,23 +114,23 @@ describe('EnvConfig', () => {
     })
   })
 
-  describe('RESEND_API_KEY', () => {
+  describe('EMAIL_API_KEY', () => {
     it('should be a static readonly property', async () => {
-      process.env.RESEND_API_KEY = 'test_api_key_12345'
+      process.env.EMAIL_API_KEY = 'test_api_key_12345'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test_google_key'
       process.env.MODEL_NAME = 'gemini-pro'
 
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'RESEND_API_KEY')
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'EMAIL_API_KEY')
       expect(descriptor).toBeDefined()
       expect(descriptor?.configurable).toBe(true)
       expect(descriptor?.enumerable).toBe(true)
     })
 
     it('should have type Obscured<string | undefined>', async () => {
-      process.env.RESEND_API_KEY = 'test_api_key_12345'
+      process.env.EMAIL_API_KEY = 'test_api_key_12345'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test_google_key'
       process.env.MODEL_NAME = 'gemini-pro'
@@ -138,22 +138,22 @@ describe('EnvConfig', () => {
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
       // Type assertion to verify compile-time type
-      const _typeCheck: Obscured<string | undefined> = EnvConfig.RESEND_API_KEY
+      const _typeCheck: Obscured<string | undefined> = EnvConfig.EMAIL_API_KEY
 
       // Runtime checks - Obscured objects have specific characteristics
-      expect(EnvConfig.RESEND_API_KEY).toBeDefined()
-      expect(typeof EnvConfig.RESEND_API_KEY).toBe('object')
+      expect(EnvConfig.EMAIL_API_KEY).toBeDefined()
+      expect(typeof EnvConfig.EMAIL_API_KEY).toBe('object')
 
       // Obscured objects return '[OBSCURED]' when converted to string
-      expect(String(EnvConfig.RESEND_API_KEY)).toBe('[OBSCURED]')
-      expect(EnvConfig.RESEND_API_KEY.toString()).toBe('[OBSCURED]')
+      expect(String(EnvConfig.EMAIL_API_KEY)).toBe('[OBSCURED]')
+      expect(EnvConfig.EMAIL_API_KEY.toString()).toBe('[OBSCURED]')
 
       // Prevent unused variable warning
       void _typeCheck
     })
 
     it('should obscure the actual API key value', async () => {
-      process.env.RESEND_API_KEY = 'secret_resend_key_xyz'
+      process.env.EMAIL_API_KEY = 'secret_email_key_xyz'
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test_google_key'
       process.env.MODEL_NAME = 'gemini-pro'
@@ -161,8 +161,8 @@ describe('EnvConfig', () => {
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
       // Verify the key is obscured (doesn't expose the raw value)
-      expect(String(EnvConfig.RESEND_API_KEY)).not.toContain('secret_resend_key_xyz')
-      expect(EnvConfig.RESEND_API_KEY.toString()).toBe('[OBSCURED]')
+      expect(String(EnvConfig.EMAIL_API_KEY)).not.toContain('secret_email_key_xyz')
+      expect(EnvConfig.EMAIL_API_KEY.toString()).toBe('[OBSCURED]')
     })
   })
 
@@ -510,16 +510,16 @@ describe('EnvConfig', () => {
       expect(typeof EnvConfig.validate).toBe('function')
     })
 
-    it('should include RESEND_API_KEY in required environment variables', async () => {
-      // Read the source file to verify RESEND_API_KEY is in requiredEnvs array
+    it('should include EMAIL_API_KEY in required environment variables', async () => {
+      // Read the source file to verify EMAIL_API_KEY is in requiredEnvs array
       const fs = await import('fs/promises')
       const path = await import('path')
       const envConfigPath = path.join(process.cwd(), 'src/infrastructure/config/env.config.ts')
       const content = await fs.readFile(envConfigPath, 'utf-8')
 
-      // Verify RESEND_API_KEY is listed in the requiredEnvs array
-      expect(content).toContain('RESEND_API_KEY')
-      expect(content).toMatch(/requiredEnvs.*=.*\[[\s\S]*'RESEND_API_KEY'/m)
+      // Verify EMAIL_API_KEY is listed in the requiredEnvs array
+      expect(content).toContain('EMAIL_API_KEY')
+      expect(content).toMatch(/requiredEnvs.*=.*\[[\s\S]*'EMAIL_API_KEY'/m)
     })
 
     it('should include ENCRYPTION_KEY in required environment variables', async () => {
@@ -537,7 +537,7 @@ describe('EnvConfig', () => {
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
       process.env.MODEL_NAME = 'gemini-pro'
-      process.env.RESEND_API_KEY = 'resend-test-key'
+      process.env.EMAIL_API_KEY = 'email-test-key'
       process.env.JWT_SECRET = 'test-jwt-secret'
       process.env.API_VERSION = 'v1'
       process.env.OAUTH_SYNC_SECRET = 'test-oauth-secret'
@@ -557,7 +557,7 @@ describe('EnvConfig', () => {
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
       process.env.MODEL_NAME = 'gemini-pro'
-      process.env.RESEND_API_KEY = 'resend-test-key'
+      process.env.EMAIL_API_KEY = 'email-test-key'
       process.env.JWT_SECRET = 'test-jwt-secret'
       process.env.API_VERSION = 'v1'
       process.env.OAUTH_SYNC_SECRET = 'test-oauth-secret'
@@ -576,7 +576,7 @@ describe('EnvConfig', () => {
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
       process.env.MODEL_NAME = 'gemini-pro'
-      process.env.RESEND_API_KEY = 'resend-test-key'
+      process.env.EMAIL_API_KEY = 'email-test-key'
       process.env.JWT_SECRET = 'test-jwt-secret'
       process.env.API_VERSION = 'v1'
       process.env.OAUTH_SYNC_SECRET = 'test-oauth-secret'
@@ -597,7 +597,7 @@ describe('EnvConfig', () => {
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
       process.env.MODEL_NAME = 'gemini-pro'
-      process.env.RESEND_API_KEY = 'resend-test-key'
+      process.env.EMAIL_API_KEY = 'email-test-key'
       process.env.JWT_SECRET = 'test-jwt-secret'
       process.env.API_VERSION = 'v1'
       process.env.OAUTH_SYNC_SECRET = 'test-oauth-secret'
@@ -616,7 +616,7 @@ describe('EnvConfig', () => {
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-key'
       process.env.MODEL_NAME = 'gemini-pro'
-      process.env.RESEND_API_KEY = 'resend-test-key'
+      process.env.EMAIL_API_KEY = 'email-test-key'
       process.env.JWT_SECRET = 'test-jwt-secret'
       process.env.API_VERSION = 'v1'
       process.env.OAUTH_SYNC_SECRET = 'test-oauth-secret'
@@ -680,20 +680,20 @@ describe('EnvConfig', () => {
       void _typeCheck
     })
 
-    it('should have static RESEND_API_KEY property accessible without instantiation', async () => {
-      process.env.RESEND_API_KEY = 'test_key_123'
+    it('should have static EMAIL_API_KEY property accessible without instantiation', async () => {
+      process.env.EMAIL_API_KEY = 'test_key_123'
 
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
       // Type assertion to verify compile-time type
-      const _typeCheck: Obscured<string | undefined> = EnvConfig.RESEND_API_KEY
+      const _typeCheck: Obscured<string | undefined> = EnvConfig.EMAIL_API_KEY
 
       // Runtime checks
-      expect(EnvConfig.RESEND_API_KEY).toBeDefined()
-      expect(typeof EnvConfig.RESEND_API_KEY).toBe('object')
+      expect(EnvConfig.EMAIL_API_KEY).toBeDefined()
+      expect(typeof EnvConfig.EMAIL_API_KEY).toBe('object')
 
       // Obscured objects return '[OBSCURED]' when converted to string
-      expect(String(EnvConfig.RESEND_API_KEY)).toBe('[OBSCURED]')
+      expect(String(EnvConfig.EMAIL_API_KEY)).toBe('[OBSCURED]')
 
       // Prevent unused variable warning
       void _typeCheck
@@ -866,7 +866,7 @@ describe('EnvConfig', () => {
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test_google_key'
       process.env.MODEL_NAME = 'gemini-pro'
-      process.env.RESEND_API_KEY = 'test_resend_key'
+      process.env.EMAIL_API_KEY = 'test_email_key'
       process.env.JWT_SECRET = 'test_jwt_secret'
       process.env.API_VERSION = 'v1'
 
@@ -883,7 +883,7 @@ describe('EnvConfig', () => {
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test_google_key'
       process.env.MODEL_NAME = 'gemini-pro'
-      process.env.RESEND_API_KEY = 'test_resend_key'
+      process.env.EMAIL_API_KEY = 'test_email_key'
       process.env.JWT_SECRET = 'test_jwt_secret'
       process.env.API_VERSION = 'v1'
 
@@ -909,7 +909,7 @@ describe('EnvConfig', () => {
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test_google_key'
       process.env.MODEL_NAME = 'gemini-pro'
-      process.env.RESEND_API_KEY = 'test_resend_key'
+      process.env.EMAIL_API_KEY = 'test_email_key'
       process.env.JWT_SECRET = 'test_jwt_secret'
       process.env.API_VERSION = 'v1'
 
