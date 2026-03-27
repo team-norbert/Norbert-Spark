@@ -398,7 +398,173 @@ describe('Database Schema', () => {
       it('should have unique constraint on seoFriendlyBase64Id', () => {
         expect(chatTypes.seoFriendlyBase64Id.isUnique).toBe(true)
       })
+    })
 
+    describe('company table columns', () => {
+      it('should have companyId column', () => {
+        expect(company.companyId).toBeDefined()
+        expect(company.companyId.name).toBe('company_id')
+      })
+
+      it('should have legalName column', () => {
+        expect(company.legalName).toBeDefined()
+        expect(company.legalName.name).toBe('legal_name')
+      })
+
+      it('should have displayName column', () => {
+        expect(company.displayName).toBeDefined()
+        expect(company.displayName.name).toBe('display_name')
+      })
+
+      it('should have status column', () => {
+        expect(company.status).toBeDefined()
+        expect(company.status.name).toBe('status')
+      })
+
+      it('should have companySize column', () => {
+        expect(company.companySize).toBeDefined()
+        expect(company.companySize.name).toBe('company_size')
+      })
+    })
+  })
+
+  describe('Custom types', () => {
+    describe('citext columns', () => {
+      it('should use custom type for case-insensitive email column', () => {
+        // The email column in user table uses citext custom type
+        const emailColumn = user.email
+        expect(emailColumn).toBeDefined()
+        expect(emailColumn.dataType).toBe('custom')
+      })
+    })
+
+    describe('vector columns', () => {
+      it('should use custom type for vector embedding columns', () => {
+        // Vector embeddings use custom pgvector type
+        const vectorColumn = vectorEmbeddings1536.embedding
+        expect(vectorColumn).toBeDefined()
+        expect(vectorColumn.dataType).toBe('custom')
+      })
+
+      it('should have vector embedding columns in multiple dimension tables', () => {
+        expect(vectorEmbeddings1536.embedding).toBeDefined()
+        expect(vectorEmbeddings768.embedding).toBeDefined()
+        expect(vectorEmbeddings384.embedding).toBeDefined()
+        expect(vectorEmbeddings3072.embedding).toBeDefined()
+        expect(vectorEmbeddings1024.embedding).toBeDefined()
+      })
+    })
+  })
+
+  describe('Enum definitions', () => {
+    describe('companyStatusEnum values', () => {
+      it('should include prospect status value', () => {
+        const statusColumn = company.status
+        expect(statusColumn.enumValues).toContain('prospect')
+      })
+
+      it('should include active status value', () => {
+        const statusColumn = company.status
+        expect(statusColumn.enumValues).toContain('active')
+      })
+
+      it('should include paused status value', () => {
+        const statusColumn = company.status
+        expect(statusColumn.enumValues).toContain('paused')
+      })
+
+      it('should include churned status value', () => {
+        const statusColumn = company.status
+        expect(statusColumn.enumValues).toContain('churned')
+      })
+
+      it('should have exactly 4 status values', () => {
+        const statusColumn = company.status
+        expect(statusColumn.enumValues).toHaveLength(4)
+      })
+    })
+
+    describe('contactRoleEnum values', () => {
+      it('should include primary_contact role value', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toContain('primary_contact')
+      })
+
+      it('should include decision_maker role value', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toContain('decision_maker')
+      })
+
+      it('should include billing_contact role value', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toContain('billing_contact')
+      })
+
+      it('should include technical_contact role value', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toContain('technical_contact')
+      })
+
+      it('should include stakeholder role value', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toContain('stakeholder')
+      })
+
+      it('should have exactly 5 role values', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toHaveLength(5)
+      })
+    })
+  })
+
+  describe('Column defaults and constraints', () => {
+    describe('company table defaults', () => {
+      it('should have status column with active default value', () => {
+        const statusColumn = company.status
+        expect(statusColumn.hasDefault).toBe(true)
+        expect(statusColumn.default).toBe('active')
+      })
+
+      it('should have singletonCheck column with true default', () => {
+        const singletonColumn = company.singletonCheck
+        expect(singletonColumn.hasDefault).toBe(true)
+        expect(singletonColumn.default).toBe(true)
+      })
+
+      it('should have timezone column with UTC default', () => {
+        const timezoneColumn = company.timezone
+        expect(timezoneColumn.hasDefault).toBe(true)
+        expect(timezoneColumn.default).toBe('UTC')
+      })
+
+      it('should have createdAt column with defaultNow', () => {
+        const createdAtColumn = company.createdAt
+        expect(createdAtColumn.hasDefault).toBe(true)
+      })
+
+      it('should have updatedAt column with defaultNow', () => {
+        const updatedAtColumn = company.updatedAt
+        expect(updatedAtColumn.hasDefault).toBe(true)
+      })
+    })
+
+    describe('user table defaults', () => {
+      it('should have twoFactorEnabled column with false default', () => {
+        const twoFactorColumn = user.twoFactorEnabled
+        expect(twoFactorColumn.hasDefault).toBe(true)
+        expect(twoFactorColumn.default).toBe(false)
+      })
+
+      it('should have role column with user default value', () => {
+        const roleColumn = user.role
+        expect(roleColumn.hasDefault).toBe(true)
+        expect(roleColumn.default).toBe('user')
+      })
+    })
+  })
+
+  describe('chatTypes table properties (additional)', () => {
+    describe('chatTypes table constraints', () => {
       it('should have not null constraint on seoFriendlyBase64Id', () => {
         expect(chatTypes.seoFriendlyBase64Id.notNull).toBe(true)
       })
