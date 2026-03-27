@@ -28,7 +28,7 @@ vi.mock('../../../../src/infrastructure/config/env.config.js', () => ({
   },
 }))
 
-describe('ResendService', () => {
+describe('EmailService', () => {
   let resendService: EmailService
   let mockLogger: LoggerPort
   let mockApiKey: Obscured<string>
