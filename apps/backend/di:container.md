@@ -65,7 +65,7 @@ AIRepository
 class node4 {
 PostgresUserRepository
 }
-class node12 { 
+class node12 {
 EmailService
 }
 class node10 {
