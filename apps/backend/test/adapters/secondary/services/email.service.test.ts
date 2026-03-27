@@ -2,7 +2,7 @@ import type { Obscured } from 'obscured'
 import { obscured } from 'obscured'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ResendService } from '../../../../src/adapters/secondary/services/email.service.js'
+import { EmailService } from '../../../../src/adapters/secondary/services/email.service.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import { ExternalServiceException } from '../../../../src/shared/exceptions/external-service.exception.js'
 import { createMockLogger } from '../../../shared/factories/logger.factory.js'
@@ -29,7 +29,7 @@ vi.mock('../../../../src/infrastructure/config/env.config.js', () => ({
 }))
 
 describe('ResendService', () => {
-  let resendService: ResendService
+  let resendService: EmailService
   let mockLogger: LoggerPort
   let mockApiKey: Obscured<string>
 
@@ -43,12 +43,12 @@ describe('ResendService', () => {
     mockApiKey = obscured.make('test_api_key_12345')
 
     // Create ResendService instance
-    resendService = new ResendService(mockApiKey, mockLogger)
+    resendService = new EmailService(mockApiKey, mockLogger)
   })
 
   describe('constructor', () => {
     it('should create an instance of ResendService', () => {
-      expect(resendService).toBeInstanceOf(ResendService)
+      expect(resendService).toBeInstanceOf(EmailService)
     })
 
     it('should initialize Resend client with API key', async () => {
@@ -58,8 +58,8 @@ describe('ResendService', () => {
 
     it('should accept obscured API key', () => {
       const obscuredKey = obscured.make('secret_key_xyz')
-      const service = new ResendService(obscuredKey, mockLogger)
-      expect(service).toBeInstanceOf(ResendService)
+      const service = new EmailService(obscuredKey, mockLogger)
+      expect(service).toBeInstanceOf(EmailService)
     })
   })
 

@@ -21,7 +21,7 @@ import { ExternalServiceException } from '../../../shared/exceptions/external-se
  *
  * @throws {ExternalServiceException} When the Resend API call fails.
  */
-export class ResendService implements EmailServicePort {
+export class EmailService implements EmailServicePort {
   private readonly resendClient: Resend
 
   constructor(
