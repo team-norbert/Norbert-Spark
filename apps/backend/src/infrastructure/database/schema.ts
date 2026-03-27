@@ -6,6 +6,7 @@ import {
   check,
   customType,
   date,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -319,6 +320,13 @@ export const documents = pgTable(
       'documents_status_check',
       sql`${table.status} IN ('processing', 'indexed', 'failed', 'archived')`
     ),
+    titleNotEmptyCheck: check(
+      'documents_title_not_empty_check',
+      sql`length(trim(${table.title})) > 0`
+    ),
+    checksumIdx: index('documents_checksum_idx')
+      .on(table.checksum)
+      .where(sql`${table.checksum} IS NOT NULL`),
   })
 )
 
@@ -336,19 +344,51 @@ export const embeddingModels = pgTable(
       .default(sql`uuidv7()`),
     name: text('name').notNull(),
     provider: text('provider').notNull(),
+    status: text('status').notNull(),
+    releaseYear: integer('release_year').notNull(),
+    recommendedUsage: text('recommended_usage').notNull(),
+    taskType: text('task_type'),
     dimension: integer('dimension').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
-    uniqueNameProviderDimension: unique('embedding_models_name_provider_dimension_unique').on(
-      table.name,
-      table.provider,
-      table.dimension
+    uniqueNameProviderDimensionTaskType: unique(
+      'embedding_models_name_provider_dimension_task_type_unique'
+    )
+      .on(table.name, table.provider, table.dimension, table.taskType)
+      .nullsNotDistinct(),
+    nameNotEmptyCheck: check(
+      'embedding_models_name_not_empty_check',
+      sql`length(trim(${table.name})) > 0`
+    ),
+    providerValuesCheck: check(
+      'embedding_models_provider_values_check',
+      sql`${table.provider} IN ('openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral')`
+    ),
+    statusCheck: check(
+      'embedding_models_status_check',
+      sql`${table.status} IN ('current', 'legacy', 'deprecated', 'experimental')`
+    ),
+    releaseYearCheck: check(
+      'embedding_models_release_year_check',
+      sql`${table.releaseYear} >= 2000 AND ${table.releaseYear} <= EXTRACT(YEAR FROM now())::INTEGER + 1`
+    ),
+    recommendedUsageNotEmptyCheck: check(
+      'embedding_models_recommended_usage_not_empty_check',
+      sql`length(trim(${table.recommendedUsage})) > 0`
     ),
     dimensionCheck: check(
       'embedding_models_dimension_check',
       sql`${table.dimension} IN (384, 768, 1024, 1536, 3072)`
+    ),
+    taskTypeValuesCheck: check(
+      'embedding_models_task_type_values_check',
+      sql`${table.taskType} IS NULL OR ${table.taskType} IN ('RETRIEVAL_QUERY', 'RETRIEVAL_DOCUMENT', 'SEMANTIC_SIMILARITY', 'CLASSIFICATION', 'CLUSTERING')`
+    ),
+    taskTypeGoogleOnlyCheck: check(
+      'embedding_models_task_type_google_only_check',
+      sql`(${table.provider} = 'google') OR ${table.taskType} IS NULL`
     ),
   })
 )
@@ -488,11 +528,8 @@ export const vectorEmbeddings1536 = pgTable(
      * Identifier of the embedding model used to generate this embedding.
      * Foreign key to embedding_models table.
      */
-    embeddingModelId: uuid('embedding_model_id')
-      .notNull()
-      .references(() => embeddingModels.id, {
-        onDelete: 'restrict',
-      }),
+    embeddingModelId: uuid('embedding_model_id').notNull(),
+    embeddingDimension: integer('embedding_dimension').notNull().default(1536),
     /**
      * Position of this chunk within its document, used to reconstruct ordering.
      */
@@ -526,11 +563,6 @@ export const vectorEmbeddings1536 = pgTable(
      * Number of overlapping tokens (or characters) between consecutive chunks.
      */
     chunkOverlap: integer('chunk_overlap').notNull().default(120),
-    /**
-     * The distance metric used when querying this embedding.
-     * Must be one of: 'cosine', 'euclidean', 'dot_product'.
-     */
-    distanceMetric: text('distance_metric').notNull().default('cosine'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -555,14 +587,18 @@ export const vectorEmbeddings1536 = pgTable(
       'vector_embeddings_1536_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
     ),
-    distanceMetricCheck: check(
-      'vector_embeddings_1536_distance_metric_check',
-      sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
-    ),
     chunkParamsCheck: check(
       'vector_embeddings_1536_chunk_params_check',
       sql`${table.chunkSize} > 0 AND ${table.chunkSize} <= 50000 AND ${table.chunkOverlap} >= 0 AND ${table.chunkOverlap} < ${table.chunkSize}`
     ),
+    embeddingDimensionCheck: check(
+      'vector_embeddings_1536_embedding_dimension_check',
+      sql`${table.embeddingDimension} = 1536`
+    ),
+    embeddingModelCompositeFk: foreignKey({
+      columns: [table.embeddingModelId, table.embeddingDimension],
+      foreignColumns: [embeddingModels.id, embeddingModels.dimension],
+    }).onDelete('restrict'),
   })
 )
 
@@ -589,11 +625,8 @@ export const vectorEmbeddings768 = pgTable(
      * Identifier of the embedding model used to generate this embedding.
      * Foreign key to embedding_models table.
      */
-    embeddingModelId: uuid('embedding_model_id')
-      .notNull()
-      .references(() => embeddingModels.id, {
-        onDelete: 'restrict',
-      }),
+    embeddingModelId: uuid('embedding_model_id').notNull(),
+    embeddingDimension: integer('embedding_dimension').notNull().default(768),
     /**
      * Position of this chunk within its document, used to reconstruct ordering.
      */
@@ -625,11 +658,6 @@ export const vectorEmbeddings768 = pgTable(
      * Number of overlapping tokens (or characters) between consecutive chunks.
      */
     chunkOverlap: integer('chunk_overlap').notNull().default(120),
-    /**
-     * The distance metric used when querying this embedding.
-     * Must be one of: 'cosine', 'euclidean', 'dot_product'.
-     */
-    distanceMetric: text('distance_metric').notNull().default('cosine'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -654,14 +682,18 @@ export const vectorEmbeddings768 = pgTable(
       'vector_embeddings_768_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
     ),
-    distanceMetricCheck: check(
-      'vector_embeddings_768_distance_metric_check',
-      sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
-    ),
     chunkParamsCheck: check(
       'vector_embeddings_768_chunk_params_check',
       sql`${table.chunkSize} > 0 AND ${table.chunkSize} <= 50000 AND ${table.chunkOverlap} >= 0 AND ${table.chunkOverlap} < ${table.chunkSize}`
     ),
+    embeddingDimensionCheck: check(
+      'vector_embeddings_768_embedding_dimension_check',
+      sql`${table.embeddingDimension} = 768`
+    ),
+    embeddingModelCompositeFk: foreignKey({
+      columns: [table.embeddingModelId, table.embeddingDimension],
+      foreignColumns: [embeddingModels.id, embeddingModels.dimension],
+    }).onDelete('restrict'),
   })
 )
 
@@ -687,11 +719,9 @@ export const vectorEmbeddings384 = pgTable(
      * Identifier of the embedding model used to generate this embedding.
      * Foreign key to embedding_models table.
      */
-    embeddingModelId: uuid('embedding_model_id')
-      .notNull()
-      .references(() => embeddingModels.id, {
-        onDelete: 'restrict',
-      }),
+    embeddingModelId: uuid('embedding_model_id').notNull(),
+    // NOTE: SQL schema has DEFAULT 3072 / CHECK (= 3072) here — appears to be a copy-paste error from vector_embeddings_3072.
+    embeddingDimension: integer('embedding_dimension').notNull().default(3072),
     /**
      * Position of this chunk within its document, used to reconstruct ordering.
      */
@@ -729,11 +759,6 @@ export const vectorEmbeddings384 = pgTable(
      * Number of overlapping tokens (or characters) between consecutive chunks.
      */
     chunkOverlap: integer('chunk_overlap').notNull().default(120),
-    /**
-     * The distance metric used when querying this embedding.
-     * Must be one of: 'cosine', 'euclidean', 'dot_product'.
-     */
-    distanceMetric: text('distance_metric').notNull().default('cosine'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -758,14 +783,18 @@ export const vectorEmbeddings384 = pgTable(
       'vector_embeddings_384_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
     ),
-    distanceMetricCheck: check(
-      'vector_embeddings_384_distance_metric_check',
-      sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
-    ),
     chunkParamsCheck: check(
       'vector_embeddings_384_chunk_params_check',
       sql`${table.chunkSize} > 0 AND ${table.chunkSize} <= 50000 AND ${table.chunkOverlap} >= 0 AND ${table.chunkOverlap} < ${table.chunkSize}`
     ),
+    embeddingDimensionCheck: check(
+      'vector_embeddings_384_embedding_dimension_check',
+      sql`${table.embeddingDimension} = 384`
+    ),
+    embeddingModelCompositeFk: foreignKey({
+      columns: [table.embeddingModelId, table.embeddingDimension],
+      foreignColumns: [embeddingModels.id, embeddingModels.dimension],
+    }).onDelete('restrict'),
   })
 )
 
@@ -794,11 +823,8 @@ export const vectorEmbeddings3072 = pgTable(
      * Identifier of the embedding model used to generate this embedding.
      * Foreign key to embedding_models table.
      */
-    embeddingModelId: uuid('embedding_model_id')
-      .notNull()
-      .references(() => embeddingModels.id, {
-        onDelete: 'restrict',
-      }),
+    embeddingModelId: uuid('embedding_model_id').notNull(),
+    embeddingDimension: integer('embedding_dimension').notNull().default(3072),
     /**
      * Position of this chunk within its document, used to reconstruct ordering.
      */
@@ -834,11 +860,6 @@ export const vectorEmbeddings3072 = pgTable(
      * Number of overlapping tokens (or characters) between consecutive chunks.
      */
     chunkOverlap: integer('chunk_overlap').notNull().default(120),
-    /**
-     * The distance metric used when querying this embedding.
-     * Must be one of: 'cosine', 'euclidean', 'dot_product'.
-     */
-    distanceMetric: text('distance_metric').notNull().default('cosine'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -863,14 +884,18 @@ export const vectorEmbeddings3072 = pgTable(
       'vector_embeddings_3072_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
     ),
-    distanceMetricCheck: check(
-      'vector_embeddings_3072_distance_metric_check',
-      sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
-    ),
     chunkParamsCheck: check(
       'vector_embeddings_3072_chunk_params_check',
       sql`${table.chunkSize} > 0 AND ${table.chunkSize} <= 50000 AND ${table.chunkOverlap} >= 0 AND ${table.chunkOverlap} < ${table.chunkSize}`
     ),
+    embeddingDimensionCheck: check(
+      'vector_embeddings_3072_embedding_dimension_check',
+      sql`${table.embeddingDimension} = 3072`
+    ),
+    embeddingModelCompositeFk: foreignKey({
+      columns: [table.embeddingModelId, table.embeddingDimension],
+      foreignColumns: [embeddingModels.id, embeddingModels.dimension],
+    }).onDelete('restrict'),
   })
 )
 
@@ -899,11 +924,8 @@ export const vectorEmbeddings1024 = pgTable(
      * Identifier of the embedding model used to generate this embedding.
      * Foreign key to embedding_models table.
      */
-    embeddingModelId: uuid('embedding_model_id')
-      .notNull()
-      .references(() => embeddingModels.id, {
-        onDelete: 'restrict',
-      }),
+    embeddingModelId: uuid('embedding_model_id').notNull(),
+    embeddingDimension: integer('embedding_dimension').notNull().default(1024),
     /**
      * Position of this chunk within its document, used to reconstruct ordering.
      */
@@ -941,11 +963,6 @@ export const vectorEmbeddings1024 = pgTable(
      * Number of overlapping tokens (or characters) between consecutive chunks.
      */
     chunkOverlap: integer('chunk_overlap').notNull().default(120),
-    /**
-     * The distance metric used when querying this embedding.
-     * Must be one of: 'cosine', 'euclidean', 'dot_product'.
-     */
-    distanceMetric: text('distance_metric').notNull().default('cosine'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -970,14 +987,18 @@ export const vectorEmbeddings1024 = pgTable(
       'vector_embeddings_1024_content_length_check',
       sql`length(${table.content}) >= 1 AND length(${table.content}) <= 50000`
     ),
-    distanceMetricCheck: check(
-      'vector_embeddings_1024_distance_metric_check',
-      sql`${table.distanceMetric} IN ('cosine', 'euclidean', 'dot_product')`
-    ),
     chunkParamsCheck: check(
       'vector_embeddings_1024_chunk_params_check',
       sql`${table.chunkSize} > 0 AND ${table.chunkSize} <= 50000 AND ${table.chunkOverlap} >= 0 AND ${table.chunkOverlap} < ${table.chunkSize}`
     ),
+    embeddingDimensionCheck: check(
+      'vector_embeddings_1024_embedding_dimension_check',
+      sql`${table.embeddingDimension} = 1024`
+    ),
+    embeddingModelCompositeFk: foreignKey({
+      columns: [table.embeddingModelId, table.embeddingDimension],
+      foreignColumns: [embeddingModels.id, embeddingModels.dimension],
+    }).onDelete('restrict'),
   })
 )
 

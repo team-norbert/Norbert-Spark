@@ -1245,11 +1245,6 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings1536.chunkOverlap.name).toBe('chunk_overlap')
         })
 
-        it('should have distanceMetric column', () => {
-          expect(vectorEmbeddings1536.distanceMetric).toBeDefined()
-          expect(vectorEmbeddings1536.distanceMetric.name).toBe('distance_metric')
-        })
-
         it('should have createdAt column', () => {
           expect(vectorEmbeddings1536.createdAt).toBeDefined()
           expect(vectorEmbeddings1536.createdAt.name).toBe('created_at')
@@ -1316,18 +1311,6 @@ describe('Database Schema', () => {
 
         it('should have default value for chunkOverlap', () => {
           expect(vectorEmbeddings1536.chunkOverlap.hasDefault).toBe(true)
-        })
-
-        it('should have not null constraint on distanceMetric', () => {
-          expect(vectorEmbeddings1536.distanceMetric.notNull).toBe(true)
-        })
-
-        it('should have default value for distanceMetric', () => {
-          expect(vectorEmbeddings1536.distanceMetric.hasDefault).toBe(true)
-        })
-
-        it('should default distanceMetric to cosine', () => {
-          expect(vectorEmbeddings1536.distanceMetric.default).toBe('cosine')
         })
       })
 
@@ -1402,11 +1385,6 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings768.chunkOverlap.name).toBe('chunk_overlap')
         })
 
-        it('should have distanceMetric column', () => {
-          expect(vectorEmbeddings768.distanceMetric).toBeDefined()
-          expect(vectorEmbeddings768.distanceMetric.name).toBe('distance_metric')
-        })
-
         it('should have createdAt column', () => {
           expect(vectorEmbeddings768.createdAt).toBeDefined()
           expect(vectorEmbeddings768.createdAt.name).toBe('created_at')
@@ -1457,18 +1435,6 @@ describe('Database Schema', () => {
 
         it('should have default value for chunkOverlap', () => {
           expect(vectorEmbeddings768.chunkOverlap.hasDefault).toBe(true)
-        })
-
-        it('should have not null constraint on distanceMetric', () => {
-          expect(vectorEmbeddings768.distanceMetric.notNull).toBe(true)
-        })
-
-        it('should have default value for distanceMetric', () => {
-          expect(vectorEmbeddings768.distanceMetric.hasDefault).toBe(true)
-        })
-
-        it('should default distanceMetric to cosine', () => {
-          expect(vectorEmbeddings768.distanceMetric.default).toBe('cosine')
         })
       })
 
@@ -1534,11 +1500,6 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings384.chunkOverlap.name).toBe('chunk_overlap')
         })
 
-        it('should have distanceMetric column', () => {
-          expect(vectorEmbeddings384.distanceMetric).toBeDefined()
-          expect(vectorEmbeddings384.distanceMetric.name).toBe('distance_metric')
-        })
-
         it('should have createdAt column', () => {
           expect(vectorEmbeddings384.createdAt).toBeDefined()
           expect(vectorEmbeddings384.createdAt.name).toBe('created_at')
@@ -1589,18 +1550,6 @@ describe('Database Schema', () => {
 
         it('should have default value for chunkOverlap', () => {
           expect(vectorEmbeddings384.chunkOverlap.hasDefault).toBe(true)
-        })
-
-        it('should have not null constraint on distanceMetric', () => {
-          expect(vectorEmbeddings384.distanceMetric.notNull).toBe(true)
-        })
-
-        it('should have default value for distanceMetric', () => {
-          expect(vectorEmbeddings384.distanceMetric.hasDefault).toBe(true)
-        })
-
-        it('should default distanceMetric to cosine', () => {
-          expect(vectorEmbeddings384.distanceMetric.default).toBe('cosine')
         })
       })
 
@@ -1664,11 +1613,6 @@ describe('Database Schema', () => {
         it('should have chunkOverlap column', () => {
           expect(vectorEmbeddings3072.chunkOverlap).toBeDefined()
           expect(vectorEmbeddings3072.chunkOverlap.name).toBe('chunk_overlap')
-        })
-
-        it('should have distanceMetric column', () => {
-          expect(vectorEmbeddings3072.distanceMetric).toBeDefined()
-          expect(vectorEmbeddings3072.distanceMetric.name).toBe('distance_metric')
         })
 
         it('should have createdAt column', () => {
@@ -1737,18 +1681,6 @@ describe('Database Schema', () => {
 
         it('should have default value for chunkOverlap', () => {
           expect(vectorEmbeddings3072.chunkOverlap.hasDefault).toBe(true)
-        })
-
-        it('should have not null constraint on distanceMetric', () => {
-          expect(vectorEmbeddings3072.distanceMetric.notNull).toBe(true)
-        })
-
-        it('should have default value for distanceMetric', () => {
-          expect(vectorEmbeddings3072.distanceMetric.hasDefault).toBe(true)
-        })
-
-        it('should default distanceMetric to cosine', () => {
-          expect(vectorEmbeddings3072.distanceMetric.default).toBe('cosine')
         })
       })
 
@@ -1823,11 +1755,6 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings1024.chunkOverlap.name).toBe('chunk_overlap')
         })
 
-        it('should have distanceMetric column', () => {
-          expect(vectorEmbeddings1024.distanceMetric).toBeDefined()
-          expect(vectorEmbeddings1024.distanceMetric.name).toBe('distance_metric')
-        })
-
         it('should have createdAt column', () => {
           expect(vectorEmbeddings1024.createdAt).toBeDefined()
           expect(vectorEmbeddings1024.createdAt.name).toBe('created_at')
@@ -1894,18 +1821,6 @@ describe('Database Schema', () => {
 
         it('should have default value for chunkOverlap', () => {
           expect(vectorEmbeddings1024.chunkOverlap.hasDefault).toBe(true)
-        })
-
-        it('should have not null constraint on distanceMetric', () => {
-          expect(vectorEmbeddings1024.distanceMetric.notNull).toBe(true)
-        })
-
-        it('should have default value for distanceMetric', () => {
-          expect(vectorEmbeddings1024.distanceMetric.hasDefault).toBe(true)
-        })
-
-        it('should default distanceMetric to cosine', () => {
-          expect(vectorEmbeddings1024.distanceMetric.default).toBe('cosine')
         })
       })
 
