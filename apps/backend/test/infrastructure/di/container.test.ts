@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { UserController } from '../../../src/adapters/primary/http/user.controller.js'
 import { UserRepository } from '../../../src/adapters/secondary/repositories/user.repository.js'
-import { ResendService } from '../../../src/adapters/secondary/services/email.service.js'
+import { EmailService } from '../../../src/adapters/secondary/services/email.service.js'
 import { PinoLoggerService } from '../../../src/adapters/secondary/services/logger.service.js'
 import { RegisterUserUseCase } from '../../../src/application/use-cases/register-user.use-case.js'
 import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
@@ -67,7 +67,7 @@ vi.mock('../../../src/adapters/secondary/services/logger.service.js', () => ({
 }))
 
 vi.mock('../../../src/adapters/secondary/services/email.service.js', () => ({
-  ResendService: vi.fn(function (this: any) {
+  EmailService: vi.fn(function (this: any) {
     this.sendWelcomeEmail = vi.fn()
     this.sendPasswordResetEmail = vi.fn()
   }),
@@ -217,7 +217,7 @@ describe('Container', () => {
     it('should inject logger into ResendService', () => {
       const container = Container.getInstance()
 
-      expect(ResendService).toHaveBeenCalledWith(expect.anything(), container.logger)
+      expect(EmailService).toHaveBeenCalledWith(expect.anything(), container.logger)
     })
 
     it('should inject dependencies into RegisterUserUseCase', () => {
@@ -523,7 +523,7 @@ describe('Container', () => {
       const validateOrder = vi.mocked(EnvConfig.validate).mock.invocationCallOrder[0]
       const loggerOrder = vi.mocked(PinoLoggerService).mock.invocationCallOrder[0]
       const appOrder = vi.mocked(createFastifyApp).mock.invocationCallOrder[0]
-      const emailOrder = vi.mocked(ResendService).mock.invocationCallOrder[0]
+      const emailOrder = vi.mocked(EmailService).mock.invocationCallOrder[0]
       const repoOrder = vi.mocked(UserRepository).mock.invocationCallOrder[0]
 
       expect(validateOrder).toBeLessThan(loggerOrder!)
