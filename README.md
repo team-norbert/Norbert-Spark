@@ -816,8 +816,7 @@ norberts-spark/
 
 ### GPLv3
 
-This project is licensed under the [GNU GENERAL PUBLIC LICENSE
-Version 3](https://www.gnu.org/licenses/gpl-3.0.en.html). By using, modifying, or distributing this software, you agree to comply with the terms of the GPLv3 license.
+This project is licensed under the [GNU General Public License version 3 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.en.html). By using, modifying, or distributing this software, you agree to comply with the terms of the GPLv3 license.
 
 The GNU General Public License version 3 (GPLv3) is a strong “copyleft” open-source license that lets anyone use, modify, and redistribute software, but requires that any distributed copies or derivatives remain under the same license and include source code. It ensures users can run, study, and change the software, adds explicit patent protection so contributors cannot later sue users over patent claims related to the code, and prevents practices like “tivoization” (where modified versions are blocked from running on hardware). In short, it guarantees software freedom persists downstream while protecting users from legal and technical restrictions.
 
