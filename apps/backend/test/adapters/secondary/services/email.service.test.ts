@@ -42,12 +42,12 @@ describe('EmailService', () => {
     // Create obscured API key
     mockApiKey = obscured.make('test_api_key_12345')
 
-    // Create ResendService instance
+    // Create EmailService instance
     resendService = new EmailService(mockApiKey, mockLogger)
   })
 
   describe('constructor', () => {
-    it('should create an instance of ResendService', () => {
+    it('should create an instance of EmailService', () => {
       expect(resendService).toBeInstanceOf(EmailService)
     })
 

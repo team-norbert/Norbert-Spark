@@ -214,7 +214,7 @@ describe('Container', () => {
   })
 
   describe('Dependency Injection', () => {
-    it('should inject logger into ResendService', () => {
+    it('should inject logger into Email', () => {
       const container = Container.getInstance()
 
       expect(EmailService).toHaveBeenCalledWith(expect.anything(), container.logger)

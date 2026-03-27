@@ -29,7 +29,7 @@ LoginUserUseCase
 PinoLoggerService
 PostgresUserRepository
 RegisterUserUseCase
-ResendService
+EmailService
 SaveChatUseCase
 UserController
 createFastifyApp
@@ -65,8 +65,8 @@ AIRepository
 class node4 {
 PostgresUserRepository
 }
-class node12 {
-ResendService
+class node12 { 
+EmailService
 }
 class node10 {
 JwtTokenGeneratorService
