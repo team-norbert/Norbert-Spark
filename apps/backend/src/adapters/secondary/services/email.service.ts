@@ -11,7 +11,7 @@ import { ExternalServiceException } from '../../../shared/exceptions/external-se
  * Adapter for sending emails using the Resend API.
  * Implements the EmailServicePort interface.
  *
- * @class ResendService
+ * @class EmailService
  * @implements {EmailServicePort}
  *
  * @param {Obscured<string | undefined>} apiKey - The Resend API key, provided in an obscured form for security.
@@ -21,7 +21,7 @@ import { ExternalServiceException } from '../../../shared/exceptions/external-se
  *
  * @throws {ExternalServiceException} When the Resend API call fails.
  */
-export class ResendService implements EmailServicePort {
+export class EmailService implements EmailServicePort {
   private readonly resendClient: Resend
 
   constructor(

@@ -27,7 +27,7 @@ import { CompanyRepository } from '../../adapters/secondary/repositories/company
 import { RefreshTokenRepository } from '../../adapters/secondary/repositories/refresh-token.repository.js'
 import { UserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 // Services
-import { ResendService } from '../../adapters/secondary/services/email.service.js'
+import { EmailService } from '../../adapters/secondary/services/email.service.js'
 import { JwtTokenGeneratorService } from '../../adapters/secondary/services/jwt-token-generator.service.js'
 import { PinoLoggerService } from '../../adapters/secondary/services/logger.service.js'
 // Use Cases
@@ -97,7 +97,7 @@ export class Container {
 
   // Services
   public readonly logger: PinoLoggerService
-  public readonly emailService: ResendService
+  public readonly emailService: EmailService
   public readonly tokenGenerator: JwtTokenGeneratorService
 
   // Repositories
@@ -226,7 +226,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.pdfUtils = new PDFUtils(this.logger)
 
     // Initialize services (secondary adapters)
-    this.emailService = new ResendService(EnvConfig.RESEND_API_KEY, this.logger)
+    this.emailService = new EmailService(EnvConfig.RESEND_API_KEY, this.logger)
     this.tokenGenerator = new JwtTokenGeneratorService()
 
     // Initialize repositories (secondary adapters)
