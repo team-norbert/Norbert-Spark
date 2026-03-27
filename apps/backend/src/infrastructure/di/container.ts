@@ -226,7 +226,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.pdfUtils = new PDFUtils(this.logger)
 
     // Initialize services (secondary adapters)
-    this.emailService = new EmailService(EnvConfig.EMAIL_API_KEY, this.logger)
+    this.emailService = new EmailService(EnvConfig.RESEND_API_KEY, this.logger)
     this.tokenGenerator = new JwtTokenGeneratorService()
 
     // Initialize repositories (secondary adapters)

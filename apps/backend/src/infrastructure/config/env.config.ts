@@ -11,7 +11,7 @@ const requiredEnvs: string[] = [
   'DATABASE_URL',
   'GOOGLE_GENERATIVE_AI_API_KEY',
   'MODEL_NAME',
-  'EMAIL_API_KEY',
+  'RESEND_API_KEY',
   'JWT_SECRET',
   'API_VERSION',
   'OAUTH_SYNC_SECRET',
@@ -34,7 +34,7 @@ export class EnvConfig {
   static readonly DATABASE_POOL_MAX = ENV.DATABASE_POOL_MAX ?? 20
   static readonly DATABASE_POOL_MIN = ENV.DATABASE_POOL_MIN ?? 5
   static readonly DATABASE_POOL_MAX_LIFETIME_SECONDS = ENV.DATABASE_POOL_MAX_LIFETIME_SECONDS ?? 60
-  static readonly EMAIL_API_KEY = obscured.make(ENV.EMAIL_API_KEY)
+  static readonly RESEND_API_KEY = obscured.make(ENV.RESEND_API_KEY)
   static readonly EMAIL_FROM_ADDRESS = ENV.EMAIL_FROM_ADDRESS || ''
   static readonly HOST = ENV.HOST || '127.0.0.1'
   static readonly USE_HTTPS = ENV.USE_HTTPS ?? true
