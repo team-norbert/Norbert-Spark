@@ -142,7 +142,6 @@ export function CreateVectorStoreForm({
   const [frequencyPenalty, setFrequencyPenalty] = useState('')
   const [presencePenalty, setPresencePenalty] = useState('')
   const [stopSequences, setStopSequences] = useState('')
-  const [seed, setSeed] = useState('')
   const [maxRetries, setMaxRetries] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -196,7 +195,6 @@ export function CreateVectorStoreForm({
         ...(stopSequences
           ? { stopSequences: stopSequences.split(',').map((s) => s.trim()) }
           : { stopSequences: [] }),
-        ...(seed ? { seed: Number(seed) } : {}),
         ...(maxRetries ? { maxRetries: Number(maxRetries) } : {}),
       },
     }
@@ -702,19 +700,6 @@ export function CreateVectorStoreForm({
             penalties as vocabulary-shaping controls rather than grounding controls, so 0 is the
             safest default.
           </Typography>
-
-          <Divider sx={{ my: 2 }} />
-
-          <TextField
-            label="Seed"
-            type="number"
-            value={seed}
-            onChange={(e) => setSeed(e.target.value)}
-            inputProps={{ min: 0 }}
-            fullWidth
-            data-test-id="chat-ai-options-seed-input"
-            sx={{ mb: 2 }}
-          />
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent

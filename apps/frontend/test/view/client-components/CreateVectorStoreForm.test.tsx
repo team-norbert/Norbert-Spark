@@ -159,7 +159,6 @@ describe('CreateVectorStoreForm', () => {
       expect(screen.getByLabelText(/^frequency penalty/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^presence penalty/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^stop sequences/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/^seed/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^max retries/i)).toBeInTheDocument()
     })
 
@@ -204,7 +203,6 @@ describe('CreateVectorStoreForm', () => {
           /^frequency penalty/i,
           /^presence penalty/i,
           /^stop sequences/i,
-          /^seed/i,
           /^max retries/i,
         ]
         for (const labelRegex of labelRegexes) {
@@ -399,7 +397,6 @@ describe('CreateVectorStoreForm', () => {
       expect(chatAIOptions).not.toHaveProperty('frequencyPenalty')
       expect(chatAIOptions).not.toHaveProperty('presencePenalty')
       expect(chatAIOptions.stopSequences).toEqual([])
-      expect(chatAIOptions).not.toHaveProperty('seed')
       expect(chatAIOptions).not.toHaveProperty('maxRetries')
     })
 
@@ -453,16 +450,6 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.presencePenalty).toBe(-0.3)
-    })
-
-    it('includes seed as a number when provided', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields()
-      fireEvent.change(screen.getByLabelText(/^seed/i), { target: { value: '42' } })
-      submitForm()
-
-      expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.seed).toBe(42)
     })
 
     it('includes maxRetries as a number when provided', () => {
