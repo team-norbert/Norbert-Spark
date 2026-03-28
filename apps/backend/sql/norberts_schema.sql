@@ -154,15 +154,17 @@ CREATE TABLE IF NOT EXISTS embedding_models (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CHECK (
-              task_type IS NULL
+              provider != 'google'
+              OR task_type IS NULL
               OR task_type IN (
               'RETRIEVAL_QUERY',
               'RETRIEVAL_DOCUMENT',
               'SEMANTIC_SIMILARITY',
               'CLASSIFICATION',
               'CLUSTERING'
-               )
-    ),
+                              )
+            OR task_type ~ '^[A-Z_]+$'
+    )
     CHECK (
               provider = 'google'
               OR task_type IS NULL
