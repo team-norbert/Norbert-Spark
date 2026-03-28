@@ -8,8 +8,27 @@ import { GetAIAdminUseCase } from '../../../src/application/use-cases/get-ai-adm
 import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { Uuid } from '../../../src/domain/value-objects/uuid.js'
-import type { DBChatAiOptions } from '../../../src/infrastructure/database/schema.js'
+import type { DBChatAiOptionsSelect } from '../../../src/infrastructure/database/schema.js'
 import { createMockLogger } from '../../shared/factories/logger.factory.js'
+
+const createPersistedChatAiOptions = (
+  overrides: Partial<DBChatAiOptionsSelect> = {}
+): DBChatAiOptionsSelect => ({
+  id: new Uuid(uuidv7()).getValue(),
+  chatTypeId: new Uuid(uuidv7()).getValue(),
+  prompt: 'You are a helpful AI assistant',
+  maxTokens: 2000,
+  temperature: '0.7',
+  topP: '0.9',
+  frequencyPenalty: '0.0',
+  presencePenalty: '0.0',
+  topK: 40,
+  stopSequences: ['STOP', 'END'],
+  maxRetries: 3,
+  createdAt: new Date('2026-01-21T10:00:00Z'),
+  updatedAt: new Date('2026-01-21T10:00:00Z'),
+  ...overrides,
+})
 
 describe('GetAIAdminUseCase', () => {
   let useCase: GetAIAdminUseCase
@@ -48,8 +67,7 @@ describe('GetAIAdminUseCase', () => {
   describe('execute() - successful scenarios', () => {
     it('should fetch and return chat AI options when found', async () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
-      const mockOptions: DBChatAiOptions = {
-        id: new Uuid(uuidv7()).getValue(),
+      const mockOptions = createPersistedChatAiOptions({
         chatTypeId,
         prompt: 'You are a helpful AI assistant',
         maxTokens: 2000,
@@ -59,9 +77,8 @@ describe('GetAIAdminUseCase', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: ['STOP', 'END'],
-        seed: 12345,
         maxRetries: 3,
-      }
+      })
 
       vi.mocked(mockAiAdminPort.getAllChatAIOptions).mockResolvedValue(mockOptions)
 
@@ -93,8 +110,7 @@ describe('GetAIAdminUseCase', () => {
 
     it('should handle options with null values for optional fields', async () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
-      const mockOptions: DBChatAiOptions = {
-        id: new Uuid(uuidv7()).getValue(),
+      const mockOptions = createPersistedChatAiOptions({
         chatTypeId,
         prompt: 'You are a helpful AI assistant',
         maxTokens: null,
@@ -104,9 +120,8 @@ describe('GetAIAdminUseCase', () => {
         presencePenalty: null,
         topK: null,
         stopSequences: null,
-        seed: null,
         maxRetries: null,
-      }
+      })
 
       vi.mocked(mockAiAdminPort.getAllChatAIOptions).mockResolvedValue(mockOptions)
 
@@ -119,8 +134,7 @@ describe('GetAIAdminUseCase', () => {
 
     it('should handle options with empty stop sequences array', async () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
-      const mockOptions: DBChatAiOptions = {
-        id: new Uuid(uuidv7()).getValue(),
+      const mockOptions = createPersistedChatAiOptions({
         chatTypeId,
         prompt: 'You are a helpful AI assistant',
         maxTokens: 1500,
@@ -130,9 +144,8 @@ describe('GetAIAdminUseCase', () => {
         presencePenalty: '0.2',
         topK: 50,
         stopSequences: [],
-        seed: 54321,
         maxRetries: 5,
-      }
+      })
 
       vi.mocked(mockAiAdminPort.getAllChatAIOptions).mockResolvedValue(mockOptions)
 
@@ -145,8 +158,7 @@ describe('GetAIAdminUseCase', () => {
   describe('audit logging', () => {
     it('should log successful fetch to audit log with correct parameters', async () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
-      const mockOptions: DBChatAiOptions = {
-        id: new Uuid(uuidv7()).getValue(),
+      const mockOptions = createPersistedChatAiOptions({
         chatTypeId,
         prompt: 'Test prompt',
         maxTokens: 1000,
@@ -156,9 +168,8 @@ describe('GetAIAdminUseCase', () => {
         presencePenalty: '0.0',
         topK: 30,
         stopSequences: null,
-        seed: null,
         maxRetries: 2,
-      }
+      })
 
       vi.mocked(mockAiAdminPort.getAllChatAIOptions).mockResolvedValue(mockOptions)
 
@@ -201,8 +212,7 @@ describe('GetAIAdminUseCase', () => {
 
     it('should handle undefined userAgent in audit context', async () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
-      const mockOptions: DBChatAiOptions = {
-        id: new Uuid(uuidv7()).getValue(),
+      const mockOptions = createPersistedChatAiOptions({
         chatTypeId,
         prompt: 'Test prompt',
         maxTokens: 1000,
@@ -212,9 +222,8 @@ describe('GetAIAdminUseCase', () => {
         presencePenalty: '0.0',
         topK: 30,
         stopSequences: null,
-        seed: null,
         maxRetries: 2,
-      }
+      })
 
       vi.mocked(mockAiAdminPort.getAllChatAIOptions).mockResolvedValue(mockOptions)
 
@@ -272,8 +281,7 @@ describe('GetAIAdminUseCase', () => {
   describe('data type preservation', () => {
     it('should preserve numeric values as strings', async () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
-      const mockOptions: DBChatAiOptions = {
-        id: new Uuid(uuidv7()).getValue(),
+      const mockOptions = createPersistedChatAiOptions({
         chatTypeId,
         prompt: 'Test prompt',
         maxTokens: 1000,
@@ -283,9 +291,8 @@ describe('GetAIAdminUseCase', () => {
         presencePenalty: '0.666666',
         topK: 100,
         stopSequences: null,
-        seed: null,
         maxRetries: 10,
-      }
+      })
 
       vi.mocked(mockAiAdminPort.getAllChatAIOptions).mockResolvedValue(mockOptions)
 
