@@ -27,6 +27,11 @@ dotenv.config({ path: '.env.local' })
 dotenv.config({ path: '.env.test' })
 dotenv.config({ path: '.env' })
 
+// Also load backend env so required vars (ENCRYPTION_KEY, OAUTH_SYNC_SECRET,
+// CLOUDFLARE_API, etc.) are available when spawning the backend process.
+// dotenv never overwrites already-set vars, so frontend values take precedence.
+dotenv.config({ path: '../backend/.env.local' })
+
 /* eslint-disable-next-line no-undef */
 type ProcessEnv = NodeJS.ProcessEnv
 
