@@ -35,6 +35,16 @@
         { "required": ["existingModelId"] },
         { "required": ["modelName", "modelProvider", "dimension"] }
       ],
+      "if": {
+        "properties": {
+          "modelProvider": { "const": "google" },
+          "modelName": { "enum": ["text-embedding-004", "text-multilingual-embedding-002"] }
+        },
+        "required": ["modelProvider", "modelName"]
+      },
+      "then": {
+        "required": ["taskType"]
+      },
       "properties": {
         "existingModelId": {
           "type": "string",
@@ -47,27 +57,41 @@
         },
         "modelProvider": {
           "type": "string",
-          "description": "Provider of the embedding model (e.g., OpenAI, Hugging Face)"
+          "description": "Provider of the embedding model (e.g., OpenAI)",
+          "enum": ["openai", "google", "cohere", "amazon", "voyage", "mistral"]
         },
         "dimension": {
           "type": "integer",
           "description": "Dimension of the vector embeddings",
           "enum": [3072, 1536, 1024, 768, 384],
           "example": 1536
+        },
+        "releaseYear": {
+          "type": "integer",
+          "description": "Release year of the embedding model",
+          "minimum": 2000,
+          "maximum": 2027,
+          "example": 2023
+        },
+        "taskType": {
+          "type": "string",
+          "description": "Task type of the embedding model",
+          "enum": [
+            "RETRIEVAL_QUERY",
+            "RETRIEVAL_DOCUMENT",
+            "SEMANTIC_SIMILARITY",
+            "CLASSIFICATION",
+            "CLUSTERING"
+          ],
+          "example": "RETRIEVAL_QUERY"
         }
       }
     },
     "vectorEmbeddings": {
       "type": "object",
       "description": "Vector store vector embeddings configuration",
-      "required": ["distanceMetric", "chunkSize", "chunkOverlap"],
+      "required": ["chunkSize", "chunkOverlap"],
       "properties": {
-        "distanceMetric": {
-          "type": "string",
-          "description": "Distance metric to use for similarity search",
-          "enum": ["cosine", "euclidean", "dot_product"],
-          "example": "cosine"
-        },
         "chunkSize": {
           "type": "integer",
           "description": "Size of text chunks to split documents into for embedding",
@@ -138,13 +162,6 @@
           },
           "default": [" "],
           "example": ["\n", " Human:", " AI:"]
-        },
-        "seed": {
-          "type": "integer",
-          "description": "Random seed for AI response generation (for reproducibility)",
-          "minimum": 0,
-          "maximum": 1000000,
-          "example": 42
         },
         "maxRetries": {
           "type": "integer",

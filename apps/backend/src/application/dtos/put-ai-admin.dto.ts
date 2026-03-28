@@ -31,7 +31,6 @@ import { ValidationException } from '../../shared/exceptions/validation.exceptio
  *   0.5,     // presencePenalty
  *   40,      // topK
  *   ['\n\n', 'END'], // stopSequences
- *   12345,   // seed
  *   3        // maxRetries
  * )
  * ```
@@ -48,7 +47,6 @@ export class PutAIAdminDTO {
    * @param presencePenalty - Penalty for token presence (-2 to 2, encourages topic diversity)
    * @param topK - Top-K sampling parameter (1-100, number of tokens to consider)
    * @param stopSequences - Array of strings that stop generation when encountered
-   * @param seed - Random seed for reproducible generation (0-2147483647, max int32)
    * @param maxRetries - Maximum number of retry attempts on failure (0-10)
    */
   constructor(
@@ -60,7 +58,6 @@ export class PutAIAdminDTO {
     public readonly presencePenalty?: number,
     public readonly topK?: number,
     public readonly stopSequences?: string[],
-    public readonly seed?: number,
     public readonly maxRetries?: number
   ) {}
 
@@ -83,7 +80,6 @@ export class PutAIAdminDTO {
    * - presencePenalty: Must be number between -2 to 2
    * - topK: Must be number between 1-100
    * - stopSequences: Must be array of strings
-   * - seed: Must be number between 0-2147483647 (max int32)
    * - maxRetries: Must be number between 0-10
    *
    * @example
@@ -109,7 +105,6 @@ export class PutAIAdminDTO {
       maxTokens,
       presencePenalty,
       prompt,
-      seed,
       stopSequences,
       temperature,
       topK,
@@ -161,12 +156,6 @@ export class PutAIAdminDTO {
     if (Array.isArray(stopSequences) && !stopSequences.every((item) => isString(item))) {
       throw new ValidationException('Invalid stopSequences: all items must be strings')
     }
-    if (isDefined(seed) && !isNumber(seed)) {
-      throw new ValidationException('Invalid seed: must be a number')
-    }
-    if (isNumber(seed) && (seed < 0 || seed > 2147483647)) {
-      throw new ValidationException('Invalid seed: must be between 0 and 2147483647')
-    }
     if (isDefined(maxRetries) && !isNumber(maxRetries)) {
       throw new ValidationException('Invalid maxRetries: must be a number')
     }
@@ -183,7 +172,6 @@ export class PutAIAdminDTO {
       presencePenalty ?? undefined,
       topK ?? undefined,
       stopSequences ?? undefined,
-      seed ?? undefined,
       maxRetries ?? undefined
     )
   }

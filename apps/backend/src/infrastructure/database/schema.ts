@@ -1119,7 +1119,6 @@ export const chatAiOptions = pgTable(
     presencePenalty: numeric('presence_penalty'),
     topK: integer('top_k'),
     stopSequences: text('stop_sequences').array(),
-    seed: integer('seed'),
     maxRetries: integer('max_retries'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -1149,10 +1148,6 @@ export const chatAiOptions = pgTable(
     topKCheck: check(
       'top_k_check',
       sql`${table.topK} IS NULL OR (${table.topK} > 0 AND ${table.topK} <= 100)`
-    ),
-    seedCheck: check(
-      'seed_check',
-      sql`${table.seed} IS NULL OR (${table.seed} >= 0 AND ${table.seed} <= 2147483647)`
     ),
     maxRetriesCheck: check(
       'max_retries_check',

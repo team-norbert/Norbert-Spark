@@ -17,15 +17,28 @@ export class RagDto {
           modelName?: string
           modelProvider?: string
           dimension?: 1536 | 768 | 384 | 3072 | 1024
+          releaseYear?: number
+          taskType?:
+            | 'RETRIEVAL_QUERY'
+            | 'RETRIEVAL_DOCUMENT'
+            | 'SEMANTIC_SIMILARITY'
+            | 'CLASSIFICATION'
+            | 'CLUSTERING'
         }
       | {
           existingModelId?: string
           modelName: string
           modelProvider: string
           dimension: 1536 | 768 | 384 | 3072 | 1024
+          releaseYear?: number
+          taskType?:
+            | 'RETRIEVAL_QUERY'
+            | 'RETRIEVAL_DOCUMENT'
+            | 'SEMANTIC_SIMILARITY'
+            | 'CLASSIFICATION'
+            | 'CLUSTERING'
         },
     public readonly vectorEmbeddings: {
-      distanceMetric: 'cosine' | 'euclidean' | 'dot_product'
       chunkSize: number
       chunkOverlap: number
     },
@@ -37,7 +50,6 @@ export class RagDto {
       frequencyPenalty?: number
       presencePenalty?: number
       stopSequences?: string[]
-      seed?: number
       maxRetries?: number
     }
   ) {}
@@ -111,22 +123,56 @@ export class RagDto {
           'embeddingModels.modelProvider is required and must be a string'
         )
       }
+
+      const VALID_PROVIDERS = ['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral'] as const
+      type ValidProvider = (typeof VALID_PROVIDERS)[number]
+      if (!VALID_PROVIDERS.includes(data.embeddingModels.modelProvider as ValidProvider)) {
+        throw new ValidationException(
+          'embeddingModels.modelProvider must be one of: openai, google, cohere, amazon, voyage, mistral'
+        )
+      }
+
+      const GOOGLE_TASK_TYPE_REQUIRED_MODELS = [
+        'text-embedding-004',
+        'text-multilingual-embedding-002',
+      ] as const
+      const requiresTaskType =
+        data.embeddingModels.modelProvider === 'google' &&
+        GOOGLE_TASK_TYPE_REQUIRED_MODELS.includes(
+          data.embeddingModels.modelName as (typeof GOOGLE_TASK_TYPE_REQUIRED_MODELS)[number]
+        )
+
+      if (requiresTaskType && !isDefined(data.embeddingModels.taskType)) {
+        throw new ValidationException(
+          'embeddingModels.taskType is required for google models text-embedding-004 and text-multilingual-embedding-002'
+        )
+      }
     }
 
-    if (!isString(data.vectorEmbeddings.distanceMetric)) {
-      throw new ValidationException(
-        'vectorEmbeddings.distanceMetric is required and must be a string'
-      )
+    if (isDefined(data.embeddingModels.taskType)) {
+      const VALID_TASK_TYPES = [
+        'RETRIEVAL_QUERY',
+        'RETRIEVAL_DOCUMENT',
+        'SEMANTIC_SIMILARITY',
+        'CLASSIFICATION',
+        'CLUSTERING',
+      ] as const
+      type ValidTaskType = (typeof VALID_TASK_TYPES)[number]
+      if (!isString(data.embeddingModels.taskType)) {
+        throw new ValidationException('embeddingModels.taskType must be a string')
+      }
+      if (!VALID_TASK_TYPES.includes(data.embeddingModels.taskType as ValidTaskType)) {
+        throw new ValidationException(
+          'embeddingModels.taskType must be one of: RETRIEVAL_QUERY, RETRIEVAL_DOCUMENT, SEMANTIC_SIMILARITY, CLASSIFICATION, CLUSTERING'
+        )
+      }
     }
 
     if (
-      data.vectorEmbeddings.distanceMetric !== 'cosine' &&
-      data.vectorEmbeddings.distanceMetric !== 'euclidean' &&
-      data.vectorEmbeddings.distanceMetric !== 'dot_product'
+      isDefined(data.embeddingModels.releaseYear) &&
+      !isNumber(data.embeddingModels.releaseYear)
     ) {
-      throw new ValidationException(
-        'vectorEmbeddings.distanceMetric must be either "cosine", "euclidean", or "dot_product"'
-      )
+      throw new ValidationException('embeddingModels.releaseYear must be a number')
     }
 
     if (!isNumber(data.vectorEmbeddings.chunkSize)) {
@@ -180,10 +226,6 @@ export class RagDto {
       throw new ValidationException('chatAIOptions.presencePenalty must be a number')
     }
 
-    if (isDefined(data.chatAIOptions.seed) && !isNumber(data.chatAIOptions.seed)) {
-      throw new ValidationException('chatAIOptions.seed must be a number')
-    }
-
     if (isDefined(data.chatAIOptions.maxRetries) && !isNumber(data.chatAIOptions.maxRetries)) {
       throw new ValidationException('chatAIOptions.maxRetries must be a number')
     }
@@ -204,9 +246,10 @@ export class RagDto {
         modelName: data.embeddingModels.modelName as string | undefined,
         modelProvider: data.embeddingModels.modelProvider as string | undefined,
         dimension: data.embeddingModels.dimension as 1536 | 768 | 384 | 3072 | 1024 | undefined,
+        releaseYear: data.embeddingModels.releaseYear ?? undefined,
+        taskType: data.embeddingModels.taskType ?? undefined,
       } as RagDto['embeddingModels'],
       {
-        distanceMetric: data.vectorEmbeddings.distanceMetric,
         chunkSize: data.vectorEmbeddings.chunkSize,
         chunkOverlap: data.vectorEmbeddings.chunkOverlap,
       },
@@ -218,7 +261,6 @@ export class RagDto {
         frequencyPenalty: data.chatAIOptions.frequencyPenalty ?? undefined,
         presencePenalty: data.chatAIOptions.presencePenalty ?? undefined,
         stopSequences: data.chatAIOptions.stopSequences ?? undefined,
-        seed: data.chatAIOptions.seed ?? undefined,
         maxRetries: data.chatAIOptions.maxRetries ?? undefined,
       }
     )

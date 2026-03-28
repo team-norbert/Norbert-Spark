@@ -22,7 +22,7 @@ import type { LoggerPort } from '../ports/logger.port.js'
  *
  * The audit entry records a snapshot of all updated fields (`prompt`,
  * `maxTokens`, `temperature`, `topP`, `frequencyPenalty`, `presencePenalty`,
- * `topK`, `stopSequences`, `seed`, `maxRetries`) under the `after` key.
+ * `topK`, `stopSequences`, `maxRetries`) under the `after` key.
  *
  * This use-case is called from
  * {@link AIAdminController.putAIChatSettingsById} to serve the
@@ -114,7 +114,6 @@ export class PutAIAdminUseCase {
           presencePenalty: dto.presencePenalty,
           topK: dto.topK,
           stopSequences: dto.stopSequences,
-          seed: dto.seed,
           maxRetries: dto.maxRetries,
         },
       } satisfies UpdateChanges,

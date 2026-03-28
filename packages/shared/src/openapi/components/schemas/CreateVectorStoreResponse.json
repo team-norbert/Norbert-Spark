@@ -190,13 +190,6 @@
               },
               "example": ["\n", " Human:", " AI:"]
             },
-            "seed": {
-              "type": "integer",
-              "description": "Random seed used for AI response generation",
-              "minimum": 0,
-              "maximum": 1000000,
-              "example": 42
-            },
             "maxRetries": {
               "type": "integer",
               "description": "Maximum number of retries for AI response generation in case of failures",
