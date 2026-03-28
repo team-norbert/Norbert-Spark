@@ -29,15 +29,14 @@ import { AccordionComponent } from './AccordionComponent.js'
 import {
   bodyText,
   chunkOverlapText,
-  chunkSizeText,
   frequencyPenaltyText,
   maxRetriesText,
   maxTokensText,
   presencePenaltyText,
   stopSequencesText,
+  taskTypes,
   temperatureText,
   topPText,
-  vectorEmbeddingsText,
 } from './VectorStoreText.js'
 
 export type CreateVectorStoreFormData = CreateVectorStoreRequest
@@ -330,32 +329,33 @@ export function CreateVectorStoreForm({
             &#39;embed-english-v3.0&#39;
           </Typography>
           <Divider sx={{ my: 2 }} />
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel id="model-provider-label" shrink>
-              Model Provider
-            </InputLabel>
-            <Select
-              labelId="model-provider-label"
-              label="Model Provider"
-              value={modelProvider}
-              displayEmpty
-              data-test-id="embedding-models-model-provider-input"
-              onChange={(e) => {
-                setModelProvider(e.target.value)
-                setSelectedModelId('')
-              }}
-            >
-              <MenuItem value="">
-                <em>— choose a provider —</em>
-              </MenuItem>
-              <MenuItem value="openai">openai</MenuItem>
-              <MenuItem value="google">google</MenuItem>
-              <MenuItem value="cohere">cohere</MenuItem>
-              <MenuItem value="amazon">amazon</MenuItem>
-              <MenuItem value="voyage">voyage</MenuItem>
-              <MenuItem value="mistral">mistral</MenuItem>
-            </Select>
-          </FormControl>
+
+          <TextField
+            label="Model Provider"
+            value={modelProvider}
+            onChange={(e) => {
+              setModelProvider(e.target.value)
+              setSelectedModelId('')
+            }}
+            data-testid="embedding-models-provider-input"
+            fullWidth
+            sx={{ mb: 2 }}
+            data-test-id="embedding-models-model-provider-input"
+            error={
+              modelProvider !== '' &&
+              !['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral'].includes(modelProvider)
+            }
+            helperText={
+              modelProvider !== '' &&
+              !['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral'].includes(modelProvider)
+                ? 'Must be one of: openai, google, cohere, amazon, voyage, mistral'
+                : undefined
+            }
+          />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Examples:</strong> openai, google, cohere, amazon, voyage, mistral
+          </Typography>
           <Divider sx={{ my: 2 }} />
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel id="dimension-label" shrink>
@@ -383,26 +383,65 @@ export function CreateVectorStoreForm({
             </Select>
           </FormControl>
 
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Release Year"
             type="number"
             value={releaseYear}
             onChange={handleManualModelChange(setReleaseYear)}
-            inputProps={{ min: 2000, max: 2027 }}
+            inputProps={{ min: 2000, max: new Date().getFullYear() + 1 }}
             fullWidth
             sx={{ mb: 2 }}
             data-test-id="embedding-models-release-year-input"
+            error={
+              releaseYear !== '' &&
+              (Number(releaseYear) < 2000 || Number(releaseYear) > new Date().getFullYear() + 1)
+            }
+            helperText={
+              releaseYear !== '' &&
+              (Number(releaseYear) < 2000 || Number(releaseYear) > new Date().getFullYear() + 1)
+                ? `Must be between 2000 and ${new Date().getFullYear() + 1}`
+                : undefined
+            }
           />
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent header="Information on Task Type" body={taskTypes} />
+          <Divider sx={{ my: 2 }} />
 
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel id="task-type-label" shrink>
-              Task Type (optional — required for Google models)
+              {[
+                'text-embedding-005',
+                'text-multilingual-embedding-002',
+                'gemini-embedding-001',
+              ].includes(modelName) && modelProvider === 'google'
+                ? 'Task Type (required for this Google model)'
+                : 'Task Type (not applicable for this model)'}
             </InputLabel>
             <Select
               labelId="task-type-label"
-              label="Task Type (optional — required for Google models)"
+              label={
+                [
+                  'text-embedding-005',
+                  'text-multilingual-embedding-002',
+                  'gemini-embedding-001',
+                ].includes(modelName) && modelProvider === 'google'
+                  ? 'Task Type (required for this Google model)'
+                  : 'Task Type (not applicable for this model)'
+              }
               value={taskType}
               displayEmpty
+              disabled={
+                !(
+                  [
+                    'text-embedding-005',
+                    'text-multilingual-embedding-002',
+                    'gemini-embedding-001',
+                  ].includes(modelName) && modelProvider === 'google'
+                )
+              }
               data-test-id="embedding-models-task-type-select"
               onChange={(e) => {
                 setTaskType(e.target.value)
@@ -419,24 +458,6 @@ export function CreateVectorStoreForm({
               <MenuItem value="CLUSTERING">CLUSTERING</MenuItem>
             </Select>
           </FormControl>
-
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            <strong>This selects the database table to use</strong>
-          </Typography>
-
-          <Divider sx={{ my: 2 }} />
-
-          {/* Vector Embeddings */}
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
-            Vector Embeddings
-          </Typography>
-          <AccordionComponent
-            header="Information on Vector Embeddings distance metrics"
-            body={vectorEmbeddingsText}
-          />
-
-          <Divider sx={{ my: 2 }} />
-          <AccordionComponent header="Read Chunk Size" body={chunkSizeText} />
 
           <Divider sx={{ my: 2 }} />
 
