@@ -724,8 +724,8 @@ export const vectorEmbeddings384 = pgTable(
      * Foreign key to embedding_models table.
      */
     embeddingModelId: uuid('embedding_model_id').notNull(),
-    // NOTE: SQL schema has DEFAULT 3072 / CHECK (= 3072) here — appears to be a copy-paste error from vector_embeddings_3072.
-    embeddingDimension: integer('embedding_dimension').notNull().default(3072),
+    // NOTE: SQL schema previously had DEFAULT 3072 / CHECK (= 3072) here — copy-paste error from vector_embeddings_3072.
+    embeddingDimension: integer('embedding_dimension').notNull().default(384),
     /**
      * Position of this chunk within its document, used to reconstruct ordering.
      */
