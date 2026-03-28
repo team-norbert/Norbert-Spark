@@ -134,8 +134,15 @@ export class RagDto {
         throw new ValidationException('embeddingModels.releaseYear must be an integer')
       }
 
-      if (data.embeddingModels.releaseYear < 2000 || data.embeddingModels.releaseYear > 2027) {
-        throw new ValidationException('embeddingModels.releaseYear must be between 2000 and 2027')
+      const currentYear = new Date().getFullYear()
+      const maxReleaseYear = currentYear + 1
+      if (
+        data.embeddingModels.releaseYear < 2000 ||
+        data.embeddingModels.releaseYear > maxReleaseYear
+      ) {
+        throw new ValidationException(
+          `embeddingModels.releaseYear must be between 2000 and ${maxReleaseYear}`
+        )
       }
 
       const GOOGLE_TASK_TYPE_REQUIRED_MODELS = [
