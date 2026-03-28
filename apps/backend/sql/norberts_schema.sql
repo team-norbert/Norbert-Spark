@@ -129,6 +129,26 @@ CREATE TABLE IF NOT EXISTS embedding_models (
         AND release_year <= EXTRACT(YEAR FROM now())::INTEGER + 1
     ),
     recommended_usage TEXT NOT NULL CHECK (length(trim(recommended_usage)) > 0),
+=========
+   -- What task_type means
+   -- task_type tells the embedding model what kind of job the embedding will
+   -- be used for, so the model can produce vectors optimized for that use case.
+   -- Google documents task types such as RETRIEVAL_QUERY, RETRIEVAL_DOCUMENT, SEMANTIC_SIMILARITY, CLASSIFICATION, and CLUSTERING.
+   -- For retrieval, Google explicitly recommends embedding the corpus with RETRIEVAL_DOCUMENT and user queries with RETRIEVAL_QUERY.
+   -- So conceptually:
+
+   -- RETRIEVAL_DOCUMENT = “this text is something I want to search over”
+   -- RETRIEVAL_QUERY = “this text is a user search/query”
+   -- SEMANTIC_SIMILARITY = “I want general similarity comparisons, not document retrieval”
+   -- CLASSIFICATION / CLUSTERING = embeddings optimized for those downstream tasks
+   -- Why it matters
+   -- With Google embeddings, the same base model can produce different embeddings
+   -- depending on the task type. Google’s docs say this directly for retrieval:
+   -- use one task type for documents and another for queries to get the best performance.
+   -- Google also notes that SEMANTIC_SIMILARITY is not intended for retrieval use cases.
+   -- That is why task_type belongs naturally in your embedding_models catalog:
+   -- it is not just “which model,” but also “how that model is being used.”
+=========
     task_type TEXT,
     dimension INTEGER NOT NULL CHECK (dimension IN (384, 768, 1024, 1536, 3072)),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
