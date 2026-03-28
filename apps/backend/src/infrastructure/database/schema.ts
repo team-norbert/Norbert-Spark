@@ -306,7 +306,7 @@ export const documents = pgTable(
       .primaryKey()
       .default(sql`uuidv7()`),
     title: text('title').notNull(),
-    source: text('source'),
+    source: text('source').notNull(),
     checksum: text('checksum'),
     status: text('status')
       .notNull()
