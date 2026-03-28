@@ -1288,8 +1288,8 @@ describe('Database Schema', () => {
       expect(documents.status.notNull).toBe(true)
     })
 
-    it('should have nullable documents.source', () => {
-      expect(documents.source.notNull).toBe(false)
+    it('should have not null constraint on documents.source', () => {
+      expect(documents.source.notNull).toBe(true)
     })
 
     it('should have primary key on embeddingModels.id', () => {
