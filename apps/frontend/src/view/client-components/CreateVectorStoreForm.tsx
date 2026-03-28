@@ -43,6 +43,9 @@ import {
 export type CreateVectorStoreFormData = CreateVectorStoreRequest
 export type DocumentEntry = VectorStoreDocumentEntry
 
+const ALLOWED_PROVIDERS = ['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral'] as const
+type AllowedProvider = (typeof ALLOWED_PROVIDERS)[number]
+
 /**
  * Derives a human-readable document title from a bucket fileKey.
  * e.g. "rag/uuid/Sample-Handbook_copy.pdf" → "Sample-Handbook copy"
@@ -148,6 +151,7 @@ export function CreateVectorStoreForm({
     e.preventDefault()
 
     if (!selectedModelId && (dimension === '' || !releaseYear)) return
+    if (!selectedModelId && !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)) return
     if (distanceMetric === 'euclidean' || distanceMetric === 'dot_product') return
 
     const embeddingModels =
@@ -155,13 +159,7 @@ export function CreateVectorStoreForm({
         ? { existingModelId: selectedModelId }
         : {
             modelName,
-            modelProvider: modelProvider as
-              | 'openai'
-              | 'google'
-              | 'cohere'
-              | 'amazon'
-              | 'voyage'
-              | 'mistral',
+            modelProvider: modelProvider as AllowedProvider,
             dimension: dimension as 3072 | 1536 | 1024 | 768 | 384,
             releaseYear: Number(releaseYear),
             ...(taskType
@@ -349,11 +347,11 @@ export function CreateVectorStoreForm({
             data-test-id="embedding-models-model-provider-input"
             error={
               modelProvider !== '' &&
-              !['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral'].includes(modelProvider)
+              !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)
             }
             helperText={
               modelProvider !== '' &&
-              !['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral'].includes(modelProvider)
+              !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)
                 ? 'Must be one of: openai, google, cohere, amazon, voyage, mistral'
                 : undefined
             }

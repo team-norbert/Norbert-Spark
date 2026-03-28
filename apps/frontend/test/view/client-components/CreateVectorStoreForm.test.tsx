@@ -834,6 +834,24 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit).not.toHaveBeenCalled()
     })
 
+    it('blocks form submission when modelProvider is not an allowed value', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ modelProvider: 'invalid-provider' })
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('blocks form submission when modelProvider is empty in manual entry mode', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ modelProvider: '' })
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
     it('submits existingModelId when a dropdown model is selected and no manual entry is made', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
