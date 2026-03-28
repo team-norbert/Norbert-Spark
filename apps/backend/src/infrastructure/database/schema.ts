@@ -385,7 +385,7 @@ export const embeddingModels = pgTable(
     ),
     taskTypeValuesCheck: check(
       'embedding_models_task_type_values_check',
-      sql`${table.taskType} IS NULL OR ${table.taskType} IN ('RETRIEVAL_QUERY', 'RETRIEVAL_DOCUMENT', 'SEMANTIC_SIMILARITY', 'CLASSIFICATION', 'CLUSTERING')`
+      sql`(${table.provider} != 'google') OR ${table.taskType} IS NULL OR ${table.taskType} IN ('RETRIEVAL_QUERY', 'RETRIEVAL_DOCUMENT', 'SEMANTIC_SIMILARITY', 'CLASSIFICATION', 'CLUSTERING') OR ${table.taskType} ~ '^[A-Z_]+$'`
     ),
     taskTypeGoogleOnlyCheck: check(
       'embedding_models_task_type_google_only_check',

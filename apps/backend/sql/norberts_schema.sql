@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS embedding_models (
         AND release_year <= EXTRACT(YEAR FROM now())::INTEGER + 1
     ),
     recommended_usage TEXT NOT NULL CHECK (length(trim(recommended_usage)) > 0),
-=========
+   -- =========
    -- What task_type means
    -- task_type tells the embedding model what kind of job the embedding will
    -- be used for, so the model can produce vectors optimized for that use case.
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS embedding_models (
    -- Google also notes that SEMANTIC_SIMILARITY is not intended for retrieval use cases.
    -- That is why task_type belongs naturally in your embedding_models catalog:
    -- it is not just “which model,” but also “how that model is being used.”
-=========
+   -- =========
     task_type TEXT,
     dimension INTEGER NOT NULL CHECK (dimension IN (384, 768, 1024, 1536, 3072)),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
