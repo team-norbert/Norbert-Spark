@@ -358,7 +358,7 @@ export const embeddingModels = pgTable(
     )
       .on(table.name, table.provider, table.dimension, table.taskType)
       .nullsNotDistinct(),
-    uniqueIdDimension: unique('embedding_models_id_dimension_unique').on(table.id, table.dimension),
+    uniqueId: unique('embedding_models_id_unique').on(table.id),
     nameNotEmptyCheck: check(
       'embedding_models_name_not_empty_check',
       sql`length(trim(${table.name})) > 0`

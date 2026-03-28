@@ -1375,11 +1375,11 @@ describe('Database Schema', () => {
       )
     })
 
-    it('should have a unique constraint on (id, dimension) supporting composite FK targets', () => {
+    it('should have a unique constraint on (id) for the primary key column', () => {
       const { uniqueConstraints } = getTableConfig(embeddingModels)
-      const uc = uniqueConstraints.find((u) => u.name === 'embedding_models_id_dimension_unique')
+      const uc = uniqueConstraints.find((u) => u.name === 'embedding_models_id_unique')
       expect(uc).toBeDefined()
-      expect(uc!.columns.map((c) => c.name)).toEqual(expect.arrayContaining(['id', 'dimension']))
+      expect(uc!.columns.map((c) => c.name)).toEqual(['id'])
     })
   })
 

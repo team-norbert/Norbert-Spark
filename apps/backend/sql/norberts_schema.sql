@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS embedding_models (
               OR task_type IS NULL
           ),
     UNIQUE NULLS NOT DISTINCT (name, provider, dimension, task_type),
-    UNIQUE (id, dimension)
+    UNIQUE (id)
 );
 
 -- ============================================================

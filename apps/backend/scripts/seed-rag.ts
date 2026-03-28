@@ -44,6 +44,10 @@ if (invalidModels.length > 0) {
 const rows = models.map((m) => ({
   name: m.name,
   provider: m.provider,
+  status: m.status,
+  releaseYear: Number(m.release_year),
+  recommendedUsage: m.recommended_usage,
+  taskType: 'task_type' in m ? (m as { task_type?: string }).task_type ?? null : null,
   dimension: Number(m.dimension) as EmbeddingDimension,
 }))
 
