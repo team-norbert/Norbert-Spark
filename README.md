@@ -84,7 +84,7 @@ To use PNPM version 10.29.3,you can run the following command:
 ```bash
 corepack enable pnpm
 corepack use pnpm@10.29.3
-````
+```
 
 ### Husky
 
