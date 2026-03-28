@@ -251,8 +251,6 @@ async function globalSetup() {
         RESEND_API_KEY: 'test-resend-api-key-for-e2e',
         API_VERSION: 'v1',
         OAUTH_SYNC_SECRET: process.env.OAUTH_SYNC_SECRET || 'test-oauth-sync-secret-for-e2e',
-        CLOUDFLARE_API: process.env.CLOUDFLARE_API || 'test-cloudflare-api-for-e2e',
-        ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || 'test-encryption-key-for-e2e-32chars!',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     })

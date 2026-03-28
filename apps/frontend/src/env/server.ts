@@ -11,7 +11,6 @@ export const env = createEnv({
   server: {
     DEFAULT_RATE_LIMIT_WINDOW: z.coerce.number().default(60), // 1 minute
     DEFAULT_RATE_LIMIT_MAX: z.coerce.number().default(100), // 100 requests per window
-    RATE_LIMITER_TYPE: z.string().default('memory'),
     // Comma-separated list of trusted proxy IPs (e.g., "127.0.0.1,::1")
     TRUSTED_PROXIES: z.string().default('127.0.0.1,::1'),
     NEXTAUTH_SECRET: z.string(),
@@ -30,7 +29,6 @@ export const env = createEnv({
   runtimeEnv: {
     DEFAULT_RATE_LIMIT_WINDOW: process.env.DEFAULT_RATE_LIMIT_WINDOW,
     DEFAULT_RATE_LIMIT_MAX: process.env.DEFAULT_RATE_LIMIT_MAX,
-    RATE_LIMITER_TYPE: process.env.RATE_LIMITER_TYPE,
     TRUSTED_PROXIES: process.env.TRUSTED_PROXIES,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
