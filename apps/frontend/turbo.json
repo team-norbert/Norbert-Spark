@@ -32,9 +32,7 @@
         "NODE_ENV",
         "NEXT_PUBLIC_NODE_ENV",
         "SKIP_ENV_VALIDATION",
-        "RATE_LIMITER_TYPE",
-        "CLOUDFLARE_API",
-        "ENCRYPTION_KEY"
+        "RATE_LIMITER_TYPE"
       ]
     },
     "test:unit": {
