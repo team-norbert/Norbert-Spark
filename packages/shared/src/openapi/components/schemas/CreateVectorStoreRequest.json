@@ -34,11 +34,71 @@
       "oneOf": [
         {
           "description": "Use an existing embedding model by its ID",
-          "required": ["existingModelId"]
+          "type": "object",
+          "required": ["existingModelId"],
+          "properties": {
+            "existingModelId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique identifier for an existing embedding model to use. Mutually exclusive with modelName, modelProvider, dimension and releaseYear."
+            }
+          },
+          "additionalProperties": false,
+          "not": {
+            "anyOf": [
+              { "required": ["modelName"] },
+              { "required": ["modelProvider"] },
+              { "required": ["dimension"] },
+              { "required": ["releaseYear"] },
+              { "required": ["taskType"] }
+            ]
+          }
         },
         {
           "description": "Define a new embedding model",
+          "type": "object",
           "required": ["modelName", "modelProvider", "dimension", "releaseYear"],
+          "properties": {
+            "modelName": {
+              "type": "string",
+              "description": "Name of the embedding model to use"
+            },
+            "modelProvider": {
+              "type": "string",
+              "description": "Provider of the embedding model (e.g., openai)",
+              "enum": ["openai", "google", "cohere", "amazon", "voyage", "mistral"]
+            },
+            "dimension": {
+              "type": "integer",
+              "description": "Dimension of the vector embeddings",
+              "enum": [3072, 1536, 1024, 768, 384],
+              "example": 1536
+            },
+            "releaseYear": {
+              "type": "integer",
+              "description": "Release year of the embedding model",
+              "minimum": 2000,
+              "maximum": 2027,
+              "example": 2023
+            },
+            "taskType": {
+              "type": "string",
+              "description": "Task type of the embedding model",
+              "enum": [
+                "RETRIEVAL_QUERY",
+                "RETRIEVAL_DOCUMENT",
+                "SEMANTIC_SIMILARITY",
+                "CLASSIFICATION",
+                "CLUSTERING"
+              ],
+              "default": "RETRIEVAL_QUERY",
+              "example": "RETRIEVAL_QUERY"
+            }
+          },
+          "additionalProperties": false,
+          "not": {
+            "required": ["existingModelId"]
+          },
           "if": {
             "properties": {
               "modelProvider": { "const": "google" },
@@ -50,49 +110,7 @@
             "required": ["taskType"]
           }
         }
-      ],
-      "properties": {
-        "existingModelId": {
-          "type": "string",
-          "format": "uuid",
-          "description": "Unique identifier for an existing embedding model to use. Mutually exclusive with modelName, modelProvider, dimension and releaseYear."
-        },
-        "modelName": {
-          "type": "string",
-          "description": "Name of the embedding model to use"
-        },
-        "modelProvider": {
-          "type": "string",
-          "description": "Provider of the embedding model (e.g., openai)",
-          "enum": ["openai", "google", "cohere", "amazon", "voyage", "mistral"]
-        },
-        "dimension": {
-          "type": "integer",
-          "description": "Dimension of the vector embeddings",
-          "enum": [3072, 1536, 1024, 768, 384],
-          "example": 1536
-        },
-        "releaseYear": {
-          "type": "integer",
-          "description": "Release year of the embedding model",
-          "minimum": 2000,
-          "maximum": 2027,
-          "example": 2023
-        },
-        "taskType": {
-          "type": "string",
-          "description": "Task type of the embedding model",
-          "enum": [
-            "RETRIEVAL_QUERY",
-            "RETRIEVAL_DOCUMENT",
-            "SEMANTIC_SIMILARITY",
-            "CLASSIFICATION",
-            "CLUSTERING"
-          ],
-          "default": "RETRIEVAL_QUERY",
-          "example": "RETRIEVAL_QUERY"
-        }
-      }
+      ]
     },
     "vectorEmbeddings": {
       "type": "object",
