@@ -1953,11 +1953,8 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings384.embeddingDimension.hasDefault).toBe(true)
         })
 
-        // NOTE: schema.ts currently has a copy-paste bug — default is 3072 instead of 384.
-        // The CHECK constraint correctly enforces = 384. This test documents the current
-        // state so any change to either value is caught as a deliberate regression fix.
-        it('should have embeddingDimension default of 3072 (schema copy-paste bug — CHECK enforces = 384)', () => {
-          expect(vectorEmbeddings384.embeddingDimension.default).toBe(3072)
+        it('should default embeddingDimension to 384', () => {
+          expect(vectorEmbeddings384.embeddingDimension.default).toBe(384)
         })
       })
 
