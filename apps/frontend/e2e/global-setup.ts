@@ -9,6 +9,9 @@ import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers
 import dotenv from 'dotenv'
 import postgres from 'postgres'
 
+// !IMPORTANT! Before running pnpm run test:e2e, make sure the Docker Compose stack is stopped:
+// docker compose -f apps/backend/docker-compose.yml down
+
 // Load env files before anything else so all subsequent process.env references
 // and spawn({ env: { ...process.env } }) calls include the correct values.
 //
@@ -246,6 +249,9 @@ async function globalSetup() {
         MODEL_NAME: 'gemini-1.5-flash',
         RESEND_API_KEY: 'test-resend-api-key-for-e2e',
         API_VERSION: 'v1',
+        OAUTH_SYNC_SECRET: process.env.OAUTH_SYNC_SECRET || 'test-oauth-sync-secret-for-e2e',
+        CLOUDFLARE_API: process.env.CLOUDFLARE_API || 'test-cloudflare-api-for-e2e',
+        ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || 'test-encryption-key-for-e2e-32chars!',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     })
@@ -257,6 +263,9 @@ async function globalSetup() {
     backendProcess.stderr?.on('data', (data) => {
       const msg = data.toString().trim()
       if (msg) console.warn(`[Backend Error] ${msg}`)
+    })
+    backendProcess.on('exit', (code, signal) => {
+      console.warn(`[Backend] Process exited with code=${code}, signal=${signal}`)
     })
 
     await waitForServer('http://localhost:3000/health', 'Backend server')
