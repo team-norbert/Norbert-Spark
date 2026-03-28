@@ -150,7 +150,7 @@ The shared package contains shared types, schemas, and OpenAPI definitions used 
 
 The OpenAPI definitions are located in `packages/shared/src/openapi/` and are used to generate API clients and server stubs. The shared package is built and published locally within the monorepo, allowing both frontend and backend to import shared types and schemas without external dependencies.
 
-It's purpose is to provide a single source of truth for shared types, schemas, and API definitions, ensuring consistency across the entire codebase. It also helps to avoid circular dependencies between frontend and backend by centralizing shared logic in one package.
+Its purpose is to provide a single source of truth for shared types, schemas, and API definitions, ensuring consistency across the entire codebase. It also helps to avoid circular dependencies between frontend and backend by centralizing shared logic in one package.
 
 It is intended to be used as a dependency in both frontend and backend projects, allowing them to import shared types and schemas without needing to duplicate code or create external dependencies. The shared package is built and published locally within the monorepo, making it easy to manage and maintain shared logic across the entire codebase.
 
