@@ -1,3 +1,5 @@
+// TODO: refactor to be under 600 lines of code
+/* eslint-disable max-lines */
 'use client'
 
 import {
@@ -134,10 +136,10 @@ export function CreateVectorStoreForm({
   const [maxTokens, setMaxTokens] = useState('1000')
   const [temperature, setTemperature] = useState('0.3')
   const [topP, setTopP] = useState('1')
-  const [frequencyPenalty, setFrequencyPenalty] = useState('')
-  const [presencePenalty, setPresencePenalty] = useState('')
+  const [frequencyPenalty, setFrequencyPenalty] = useState('0')
+  const [presencePenalty, setPresencePenalty] = useState('0')
   const [stopSequences, setStopSequences] = useState('')
-  const [maxRetries, setMaxRetries] = useState('')
+  const [maxRetries, setMaxRetries] = useState('2')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -593,6 +595,16 @@ export function CreateVectorStoreForm({
             sx={{ mb: 2 }}
           />
 
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Recommended default 0.</strong> Adjust based on your preference and desired
+            response style. For RAG, the priority is usually faithful, grounded answers, not
+            novelty. Presence and frequency penalties are designed to push the model toward using
+            different words or avoiding repetition; that can be useful for creative writing, but for
+            RAG it can make answers slightly less literal and less stable. Gemini documents both
+            penalties as vocabulary-shaping controls rather than grounding controls, so 0 is the
+            safest default.
+          </Typography>
+
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
             header="Information on Presence Penalty settings"
@@ -611,6 +623,16 @@ export function CreateVectorStoreForm({
             sx={{ mb: 2 }}
           />
 
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Recommended default 0.</strong> Adjust based on your preference and desired
+            response style. For RAG, the priority is usually faithful, grounded answers, not
+            novelty. Presence and frequency penalties are designed to push the model toward using
+            different words or avoiding repetition; that can be useful for creative writing, but for
+            RAG it can make answers slightly less literal and less stable. Gemini documents both
+            penalties as vocabulary-shaping controls rather than grounding controls, so 0 is the
+            safest default.
+          </Typography>
+
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
             header="Information on Stop Sequences settings"
@@ -626,6 +648,15 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-stop-sequences-input"
             sx={{ mb: 2 }}
           />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Recommended default [].</strong> Adjust based on your preference and desired
+            response style. For stop sequences, the safest default is usually none unless you have a
+            very specific output format you need to terminate early. Stop sequences can truncate
+            valid answers unexpectedly, and providers already stop naturally or at the token limit.
+            Both OpenAI and Gemini describe stop conditions as either a natural stop or a provided
+            stop sequence.
+          </Typography>
 
           <Typography variant={'body2'} color="text.secondary" sx={{ mb: 1.5 }}>
             If no stop sequences are specified, an empty array will be used.
@@ -645,6 +676,13 @@ export function CreateVectorStoreForm({
             data-test-id="chat-ai-options-max-retries-input"
             sx={{ mb: 2 }}
           />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Recommended default: 2</strong> Adjust based on your preference and desired
+            response style. For max retries, 2 is a good production default. In the AI SDK docs,
+            retry-related generation helpers default to 2 retries (3 total attempts), which is a
+            sensible balance between resilience and latency/cost.
+          </Typography>
 
           <Divider sx={{ my: 2 }} />
 
