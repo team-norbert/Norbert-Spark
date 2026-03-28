@@ -37,6 +37,7 @@ import {
   taskTypes,
   temperatureText,
   topPText,
+  vectorEmbeddingsText,
 } from './VectorStoreText.js'
 
 export type CreateVectorStoreFormData = CreateVectorStoreRequest
@@ -129,21 +130,26 @@ export function CreateVectorStoreForm({
   // vectorEmbeddings
   const [chunkSize, setChunkSize] = useState('300')
   const [chunkOverlap, setChunkOverlap] = useState('40')
+  const [distanceMetric, setDistanceMetric] = useState<'cosine' | 'euclidean' | 'dot_product'>(
+    'cosine'
+  )
 
   // chatAIOptions
   const [chatTypeId, setChatTypeId] = useState(initialChatTypeId ?? '')
   const [maxTokens, setMaxTokens] = useState('1000')
-  const [temperature, setTemperature] = useState('0.3')
+  const [temperature, setTemperature] = useState('0.7')
   const [topP, setTopP] = useState('1')
-  const [frequencyPenalty, setFrequencyPenalty] = useState('0')
-  const [presencePenalty, setPresencePenalty] = useState('0')
+  const [frequencyPenalty, setFrequencyPenalty] = useState('')
+  const [presencePenalty, setPresencePenalty] = useState('')
   const [stopSequences, setStopSequences] = useState('')
-  const [maxRetries, setMaxRetries] = useState('2')
+  const [seed, setSeed] = useState('')
+  const [maxRetries, setMaxRetries] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!selectedModelId && (dimension === '' || !releaseYear)) return
+    if (distanceMetric === 'euclidean' || distanceMetric === 'dot_product') return
 
     const embeddingModels =
       selectedModelId !== ''
@@ -178,6 +184,7 @@ export function CreateVectorStoreForm({
       vectorEmbeddings: {
         chunkSize: Number(chunkSize),
         chunkOverlap: Number(chunkOverlap),
+        distanceMetric,
       },
       chatAIOptions: {
         chatTypeId,
@@ -189,6 +196,7 @@ export function CreateVectorStoreForm({
         ...(stopSequences
           ? { stopSequences: stopSequences.split(',').map((s) => s.trim()) }
           : { stopSequences: [] }),
+        ...(seed ? { seed: Number(seed) } : {}),
         ...(maxRetries ? { maxRetries: Number(maxRetries) } : {}),
       },
     }
@@ -461,6 +469,47 @@ export function CreateVectorStoreForm({
 
           <Divider sx={{ my: 2 }} />
 
+          {/* Vector Embeddings */}
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
+            Vector Embeddings
+          </Typography>
+          <AccordionComponent
+            header="Information on Vector Embeddings"
+            body={vectorEmbeddingsText}
+          />
+          <Divider sx={{ my: 2 }} />
+
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel id="distance-metric-label" shrink>
+              Distance Metric
+            </InputLabel>
+            <Select
+              labelId="distance-metric-label"
+              label="Distance Metric"
+              value={distanceMetric}
+              data-test-id="vector-embeddings-distance-metric-select"
+              onChange={(e) =>
+                setDistanceMetric(e.target.value as 'cosine' | 'euclidean' | 'dot_product')
+              }
+            >
+              <MenuItem value="cosine">cosine</MenuItem>
+              <MenuItem value="euclidean">euclidean (not currently supported)</MenuItem>
+              <MenuItem value="dot_product">dot_product (not currently supported)</MenuItem>
+            </Select>
+          </FormControl>
+          {(distanceMetric === 'euclidean' || distanceMetric === 'dot_product') && (
+            <Typography
+              color="error"
+              variant="body2"
+              data-test-id="distance-metric-error"
+              sx={{ mb: 2 }}
+            >
+              This distance metric is not currently supported.
+            </Typography>
+          )}
+
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Chunk Size"
             type="number"
@@ -653,6 +702,19 @@ export function CreateVectorStoreForm({
             penalties as vocabulary-shaping controls rather than grounding controls, so 0 is the
             safest default.
           </Typography>
+
+          <Divider sx={{ my: 2 }} />
+
+          <TextField
+            label="Seed"
+            type="number"
+            value={seed}
+            onChange={(e) => setSeed(e.target.value)}
+            inputProps={{ min: 0 }}
+            fullWidth
+            data-test-id="chat-ai-options-seed-input"
+            sx={{ mb: 2 }}
+          />
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent

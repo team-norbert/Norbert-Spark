@@ -45,6 +45,7 @@ function fillRequiredFields({
   id = 'test-id-0000-0000-0000-000000000001',
   modelName = 'text-embedding-ada-002',
   modelProvider = 'openai',
+  releaseYear = '2024',
   source = 'https://example.com',
   title = 'My Document',
 } = {}) {
@@ -57,6 +58,7 @@ function fillRequiredFields({
   })
   selectDimension(dimension)
   selectDistanceMetric(distanceMetric)
+  fireEvent.change(screen.getByLabelText(/^release year/i), { target: { value: releaseYear } })
   fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: chunkSize } })
   fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: chunkOverlap } })
   fireEvent.change(screen.getByLabelText(/^chat type id/i), { target: { value: chatTypeId } })
@@ -93,7 +95,7 @@ const DEFAULT_FILE_KEYS = ['uploads/file-a.pdf', 'uploads/file-b.pdf']
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe.skip('CreateVectorStoreForm', () => {
+describe('CreateVectorStoreForm', () => {
   const mockOnSubmit = vi.fn()
 
   beforeEach(() => {
@@ -331,6 +333,7 @@ describe.skip('CreateVectorStoreForm', () => {
         modelName: 'ada-002',
         modelProvider: 'openai',
         dimension: 1536, // default
+        releaseYear: 2024, // default from fillRequiredFields
       })
     })
 
