@@ -10,7 +10,8 @@ import dotenv from 'dotenv'
 import postgres from 'postgres'
 
 // !IMPORTANT! Before running pnpm run test:e2e, make sure the Docker Compose stack is stopped:
-// docker compose -f apps/backend/docker-compose.yml down
+// Run this from the monorepo root:
+// docker compose -f docker-compose.yml down
 
 // Load env files before anything else so all subsequent process.env references
 // and spawn({ env: { ...process.env } }) calls include the correct values.
