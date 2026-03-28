@@ -29,7 +29,6 @@ export class PostAIAdminDTO extends PutAIAdminDTO {
       validated.presencePenalty,
       validated.topK,
       validated.stopSequences,
-      validated.seed,
       validated.maxRetries
     )
   }

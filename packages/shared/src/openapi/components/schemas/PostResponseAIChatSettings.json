@@ -87,14 +87,6 @@
           "description": "Sequences that will cause the model to stop generating",
           "example": ["###", "END"]
         },
-        "seed": {
-          "type": "integer",
-          "nullable": true,
-          "minimum": 0,
-          "maximum": 2147483647,
-          "description": "Random seed for deterministic generation",
-          "example": 42
-        },
         "maxRetries": {
           "type": "integer",
           "nullable": true,

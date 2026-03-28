@@ -19,7 +19,6 @@ describe('PutAIAdminDTO', () => {
       expect(dto.presencePenalty).toBeUndefined()
       expect(dto.topK).toBeUndefined()
       expect(dto.stopSequences).toBeUndefined()
-      expect(dto.seed).toBeUndefined()
       expect(dto.maxRetries).toBeUndefined()
     })
 
@@ -32,7 +31,6 @@ describe('PutAIAdminDTO', () => {
       const presencePenalty = 0.5
       const topK = 40
       const stopSequences = ['STOP', 'END']
-      const seed = 12345
       const maxRetries = 3
 
       const dto = new PutAIAdminDTO(
@@ -44,7 +42,6 @@ describe('PutAIAdminDTO', () => {
         presencePenalty,
         topK,
         stopSequences,
-        seed,
         maxRetries
       )
 
@@ -56,7 +53,6 @@ describe('PutAIAdminDTO', () => {
       expect(dto.presencePenalty).toBe(presencePenalty)
       expect(dto.topK).toBe(topK)
       expect(dto.stopSequences).toEqual(stopSequences)
-      expect(dto.seed).toBe(seed)
       expect(dto.maxRetries).toBe(maxRetries)
     })
 
@@ -492,53 +488,6 @@ describe('PutAIAdminDTO', () => {
       })
     })
 
-    describe('seed validation', () => {
-      it('should throw ValidationException when seed is not a number', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', seed: 'random' } as any)).toThrow(
-          ValidationException
-        )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', seed: 'random' } as any)).toThrow(
-          'Invalid seed: must be a number'
-        )
-      })
-
-      it('should throw ValidationException when seed is negative', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', seed: -1 })).toThrow(
-          ValidationException
-        )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', seed: -1 })).toThrow(
-          'Invalid seed: must be between 0 and 2147483647'
-        )
-      })
-
-      it('should throw ValidationException when seed exceeds max value', () => {
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', seed: 2147483648 })).toThrow(
-          ValidationException
-        )
-        expect(() => PutAIAdminDTO.validate({ prompt: 'Test', seed: 2147483648 })).toThrow(
-          'Invalid seed: must be between 0 and 2147483647'
-        )
-      })
-
-      it('should accept seed at lower boundary (0)', () => {
-        const result = PutAIAdminDTO.validate({ prompt: 'Test', seed: 0 })
-
-        expect(result.seed).toBe(0)
-      })
-
-      it('should accept seed at upper boundary (2147483647)', () => {
-        const result = PutAIAdminDTO.validate({ prompt: 'Test', seed: 2147483647 })
-
-        expect(result.seed).toBe(2147483647)
-      })
-
-      it('should accept valid seed in range', () => {
-        const result = PutAIAdminDTO.validate({ prompt: 'Test', seed: 12345 })
-
-        expect(result.seed).toBe(12345)
-      })
-    })
-
     describe('maxRetries validation', () => {
       it('should throw ValidationException when maxRetries is not a number', () => {
         expect(() => PutAIAdminDTO.validate({ prompt: 'Test', maxRetries: 'many' } as any)).toThrow(
@@ -597,7 +546,6 @@ describe('PutAIAdminDTO', () => {
           presencePenalty: -0.5,
           topK: 40,
           stopSequences: ['STOP', 'END'],
-          seed: 12345,
           maxRetries: 3,
         }
 
@@ -612,7 +560,6 @@ describe('PutAIAdminDTO', () => {
         expect(result.presencePenalty).toBe(data.presencePenalty)
         expect(result.topK).toBe(data.topK)
         expect(result.stopSequences).toEqual(data.stopSequences)
-        expect(result.seed).toBe(data.seed)
         expect(result.maxRetries).toBe(data.maxRetries)
       })
 
@@ -630,7 +577,6 @@ describe('PutAIAdminDTO', () => {
         expect(result.presencePenalty).toBeUndefined()
         expect(result.topK).toBeUndefined()
         expect(result.stopSequences).toBeUndefined()
-        expect(result.seed).toBeUndefined()
         expect(result.maxRetries).toBeUndefined()
       })
 
@@ -654,7 +600,6 @@ describe('PutAIAdminDTO', () => {
         expect(result.presencePenalty).toBeUndefined()
         expect(result.topK).toBe(data.topK)
         expect(result.stopSequences).toBeUndefined()
-        expect(result.seed).toBeUndefined()
         expect(result.maxRetries).toBe(data.maxRetries)
       })
 

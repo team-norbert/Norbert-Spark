@@ -24,7 +24,7 @@ import { DatabaseUtil } from '../../../shared/utils/database.util.js'
  * `presencePenalty`) are stored as SQL `NUMERIC` columns. Drizzle represents
  * these as `string` on the TypeScript side, so incoming `number` values are
  * converted via `.toString()` before insertion or update. Integer parameters
- * (`maxTokens`, `topK`, `seed`, `maxRetries`) map to SQL `INTEGER` and are
+ * (`maxTokens`, `topK`, `maxRetries`) map to SQL `INTEGER` and are
  * stored as-is.
  *
  * Optional fields are only included in the SQL payload when the DTO carries a
@@ -69,7 +69,6 @@ export class AIAdminRepository implements AIAdminPort {
         }),
         ...(isDefined(data.topK) && { topK: data.topK }),
         ...(isDefined(data.stopSequences) && { stopSequences: data.stopSequences }),
-        ...(isDefined(data.seed) && { seed: data.seed }),
         ...(isDefined(data.maxRetries) && { maxRetries: data.maxRetries }),
       }
 
@@ -166,9 +165,6 @@ export class AIAdminRepository implements AIAdminPort {
       }
       if (isDefined(dto.stopSequences)) {
         updateData.stopSequences = dto.stopSequences
-      }
-      if (isDefined(dto.seed)) {
-        updateData.seed = dto.seed
       }
       if (isDefined(dto.maxRetries)) {
         updateData.maxRetries = dto.maxRetries

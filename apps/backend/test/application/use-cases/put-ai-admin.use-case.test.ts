@@ -60,7 +60,6 @@ describe('PutAIAdminUseCase', () => {
         -0.5,
         40,
         ['STOP', 'END'],
-        12345,
         3
       )
 
@@ -75,7 +74,6 @@ describe('PutAIAdminUseCase', () => {
         presencePenalty: '-0.5',
         topK: 40,
         stopSequences: ['STOP', 'END'],
-        seed: 12345,
         maxRetries: 3,
       }
 
@@ -107,7 +105,6 @@ describe('PutAIAdminUseCase', () => {
             presencePenalty: -0.5,
             topK: 40,
             stopSequences: ['STOP', 'END'],
-            seed: 12345,
             maxRetries: 3,
           },
         },
@@ -131,7 +128,7 @@ describe('PutAIAdminUseCase', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: null,
-        seed: null,
+
         maxRetries: 3,
       }
 
@@ -168,7 +165,6 @@ describe('PutAIAdminUseCase', () => {
         -2, // Min presencePenalty
         100, // Max topK
         [],
-        2147483647, // Max seed
         10 // Max maxRetries
       )
 
@@ -183,7 +179,6 @@ describe('PutAIAdminUseCase', () => {
         presencePenalty: '-2',
         topK: 100,
         stopSequences: [],
-        seed: 2147483647,
         maxRetries: 10,
       }
 
@@ -214,7 +209,6 @@ describe('PutAIAdminUseCase', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: null,
-        seed: null,
         maxRetries: 3,
       }
 
@@ -239,7 +233,6 @@ describe('PutAIAdminUseCase', () => {
             presencePenalty: undefined,
             topK: undefined,
             stopSequences: undefined,
-            seed: undefined,
             maxRetries: undefined,
           },
         },
@@ -268,7 +261,6 @@ describe('PutAIAdminUseCase', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: null,
-        seed: null,
         maxRetries: 3,
       }
 
@@ -320,7 +312,6 @@ describe('PutAIAdminUseCase', () => {
             presencePenalty: undefined,
             topK: undefined,
             stopSequences: undefined,
-            seed: undefined,
             maxRetries: undefined,
           },
         },
@@ -346,7 +337,6 @@ describe('PutAIAdminUseCase', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: null,
-        seed: null,
         maxRetries: 3,
       }
 
@@ -370,7 +360,6 @@ describe('PutAIAdminUseCase', () => {
             presencePenalty: undefined,
             topK: undefined,
             stopSequences: undefined,
-            seed: undefined,
             maxRetries: undefined,
           },
         },
@@ -394,7 +383,6 @@ describe('PutAIAdminUseCase', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: null,
-        seed: null,
         maxRetries: 3,
       }
 
@@ -421,7 +409,6 @@ describe('PutAIAdminUseCase', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: null,
-        seed: null,
         maxRetries: 3,
       }
 
@@ -454,7 +441,6 @@ describe('PutAIAdminUseCase', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: null,
-        seed: null,
         maxRetries: 3,
       }
 
@@ -484,7 +470,6 @@ describe('PutAIAdminUseCase', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: null,
-        seed: null,
         maxRetries: 3,
       }
 

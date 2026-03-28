@@ -10,8 +10,27 @@ import type { AuditContext } from '../../../src/domain/audit/audit-context.js'
 import { AuditAction, EntityType } from '../../../src/domain/audit/entity-type.enum.js'
 import { UserId } from '../../../src/domain/value-objects/userID.js'
 import { Uuid } from '../../../src/domain/value-objects/uuid.js'
-import type { DBChatAiOptions } from '../../../src/infrastructure/database/schema.js'
+import type { DBChatAiOptionsSelect } from '../../../src/infrastructure/database/schema.js'
 import { createMockLogger } from '../../shared/factories/logger.factory.js'
+
+const createPersistedChatAiOptions = (
+  overrides: Partial<DBChatAiOptionsSelect> = {}
+): DBChatAiOptionsSelect => ({
+  id: new Uuid(uuidv7()).getValue(),
+  chatTypeId: new Uuid(uuidv7()).getValue(),
+  prompt: 'Test prompt',
+  maxTokens: null,
+  temperature: null,
+  topP: null,
+  frequencyPenalty: null,
+  presencePenalty: null,
+  topK: null,
+  stopSequences: null,
+  maxRetries: null,
+  createdAt: new Date('2026-01-21T10:00:00Z'),
+  updatedAt: new Date('2026-01-21T10:00:00Z'),
+  ...overrides,
+})
 
 describe('PostAIAdminUseCase', () => {
   let useCase: PostAIAdminUseCase
@@ -60,12 +79,10 @@ describe('PostAIAdminUseCase', () => {
         -0.5,
         40,
         ['STOP', 'END'],
-        12345,
         3
       )
 
-      const mockCreatedOptions: DBChatAiOptions = {
-        id: new Uuid(uuidv7()).getValue(),
+      const mockCreatedOptions = createPersistedChatAiOptions({
         chatTypeId,
         prompt: 'You are a helpful assistant',
         maxTokens: 2000,
@@ -75,9 +92,8 @@ describe('PostAIAdminUseCase', () => {
         presencePenalty: '-0.5',
         topK: 40,
         stopSequences: ['STOP', 'END'],
-        seed: 12345,
         maxRetries: 3,
-      }
+      })
 
       vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue(mockCreatedOptions)
 
@@ -96,8 +112,7 @@ describe('PostAIAdminUseCase', () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
       const dto = new PostAIAdminDTO('Minimal prompt only')
 
-      const mockCreatedOptions: DBChatAiOptions = {
-        id: new Uuid(uuidv7()).getValue(),
+      const mockCreatedOptions = createPersistedChatAiOptions({
         chatTypeId,
         prompt: 'Minimal prompt only',
         maxTokens: null,
@@ -107,9 +122,8 @@ describe('PostAIAdminUseCase', () => {
         presencePenalty: null,
         topK: null,
         stopSequences: null,
-        seed: null,
         maxRetries: null,
-      }
+      })
 
       vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue(mockCreatedOptions)
 
@@ -142,12 +156,10 @@ describe('PostAIAdminUseCase', () => {
         -2, // min presencePenalty
         100, // max topK
         [],
-        2147483647, // max seed (INT32_MAX)
         10 // max maxRetries
       )
 
-      const mockCreatedOptions: DBChatAiOptions = {
-        id: new Uuid(uuidv7()).getValue(),
+      const mockCreatedOptions = createPersistedChatAiOptions({
         chatTypeId,
         prompt: 'Boundary test',
         maxTokens: 100000,
@@ -157,9 +169,8 @@ describe('PostAIAdminUseCase', () => {
         presencePenalty: '-2',
         topK: 100,
         stopSequences: [],
-        seed: 2147483647,
         maxRetries: 10,
-      }
+      })
 
       vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue(mockCreatedOptions)
 
@@ -177,11 +188,12 @@ describe('PostAIAdminUseCase', () => {
         userAgent: null,
       }
 
-      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue({
-        id: uuidv7(),
-        chatTypeId,
-        prompt: 'Test prompt',
-      } as DBChatAiOptions)
+      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue(
+        createPersistedChatAiOptions({
+          chatTypeId,
+          prompt: 'Test prompt',
+        })
+      )
 
       await useCase.execute(chatTypeId, dto, auditContextNoAgent)
 
@@ -199,11 +211,12 @@ describe('PostAIAdminUseCase', () => {
         userAgent: 'Mozilla/5.0',
       }
 
-      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue({
-        id: uuidv7(),
-        chatTypeId,
-        prompt: 'Test prompt',
-      } as DBChatAiOptions)
+      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue(
+        createPersistedChatAiOptions({
+          chatTypeId,
+          prompt: 'Test prompt',
+        })
+      )
 
       await useCase.execute(chatTypeId, dto, unauthenticatedContext)
 
@@ -216,11 +229,12 @@ describe('PostAIAdminUseCase', () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
       const dto = new PostAIAdminDTO('Test prompt')
 
-      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue({
-        id: uuidv7(),
-        chatTypeId,
-        prompt: 'Test prompt',
-      } as DBChatAiOptions)
+      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue(
+        createPersistedChatAiOptions({
+          chatTypeId,
+          prompt: 'Test prompt',
+        })
+      )
 
       await useCase.execute(chatTypeId, dto, mockAuditContext)
 
@@ -240,11 +254,12 @@ describe('PostAIAdminUseCase', () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
       const dto = new PostAIAdminDTO('Test prompt')
 
-      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue({
-        id: uuidv7(),
-        chatTypeId,
-        prompt: 'Test prompt',
-      } as DBChatAiOptions)
+      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue(
+        createPersistedChatAiOptions({
+          chatTypeId,
+          prompt: 'Test prompt',
+        })
+      )
 
       await useCase.execute(chatTypeId, dto, mockAuditContext)
 
@@ -256,11 +271,12 @@ describe('PostAIAdminUseCase', () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
       const dto = new PostAIAdminDTO('Test prompt')
 
-      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue({
-        id: uuidv7(),
-        chatTypeId,
-        prompt: 'Test prompt',
-      } as DBChatAiOptions)
+      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue(
+        createPersistedChatAiOptions({
+          chatTypeId,
+          prompt: 'Test prompt',
+        })
+      )
 
       await useCase.execute(chatTypeId, dto, mockAuditContext)
 
@@ -276,11 +292,12 @@ describe('PostAIAdminUseCase', () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
       const dto = new PostAIAdminDTO('Test prompt')
 
-      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue({
-        id: uuidv7(),
-        chatTypeId,
-        prompt: 'Test prompt',
-      } as DBChatAiOptions)
+      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue(
+        createPersistedChatAiOptions({
+          chatTypeId,
+          prompt: 'Test prompt',
+        })
+      )
 
       await useCase.execute(chatTypeId, dto, mockAuditContext)
 
@@ -369,11 +386,12 @@ describe('PostAIAdminUseCase', () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
       const dto = new PostAIAdminDTO('Test prompt')
 
-      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue({
-        id: uuidv7(),
-        chatTypeId,
-        prompt: 'Test prompt',
-      } as DBChatAiOptions)
+      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue(
+        createPersistedChatAiOptions({
+          chatTypeId,
+          prompt: 'Test prompt',
+        })
+      )
 
       await useCase.execute(chatTypeId, dto, mockAuditContext)
 
@@ -388,11 +406,12 @@ describe('PostAIAdminUseCase', () => {
       const chatTypeId = new Uuid(uuidv7()).getValue()
       const dto = new PostAIAdminDTO('Test prompt')
 
-      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue({
-        id: uuidv7(),
-        chatTypeId,
-        prompt: 'Test prompt',
-      } as DBChatAiOptions)
+      vi.mocked(mockAiAdminPort.createChatAIOptions).mockResolvedValue(
+        createPersistedChatAiOptions({
+          chatTypeId,
+          prompt: 'Test prompt',
+        })
+      )
 
       await useCase.execute(chatTypeId, dto, mockAuditContext)
 

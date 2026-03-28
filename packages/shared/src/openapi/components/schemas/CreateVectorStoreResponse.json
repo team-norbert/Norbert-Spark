@@ -87,26 +87,13 @@
         "vectorEmbeddings": {
           "type": "object",
           "description": "Created vector embeddings record",
-          "required": [
-            "id",
-            "distanceMetric",
-            "chunkSize",
-            "chunkOverlap",
-            "createdAt",
-            "updatedAt"
-          ],
+          "required": ["id", "chunkSize", "chunkOverlap", "createdAt", "updatedAt"],
           "properties": {
             "id": {
               "type": "string",
               "format": "uuid",
               "description": "Unique identifier for the vector embeddings record",
               "example": "01933c89-6f67-7b3a-8e4c-123456789abc"
-            },
-            "distanceMetric": {
-              "type": "string",
-              "description": "Distance metric used for similarity search",
-              "enum": ["cosine", "euclidean", "dot_product"],
-              "example": "cosine"
             },
             "chunkSize": {
               "type": "integer",
@@ -189,13 +176,6 @@
                 "type": "string"
               },
               "example": ["\n", " Human:", " AI:"]
-            },
-            "seed": {
-              "type": "integer",
-              "description": "Random seed used for AI response generation",
-              "minimum": 0,
-              "maximum": 1000000,
-              "example": 42
             },
             "maxRetries": {
               "type": "integer",

@@ -13,11 +13,11 @@ const validInput = () => ({
   documents: [{ title: 'My Document', source: 'https://example.com/doc.pdf' }],
   embeddingModels: {
     modelName: 'text-embedding-3-small',
-    modelProvider: 'OpenAI',
+    modelProvider: 'openai',
     dimension: 1536 as const,
+    releaseYear: 2024,
   },
   vectorEmbeddings: {
-    distanceMetric: 'cosine' as const,
     chunkSize: 500,
     chunkOverlap: 50,
   },
@@ -35,8 +35,8 @@ describe('RagDto', () => {
       const dto = new RagDto(
         '01933c89-6f67-7b3a-8e4c-123456789abc',
         [{ title: 'Title', source: 'source' }],
-        { modelName: 'model', modelProvider: 'provider', dimension: 1536 },
-        { distanceMetric: 'cosine', chunkSize: 500, chunkOverlap: 50 },
+        { modelName: 'model', modelProvider: 'provider', dimension: 1536, releaseYear: 2024 },
+        { chunkSize: 500, chunkOverlap: 50 },
         { chatTypeId: 'chat-type-id', stopSequences: [] }
       )
 
@@ -45,7 +45,6 @@ describe('RagDto', () => {
       expect(dto.embeddingModels.modelName).toBe('model')
       expect(dto.embeddingModels.modelProvider).toBe('provider')
       expect(dto.embeddingModels.dimension).toBe(1536)
-      expect(dto.vectorEmbeddings.distanceMetric).toBe('cosine')
       expect(dto.vectorEmbeddings.chunkSize).toBe(500)
       expect(dto.vectorEmbeddings.chunkOverlap).toBe(50)
       expect(dto.chatAIOptions.chatTypeId).toBe('chat-type-id')
@@ -55,8 +54,8 @@ describe('RagDto', () => {
       const dto = new RagDto(
         '01933c89-6f67-7b3a-8e4c-123456789abc',
         [{ title: 'Title', source: 'source' }],
-        { modelName: 'model', modelProvider: 'provider', dimension: 768 },
-        { distanceMetric: 'euclidean', chunkSize: 200, chunkOverlap: 20 },
+        { modelName: 'model', modelProvider: 'provider', dimension: 768, releaseYear: 2023 },
+        { chunkSize: 200, chunkOverlap: 20 },
         {
           chatTypeId: 'chat-type-id',
           maxTokens: 4096,
@@ -65,7 +64,6 @@ describe('RagDto', () => {
           frequencyPenalty: 0.1,
           presencePenalty: 0.2,
           stopSequences: ['\n'],
-          seed: 42,
           maxRetries: 3,
         }
       )
@@ -76,7 +74,6 @@ describe('RagDto', () => {
       expect(dto.chatAIOptions.frequencyPenalty).toBe(0.1)
       expect(dto.chatAIOptions.presencePenalty).toBe(0.2)
       expect(dto.chatAIOptions.stopSequences).toEqual(['\n'])
-      expect(dto.chatAIOptions.seed).toBe(42)
       expect(dto.chatAIOptions.maxRetries).toBe(3)
     })
   })
@@ -249,7 +246,7 @@ describe('RagDto', () => {
     it('should throw ValidationException when modelName is missing', () => {
       const data = {
         ...validInput(),
-        embeddingModels: { modelProvider: 'OpenAI', dimension: 1536 },
+        embeddingModels: { modelProvider: 'openai', dimension: 1536 },
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
@@ -260,7 +257,7 @@ describe('RagDto', () => {
     it('should throw ValidationException when modelName is not a string', () => {
       const data = {
         ...validInput(),
-        embeddingModels: { modelName: 42, modelProvider: 'OpenAI', dimension: 1536 },
+        embeddingModels: { modelName: 42, modelProvider: 'openai', dimension: 1536 },
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
     })
@@ -268,7 +265,7 @@ describe('RagDto', () => {
     it('should throw ValidationException when dimension is missing', () => {
       const data = {
         ...validInput(),
-        embeddingModels: { modelName: 'model', modelProvider: 'OpenAI' },
+        embeddingModels: { modelName: 'model', modelProvider: 'openai' },
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
@@ -279,7 +276,7 @@ describe('RagDto', () => {
     it('should throw ValidationException when dimension is not a number', () => {
       const data = {
         ...validInput(),
-        embeddingModels: { modelName: 'model', modelProvider: 'OpenAI', dimension: '1536' },
+        embeddingModels: { modelName: 'model', modelProvider: 'openai', dimension: '1536' },
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
     })
@@ -287,7 +284,7 @@ describe('RagDto', () => {
     it('should throw ValidationException when dimension is not one of the allowed values', () => {
       const data = {
         ...validInput(),
-        embeddingModels: { modelName: 'model', modelProvider: 'OpenAI', dimension: 512 },
+        embeddingModels: { modelName: 'model', modelProvider: 'openai', dimension: 512 },
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
@@ -325,7 +322,7 @@ describe('RagDto', () => {
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
     })
 
-    it('should accept existingModelId alone (branch 1 of anyOf)', () => {
+    it('should accept existingModelId alone (branch 1 of oneOf)', () => {
       const data = {
         ...validInput(),
         embeddingModels: { existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001' },
@@ -354,56 +351,242 @@ describe('RagDto', () => {
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
     })
+
+    it('should throw ValidationException when modelProvider is not a valid provider', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { ...validInput().embeddingModels, modelProvider: 'unknown-provider' },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.modelProvider must be one of: openai, google, cohere, amazon, voyage, mistral'
+      )
+    })
+
+    it('should accept all valid provider enum values', () => {
+      for (const modelProvider of ['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral']) {
+        const data = {
+          ...validInput(),
+          embeddingModels: { ...validInput().embeddingModels, modelProvider },
+        }
+        const dto = RagDto.validate(data as any)
+        expect(dto.embeddingModels.modelProvider).toBe(modelProvider)
+      }
+    })
+
+    it('should throw ValidationException when google + text-embedding-004 and taskType is missing', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: {
+          modelName: 'text-embedding-004',
+          modelProvider: 'google',
+          dimension: 768 as const,
+          releaseYear: 2024,
+        },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.taskType is required for google models text-embedding-004 and text-multilingual-embedding-002'
+      )
+    })
+
+    it('should throw ValidationException when google + text-multilingual-embedding-002 and taskType is missing', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: {
+          modelName: 'text-multilingual-embedding-002',
+          modelProvider: 'google',
+          dimension: 768 as const,
+          releaseYear: 2024,
+        },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.taskType is required for google models text-embedding-004 and text-multilingual-embedding-002'
+      )
+    })
+
+    it('should not require taskType for google model not in the required list', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: {
+          modelName: 'textembedding-gecko@003',
+          modelProvider: 'google',
+          dimension: 768 as const,
+          releaseYear: 2023,
+        },
+      }
+      expect(() => RagDto.validate(data as any)).not.toThrow()
+    })
+
+    it('should not require taskType for non-google providers', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: {
+          modelName: 'text-embedding-3-small',
+          modelProvider: 'openai',
+          dimension: 1536 as const,
+          releaseYear: 2024,
+        },
+      }
+      expect(() => RagDto.validate(data as any)).not.toThrow()
+    })
+
+    it('should accept a valid taskType for a google model that requires it', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: {
+          modelName: 'text-embedding-004',
+          modelProvider: 'google',
+          dimension: 768 as const,
+          releaseYear: 2024,
+          taskType: 'RETRIEVAL_QUERY',
+        },
+      }
+      const dto = RagDto.validate(data as any)
+      expect(dto.embeddingModels.taskType).toBe('RETRIEVAL_QUERY')
+    })
+
+    it('should throw ValidationException when taskType is an invalid enum value', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { ...validInput().embeddingModels, taskType: 'INVALID_TASK' },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.taskType must be one of: RETRIEVAL_QUERY, RETRIEVAL_DOCUMENT, SEMANTIC_SIMILARITY, CLASSIFICATION, CLUSTERING'
+      )
+    })
+
+    it('should accept all valid taskType enum values', () => {
+      const validTaskTypes = [
+        'RETRIEVAL_QUERY',
+        'RETRIEVAL_DOCUMENT',
+        'SEMANTIC_SIMILARITY',
+        'CLASSIFICATION',
+        'CLUSTERING',
+      ]
+      for (const taskType of validTaskTypes) {
+        const data = {
+          ...validInput(),
+          embeddingModels: { ...validInput().embeddingModels, taskType },
+        }
+        const dto = RagDto.validate(data as any)
+        expect(dto.embeddingModels.taskType).toBe(taskType)
+      }
+    })
+
+    it('should throw ValidationException when releaseYear is present but not a number', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { ...validInput().embeddingModels, releaseYear: '2024' },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.releaseYear must be an integer'
+      )
+    })
+
+    it('should throw ValidationException when releaseYear is a float', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { ...validInput().embeddingModels, releaseYear: 2024.5 },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.releaseYear must be an integer'
+      )
+    })
+
+    it('should throw ValidationException when releaseYear is below minimum (2000)', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { ...validInput().embeddingModels, releaseYear: 1999 },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.releaseYear must be between 2000 and 2027'
+      )
+    })
+
+    it('should throw ValidationException when releaseYear is above maximum (2027)', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { ...validInput().embeddingModels, releaseYear: 2028 },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.releaseYear must be between 2000 and 2027'
+      )
+    })
+
+    it('should accept boundary releaseYear values (2000 and 2027)', () => {
+      for (const releaseYear of [2000, 2027]) {
+        const data = {
+          ...validInput(),
+          embeddingModels: { ...validInput().embeddingModels, releaseYear },
+        }
+        const dto = RagDto.validate(data as any)
+        expect(dto.embeddingModels.releaseYear).toBe(releaseYear)
+      }
+    })
+
+    it('should accept a valid integer releaseYear within bounds', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { ...validInput().embeddingModels, releaseYear: 2024 },
+      }
+      const dto = RagDto.validate(data as any)
+      expect(dto.embeddingModels.releaseYear).toBe(2024)
+    })
+
+    it('should throw ValidationException when releaseYear is omitted for a new model', () => {
+      const { releaseYear: _r, ...embeddingModelsWithoutReleaseYear } = validInput().embeddingModels
+      const data = {
+        ...validInput(),
+        embeddingModels: embeddingModelsWithoutReleaseYear,
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.releaseYear is required and must be a number'
+      )
+    })
+
+    it('should not require releaseYear when existingModelId is provided', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001' },
+      }
+      expect(() => RagDto.validate(data as any)).not.toThrow()
+    })
+
+    it('should strip extra fields when existingModelId is provided', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: {
+          existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001',
+          modelName: 'should-be-stripped',
+          modelProvider: 'openai',
+          dimension: 1536,
+          releaseYear: 2024,
+        },
+      }
+      const dto = RagDto.validate(data as any)
+      expect(dto.embeddingModels.existingModelId).toBe('aaaaaaaa-0000-0000-0000-000000000001')
+      expect((dto.embeddingModels as any).modelName).toBeUndefined()
+      expect((dto.embeddingModels as any).modelProvider).toBeUndefined()
+      expect((dto.embeddingModels as any).dimension).toBeUndefined()
+      expect((dto.embeddingModels as any).releaseYear).toBeUndefined()
+    })
   })
 
   // -------------------------------------------------------------------------
 
   describe('validate() — vectorEmbeddings validation', () => {
-    it('should throw ValidationException when distanceMetric is missing', () => {
-      const data = {
-        ...validInput(),
-        vectorEmbeddings: { chunkSize: 500, chunkOverlap: 50 },
-      }
-      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
-      expect(() => RagDto.validate(data as any)).toThrow(
-        'vectorEmbeddings.distanceMetric is required and must be a string'
-      )
-    })
-
-    it('should throw ValidationException when distanceMetric is not a string', () => {
-      const data = {
-        ...validInput(),
-        vectorEmbeddings: { distanceMetric: 1, chunkSize: 500, chunkOverlap: 50 },
-      }
-      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
-    })
-
-    it('should throw ValidationException when distanceMetric is not an allowed value', () => {
-      const data = {
-        ...validInput(),
-        vectorEmbeddings: { distanceMetric: 'manhattan', chunkSize: 500, chunkOverlap: 50 },
-      }
-      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
-      expect(() => RagDto.validate(data as any)).toThrow(
-        'vectorEmbeddings.distanceMetric must be either "cosine", "euclidean", or "dot_product"'
-      )
-    })
-
-    it('should accept all valid distanceMetric values', () => {
-      for (const distanceMetric of ['cosine', 'euclidean', 'dot_product'] as const) {
-        const data = {
-          ...validInput(),
-          vectorEmbeddings: { ...validInput().vectorEmbeddings, distanceMetric },
-        }
-        const dto = RagDto.validate(data)
-        expect(dto.vectorEmbeddings.distanceMetric).toBe(distanceMetric)
-      }
-    })
-
     it('should throw ValidationException when chunkSize is missing', () => {
       const data = {
         ...validInput(),
-        vectorEmbeddings: { distanceMetric: 'cosine', chunkOverlap: 50 },
+        vectorEmbeddings: { chunkOverlap: 50 },
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
@@ -414,7 +597,7 @@ describe('RagDto', () => {
     it('should throw ValidationException when chunkSize is not a number', () => {
       const data = {
         ...validInput(),
-        vectorEmbeddings: { distanceMetric: 'cosine', chunkSize: '500', chunkOverlap: 50 },
+        vectorEmbeddings: { chunkSize: '500', chunkOverlap: 50 },
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
     })
@@ -422,7 +605,7 @@ describe('RagDto', () => {
     it('should throw ValidationException when chunkOverlap is missing', () => {
       const data = {
         ...validInput(),
-        vectorEmbeddings: { distanceMetric: 'cosine', chunkSize: 500 },
+        vectorEmbeddings: { chunkSize: 500 },
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
@@ -433,7 +616,7 @@ describe('RagDto', () => {
     it('should throw ValidationException when chunkOverlap is not a number', () => {
       const data = {
         ...validInput(),
-        vectorEmbeddings: { distanceMetric: 'cosine', chunkSize: 500, chunkOverlap: '50' },
+        vectorEmbeddings: { chunkSize: 500, chunkOverlap: '50' },
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
     })
@@ -546,15 +729,6 @@ describe('RagDto', () => {
       )
     })
 
-    it('should throw ValidationException when seed is present but not a number', () => {
-      const data = {
-        ...validInput(),
-        chatAIOptions: { ...validInput().chatAIOptions, seed: '42' },
-      }
-      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
-      expect(() => RagDto.validate(data as any)).toThrow('chatAIOptions.seed must be a number')
-    })
-
     it('should throw ValidationException when maxRetries is present but not a number', () => {
       const data = {
         ...validInput(),
@@ -577,7 +751,6 @@ describe('RagDto', () => {
       expect(dto.chatAIOptions.topP).toBeUndefined()
       expect(dto.chatAIOptions.frequencyPenalty).toBeUndefined()
       expect(dto.chatAIOptions.presencePenalty).toBeUndefined()
-      expect(dto.chatAIOptions.seed).toBeUndefined()
       expect(dto.chatAIOptions.maxRetries).toBeUndefined()
     })
   })
@@ -594,13 +767,24 @@ describe('RagDto', () => {
         { title: 'My Document', source: 'https://example.com/doc.pdf' },
       ])
       expect(dto.embeddingModels.modelName).toBe('text-embedding-3-small')
-      expect(dto.embeddingModels.modelProvider).toBe('OpenAI')
+      expect(dto.embeddingModels.modelProvider).toBe('openai')
       expect(dto.embeddingModels.dimension).toBe(1536)
-      expect(dto.vectorEmbeddings.distanceMetric).toBe('cosine')
+      expect(dto.embeddingModels.releaseYear).toBe(2024)
       expect(dto.vectorEmbeddings.chunkSize).toBe(500)
       expect(dto.vectorEmbeddings.chunkOverlap).toBe(50)
       expect(dto.chatAIOptions.chatTypeId).toBe('01935e8a-7890-7123-b456-123456789abc')
       expect(dto.chatAIOptions.stopSequences).toEqual(['\n', ' Human:'])
+    })
+
+    it('should return a RagDto with only existingModelId when existingModelId path is used', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001' },
+      }
+      const dto = RagDto.validate(data as any)
+      expect(dto.embeddingModels.existingModelId).toBe('aaaaaaaa-0000-0000-0000-000000000001')
+      expect((dto.embeddingModels as any).modelName).toBeUndefined()
+      expect((dto.embeddingModels as any).releaseYear).toBeUndefined()
     })
 
     it('should return a RagDto instance with all optional fields present', () => {
@@ -614,7 +798,6 @@ describe('RagDto', () => {
           topP: 0.9,
           frequencyPenalty: 0.1,
           presencePenalty: 0.2,
-          seed: 42,
           maxRetries: 3,
         },
       }
@@ -625,7 +808,6 @@ describe('RagDto', () => {
       expect(dto.chatAIOptions.topP).toBe(0.9)
       expect(dto.chatAIOptions.frequencyPenalty).toBe(0.1)
       expect(dto.chatAIOptions.presencePenalty).toBe(0.2)
-      expect(dto.chatAIOptions.seed).toBe(42)
       expect(dto.chatAIOptions.maxRetries).toBe(3)
     })
   })

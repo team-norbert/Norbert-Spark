@@ -30,44 +30,93 @@
     },
     "embeddingModels": {
       "type": "object",
-      "description": "Vector store embedding models configuration. Either provide existingModelId to reference a pre-seeded model, or provide modelName, modelProvider and dimension to define a new one.",
-      "anyOf": [
-        { "required": ["existingModelId"] },
-        { "required": ["modelName", "modelProvider", "dimension"] }
-      ],
-      "properties": {
-        "existingModelId": {
-          "type": "string",
-          "format": "uuid",
-          "description": "Unique identifier for an existing embedding model to use. Mutually exclusive with modelName, modelProvider and dimension."
+      "description": "Vector store embedding models configuration. Either provide existingModelId to reference a pre-seeded model, or provide modelName, modelProvider, dimension and releaseYear to define a new one.",
+      "oneOf": [
+        {
+          "description": "Use an existing embedding model by its ID",
+          "type": "object",
+          "required": ["existingModelId"],
+          "properties": {
+            "existingModelId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique identifier for an existing embedding model to use. Mutually exclusive with modelName, modelProvider, dimension and releaseYear."
+            }
+          },
+          "additionalProperties": false,
+          "not": {
+            "anyOf": [
+              { "required": ["modelName"] },
+              { "required": ["modelProvider"] },
+              { "required": ["dimension"] },
+              { "required": ["releaseYear"] },
+              { "required": ["taskType"] }
+            ]
+          }
         },
-        "modelName": {
-          "type": "string",
-          "description": "Name of the embedding model to use"
-        },
-        "modelProvider": {
-          "type": "string",
-          "description": "Provider of the embedding model (e.g., OpenAI, Hugging Face)"
-        },
-        "dimension": {
-          "type": "integer",
-          "description": "Dimension of the vector embeddings",
-          "enum": [3072, 1536, 1024, 768, 384],
-          "example": 1536
+        {
+          "description": "Define a new embedding model",
+          "type": "object",
+          "required": ["modelName", "modelProvider", "dimension", "releaseYear"],
+          "properties": {
+            "modelName": {
+              "type": "string",
+              "description": "Name of the embedding model to use"
+            },
+            "modelProvider": {
+              "type": "string",
+              "description": "Provider of the embedding model (e.g., openai)",
+              "enum": ["openai", "google", "cohere", "amazon", "voyage", "mistral"]
+            },
+            "dimension": {
+              "type": "integer",
+              "description": "Dimension of the vector embeddings",
+              "enum": [3072, 1536, 1024, 768, 384],
+              "example": 1536
+            },
+            "releaseYear": {
+              "type": "integer",
+              "description": "Release year of the embedding model",
+              "minimum": 2000,
+              "maximum": 2027,
+              "example": 2023
+            },
+            "taskType": {
+              "type": "string",
+              "description": "Task type of the embedding model",
+              "enum": [
+                "RETRIEVAL_QUERY",
+                "RETRIEVAL_DOCUMENT",
+                "SEMANTIC_SIMILARITY",
+                "CLASSIFICATION",
+                "CLUSTERING"
+              ],
+              "default": "RETRIEVAL_QUERY",
+              "example": "RETRIEVAL_QUERY"
+            }
+          },
+          "additionalProperties": false,
+          "not": {
+            "required": ["existingModelId"]
+          },
+          "if": {
+            "properties": {
+              "modelProvider": { "const": "google" },
+              "modelName": { "enum": ["text-embedding-004", "text-multilingual-embedding-002"] }
+            },
+            "required": ["modelProvider", "modelName"]
+          },
+          "then": {
+            "required": ["taskType"]
+          }
         }
-      }
+      ]
     },
     "vectorEmbeddings": {
       "type": "object",
       "description": "Vector store vector embeddings configuration",
-      "required": ["distanceMetric", "chunkSize", "chunkOverlap"],
+      "required": ["chunkSize", "chunkOverlap"],
       "properties": {
-        "distanceMetric": {
-          "type": "string",
-          "description": "Distance metric to use for similarity search",
-          "enum": ["cosine", "euclidean", "dot_product"],
-          "example": "cosine"
-        },
         "chunkSize": {
           "type": "integer",
           "description": "Size of text chunks to split documents into for embedding",
@@ -138,13 +187,6 @@
           },
           "default": [" "],
           "example": ["\n", " Human:", " AI:"]
-        },
-        "seed": {
-          "type": "integer",
-          "description": "Random seed for AI response generation (for reproducibility)",
-          "minimum": 0,
-          "maximum": 1000000,
-          "example": 42
         },
         "maxRetries": {
           "type": "integer",
