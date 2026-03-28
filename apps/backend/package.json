@@ -31,7 +31,7 @@
     "eval:view": "evalite view",
     "test:pact": "vitest run --config vitest.config.pact.ts pact/provider.pact.spec.ts",
     "test:mutation": "stryker run",
-    "varlock:regenerate": "pnpm exec varlock typegen"
+    "varlock:typegen": "pnpm exec varlock typegen"
   },
   "dependencies": {
     "@ai-sdk/cohere": "^3.0.27",
