@@ -47,7 +47,7 @@ const rows = models.map((m) => ({
   status: m.status,
   releaseYear: Number(m.release_year),
   recommendedUsage: m.recommended_usage,
-  taskType: 'task_type' in m ? (m as { task_type?: string }).task_type ?? null : null,
+  taskType: 'task_type' in m ? ((m as { task_type?: string }).task_type ?? null) : null,
   dimension: Number(m.dimension) as EmbeddingDimension,
 }))
 

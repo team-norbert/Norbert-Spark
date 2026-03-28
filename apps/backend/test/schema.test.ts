@@ -1614,23 +1614,18 @@ describe('Database Schema', () => {
           expect(check).toBeDefined()
         })
 
-        it('should have composite FK linking (embeddingModelId, embeddingDimension) to (embeddingModels.id, embeddingModels.dimension)', () => {
+        it('should have FK linking embeddingModelId to embeddingModels.id', () => {
           const { foreignKeys } = getTableConfig(vectorEmbeddings1536)
           const fk = foreignKeys.find((f) => {
             const ref = f.reference()
             return (
-              ref.columns.some((c) => c.name === 'embedding_model_id') &&
-              ref.columns.some((c) => c.name === 'embedding_dimension')
+              ref.columns.length === 1 && ref.columns.some((c) => c.name === 'embedding_model_id')
             )
           })
           expect(fk).toBeDefined()
           const ref = fk!.reference()
-          expect(ref.columns.map((c) => c.name)).toEqual(
-            expect.arrayContaining(['embedding_model_id', 'embedding_dimension'])
-          )
-          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
-            expect.arrayContaining(['id', 'dimension'])
-          )
+          expect(ref.columns.map((c) => c.name)).toEqual(['embedding_model_id'])
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(['id'])
         })
       })
 
@@ -1795,23 +1790,18 @@ describe('Database Schema', () => {
           expect(check).toBeDefined()
         })
 
-        it('should have composite FK linking (embeddingModelId, embeddingDimension) to (embeddingModels.id, embeddingModels.dimension)', () => {
+        it('should have FK linking embeddingModelId to embeddingModels.id', () => {
           const { foreignKeys } = getTableConfig(vectorEmbeddings768)
           const fk = foreignKeys.find((f) => {
             const ref = f.reference()
             return (
-              ref.columns.some((c) => c.name === 'embedding_model_id') &&
-              ref.columns.some((c) => c.name === 'embedding_dimension')
+              ref.columns.length === 1 && ref.columns.some((c) => c.name === 'embedding_model_id')
             )
           })
           expect(fk).toBeDefined()
           const ref = fk!.reference()
-          expect(ref.columns.map((c) => c.name)).toEqual(
-            expect.arrayContaining(['embedding_model_id', 'embedding_dimension'])
-          )
-          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
-            expect.arrayContaining(['id', 'dimension'])
-          )
+          expect(ref.columns.map((c) => c.name)).toEqual(['embedding_model_id'])
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(['id'])
         })
       })
 
@@ -1967,23 +1957,18 @@ describe('Database Schema', () => {
           expect(check).toBeDefined()
         })
 
-        it('should have composite FK linking (embeddingModelId, embeddingDimension) to (embeddingModels.id, embeddingModels.dimension)', () => {
+        it('should have FK linking embeddingModelId to embeddingModels.id', () => {
           const { foreignKeys } = getTableConfig(vectorEmbeddings384)
           const fk = foreignKeys.find((f) => {
             const ref = f.reference()
             return (
-              ref.columns.some((c) => c.name === 'embedding_model_id') &&
-              ref.columns.some((c) => c.name === 'embedding_dimension')
+              ref.columns.length === 1 && ref.columns.some((c) => c.name === 'embedding_model_id')
             )
           })
           expect(fk).toBeDefined()
           const ref = fk!.reference()
-          expect(ref.columns.map((c) => c.name)).toEqual(
-            expect.arrayContaining(['embedding_model_id', 'embedding_dimension'])
-          )
-          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
-            expect.arrayContaining(['id', 'dimension'])
-          )
+          expect(ref.columns.map((c) => c.name)).toEqual(['embedding_model_id'])
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(['id'])
         })
       })
 
@@ -2155,23 +2140,18 @@ describe('Database Schema', () => {
           expect(check).toBeDefined()
         })
 
-        it('should have composite FK linking (embeddingModelId, embeddingDimension) to (embeddingModels.id, embeddingModels.dimension)', () => {
+        it('should have FK linking embeddingModelId to embeddingModels.id', () => {
           const { foreignKeys } = getTableConfig(vectorEmbeddings3072)
           const fk = foreignKeys.find((f) => {
             const ref = f.reference()
             return (
-              ref.columns.some((c) => c.name === 'embedding_model_id') &&
-              ref.columns.some((c) => c.name === 'embedding_dimension')
+              ref.columns.length === 1 && ref.columns.some((c) => c.name === 'embedding_model_id')
             )
           })
           expect(fk).toBeDefined()
           const ref = fk!.reference()
-          expect(ref.columns.map((c) => c.name)).toEqual(
-            expect.arrayContaining(['embedding_model_id', 'embedding_dimension'])
-          )
-          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
-            expect.arrayContaining(['id', 'dimension'])
-          )
+          expect(ref.columns.map((c) => c.name)).toEqual(['embedding_model_id'])
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(['id'])
         })
       })
 
@@ -2352,23 +2332,18 @@ describe('Database Schema', () => {
           expect(check).toBeDefined()
         })
 
-        it('should have composite FK linking (embeddingModelId, embeddingDimension) to (embeddingModels.id, embeddingModels.dimension)', () => {
+        it('should have FK linking embeddingModelId to embeddingModels.id', () => {
           const { foreignKeys } = getTableConfig(vectorEmbeddings1024)
           const fk = foreignKeys.find((f) => {
             const ref = f.reference()
             return (
-              ref.columns.some((c) => c.name === 'embedding_model_id') &&
-              ref.columns.some((c) => c.name === 'embedding_dimension')
+              ref.columns.length === 1 && ref.columns.some((c) => c.name === 'embedding_model_id')
             )
           })
           expect(fk).toBeDefined()
           const ref = fk!.reference()
-          expect(ref.columns.map((c) => c.name)).toEqual(
-            expect.arrayContaining(['embedding_model_id', 'embedding_dimension'])
-          )
-          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
-            expect.arrayContaining(['id', 'dimension'])
-          )
+          expect(ref.columns.map((c) => c.name)).toEqual(['embedding_model_id'])
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(['id'])
         })
       })
 
@@ -2492,7 +2467,7 @@ describe('Database Schema', () => {
         ).toBeDefined()
       })
 
-      it('should all have a composite FK from (embeddingModelId, embeddingDimension) to embedding_models', () => {
+      it('should all have a FK from embeddingModelId to embedding_models.id', () => {
         const tables = [
           vectorEmbeddings1536,
           vectorEmbeddings768,
@@ -2505,15 +2480,12 @@ describe('Database Schema', () => {
           const fk = foreignKeys.find((f) => {
             const ref = f.reference()
             return (
-              ref.columns.some((c) => c.name === 'embedding_model_id') &&
-              ref.columns.some((c) => c.name === 'embedding_dimension')
+              ref.columns.length === 1 && ref.columns.some((c) => c.name === 'embedding_model_id')
             )
           })
           expect(fk).toBeDefined()
           const ref = fk!.reference()
-          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
-            expect.arrayContaining(['id', 'dimension'])
-          )
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(['id'])
         })
       })
     })

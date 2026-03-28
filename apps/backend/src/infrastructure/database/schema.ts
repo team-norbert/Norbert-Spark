@@ -596,9 +596,9 @@ export const vectorEmbeddings1536 = pgTable(
       'vector_embeddings_1536_embedding_dimension_check',
       sql`${table.embeddingDimension} = 1536`
     ),
-    embeddingModelCompositeFk: foreignKey({
-      columns: [table.embeddingModelId, table.embeddingDimension],
-      foreignColumns: [embeddingModels.id, embeddingModels.dimension],
+    embeddingModelFk: foreignKey({
+      columns: [table.embeddingModelId],
+      foreignColumns: [embeddingModels.id],
     }).onDelete('restrict'),
   })
 )
@@ -691,9 +691,9 @@ export const vectorEmbeddings768 = pgTable(
       'vector_embeddings_768_embedding_dimension_check',
       sql`${table.embeddingDimension} = 768`
     ),
-    embeddingModelCompositeFk: foreignKey({
-      columns: [table.embeddingModelId, table.embeddingDimension],
-      foreignColumns: [embeddingModels.id, embeddingModels.dimension],
+    embeddingModelFk: foreignKey({
+      columns: [table.embeddingModelId],
+      foreignColumns: [embeddingModels.id],
     }).onDelete('restrict'),
   })
 )
@@ -792,9 +792,9 @@ export const vectorEmbeddings384 = pgTable(
       'vector_embeddings_384_embedding_dimension_check',
       sql`${table.embeddingDimension} = 384`
     ),
-    embeddingModelCompositeFk: foreignKey({
-      columns: [table.embeddingModelId, table.embeddingDimension],
-      foreignColumns: [embeddingModels.id, embeddingModels.dimension],
+    embeddingModelFk: foreignKey({
+      columns: [table.embeddingModelId],
+      foreignColumns: [embeddingModels.id],
     }).onDelete('restrict'),
   })
 )
@@ -893,9 +893,9 @@ export const vectorEmbeddings3072 = pgTable(
       'vector_embeddings_3072_embedding_dimension_check',
       sql`${table.embeddingDimension} = 3072`
     ),
-    embeddingModelCompositeFk: foreignKey({
-      columns: [table.embeddingModelId, table.embeddingDimension],
-      foreignColumns: [embeddingModels.id, embeddingModels.dimension],
+    embeddingModelFk: foreignKey({
+      columns: [table.embeddingModelId],
+      foreignColumns: [embeddingModels.id],
     }).onDelete('restrict'),
   })
 )
@@ -996,9 +996,9 @@ export const vectorEmbeddings1024 = pgTable(
       'vector_embeddings_1024_embedding_dimension_check',
       sql`${table.embeddingDimension} = 1024`
     ),
-    embeddingModelCompositeFk: foreignKey({
-      columns: [table.embeddingModelId, table.embeddingDimension],
-      foreignColumns: [embeddingModels.id, embeddingModels.dimension],
+    embeddingModelFk: foreignKey({
+      columns: [table.embeddingModelId],
+      foreignColumns: [embeddingModels.id],
     }).onDelete('restrict'),
   })
 )

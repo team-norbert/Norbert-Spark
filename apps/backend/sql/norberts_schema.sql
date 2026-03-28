@@ -195,8 +195,8 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_3072 (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (document_id, embedding_model_id, chunk_index),
-    FOREIGN KEY (embedding_model_id, embedding_dimension)
-    REFERENCES embedding_models (id, dimension)
+    FOREIGN KEY (embedding_model_id)
+    REFERENCES embedding_models (id)
     ON DELETE RESTRICT
     );
 
@@ -232,8 +232,8 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_1024 (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT vector_embeddings_1024_document_model_chunk_unique
     UNIQUE (document_id, embedding_model_id, chunk_index),
-    FOREIGN KEY (embedding_model_id, embedding_dimension)
-    REFERENCES embedding_models (id, dimension)
+    FOREIGN KEY (embedding_model_id)
+    REFERENCES embedding_models (id)
     ON DELETE RESTRICT
     );
 
@@ -269,8 +269,8 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (document_id, embedding_model_id, chunk_index),
-    FOREIGN KEY (embedding_model_id, embedding_dimension)
-    REFERENCES embedding_models (id, dimension)
+    FOREIGN KEY (embedding_model_id)
+    REFERENCES embedding_models (id)
     ON DELETE RESTRICT
 );
 
@@ -307,8 +307,8 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_768 (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT vector_embeddings_768_document_model_chunk_unique
     UNIQUE (document_id, embedding_model_id, chunk_index),
-    FOREIGN KEY (embedding_model_id, embedding_dimension)
-    REFERENCES embedding_models (id, dimension)
+    FOREIGN KEY (embedding_model_id)
+    REFERENCES embedding_models (id)
     ON DELETE RESTRICT
     );
 
@@ -345,8 +345,8 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_384 (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (document_id, embedding_model_id, chunk_index),
-    FOREIGN KEY (embedding_model_id, embedding_dimension)
-    REFERENCES embedding_models (id, dimension)
+    FOREIGN KEY (embedding_model_id)
+    REFERENCES embedding_models (id)
     ON DELETE RESTRICT
     );
 
