@@ -158,7 +158,7 @@ The OpenAPI spec allows for building out the backend endpoints in a contract-fir
 
 It is important to keep the shared package up-to-date and well-maintained, as it serves as a critical piece of the overall architecture. Any changes to shared types, schemas, or API definitions should be carefully reviewed and tested to ensure that they do not introduce breaking changes or inconsistencies across the codebase.
 
-It is intended to be used as means of generating UI intefaces from the backend API
+It is intended to be used as means of generating UI interfaces from the backend API
 
 ## Development Workflows
 
