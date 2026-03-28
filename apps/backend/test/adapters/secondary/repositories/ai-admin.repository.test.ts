@@ -45,7 +45,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: ['END', 'STOP'],
-        seed: 12345,
         maxRetries: 3,
         createdAt: new Date('2026-01-21T10:00:00Z'),
         updatedAt: new Date('2026-01-21T10:00:00Z'),
@@ -96,7 +95,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: null,
         topK: null,
         stopSequences: null,
-        seed: null,
         maxRetries: null,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -168,7 +166,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: '0.0',
         topK: null,
         stopSequences: null,
-        seed: null,
         maxRetries: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -199,7 +196,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: null,
-        seed: null,
         maxRetries: 3,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -216,7 +212,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: '0.0',
         topK: null,
         stopSequences: null,
-        seed: null,
         maxRetries: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -249,7 +244,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: '0.0',
         topK: null,
         stopSequences: [],
-        seed: null,
         maxRetries: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -280,7 +274,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: '1.75',
         topK: null,
         stopSequences: null,
-        seed: null,
         maxRetries: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -314,7 +307,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: 0.5,
         topK: 50,
         stopSequences: ['STOP', 'END'],
-        seed: 12345,
         maxRetries: 5,
       }
 
@@ -329,7 +321,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: '0.5',
         topK: 50,
         stopSequences: ['STOP', 'END'],
-        seed: 12345,
         maxRetries: 5,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -359,7 +350,6 @@ describe('AIAdminRepository', () => {
           presencePenalty: '0.5',
           topK: 50,
           stopSequences: ['STOP', 'END'],
-          seed: 12345,
           maxRetries: 5,
           updatedAt: expect.any(Date),
         })
@@ -390,7 +380,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: '0.0',
         topK: 40,
         stopSequences: null,
-        seed: null,
         maxRetries: 3,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -422,7 +411,6 @@ describe('AIAdminRepository', () => {
       expect(setCallArg).not.toHaveProperty('presencePenalty')
       expect(setCallArg).not.toHaveProperty('topK')
       expect(setCallArg).not.toHaveProperty('stopSequences')
-      expect(setCallArg).not.toHaveProperty('seed')
       expect(setCallArg).not.toHaveProperty('maxRetries')
     })
 
@@ -447,7 +435,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: '1.75',
         topK: null,
         stopSequences: null,
-        seed: null,
         maxRetries: null,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -478,13 +465,12 @@ describe('AIAdminRepository', () => {
       expect(typeof setCallArg?.presencePenalty).toBe('string')
     })
 
-    it('should keep integer fields as numbers (maxTokens, topK, seed, maxRetries)', async () => {
+    it('should keep integer fields as numbers (maxTokens, topK, maxRetries)', async () => {
       const chatTypeId = uuidv7()
       const mockDto = {
         prompt: 'Test',
         maxTokens: 5000,
         topK: 75,
-        seed: 99999,
         maxRetries: 8,
       }
 
@@ -499,7 +485,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: null,
         topK: 75,
         stopSequences: null,
-        seed: 99999,
         maxRetries: 8,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -522,11 +507,9 @@ describe('AIAdminRepository', () => {
       const setCallArg = mockSet.mock.calls[0]?.[0]
       expect(setCallArg?.maxTokens).toBe(5000)
       expect(setCallArg?.topK).toBe(75)
-      expect(setCallArg?.seed).toBe(99999)
       expect(setCallArg?.maxRetries).toBe(8)
       expect(typeof setCallArg?.maxTokens).toBe('number')
       expect(typeof setCallArg?.topK).toBe('number')
-      expect(typeof setCallArg?.seed).toBe('number')
       expect(typeof setCallArg?.maxRetries).toBe('number')
     })
 
@@ -576,7 +559,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: null,
         topK: null,
         stopSequences: ['STOP', 'END', 'DONE'],
-        seed: null,
         maxRetries: null,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -663,7 +645,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: 0.5,
         topK: 40,
         stopSequences: ['END', 'STOP'],
-        seed: 12345,
         maxRetries: 3,
       }
 
@@ -678,7 +659,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: '0.5',
         topK: 40,
         stopSequences: ['END', 'STOP'],
-        seed: 12345,
         maxRetries: 3,
         createdAt: new Date('2026-01-21T10:00:00Z'),
         updatedAt: new Date('2026-01-21T10:00:00Z'),
@@ -708,7 +688,6 @@ describe('AIAdminRepository', () => {
           presencePenalty: '0.5',
           topK: 40,
           stopSequences: ['END', 'STOP'],
-          seed: 12345,
           maxRetries: 3,
         })
       )
@@ -736,7 +715,6 @@ describe('AIAdminRepository', () => {
         presencePenalty: null,
         topK: null,
         stopSequences: null,
-        seed: null,
         maxRetries: null,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -764,7 +742,6 @@ describe('AIAdminRepository', () => {
       expect(valuesCallArg).not.toHaveProperty('presencePenalty')
       expect(valuesCallArg).not.toHaveProperty('topK')
       expect(valuesCallArg).not.toHaveProperty('stopSequences')
-      expect(valuesCallArg).not.toHaveProperty('seed')
       expect(valuesCallArg).not.toHaveProperty('maxRetries')
     })
 
@@ -799,13 +776,12 @@ describe('AIAdminRepository', () => {
       expect(typeof valuesCallArg?.presencePenalty).toBe('string')
     })
 
-    it('should keep integer fields as numbers (maxTokens, topK, seed, maxRetries)', async () => {
+    it('should keep integer fields as numbers (maxTokens, topK, maxRetries)', async () => {
       const chatTypeId = uuidv7()
       const mockDto = {
         prompt: 'Test',
         maxTokens: 5000,
         topK: 75,
-        seed: 99999,
         maxRetries: 8,
       }
 
@@ -822,11 +798,9 @@ describe('AIAdminRepository', () => {
       const valuesCallArg = mockValues.mock.calls[0]?.[0]
       expect(valuesCallArg?.maxTokens).toBe(5000)
       expect(valuesCallArg?.topK).toBe(75)
-      expect(valuesCallArg?.seed).toBe(99999)
       expect(valuesCallArg?.maxRetries).toBe(8)
       expect(typeof valuesCallArg?.maxTokens).toBe('number')
       expect(typeof valuesCallArg?.topK).toBe('number')
-      expect(typeof valuesCallArg?.seed).toBe('number')
       expect(typeof valuesCallArg?.maxRetries).toBe('number')
     })
 

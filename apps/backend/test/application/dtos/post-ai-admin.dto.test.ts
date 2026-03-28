@@ -39,7 +39,6 @@ describe('PostAIAdminDTO', () => {
       expect(dto.presencePenalty).toBeUndefined()
       expect(dto.topK).toBeUndefined()
       expect(dto.stopSequences).toBeUndefined()
-      expect(dto.seed).toBeUndefined()
       expect(dto.maxRetries).toBeUndefined()
     })
 
@@ -53,7 +52,6 @@ describe('PostAIAdminDTO', () => {
         presencePenalty: -0.5,
         topK: 40,
         stopSequences: ['END', 'STOP'],
-        seed: 12345,
         maxRetries: 3,
       }
 
@@ -67,7 +65,6 @@ describe('PostAIAdminDTO', () => {
       expect(dto.presencePenalty).toBe(data.presencePenalty)
       expect(dto.topK).toBe(data.topK)
       expect(dto.stopSequences).toEqual(data.stopSequences)
-      expect(dto.seed).toBe(data.seed)
       expect(dto.maxRetries).toBe(data.maxRetries)
     })
 
@@ -133,12 +130,6 @@ describe('PostAIAdminDTO', () => {
       expect(dto.stopSequences).toBeUndefined()
     })
 
-    it('should convert null seed to undefined', () => {
-      const dto = PostAIAdminDTO.validate({ prompt: 'Test', seed: null })
-
-      expect(dto.seed).toBeUndefined()
-    })
-
     it('should convert null maxRetries to undefined', () => {
       const dto = PostAIAdminDTO.validate({ prompt: 'Test', maxRetries: null })
 
@@ -155,7 +146,6 @@ describe('PostAIAdminDTO', () => {
         presencePenalty: null,
         topK: null,
         stopSequences: null,
-        seed: null,
         maxRetries: null,
       })
 
@@ -166,7 +156,6 @@ describe('PostAIAdminDTO', () => {
       expect(dto.presencePenalty).toBeUndefined()
       expect(dto.topK).toBeUndefined()
       expect(dto.stopSequences).toBeUndefined()
-      expect(dto.seed).toBeUndefined()
       expect(dto.maxRetries).toBeUndefined()
     })
   })
@@ -240,15 +229,6 @@ describe('PostAIAdminDTO', () => {
         )
         expect(() => PostAIAdminDTO.validate({ prompt: 'Test', topK: 0 })).toThrow(
           'Invalid topK: must be between 1 and 100'
-        )
-      })
-
-      it('should throw ValidationException for seed exceeding max int32', () => {
-        expect(() => PostAIAdminDTO.validate({ prompt: 'Test', seed: 2147483648 })).toThrow(
-          ValidationException
-        )
-        expect(() => PostAIAdminDTO.validate({ prompt: 'Test', seed: 2147483648 })).toThrow(
-          'Invalid seed: must be between 0 and 2147483647'
         )
       })
 

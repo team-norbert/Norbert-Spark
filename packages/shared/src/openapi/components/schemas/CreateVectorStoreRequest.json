@@ -83,6 +83,7 @@
             "CLASSIFICATION",
             "CLUSTERING"
           ],
+          "default": "RETRIEVAL_QUERY",
           "example": "RETRIEVAL_QUERY"
         }
       }
