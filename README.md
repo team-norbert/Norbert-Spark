@@ -77,9 +77,9 @@ PNPM is a fast, disk space-efficient package manager that uses a unique symlink-
 Turborepo is a powerful build system that optimizes the build process by caching and parallelizing tasks,
 making it faster and more efficient than traditional build tools.
 
-This repo uses PNPM version 10.29.3
+This repo uses PNPM version 10.29.3.
 
-To use PNPM version 10.29.3,you can run the following command:
+To use PNPM version 10.29.3, you can run the following command:
 
 ```bash
 corepack enable pnpm
