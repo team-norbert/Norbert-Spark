@@ -15,6 +15,7 @@ const validInput = () => ({
     modelName: 'text-embedding-3-small',
     modelProvider: 'openai',
     dimension: 1536 as const,
+    releaseYear: 2024,
   },
   vectorEmbeddings: {
     chunkSize: 500,
@@ -34,7 +35,7 @@ describe('RagDto', () => {
       const dto = new RagDto(
         '01933c89-6f67-7b3a-8e4c-123456789abc',
         [{ title: 'Title', source: 'source' }],
-        { modelName: 'model', modelProvider: 'provider', dimension: 1536 },
+        { modelName: 'model', modelProvider: 'provider', dimension: 1536, releaseYear: 2024 },
         { chunkSize: 500, chunkOverlap: 50 },
         { chatTypeId: 'chat-type-id', stopSequences: [] }
       )
@@ -53,7 +54,7 @@ describe('RagDto', () => {
       const dto = new RagDto(
         '01933c89-6f67-7b3a-8e4c-123456789abc',
         [{ title: 'Title', source: 'source' }],
-        { modelName: 'model', modelProvider: 'provider', dimension: 768 },
+        { modelName: 'model', modelProvider: 'provider', dimension: 768, releaseYear: 2023 },
         { chunkSize: 200, chunkOverlap: 20 },
         {
           chatTypeId: 'chat-type-id',
@@ -321,7 +322,7 @@ describe('RagDto', () => {
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
     })
 
-    it('should accept existingModelId alone (branch 1 of anyOf)', () => {
+    it('should accept existingModelId alone (branch 1 of oneOf)', () => {
       const data = {
         ...validInput(),
         embeddingModels: { existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001' },
@@ -380,6 +381,7 @@ describe('RagDto', () => {
           modelName: 'text-embedding-004',
           modelProvider: 'google',
           dimension: 768 as const,
+          releaseYear: 2024,
         },
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
@@ -395,6 +397,7 @@ describe('RagDto', () => {
           modelName: 'text-multilingual-embedding-002',
           modelProvider: 'google',
           dimension: 768 as const,
+          releaseYear: 2024,
         },
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
@@ -410,6 +413,7 @@ describe('RagDto', () => {
           modelName: 'textembedding-gecko@003',
           modelProvider: 'google',
           dimension: 768 as const,
+          releaseYear: 2023,
         },
       }
       expect(() => RagDto.validate(data as any)).not.toThrow()
@@ -422,6 +426,7 @@ describe('RagDto', () => {
           modelName: 'text-embedding-3-small',
           modelProvider: 'openai',
           dimension: 1536 as const,
+          releaseYear: 2024,
         },
       }
       expect(() => RagDto.validate(data as any)).not.toThrow()
@@ -434,6 +439,7 @@ describe('RagDto', () => {
           modelName: 'text-embedding-004',
           modelProvider: 'google',
           dimension: 768 as const,
+          releaseYear: 2024,
           taskType: 'RETRIEVAL_QUERY',
         },
       }
@@ -477,11 +483,55 @@ describe('RagDto', () => {
       }
       expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
       expect(() => RagDto.validate(data as any)).toThrow(
-        'embeddingModels.releaseYear must be a number'
+        'embeddingModels.releaseYear must be an integer'
       )
     })
 
-    it('should accept a valid numeric releaseYear', () => {
+    it('should throw ValidationException when releaseYear is a float', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { ...validInput().embeddingModels, releaseYear: 2024.5 },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.releaseYear must be an integer'
+      )
+    })
+
+    it('should throw ValidationException when releaseYear is below minimum (2000)', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { ...validInput().embeddingModels, releaseYear: 1999 },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.releaseYear must be between 2000 and 2027'
+      )
+    })
+
+    it('should throw ValidationException when releaseYear is above maximum (2027)', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { ...validInput().embeddingModels, releaseYear: 2028 },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.releaseYear must be between 2000 and 2027'
+      )
+    })
+
+    it('should accept boundary releaseYear values (2000 and 2027)', () => {
+      for (const releaseYear of [2000, 2027]) {
+        const data = {
+          ...validInput(),
+          embeddingModels: { ...validInput().embeddingModels, releaseYear },
+        }
+        const dto = RagDto.validate(data as any)
+        expect(dto.embeddingModels.releaseYear).toBe(releaseYear)
+      }
+    })
+
+    it('should accept a valid integer releaseYear within bounds', () => {
       const data = {
         ...validInput(),
         embeddingModels: { ...validInput().embeddingModels, releaseYear: 2024 },
@@ -490,9 +540,43 @@ describe('RagDto', () => {
       expect(dto.embeddingModels.releaseYear).toBe(2024)
     })
 
-    it('should allow releaseYear to be omitted', () => {
-      const dto = RagDto.validate(validInput())
-      expect(dto.embeddingModels.releaseYear).toBeUndefined()
+    it('should throw ValidationException when releaseYear is omitted for a new model', () => {
+      const { releaseYear: _r, ...embeddingModelsWithoutReleaseYear } = validInput().embeddingModels
+      const data = {
+        ...validInput(),
+        embeddingModels: embeddingModelsWithoutReleaseYear,
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'embeddingModels.releaseYear is required and must be a number'
+      )
+    })
+
+    it('should not require releaseYear when existingModelId is provided', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001' },
+      }
+      expect(() => RagDto.validate(data as any)).not.toThrow()
+    })
+
+    it('should strip extra fields when existingModelId is provided', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: {
+          existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001',
+          modelName: 'should-be-stripped',
+          modelProvider: 'openai',
+          dimension: 1536,
+          releaseYear: 2024,
+        },
+      }
+      const dto = RagDto.validate(data as any)
+      expect(dto.embeddingModels.existingModelId).toBe('aaaaaaaa-0000-0000-0000-000000000001')
+      expect((dto.embeddingModels as any).modelName).toBeUndefined()
+      expect((dto.embeddingModels as any).modelProvider).toBeUndefined()
+      expect((dto.embeddingModels as any).dimension).toBeUndefined()
+      expect((dto.embeddingModels as any).releaseYear).toBeUndefined()
     })
   })
 
@@ -685,10 +769,22 @@ describe('RagDto', () => {
       expect(dto.embeddingModels.modelName).toBe('text-embedding-3-small')
       expect(dto.embeddingModels.modelProvider).toBe('openai')
       expect(dto.embeddingModels.dimension).toBe(1536)
+      expect(dto.embeddingModels.releaseYear).toBe(2024)
       expect(dto.vectorEmbeddings.chunkSize).toBe(500)
       expect(dto.vectorEmbeddings.chunkOverlap).toBe(50)
       expect(dto.chatAIOptions.chatTypeId).toBe('01935e8a-7890-7123-b456-123456789abc')
       expect(dto.chatAIOptions.stopSequences).toEqual(['\n', ' Human:'])
+    })
+
+    it('should return a RagDto with only existingModelId when existingModelId path is used', () => {
+      const data = {
+        ...validInput(),
+        embeddingModels: { existingModelId: 'aaaaaaaa-0000-0000-0000-000000000001' },
+      }
+      const dto = RagDto.validate(data as any)
+      expect(dto.embeddingModels.existingModelId).toBe('aaaaaaaa-0000-0000-0000-000000000001')
+      expect((dto.embeddingModels as any).modelName).toBeUndefined()
+      expect((dto.embeddingModels as any).releaseYear).toBeUndefined()
     })
 
     it('should return a RagDto instance with all optional fields present', () => {
