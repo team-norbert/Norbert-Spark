@@ -86,28 +86,46 @@ export class RagDto {
       }
     }
 
-    const hasExistingModel =
+    // Type narrowing for discriminated union
+    // Store validated embedding model data
+    let validatedEmbeddingModels: RagDto['embeddingModels']
+
+    // Type narrowing for discriminated union using 'in' operator
+    if (
+      'existingModelId' in data.embeddingModels &&
       isString(data.embeddingModels.existingModelId) &&
       data.embeddingModels.existingModelId.trim() !== ''
+    ) {
+      validatedEmbeddingModels = {
+        existingModelId: data.embeddingModels.existingModelId,
+      }
+    } else {
+      // Extract for type-safe access (type narrowing doesn't persist across checks)
+      const embeddingData = data.embeddingModels as {
+        modelName?: unknown
+        modelProvider?: unknown
+        dimension?: unknown
+        releaseYear?: unknown
+        taskType?: unknown
+      }
 
-    if (!hasExistingModel) {
-      if (!isString(data.embeddingModels.modelName)) {
+      if (!isString(embeddingData.modelName)) {
         throw new ValidationException('embeddingModels.modelName is required and must be a string')
       }
 
-      if (!isNumber(data.embeddingModels.dimension)) {
+      if (!isNumber(embeddingData.dimension)) {
         throw new ValidationException('embeddingModels.dimension is required and must be a number')
       }
 
       const VALID_DIMENSIONS = [1536, 768, 384, 3072, 1024] as const
       type ValidDimension = (typeof VALID_DIMENSIONS)[number]
-      if (!VALID_DIMENSIONS.includes(data.embeddingModels.dimension as ValidDimension)) {
+      if (!VALID_DIMENSIONS.includes(embeddingData.dimension as ValidDimension)) {
         throw new ValidationException(
           'embeddingModels.dimension must be either 1536, 768, 384, 3072, or 1024'
         )
       }
 
-      if (!isString(data.embeddingModels.modelProvider)) {
+      if (!isString(embeddingData.modelProvider)) {
         throw new ValidationException(
           'embeddingModels.modelProvider is required and must be a string'
         )
@@ -115,31 +133,25 @@ export class RagDto {
 
       const VALID_PROVIDERS = ['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral'] as const
       type ValidProvider = (typeof VALID_PROVIDERS)[number]
-      if (!VALID_PROVIDERS.includes(data.embeddingModels.modelProvider as ValidProvider)) {
+      if (!VALID_PROVIDERS.includes(embeddingData.modelProvider as ValidProvider)) {
         throw new ValidationException(
           'embeddingModels.modelProvider must be one of: openai, google, cohere, amazon, voyage, mistral'
         )
       }
 
-      if (!isDefined(data.embeddingModels.releaseYear)) {
+      if (!isDefined(embeddingData.releaseYear)) {
         throw new ValidationException(
           'embeddingModels.releaseYear is required and must be a number'
         )
       }
 
-      if (
-        !isNumber(data.embeddingModels.releaseYear) ||
-        !Number.isInteger(data.embeddingModels.releaseYear)
-      ) {
+      if (!isNumber(embeddingData.releaseYear) || !Number.isInteger(embeddingData.releaseYear)) {
         throw new ValidationException('embeddingModels.releaseYear must be an integer')
       }
 
       const currentYear = new Date().getFullYear()
       const maxReleaseYear = currentYear + 1
-      if (
-        data.embeddingModels.releaseYear < 2000 ||
-        data.embeddingModels.releaseYear > maxReleaseYear
-      ) {
+      if (embeddingData.releaseYear < 2000 || embeddingData.releaseYear > maxReleaseYear) {
         throw new ValidationException(
           `embeddingModels.releaseYear must be between 2000 and ${maxReleaseYear}`
         )
@@ -150,18 +162,18 @@ export class RagDto {
         'text-multilingual-embedding-002',
       ] as const
       const requiresTaskType =
-        data.embeddingModels.modelProvider === 'google' &&
+        embeddingData.modelProvider === 'google' &&
         GOOGLE_TASK_TYPE_REQUIRED_MODELS.includes(
-          data.embeddingModels.modelName as (typeof GOOGLE_TASK_TYPE_REQUIRED_MODELS)[number]
+          embeddingData.modelName as (typeof GOOGLE_TASK_TYPE_REQUIRED_MODELS)[number]
         )
 
-      if (requiresTaskType && !isDefined(data.embeddingModels.taskType)) {
+      if (requiresTaskType && !isDefined(embeddingData.taskType)) {
         throw new ValidationException(
           'embeddingModels.taskType is required for google models text-embedding-004 and text-multilingual-embedding-002'
         )
       }
 
-      if (isDefined(data.embeddingModels.taskType)) {
+      if (isDefined(embeddingData.taskType)) {
         const VALID_TASK_TYPES = [
           'RETRIEVAL_QUERY',
           'RETRIEVAL_DOCUMENT',
@@ -170,14 +182,28 @@ export class RagDto {
           'CLUSTERING',
         ] as const
         type ValidTaskType = (typeof VALID_TASK_TYPES)[number]
-        if (!isString(data.embeddingModels.taskType)) {
+        if (!isString(embeddingData.taskType)) {
           throw new ValidationException('embeddingModels.taskType must be a string')
         }
-        if (!VALID_TASK_TYPES.includes(data.embeddingModels.taskType as ValidTaskType)) {
+        if (!VALID_TASK_TYPES.includes(embeddingData.taskType as ValidTaskType)) {
           throw new ValidationException(
             'embeddingModels.taskType must be one of: RETRIEVAL_QUERY, RETRIEVAL_DOCUMENT, SEMANTIC_SIMILARITY, CLASSIFICATION, CLUSTERING'
           )
         }
+      }
+
+      validatedEmbeddingModels = {
+        modelName: embeddingData.modelName,
+        modelProvider: embeddingData.modelProvider as string,
+        dimension: embeddingData.dimension as 1536 | 768 | 384 | 3072 | 1024,
+        releaseYear: embeddingData.releaseYear as number,
+        taskType: embeddingData.taskType as
+          | 'RETRIEVAL_QUERY'
+          | 'RETRIEVAL_DOCUMENT'
+          | 'SEMANTIC_SIMILARITY'
+          | 'CLASSIFICATION'
+          | 'CLUSTERING'
+          | undefined,
       }
     }
 
@@ -247,17 +273,7 @@ export class RagDto {
     return new RagDto(
       data.id,
       data.documents.map((doc) => ({ title: doc.title, source: doc.source })),
-      hasExistingModel
-        ? ({
-            existingModelId: data.embeddingModels.existingModelId as string,
-          } as RagDto['embeddingModels'])
-        : ({
-            modelName: data.embeddingModels.modelName as string,
-            modelProvider: data.embeddingModels.modelProvider as string,
-            dimension: data.embeddingModels.dimension as 1536 | 768 | 384 | 3072 | 1024,
-            releaseYear: data.embeddingModels.releaseYear as number,
-            taskType: data.embeddingModels.taskType ?? undefined,
-          } as RagDto['embeddingModels']),
+      validatedEmbeddingModels,
       {
         chunkSize: data.vectorEmbeddings.chunkSize,
         chunkOverlap: data.vectorEmbeddings.chunkOverlap,
