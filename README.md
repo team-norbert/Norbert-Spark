@@ -30,7 +30,7 @@ In the packages/shared is the OpenAPI spec: packages/shared/src/openapi.json. Th
 - Support for multiple AI providers (OpenAI, Google Gemini, Anthropic, etc.) with dynamic provider selection
 - Advanced analytics dashboard with real-time monitoring of AI interactions
 - Plugin system for extending functionality and integrating with third-party services
-- Replace Material Ui with Shadcn UI
+- Replace Material UI with shadcn/ui
 
 ## Table of Contents
 
