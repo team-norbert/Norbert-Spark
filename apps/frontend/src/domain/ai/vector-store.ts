@@ -12,18 +12,33 @@ const DimensionSchema = z.union([
 
 // ── Request ───────────────────────────────────────────────────────────────────
 
+const ModelProviderSchema = z.enum(['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral'])
+
+const TaskTypeSchema = z.enum([
+  'RETRIEVAL_QUERY',
+  'RETRIEVAL_DOCUMENT',
+  'SEMANTIC_SIMILARITY',
+  'CLASSIFICATION',
+  'CLUSTERING',
+])
+
 /**
  * Embedding models sub-schema.
- * Either an existing model is referenced by ID, or a new one is defined by name,
- * provider and dimension — matching the OpenAPI `anyOf` constraint.
+ * Either an existing model is referenced by ID, or a new one is defined
+ * by name, provider, dimension and release year — matching the OpenAPI
+ * `oneOf` constraint with `additionalProperties: false` on each branch.
  */
 const EmbeddingModelsRequestSchema = z.union([
-  z.object({ existingModelId: z.uuid() }),
-  z.object({
-    modelName: z.string(),
-    modelProvider: z.string(),
-    dimension: DimensionSchema,
-  }),
+  z.object({ existingModelId: z.uuid() }).strict(),
+  z
+    .object({
+      modelName: z.string(),
+      modelProvider: ModelProviderSchema,
+      dimension: DimensionSchema,
+      releaseYear: z.number().int().min(2000).max(2027),
+      taskType: TaskTypeSchema.optional(),
+    })
+    .strict(),
 ])
 
 /**
@@ -42,7 +57,6 @@ export const CreateVectorStoreRequestSchema = z.object({
     .min(1),
   embeddingModels: EmbeddingModelsRequestSchema,
   vectorEmbeddings: z.object({
-    distanceMetric: z.enum(['cosine', 'euclidean', 'dot_product']),
     chunkSize: z.number().int().min(1).max(10000),
     chunkOverlap: z.number().int().min(0).max(1000),
   }),
@@ -54,7 +68,6 @@ export const CreateVectorStoreRequestSchema = z.object({
     frequencyPenalty: z.number().min(-2).max(2).optional(),
     presencePenalty: z.number().min(-2).max(2).optional(),
     stopSequences: z.array(z.string()).optional(),
-    seed: z.number().int().min(0).max(1000000).optional(),
     maxRetries: z.number().int().min(0).max(10).optional(),
   }),
 })

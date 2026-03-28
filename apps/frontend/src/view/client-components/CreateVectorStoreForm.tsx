@@ -8,7 +8,6 @@ import {
   CircularProgress,
   Divider,
   FormControl,
-  FormHelperText,
   InputLabel,
   MenuItem,
   Select,
@@ -33,7 +32,6 @@ import {
   maxRetriesText,
   maxTokensText,
   presencePenaltyText,
-  seedText,
   stopSequencesText,
   temperatureText,
   topPText,
@@ -42,12 +40,6 @@ import {
 
 export type CreateVectorStoreFormData = CreateVectorStoreRequest
 export type DocumentEntry = VectorStoreDocumentEntry
-
-const DISTANCE_METRICS: CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric'][] = [
-  'cosine',
-  'euclidean',
-  'dot_product',
-]
 
 /**
  * Derives a human-readable document title from a bucket fileKey.
@@ -73,7 +65,8 @@ interface CreateVectorStoreFormProps {
  * The form is typed against the generated OpenAPI `CreateVectorStoreRequest`
  * schema. Select fields are used for enum-constrained values:
  * - `embeddingModels.dimension`: [3072, 1536, 1024, 768, 384]
- * - `vectorEmbeddings.distanceMetric`: ['cosine', 'euclidean', 'dot_product']
+ * - `embeddingModels.modelProvider`: ['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral']
+ * - `embeddingModels.taskType` (optional): ['RETRIEVAL_QUERY', 'RETRIEVAL_DOCUMENT', 'SEMANTIC_SIMILARITY', 'CLASSIFICATION', 'CLUSTERING']
  */
 export function CreateVectorStoreForm({
   fileKeys,
@@ -111,6 +104,8 @@ export function CreateVectorStoreForm({
   const [modelName, setModelName] = useState('')
   const [modelProvider, setModelProvider] = useState('')
   const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384 | ''>('')
+  const [releaseYear, setReleaseYear] = useState('')
+  const [taskType, setTaskType] = useState('')
 
   // Selecting a pre-seeded model clears the manual fields (mutually exclusive modes)
   const handleModelSelect = (modelId: string) => {
@@ -118,6 +113,8 @@ export function CreateVectorStoreForm({
     setModelName('')
     setModelProvider('')
     setDimension('')
+    setReleaseYear('')
+    setTaskType('')
   }
 
   // Typing into a manual field deselects the dropdown (mutually exclusive modes)
@@ -129,41 +126,55 @@ export function CreateVectorStoreForm({
     }
 
   // vectorEmbeddings
-  const [distanceMetric, setDistanceMetric] = useState<
-    CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric'] | ''
-  >('cosine')
-  const [distanceMetricError, setDistanceMetricError] = useState<string | null>(null)
   const [chunkSize, setChunkSize] = useState('300')
   const [chunkOverlap, setChunkOverlap] = useState('40')
 
   // chatAIOptions
   const [chatTypeId, setChatTypeId] = useState(initialChatTypeId ?? '')
   const [maxTokens, setMaxTokens] = useState('1000')
-  const [temperature, setTemperature] = useState('0.7')
+  const [temperature, setTemperature] = useState('0.3')
   const [topP, setTopP] = useState('1')
   const [frequencyPenalty, setFrequencyPenalty] = useState('')
   const [presencePenalty, setPresencePenalty] = useState('')
   const [stopSequences, setStopSequences] = useState('')
-  const [seed, setSeed] = useState('')
   const [maxRetries, setMaxRetries] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!selectedModelId && dimension === '') return
-    if (distanceMetric === '' || distanceMetricError) return
+    if (!selectedModelId && (dimension === '' || !releaseYear)) return
 
     const embeddingModels =
       selectedModelId !== ''
         ? { existingModelId: selectedModelId }
-        : { modelName, modelProvider, dimension: dimension as 3072 | 1536 | 1024 | 768 | 384 }
+        : {
+            modelName,
+            modelProvider: modelProvider as
+              | 'openai'
+              | 'google'
+              | 'cohere'
+              | 'amazon'
+              | 'voyage'
+              | 'mistral',
+            dimension: dimension as 3072 | 1536 | 1024 | 768 | 384,
+            releaseYear: Number(releaseYear),
+            ...(taskType
+              ? {
+                  taskType: taskType as
+                    | 'RETRIEVAL_QUERY'
+                    | 'RETRIEVAL_DOCUMENT'
+                    | 'SEMANTIC_SIMILARITY'
+                    | 'CLASSIFICATION'
+                    | 'CLUSTERING',
+                }
+              : {}),
+          }
 
     const formData: CreateVectorStoreFormData = {
       id,
       documents,
       embeddingModels,
       vectorEmbeddings: {
-        distanceMetric,
         chunkSize: Number(chunkSize),
         chunkOverlap: Number(chunkOverlap),
       },
@@ -177,7 +188,6 @@ export function CreateVectorStoreForm({
         ...(stopSequences
           ? { stopSequences: stopSequences.split(',').map((s) => s.trim()) }
           : { stopSequences: [] }),
-        ...(seed ? { seed: Number(seed) } : {}),
         ...(maxRetries ? { maxRetries: Number(maxRetries) } : {}),
       },
     }
@@ -318,17 +328,32 @@ export function CreateVectorStoreForm({
             &#39;embed-english-v3.0&#39;
           </Typography>
           <Divider sx={{ my: 2 }} />
-          <TextField
-            label="Model Provider"
-            value={modelProvider}
-            onChange={handleManualModelChange(setModelProvider)}
-            fullWidth
-            sx={{ mb: 2 }}
-            data-test-id="embedding-models-model-provider-input"
-          />
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            <strong>Examples: openai, google</strong>
-          </Typography>
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel id="model-provider-label" shrink>
+              Model Provider
+            </InputLabel>
+            <Select
+              labelId="model-provider-label"
+              label="Model Provider"
+              value={modelProvider}
+              displayEmpty
+              data-test-id="embedding-models-model-provider-input"
+              onChange={(e) => {
+                setModelProvider(e.target.value)
+                setSelectedModelId('')
+              }}
+            >
+              <MenuItem value="">
+                <em>— choose a provider —</em>
+              </MenuItem>
+              <MenuItem value="openai">openai</MenuItem>
+              <MenuItem value="google">google</MenuItem>
+              <MenuItem value="cohere">cohere</MenuItem>
+              <MenuItem value="amazon">amazon</MenuItem>
+              <MenuItem value="voyage">voyage</MenuItem>
+              <MenuItem value="mistral">mistral</MenuItem>
+            </Select>
+          </FormControl>
           <Divider sx={{ my: 2 }} />
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel id="dimension-label" shrink>
@@ -356,6 +381,43 @@ export function CreateVectorStoreForm({
             </Select>
           </FormControl>
 
+          <TextField
+            label="Release Year"
+            type="number"
+            value={releaseYear}
+            onChange={handleManualModelChange(setReleaseYear)}
+            inputProps={{ min: 2000, max: 2027 }}
+            fullWidth
+            sx={{ mb: 2 }}
+            data-test-id="embedding-models-release-year-input"
+          />
+
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel id="task-type-label" shrink>
+              Task Type (optional — required for Google models)
+            </InputLabel>
+            <Select
+              labelId="task-type-label"
+              label="Task Type (optional — required for Google models)"
+              value={taskType}
+              displayEmpty
+              data-test-id="embedding-models-task-type-select"
+              onChange={(e) => {
+                setTaskType(e.target.value)
+                setSelectedModelId('')
+              }}
+            >
+              <MenuItem value="">
+                <em>— none —</em>
+              </MenuItem>
+              <MenuItem value="RETRIEVAL_QUERY">RETRIEVAL_QUERY</MenuItem>
+              <MenuItem value="RETRIEVAL_DOCUMENT">RETRIEVAL_DOCUMENT</MenuItem>
+              <MenuItem value="SEMANTIC_SIMILARITY">SEMANTIC_SIMILARITY</MenuItem>
+              <MenuItem value="CLASSIFICATION">CLASSIFICATION</MenuItem>
+              <MenuItem value="CLUSTERING">CLUSTERING</MenuItem>
+            </Select>
+          </FormControl>
+
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
             <strong>This selects the database table to use</strong>
           </Typography>
@@ -370,47 +432,6 @@ export function CreateVectorStoreForm({
             header="Information on Vector Embeddings distance metrics"
             body={vectorEmbeddingsText}
           />
-          <Divider sx={{ my: 2 }} />
-          <FormControl fullWidth required sx={{ mb: 2 }} error={Boolean(distanceMetricError)}>
-            <InputLabel id="distance-metric-label" shrink>
-              Distance Metric
-            </InputLabel>
-            <Select
-              labelId="distance-metric-label"
-              label="Distance Metric"
-              value={distanceMetric}
-              displayEmpty
-              data-test-id="vector-embeddings-distance-metric-select"
-              onChange={(e) => {
-                const value = e.target.value as
-                  | CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']
-                  | ''
-                setDistanceMetric(value)
-                if (value !== 'cosine' && value !== '') {
-                  setDistanceMetricError(
-                    `"${value}" is not currently supported. Only "cosine" is permitted.`
-                  )
-                } else {
-                  setDistanceMetricError(null)
-                }
-              }}
-            >
-              <MenuItem value="">
-                <em>— choose a distance metric —</em>
-              </MenuItem>
-              {DISTANCE_METRICS.map((metric) => (
-                <MenuItem key={metric} value={metric}>
-                  {metric}
-                  {metric !== 'cosine' ? ' (not currently supported)' : ''}
-                </MenuItem>
-              ))}
-            </Select>
-            {distanceMetricError && (
-              <FormHelperText data-test-id="distance-metric-error">
-                {distanceMetricError}
-              </FormHelperText>
-            )}
-          </FormControl>
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent header="Read Chunk Size" body={chunkSizeText} />
@@ -470,10 +491,8 @@ export function CreateVectorStoreForm({
             fine-tune the AI&#39;s responses. For example, `maxTokens` limits the length of the
             generated response, while `temperature` and `topP` control the randomness and creativity
             of the output. Penalties can be applied to reduce repetition or encourage new topics.
-            Stop sequences can be defined to indicate when the AI should stop generating text. The
-            seed can be set for reproducibility, and max retries can specify how many times the AI
-            should attempt to generate a response if it fails or produces undesirable output. Adjust
-            these settings based on your specific use case and desired behaviour of the AI.
+            Stop sequences can be defined to indicate when the AI should stop generating text.
+            Adjust these settings based on your specific use case and desired behaviour of the AI.
           </Typography>
           <Divider sx={{ my: 2 }} />
           <TextField
@@ -611,21 +630,6 @@ export function CreateVectorStoreForm({
           <Typography variant={'body2'} color="text.secondary" sx={{ mb: 1.5 }}>
             If no stop sequences are specified, an empty array will be used.
           </Typography>
-
-          <Divider sx={{ my: 2 }} />
-          <AccordionComponent header="Information on Seed settings" body={seedText} />
-          <Divider sx={{ my: 2 }} />
-
-          <TextField
-            label="Seed"
-            type="number"
-            value={seed}
-            onChange={(e) => setSeed(e.target.value)}
-            inputProps={{ min: 0, max: 1000000 }}
-            fullWidth
-            data-test-id="chat-ai-options-seed-input"
-            sx={{ mb: 2 }}
-          />
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent header="Information on Max Retries settings" body={maxRetriesText} />
