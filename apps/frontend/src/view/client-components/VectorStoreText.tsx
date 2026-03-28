@@ -1,5 +1,3 @@
-import { Link } from '@mui/material'
-
 export const bodyText = `To create a vector store, fill out the form with information about your documents,
 embedding model, vector settings, and chat AI options. When you submit the form, this information
 will be used to call the API endpoint that creates and configures your vector store.
