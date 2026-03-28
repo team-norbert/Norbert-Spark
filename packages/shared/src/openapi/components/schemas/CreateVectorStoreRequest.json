@@ -30,26 +30,32 @@
     },
     "embeddingModels": {
       "type": "object",
-      "description": "Vector store embedding models configuration. Either provide existingModelId to reference a pre-seeded model, or provide modelName, modelProvider and dimension to define a new one.",
-      "anyOf": [
-        { "required": ["existingModelId"] },
-        { "required": ["modelName", "modelProvider", "dimension"] }
-      ],
-      "if": {
-        "properties": {
-          "modelProvider": { "const": "google" },
-          "modelName": { "enum": ["text-embedding-004", "text-multilingual-embedding-002"] }
+      "description": "Vector store embedding models configuration. Either provide existingModelId to reference a pre-seeded model, or provide modelName, modelProvider, dimension and releaseYear to define a new one.",
+      "oneOf": [
+        {
+          "description": "Use an existing embedding model by its ID",
+          "required": ["existingModelId"]
         },
-        "required": ["modelProvider", "modelName"]
-      },
-      "then": {
-        "required": ["taskType"]
-      },
+        {
+          "description": "Define a new embedding model",
+          "required": ["modelName", "modelProvider", "dimension", "releaseYear"],
+          "if": {
+            "properties": {
+              "modelProvider": { "const": "google" },
+              "modelName": { "enum": ["text-embedding-004", "text-multilingual-embedding-002"] }
+            },
+            "required": ["modelProvider", "modelName"]
+          },
+          "then": {
+            "required": ["taskType"]
+          }
+        }
+      ],
       "properties": {
         "existingModelId": {
           "type": "string",
           "format": "uuid",
-          "description": "Unique identifier for an existing embedding model to use. Mutually exclusive with modelName, modelProvider and dimension."
+          "description": "Unique identifier for an existing embedding model to use. Mutually exclusive with modelName, modelProvider, dimension and releaseYear."
         },
         "modelName": {
           "type": "string",
@@ -57,7 +63,7 @@
         },
         "modelProvider": {
           "type": "string",
-          "description": "Provider of the embedding model (e.g., OpenAI)",
+          "description": "Provider of the embedding model (e.g., openai)",
           "enum": ["openai", "google", "cohere", "amazon", "voyage", "mistral"]
         },
         "dimension": {
