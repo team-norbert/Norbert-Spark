@@ -30,6 +30,7 @@ In the packages/shared is the OpenAPI spec: packages/shared/src/openapi.json. Th
 - Support for multiple AI providers (OpenAI, Google Gemini, Anthropic, etc.) with dynamic provider selection
 - Advanced analytics dashboard with real-time monitoring of AI interactions
 - Plugin system for extending functionality and integrating with third-party services
+- Replace Material Ui with Shadcn UI
 
 ## Table of Contents
 
@@ -68,6 +69,22 @@ Due to slow NextJS, the E2E tests use a production build rather than a developme
 - [Tech Stack](#tech-stack)
 
 The tech stack choices are listed as below.
+
+### PNPM and Turborepo
+
+This repo uses [PNPM](https://pnpm.io/) as the package manager and [Turborepo](https://turborepo.org/) as the build system.
+PNPM is a fast, disk space-efficient package manager that uses a unique symlink-based approach to manage dependencies. It ensures consistent dependency resolution across all packages in the monorepo and integrates seamlessly with Turborepo for managing dependencies and scripts.
+Turborepo is a powerful build system that optimizes the build process by caching and parallelizing tasks,
+making it faster and more efficient than traditional build tools.
+
+This repo uses PNPM version 10.29.3
+
+To use PNPM version 10.29.3,you can run the following command:
+
+```bash
+corepack enable pnpm
+corepack use pnpm@10.29.3
+````
 
 ### Husky
 
