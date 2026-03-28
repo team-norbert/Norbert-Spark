@@ -184,7 +184,7 @@ With all new code the above commands should be run in this order from the root:
 4. pnpm test
 5. pnpm test:e2e
 
-When pushing to GitHub, it is possibe to bypass the E2E tests by adding `SKIP_E2E=1` to the CLI, example `SKIP_E2E=1 git push origin build/update-copilot-instructions`.
+When pushing to GitHub, it is possible to bypass the E2E tests by adding `SKIP_E2E=1` to the CLI, example `SKIP_E2E=1 git push origin build/update-copilot-instructions`.
 
 # Frontend-specific
 pnpm --filter @norberts-spark/frontend dev      # Next.js dev server
