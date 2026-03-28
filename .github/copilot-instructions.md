@@ -137,7 +137,7 @@ Domain ← Application ← Infrastructure
    - **Value Objects**: Self-contained types with validation (e.g., Email)
    - **Repositories**: Interfaces for data access (e.g., UserRepository)
 
-2. **PostgreSQLOperations**:
+2. **PostgreSQL Operations**:
 
 The use of both PostgreSQL and Drizzle is as follows:
 
