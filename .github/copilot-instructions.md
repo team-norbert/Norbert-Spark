@@ -31,7 +31,7 @@ Norbert-Spark/
 └── tsconfig.json
 ```
 
-## Domain-Driven Design Architecture
+## Domain-Driven Design Architecture for frontend
 
 The frontend follows a **4-layer DDD architecture**. Always organize code into these layers:
 
@@ -111,6 +111,7 @@ src/domain/
 - Hooks use `@tanstack/react-query` for data fetching
 - Components must have `'use client'` directive if using hooks/state
 - Next.js pages in `src/app/` are minimal and declarative
+- Material UI components must be in client components (with `'use client'`) in the view layer
 
 ### DDD Layer Dependencies
 
@@ -119,6 +120,45 @@ Domain ← Application ← Infrastructure
    ↑         ↑
    └─────────┴──── View
 ```
+
+## Hexagonal and Domain-Driven Design Architecture for backend
+
+1. **Hexagonal Architecture**:
+   - **Domain**: Core business logic (entities, value objects, services)
+   - **Ports**: Interfaces for external interactions (e.g., UserRepository)
+   - **Adapters**: Implementations of ports for specific technologies (e.g., DrizzleUserRepository)
+   - **Infrastructure**: Fastify server setup, database configuration, third-party integrations
+   - **Application**: Orchestrates use cases, coordinates between domain and infrastructure
+   - **Entry point**: `src/infrastructure/di/container/index.ts` sets up dependency injection and starts the server
+   - **Routes**: Defined in registerRoutes in `apps/backend/src/infrastructure/di/container.ts`, handlers call application services
+   - **Controllers**: Handle HTTP requests, call application services, return responses
+   - **Services**: Contain business logic that doesn't fit in entities or value objects
+   - **Entities**: Core domain objects with identity (e.g., User)
+   - **Value Objects**: Self-contained types with validation (e.g., Email)
+   - **Repositories**: Interfaces for data access (e.g., UserRepository)
+
+2. **PostgreSQL Operations**:
+
+The use of both PostgreSQL and Drizzle is as follows:
+
+- PostgreSQL schema = source of truth - apps/backend/sql/norberts_schema.sql
+- Drizzle schema = typed access layer - apps/backend/src/infrastructure/database/schema.ts
+
+## Shared Package
+
+The shared package contains shared types, schemas, and OpenAPI definitions used by both frontend and backend. It is built using TypeScript and Zod for schema validation.
+
+The OpenAPI definitions are located in `packages/shared/src/openapi/` and are used to generate API clients and server stubs. The shared package is built and published locally within the monorepo, allowing both frontend and backend to import shared types and schemas without external dependencies.
+
+Its purpose is to provide a single source of truth for shared types, schemas, and API definitions, ensuring consistency across the entire codebase. It also helps to avoid circular dependencies between frontend and backend by centralizing shared logic in one package.
+
+It is intended to be used as a dependency in both frontend and backend projects, allowing them to import shared types and schemas without needing to duplicate code or create external dependencies. The shared package is built and published locally within the monorepo, making it easy to manage and maintain shared logic across the entire codebase.
+
+The OpenAPI spec allows for building out the backend endpoints in a contract-first manner, ensuring that the API design is consistent and well-documented. The generated clients and server stubs help to speed up development and reduce boilerplate code, allowing developers to focus on implementing business logic rather than writing repetitive code.
+
+It is important to keep the shared package up-to-date and well-maintained, as it serves as a critical piece of the overall architecture. Any changes to shared types, schemas, or API definitions should be carefully reviewed and tested to ensure that they do not introduce breaking changes or inconsistencies across the codebase.
+
+It is intended to be used as means of generating UI interfaces from the backend API
 
 ## Development Workflows
 
@@ -136,6 +176,15 @@ pnpm lint         # Lint all workspaces
 pnpm test         # Run all tests
 pnpm typecheck    # TypeScript type checking (no emit)
 pnpm format       # Format code with Prettier
+
+With all new code the above commands should be run in this order from the root:
+1. pnpm format
+2. pnpm lint:fix
+3. pnpm typecheck
+4. pnpm test
+5. pnpm test:e2e
+
+When pushing to GitHub, it is possible to bypass the E2E tests by adding `SKIP_E2E=1` to the CLI, example `SKIP_E2E=1 git push origin build/update-copilot-instructions`.
 
 # Frontend-specific
 pnpm --filter @norberts-spark/frontend dev      # Next.js dev server
@@ -206,7 +255,7 @@ pnpm --filter @norberts-spark/backend db:studio
 
 ## Project-Specific Conventions
 
-### File Organisation
+### File Organisation for frontend
 
 **Frontend (DDD Architecture):**
 
@@ -289,6 +338,7 @@ Defined in `turbo.json`:
 12. **Docker is production only** - Never use Docker for local development
 13. **NODE_ENV in Docker** - Always set `NODE_ENV=production` in Dockerfile for production builds
 14. **pino-pretty is dev only** - Logger automatically uses plain JSON in production when `NODE_ENV=production`
+15. **Varlock** - Varlock is used for secure environment variable management in the backend. Run 'pnpm run varlock:typegen' to generate TypeScript types for env vars defined in Varlock configuration.
 
 ## Key Files Reference
 
