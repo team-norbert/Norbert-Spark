@@ -101,14 +101,19 @@ EXECUTE FUNCTION users_set_updated_at();
 
 CREATE TABLE IF NOT EXISTS documents (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    title TEXT NOT NULL,
-    source TEXT,
+    title TEXT NOT NULL CHECK (length(trim(title)) > 0),
+    source TEXT NOT NULL,
     checksum TEXT,
     status TEXT NOT NULL DEFAULT 'processing'
         CHECK (status IN ('processing', 'indexed', 'failed', 'archived')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE INDEX IF NOT EXISTS documents_checksum_idx
+    ON documents (checksum)
+    WHERE checksum IS NOT NULL;
+
 -- ============================================================
 -- Added embedding_models table to catalog
 -- embedding model configurations (name, provider, dimension)
@@ -116,12 +121,56 @@ CREATE TABLE IF NOT EXISTS documents (
 
 CREATE TABLE IF NOT EXISTS embedding_models (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    name TEXT NOT NULL,
-    provider TEXT NOT NULL,
+    name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+    provider TEXT NOT NULL CHECK (provider IN ('openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral')),
+    status TEXT NOT NULL CHECK (status IN ('current', 'legacy', 'deprecated', 'experimental')),
+    release_year INTEGER NOT NULL CHECK (
+        release_year >= 2000
+        AND release_year <= EXTRACT(YEAR FROM now())::INTEGER + 1
+    ),
+    recommended_usage TEXT NOT NULL CHECK (length(trim(recommended_usage)) > 0),
+   -- =========
+   -- What task_type means
+   -- task_type tells the embedding model what kind of job the embedding will
+   -- be used for, so the model can produce vectors optimized for that use case.
+   -- Google documents task types such as RETRIEVAL_QUERY, RETRIEVAL_DOCUMENT, SEMANTIC_SIMILARITY, CLASSIFICATION, and CLUSTERING.
+   -- For retrieval, Google explicitly recommends embedding the corpus with RETRIEVAL_DOCUMENT and user queries with RETRIEVAL_QUERY.
+   -- So conceptually:
+
+   -- RETRIEVAL_DOCUMENT = “this text is something I want to search over”
+   -- RETRIEVAL_QUERY = “this text is a user search/query”
+   -- SEMANTIC_SIMILARITY = “I want general similarity comparisons, not document retrieval”
+   -- CLASSIFICATION / CLUSTERING = embeddings optimized for those downstream tasks
+   -- Why it matters
+   -- With Google embeddings, the same base model can produce different embeddings
+   -- depending on the task type. Google’s docs say this directly for retrieval:
+   -- use one task type for documents and another for queries to get the best performance.
+   -- Google also notes that SEMANTIC_SIMILARITY is not intended for retrieval use cases.
+   -- That is why task_type belongs naturally in your embedding_models catalog:
+   -- it is not just “which model,” but also “how that model is being used.”
+   -- =========
+    task_type TEXT,
     dimension INTEGER NOT NULL CHECK (dimension IN (384, 768, 1024, 1536, 3072)),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (name, provider, dimension)
+    CHECK (
+              provider != 'google'
+              OR task_type IS NULL
+              OR task_type IN (
+              'RETRIEVAL_QUERY',
+              'RETRIEVAL_DOCUMENT',
+              'SEMANTIC_SIMILARITY',
+              'CLASSIFICATION',
+              'CLUSTERING'
+                              )
+            OR task_type ~ '^[A-Z_]+$'
+    ),
+    CHECK (
+              provider = 'google'
+              OR task_type IS NULL
+          ),
+    UNIQUE NULLS NOT DISTINCT (name, provider, dimension, task_type),
+    UNIQUE (id, dimension)
 );
 
 -- ============================================================
@@ -134,19 +183,21 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_3072 (
     document_id UUID NOT NULL
     REFERENCES documents(id)
     ON DELETE CASCADE,
-    embedding_model_id UUID NOT NULL
-    REFERENCES embedding_models(id)
-    ON DELETE RESTRICT,
+    embedding_model_id UUID NOT NULL,
+    embedding_dimension INTEGER NOT NULL DEFAULT 3072
+    CHECK (embedding_dimension = 3072),
     chunk_index INTEGER NOT NULL DEFAULT 0,
     content TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     embedding VECTOR(3072) NOT NULL,
     chunk_size INTEGER NOT NULL DEFAULT 700 CHECK (chunk_size > 0 AND chunk_size <= 50000),
     chunk_overlap INTEGER NOT NULL DEFAULT 120 CHECK (chunk_overlap >= 0 AND chunk_overlap < chunk_size),
-    distance_metric TEXT NOT NULL DEFAULT 'cosine' CHECK (distance_metric IN ('cosine', 'euclidean', 'dot_product')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (document_id, embedding_model_id, chunk_index)
+    UNIQUE (document_id, embedding_model_id, chunk_index),
+    FOREIGN KEY (embedding_model_id, embedding_dimension)
+    REFERENCES embedding_models (id, dimension)
+    ON DELETE RESTRICT
     );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_3072_embedding_cosine_idx
@@ -168,20 +219,22 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_1024 (
     document_id UUID NOT NULL
     REFERENCES documents(id)
     ON DELETE CASCADE,
-    embedding_model_id UUID NOT NULL
-    REFERENCES embedding_models(id)
-    ON DELETE RESTRICT,
+    embedding_model_id UUID NOT NULL,
+    embedding_dimension INTEGER NOT NULL DEFAULT 1024
+    CHECK (embedding_dimension = 1024),
     chunk_index INTEGER NOT NULL DEFAULT 0,
     content TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     embedding VECTOR(1024) NOT NULL,
     chunk_size INTEGER NOT NULL DEFAULT 700 CHECK (chunk_size > 0 AND chunk_size <= 50000),
     chunk_overlap INTEGER NOT NULL DEFAULT 120 CHECK (chunk_overlap >= 0 AND chunk_overlap < chunk_size),
-    distance_metric TEXT NOT NULL DEFAULT 'cosine' CHECK (distance_metric IN ('cosine', 'euclidean', 'dot_product')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT vector_embeddings_1024_document_model_chunk_unique
-        UNIQUE (document_id, embedding_model_id, chunk_index)
+    UNIQUE (document_id, embedding_model_id, chunk_index),
+    FOREIGN KEY (embedding_model_id, embedding_dimension)
+    REFERENCES embedding_models (id, dimension)
+    ON DELETE RESTRICT
     );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_1024_embedding_cosine_idx
@@ -204,19 +257,21 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_1536 (
     document_id UUID NOT NULL
     REFERENCES documents(id)
     ON DELETE CASCADE,
-    embedding_model_id UUID NOT NULL
-    REFERENCES embedding_models(id)
-    ON DELETE RESTRICT,
+    embedding_model_id UUID NOT NULL,
+    embedding_dimension INTEGER NOT NULL DEFAULT 1536
+    CHECK (embedding_dimension = 1536),
     chunk_index INTEGER NOT NULL DEFAULT 0,
     content TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     embedding VECTOR(1536) NOT NULL,
     chunk_size INTEGER NOT NULL DEFAULT 700 CHECK (chunk_size > 0 AND chunk_size <= 50000),
     chunk_overlap INTEGER NOT NULL DEFAULT 120 CHECK (chunk_overlap >= 0 AND chunk_overlap < chunk_size),
-    distance_metric TEXT NOT NULL DEFAULT 'cosine' CHECK (distance_metric IN ('cosine', 'euclidean', 'dot_product')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (document_id, embedding_model_id, chunk_index)
+    UNIQUE (document_id, embedding_model_id, chunk_index),
+    FOREIGN KEY (embedding_model_id, embedding_dimension)
+    REFERENCES embedding_models (id, dimension)
+    ON DELETE RESTRICT
 );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_1536_embedding_cosine_idx
@@ -236,31 +291,25 @@ ALTER TABLE vector_embeddings_1536
 
 CREATE TABLE IF NOT EXISTS vector_embeddings_768 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-
     document_id UUID NOT NULL
     REFERENCES documents(id)
     ON DELETE CASCADE,
-
-    embedding_model_id UUID NOT NULL
-    REFERENCES embedding_models(id)
-    ON DELETE RESTRICT,
-
+    embedding_model_id UUID NOT NULL,
+    embedding_dimension INTEGER NOT NULL DEFAULT 768
+    CHECK (embedding_dimension = 768),
     chunk_index INTEGER NOT NULL DEFAULT 0,
     content TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-
     embedding VECTOR(768) NOT NULL,
-
     chunk_size INTEGER NOT NULL DEFAULT 700 CHECK (chunk_size > 0 AND chunk_size <= 50000),
     chunk_overlap INTEGER NOT NULL DEFAULT 120 CHECK (chunk_overlap >= 0 AND chunk_overlap < chunk_size),
-
-    distance_metric TEXT NOT NULL DEFAULT 'cosine' CHECK (distance_metric IN ('cosine', 'euclidean', 'dot_product')),
-
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-
     CONSTRAINT vector_embeddings_768_document_model_chunk_unique
-        UNIQUE (document_id, embedding_model_id, chunk_index)
+    UNIQUE (document_id, embedding_model_id, chunk_index),
+    FOREIGN KEY (embedding_model_id, embedding_dimension)
+    REFERENCES embedding_models (id, dimension)
+    ON DELETE RESTRICT
     );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_768_embedding_cosine_idx
@@ -278,33 +327,27 @@ ALTER TABLE vector_embeddings_768
     ADD CONSTRAINT vector_embeddings_768_content_length_check
     CHECK (length(content) >= 1 AND length(content) <= 50000);
 
+
 CREATE TABLE IF NOT EXISTS vector_embeddings_384 (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-
     document_id UUID NOT NULL
     REFERENCES documents(id)
     ON DELETE CASCADE,
-
-    embedding_model_id UUID NOT NULL
-    REFERENCES embedding_models(id)
-    ON DELETE RESTRICT,
-
+    embedding_model_id UUID NOT NULL,
+    embedding_dimension INTEGER NOT NULL DEFAULT 384
+    CHECK (embedding_dimension = 384),
     chunk_index INTEGER NOT NULL DEFAULT 0,
     content TEXT NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-
     embedding VECTOR(384) NOT NULL,
-
     chunk_size INTEGER NOT NULL DEFAULT 700 CHECK (chunk_size > 0 AND chunk_size <= 50000),
     chunk_overlap INTEGER NOT NULL DEFAULT 120 CHECK (chunk_overlap >= 0 AND chunk_overlap < chunk_size),
-
-    distance_metric TEXT NOT NULL DEFAULT 'cosine' CHECK (distance_metric IN ('cosine', 'euclidean', 'dot_product')),
-
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-
-    CONSTRAINT vector_embeddings_384_document_model_chunk_unique
-        UNIQUE (document_id, embedding_model_id, chunk_index)
+    UNIQUE (document_id, embedding_model_id, chunk_index),
+    FOREIGN KEY (embedding_model_id, embedding_dimension)
+    REFERENCES embedding_models (id, dimension)
+    ON DELETE RESTRICT
     );
 
 CREATE INDEX IF NOT EXISTS vector_embeddings_384_embedding_cosine_idx
@@ -716,6 +759,42 @@ CREATE TRIGGER key_person_updated_at
 DROP TRIGGER IF EXISTS trg_documents_touch_updated_at ON documents;
 CREATE TRIGGER trg_documents_touch_updated_at
     BEFORE UPDATE ON documents
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
+
+DROP TRIGGER IF EXISTS embedding_models_updated_at ON embedding_models;
+CREATE TRIGGER embedding_models_updated_at
+    BEFORE UPDATE ON embedding_models
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
+
+DROP TRIGGER IF EXISTS vector_embeddings_3072_updated_at ON vector_embeddings_3072;
+CREATE TRIGGER vector_embeddings_3072_updated_at
+    BEFORE UPDATE ON vector_embeddings_3072
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
+
+DROP TRIGGER IF EXISTS vector_embeddings_1536_updated_at ON vector_embeddings_1536;
+CREATE TRIGGER vector_embeddings_1536_updated_at
+    BEFORE UPDATE ON vector_embeddings_1536
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
+
+DROP TRIGGER IF EXISTS vector_embeddings_1024_updated_at ON vector_embeddings_1024;
+CREATE TRIGGER vector_embeddings_1024_updated_at
+    BEFORE UPDATE ON vector_embeddings_1024
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
+
+DROP TRIGGER IF EXISTS vector_embeddings_768_updated_at ON vector_embeddings_768;
+CREATE TRIGGER vector_embeddings_768_updated_at
+    BEFORE UPDATE ON vector_embeddings_768
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
+
+DROP TRIGGER IF EXISTS vector_embeddings_384_updated_at ON vector_embeddings_384;
+CREATE TRIGGER vector_embeddings_384_updated_at
+    BEFORE UPDATE ON vector_embeddings_384
     FOR EACH ROW
     EXECUTE FUNCTION touch_updated_at();
 

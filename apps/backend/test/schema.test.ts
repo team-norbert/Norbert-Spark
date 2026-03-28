@@ -1,4 +1,5 @@
 import { getTableName } from 'drizzle-orm'
+import { getTableConfig } from 'drizzle-orm/pg-core'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -398,7 +399,173 @@ describe('Database Schema', () => {
       it('should have unique constraint on seoFriendlyBase64Id', () => {
         expect(chatTypes.seoFriendlyBase64Id.isUnique).toBe(true)
       })
+    })
 
+    describe('company table columns', () => {
+      it('should have companyId column', () => {
+        expect(company.companyId).toBeDefined()
+        expect(company.companyId.name).toBe('company_id')
+      })
+
+      it('should have legalName column', () => {
+        expect(company.legalName).toBeDefined()
+        expect(company.legalName.name).toBe('legal_name')
+      })
+
+      it('should have displayName column', () => {
+        expect(company.displayName).toBeDefined()
+        expect(company.displayName.name).toBe('display_name')
+      })
+
+      it('should have status column', () => {
+        expect(company.status).toBeDefined()
+        expect(company.status.name).toBe('status')
+      })
+
+      it('should have companySize column', () => {
+        expect(company.companySize).toBeDefined()
+        expect(company.companySize.name).toBe('company_size')
+      })
+    })
+  })
+
+  describe('Custom types', () => {
+    describe('citext columns', () => {
+      it('should use custom type for case-insensitive email column', () => {
+        // The email column in user table uses citext custom type
+        const emailColumn = user.email
+        expect(emailColumn).toBeDefined()
+        expect(emailColumn.dataType).toBe('custom')
+      })
+    })
+
+    describe('vector columns', () => {
+      it('should use custom type for vector embedding columns', () => {
+        // Vector embeddings use custom pgvector type
+        const vectorColumn = vectorEmbeddings1536.embedding
+        expect(vectorColumn).toBeDefined()
+        expect(vectorColumn.dataType).toBe('custom')
+      })
+
+      it('should have vector embedding columns in multiple dimension tables', () => {
+        expect(vectorEmbeddings1536.embedding).toBeDefined()
+        expect(vectorEmbeddings768.embedding).toBeDefined()
+        expect(vectorEmbeddings384.embedding).toBeDefined()
+        expect(vectorEmbeddings3072.embedding).toBeDefined()
+        expect(vectorEmbeddings1024.embedding).toBeDefined()
+      })
+    })
+  })
+
+  describe('Enum definitions', () => {
+    describe('companyStatusEnum values', () => {
+      it('should include prospect status value', () => {
+        const statusColumn = company.status
+        expect(statusColumn.enumValues).toContain('prospect')
+      })
+
+      it('should include active status value', () => {
+        const statusColumn = company.status
+        expect(statusColumn.enumValues).toContain('active')
+      })
+
+      it('should include paused status value', () => {
+        const statusColumn = company.status
+        expect(statusColumn.enumValues).toContain('paused')
+      })
+
+      it('should include churned status value', () => {
+        const statusColumn = company.status
+        expect(statusColumn.enumValues).toContain('churned')
+      })
+
+      it('should have exactly 4 status values', () => {
+        const statusColumn = company.status
+        expect(statusColumn.enumValues).toHaveLength(4)
+      })
+    })
+
+    describe('contactRoleEnum values', () => {
+      it('should include primary_contact role value', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toContain('primary_contact')
+      })
+
+      it('should include decision_maker role value', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toContain('decision_maker')
+      })
+
+      it('should include billing_contact role value', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toContain('billing_contact')
+      })
+
+      it('should include technical_contact role value', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toContain('technical_contact')
+      })
+
+      it('should include stakeholder role value', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toContain('stakeholder')
+      })
+
+      it('should have exactly 5 role values', () => {
+        const roleColumn = companyPeople.role
+        expect(roleColumn.enumValues).toHaveLength(5)
+      })
+    })
+  })
+
+  describe('Column defaults and constraints', () => {
+    describe('company table defaults', () => {
+      it('should have status column with active default value', () => {
+        const statusColumn = company.status
+        expect(statusColumn.hasDefault).toBe(true)
+        expect(statusColumn.default).toBe('active')
+      })
+
+      it('should have singletonCheck column with true default', () => {
+        const singletonColumn = company.singletonCheck
+        expect(singletonColumn.hasDefault).toBe(true)
+        expect(singletonColumn.default).toBe(true)
+      })
+
+      it('should have timezone column with UTC default', () => {
+        const timezoneColumn = company.timezone
+        expect(timezoneColumn.hasDefault).toBe(true)
+        expect(timezoneColumn.default).toBe('UTC')
+      })
+
+      it('should have createdAt column with defaultNow', () => {
+        const createdAtColumn = company.createdAt
+        expect(createdAtColumn.hasDefault).toBe(true)
+      })
+
+      it('should have updatedAt column with defaultNow', () => {
+        const updatedAtColumn = company.updatedAt
+        expect(updatedAtColumn.hasDefault).toBe(true)
+      })
+    })
+
+    describe('user table defaults', () => {
+      it('should have twoFactorEnabled column with false default', () => {
+        const twoFactorColumn = user.twoFactorEnabled
+        expect(twoFactorColumn.hasDefault).toBe(true)
+        expect(twoFactorColumn.default).toBe(false)
+      })
+
+      it('should have role column with user default value', () => {
+        const roleColumn = user.role
+        expect(roleColumn.hasDefault).toBe(true)
+        expect(roleColumn.default).toBe('user')
+      })
+    })
+  })
+
+  describe('chatTypes table properties (additional)', () => {
+    describe('chatTypes table constraints', () => {
       it('should have not null constraint on seoFriendlyBase64Id', () => {
         expect(chatTypes.seoFriendlyBase64Id.notNull).toBe(true)
       })
@@ -987,6 +1154,28 @@ describe('Database Schema', () => {
         expect(embeddingModels.updatedAt).toBeDefined()
         expect(embeddingModels.updatedAt.name).toBe('updated_at')
       })
+
+      it('should have status column', () => {
+        expect(embeddingModels.status).toBeDefined()
+        expect(embeddingModels.status.name).toBe('status')
+        expect(embeddingModels.status.columnType).toBe('PgText')
+      })
+
+      it('should have releaseYear column', () => {
+        expect(embeddingModels.releaseYear).toBeDefined()
+        expect(embeddingModels.releaseYear.name).toBe('release_year')
+        expect(embeddingModels.releaseYear.columnType).toBe('PgInteger')
+      })
+
+      it('should have recommendedUsage column', () => {
+        expect(embeddingModels.recommendedUsage).toBeDefined()
+        expect(embeddingModels.recommendedUsage.name).toBe('recommended_usage')
+      })
+
+      it('should have taskType column', () => {
+        expect(embeddingModels.taskType).toBeDefined()
+        expect(embeddingModels.taskType.name).toBe('task_type')
+      })
     })
   })
 
@@ -1099,8 +1288,8 @@ describe('Database Schema', () => {
       expect(documents.status.notNull).toBe(true)
     })
 
-    it('should have nullable documents.source', () => {
-      expect(documents.source.notNull).toBe(false)
+    it('should have not null constraint on documents.source', () => {
+      expect(documents.source.notNull).toBe(true)
     })
 
     it('should have primary key on embeddingModels.id', () => {
@@ -1117,6 +1306,80 @@ describe('Database Schema', () => {
 
     it('should have not null constraint on embeddingModels.dimension', () => {
       expect(embeddingModels.dimension.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on embeddingModels.status', () => {
+      expect(embeddingModels.status.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on embeddingModels.releaseYear', () => {
+      expect(embeddingModels.releaseYear.notNull).toBe(true)
+    })
+
+    it('should have not null constraint on embeddingModels.recommendedUsage', () => {
+      expect(embeddingModels.recommendedUsage.notNull).toBe(true)
+    })
+
+    it('should have nullable embeddingModels.taskType (Google-only field)', () => {
+      expect(embeddingModels.taskType.notNull).toBe(false)
+    })
+  })
+
+  describe('embeddingModels constraints', () => {
+    it('should enforce provider enum via CHECK constraint', () => {
+      const { checks } = getTableConfig(embeddingModels)
+      const check = checks.find((c) => c.name === 'embedding_models_provider_values_check')
+      expect(check).toBeDefined()
+    })
+
+    it('should enforce status enum via CHECK constraint', () => {
+      const { checks } = getTableConfig(embeddingModels)
+      const check = checks.find((c) => c.name === 'embedding_models_status_check')
+      expect(check).toBeDefined()
+    })
+
+    it('should enforce releaseYear range via CHECK constraint', () => {
+      const { checks } = getTableConfig(embeddingModels)
+      const check = checks.find((c) => c.name === 'embedding_models_release_year_check')
+      expect(check).toBeDefined()
+    })
+
+    it('should enforce non-empty recommendedUsage via CHECK constraint', () => {
+      const { checks } = getTableConfig(embeddingModels)
+      const check = checks.find(
+        (c) => c.name === 'embedding_models_recommended_usage_not_empty_check'
+      )
+      expect(check).toBeDefined()
+    })
+
+    it('should enforce taskType allowed values via CHECK constraint', () => {
+      const { checks } = getTableConfig(embeddingModels)
+      const check = checks.find((c) => c.name === 'embedding_models_task_type_values_check')
+      expect(check).toBeDefined()
+    })
+
+    it('should enforce taskType is only set for google provider via CHECK constraint', () => {
+      const { checks } = getTableConfig(embeddingModels)
+      const check = checks.find((c) => c.name === 'embedding_models_task_type_google_only_check')
+      expect(check).toBeDefined()
+    })
+
+    it('should have NULLS NOT DISTINCT unique constraint on (name, provider, dimension, taskType)', () => {
+      const { uniqueConstraints } = getTableConfig(embeddingModels)
+      const uc = uniqueConstraints.find(
+        (u) => u.name === 'embedding_models_name_provider_dimension_task_type_unique'
+      )
+      expect(uc).toBeDefined()
+      expect(uc!.columns.map((c) => c.name)).toEqual(
+        expect.arrayContaining(['name', 'provider', 'dimension', 'task_type'])
+      )
+    })
+
+    it('should have a unique constraint on (id, dimension) supporting composite FK targets', () => {
+      const { uniqueConstraints } = getTableConfig(embeddingModels)
+      const uc = uniqueConstraints.find((u) => u.name === 'embedding_models_id_dimension_unique')
+      expect(uc).toBeDefined()
+      expect(uc!.columns.map((c) => c.name)).toEqual(expect.arrayContaining(['id', 'dimension']))
     })
   })
 
@@ -1245,9 +1508,16 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings1536.chunkOverlap.name).toBe('chunk_overlap')
         })
 
-        it('should have distanceMetric column', () => {
-          expect(vectorEmbeddings1536.distanceMetric).toBeDefined()
-          expect(vectorEmbeddings1536.distanceMetric.name).toBe('distance_metric')
+        it('should have embeddingModelId column', () => {
+          expect(vectorEmbeddings1536.embeddingModelId).toBeDefined()
+          expect(vectorEmbeddings1536.embeddingModelId.name).toBe('embedding_model_id')
+          expect(vectorEmbeddings1536.embeddingModelId.columnType).toBe('PgUUID')
+        })
+
+        it('should have embeddingDimension column', () => {
+          expect(vectorEmbeddings1536.embeddingDimension).toBeDefined()
+          expect(vectorEmbeddings1536.embeddingDimension.name).toBe('embedding_dimension')
+          expect(vectorEmbeddings1536.embeddingDimension.columnType).toBe('PgInteger')
         })
 
         it('should have createdAt column', () => {
@@ -1318,16 +1588,49 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings1536.chunkOverlap.hasDefault).toBe(true)
         })
 
-        it('should have not null constraint on distanceMetric', () => {
-          expect(vectorEmbeddings1536.distanceMetric.notNull).toBe(true)
+        it('should have not null constraint on embeddingModelId', () => {
+          expect(vectorEmbeddings1536.embeddingModelId.notNull).toBe(true)
         })
 
-        it('should have default value for distanceMetric', () => {
-          expect(vectorEmbeddings1536.distanceMetric.hasDefault).toBe(true)
+        it('should have not null constraint on embeddingDimension', () => {
+          expect(vectorEmbeddings1536.embeddingDimension.notNull).toBe(true)
         })
 
-        it('should default distanceMetric to cosine', () => {
-          expect(vectorEmbeddings1536.distanceMetric.default).toBe('cosine')
+        it('should have default value for embeddingDimension', () => {
+          expect(vectorEmbeddings1536.embeddingDimension.hasDefault).toBe(true)
+        })
+
+        it('should default embeddingDimension to 1536', () => {
+          expect(vectorEmbeddings1536.embeddingDimension.default).toBe(1536)
+        })
+      })
+
+      describe('embeddingDimension constraints and composite FK', () => {
+        it('should have embeddingDimensionCheck enforcing dimension = 1536', () => {
+          const { checks } = getTableConfig(vectorEmbeddings1536)
+          const check = checks.find(
+            (c) => c.name === 'vector_embeddings_1536_embedding_dimension_check'
+          )
+          expect(check).toBeDefined()
+        })
+
+        it('should have composite FK linking (embeddingModelId, embeddingDimension) to (embeddingModels.id, embeddingModels.dimension)', () => {
+          const { foreignKeys } = getTableConfig(vectorEmbeddings1536)
+          const fk = foreignKeys.find((f) => {
+            const ref = f.reference()
+            return (
+              ref.columns.some((c) => c.name === 'embedding_model_id') &&
+              ref.columns.some((c) => c.name === 'embedding_dimension')
+            )
+          })
+          expect(fk).toBeDefined()
+          const ref = fk!.reference()
+          expect(ref.columns.map((c) => c.name)).toEqual(
+            expect.arrayContaining(['embedding_model_id', 'embedding_dimension'])
+          )
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
+            expect.arrayContaining(['id', 'dimension'])
+          )
         })
       })
 
@@ -1402,9 +1705,16 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings768.chunkOverlap.name).toBe('chunk_overlap')
         })
 
-        it('should have distanceMetric column', () => {
-          expect(vectorEmbeddings768.distanceMetric).toBeDefined()
-          expect(vectorEmbeddings768.distanceMetric.name).toBe('distance_metric')
+        it('should have embeddingModelId column', () => {
+          expect(vectorEmbeddings768.embeddingModelId).toBeDefined()
+          expect(vectorEmbeddings768.embeddingModelId.name).toBe('embedding_model_id')
+          expect(vectorEmbeddings768.embeddingModelId.columnType).toBe('PgUUID')
+        })
+
+        it('should have embeddingDimension column', () => {
+          expect(vectorEmbeddings768.embeddingDimension).toBeDefined()
+          expect(vectorEmbeddings768.embeddingDimension.name).toBe('embedding_dimension')
+          expect(vectorEmbeddings768.embeddingDimension.columnType).toBe('PgInteger')
         })
 
         it('should have createdAt column', () => {
@@ -1459,16 +1769,49 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings768.chunkOverlap.hasDefault).toBe(true)
         })
 
-        it('should have not null constraint on distanceMetric', () => {
-          expect(vectorEmbeddings768.distanceMetric.notNull).toBe(true)
+        it('should have not null constraint on embeddingModelId', () => {
+          expect(vectorEmbeddings768.embeddingModelId.notNull).toBe(true)
         })
 
-        it('should have default value for distanceMetric', () => {
-          expect(vectorEmbeddings768.distanceMetric.hasDefault).toBe(true)
+        it('should have not null constraint on embeddingDimension', () => {
+          expect(vectorEmbeddings768.embeddingDimension.notNull).toBe(true)
         })
 
-        it('should default distanceMetric to cosine', () => {
-          expect(vectorEmbeddings768.distanceMetric.default).toBe('cosine')
+        it('should have default value for embeddingDimension', () => {
+          expect(vectorEmbeddings768.embeddingDimension.hasDefault).toBe(true)
+        })
+
+        it('should default embeddingDimension to 768', () => {
+          expect(vectorEmbeddings768.embeddingDimension.default).toBe(768)
+        })
+      })
+
+      describe('embeddingDimension constraints and composite FK', () => {
+        it('should have embeddingDimensionCheck enforcing dimension = 768', () => {
+          const { checks } = getTableConfig(vectorEmbeddings768)
+          const check = checks.find(
+            (c) => c.name === 'vector_embeddings_768_embedding_dimension_check'
+          )
+          expect(check).toBeDefined()
+        })
+
+        it('should have composite FK linking (embeddingModelId, embeddingDimension) to (embeddingModels.id, embeddingModels.dimension)', () => {
+          const { foreignKeys } = getTableConfig(vectorEmbeddings768)
+          const fk = foreignKeys.find((f) => {
+            const ref = f.reference()
+            return (
+              ref.columns.some((c) => c.name === 'embedding_model_id') &&
+              ref.columns.some((c) => c.name === 'embedding_dimension')
+            )
+          })
+          expect(fk).toBeDefined()
+          const ref = fk!.reference()
+          expect(ref.columns.map((c) => c.name)).toEqual(
+            expect.arrayContaining(['embedding_model_id', 'embedding_dimension'])
+          )
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
+            expect.arrayContaining(['id', 'dimension'])
+          )
         })
       })
 
@@ -1534,9 +1877,16 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings384.chunkOverlap.name).toBe('chunk_overlap')
         })
 
-        it('should have distanceMetric column', () => {
-          expect(vectorEmbeddings384.distanceMetric).toBeDefined()
-          expect(vectorEmbeddings384.distanceMetric.name).toBe('distance_metric')
+        it('should have embeddingModelId column', () => {
+          expect(vectorEmbeddings384.embeddingModelId).toBeDefined()
+          expect(vectorEmbeddings384.embeddingModelId.name).toBe('embedding_model_id')
+          expect(vectorEmbeddings384.embeddingModelId.columnType).toBe('PgUUID')
+        })
+
+        it('should have embeddingDimension column', () => {
+          expect(vectorEmbeddings384.embeddingDimension).toBeDefined()
+          expect(vectorEmbeddings384.embeddingDimension.name).toBe('embedding_dimension')
+          expect(vectorEmbeddings384.embeddingDimension.columnType).toBe('PgInteger')
         })
 
         it('should have createdAt column', () => {
@@ -1591,16 +1941,49 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings384.chunkOverlap.hasDefault).toBe(true)
         })
 
-        it('should have not null constraint on distanceMetric', () => {
-          expect(vectorEmbeddings384.distanceMetric.notNull).toBe(true)
+        it('should have not null constraint on embeddingModelId', () => {
+          expect(vectorEmbeddings384.embeddingModelId.notNull).toBe(true)
         })
 
-        it('should have default value for distanceMetric', () => {
-          expect(vectorEmbeddings384.distanceMetric.hasDefault).toBe(true)
+        it('should have not null constraint on embeddingDimension', () => {
+          expect(vectorEmbeddings384.embeddingDimension.notNull).toBe(true)
         })
 
-        it('should default distanceMetric to cosine', () => {
-          expect(vectorEmbeddings384.distanceMetric.default).toBe('cosine')
+        it('should have default value for embeddingDimension', () => {
+          expect(vectorEmbeddings384.embeddingDimension.hasDefault).toBe(true)
+        })
+
+        it('should default embeddingDimension to 384', () => {
+          expect(vectorEmbeddings384.embeddingDimension.default).toBe(384)
+        })
+      })
+
+      describe('embeddingDimension constraints and composite FK', () => {
+        it('should have embeddingDimensionCheck enforcing dimension = 384', () => {
+          const { checks } = getTableConfig(vectorEmbeddings384)
+          const check = checks.find(
+            (c) => c.name === 'vector_embeddings_384_embedding_dimension_check'
+          )
+          expect(check).toBeDefined()
+        })
+
+        it('should have composite FK linking (embeddingModelId, embeddingDimension) to (embeddingModels.id, embeddingModels.dimension)', () => {
+          const { foreignKeys } = getTableConfig(vectorEmbeddings384)
+          const fk = foreignKeys.find((f) => {
+            const ref = f.reference()
+            return (
+              ref.columns.some((c) => c.name === 'embedding_model_id') &&
+              ref.columns.some((c) => c.name === 'embedding_dimension')
+            )
+          })
+          expect(fk).toBeDefined()
+          const ref = fk!.reference()
+          expect(ref.columns.map((c) => c.name)).toEqual(
+            expect.arrayContaining(['embedding_model_id', 'embedding_dimension'])
+          )
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
+            expect.arrayContaining(['id', 'dimension'])
+          )
         })
       })
 
@@ -1666,9 +2049,16 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings3072.chunkOverlap.name).toBe('chunk_overlap')
         })
 
-        it('should have distanceMetric column', () => {
-          expect(vectorEmbeddings3072.distanceMetric).toBeDefined()
-          expect(vectorEmbeddings3072.distanceMetric.name).toBe('distance_metric')
+        it('should have embeddingModelId column', () => {
+          expect(vectorEmbeddings3072.embeddingModelId).toBeDefined()
+          expect(vectorEmbeddings3072.embeddingModelId.name).toBe('embedding_model_id')
+          expect(vectorEmbeddings3072.embeddingModelId.columnType).toBe('PgUUID')
+        })
+
+        it('should have embeddingDimension column', () => {
+          expect(vectorEmbeddings3072.embeddingDimension).toBeDefined()
+          expect(vectorEmbeddings3072.embeddingDimension.name).toBe('embedding_dimension')
+          expect(vectorEmbeddings3072.embeddingDimension.columnType).toBe('PgInteger')
         })
 
         it('should have createdAt column', () => {
@@ -1739,16 +2129,49 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings3072.chunkOverlap.hasDefault).toBe(true)
         })
 
-        it('should have not null constraint on distanceMetric', () => {
-          expect(vectorEmbeddings3072.distanceMetric.notNull).toBe(true)
+        it('should have not null constraint on embeddingModelId', () => {
+          expect(vectorEmbeddings3072.embeddingModelId.notNull).toBe(true)
         })
 
-        it('should have default value for distanceMetric', () => {
-          expect(vectorEmbeddings3072.distanceMetric.hasDefault).toBe(true)
+        it('should have not null constraint on embeddingDimension', () => {
+          expect(vectorEmbeddings3072.embeddingDimension.notNull).toBe(true)
         })
 
-        it('should default distanceMetric to cosine', () => {
-          expect(vectorEmbeddings3072.distanceMetric.default).toBe('cosine')
+        it('should have default value for embeddingDimension', () => {
+          expect(vectorEmbeddings3072.embeddingDimension.hasDefault).toBe(true)
+        })
+
+        it('should default embeddingDimension to 3072', () => {
+          expect(vectorEmbeddings3072.embeddingDimension.default).toBe(3072)
+        })
+      })
+
+      describe('embeddingDimension constraints and composite FK', () => {
+        it('should have embeddingDimensionCheck enforcing dimension = 3072', () => {
+          const { checks } = getTableConfig(vectorEmbeddings3072)
+          const check = checks.find(
+            (c) => c.name === 'vector_embeddings_3072_embedding_dimension_check'
+          )
+          expect(check).toBeDefined()
+        })
+
+        it('should have composite FK linking (embeddingModelId, embeddingDimension) to (embeddingModels.id, embeddingModels.dimension)', () => {
+          const { foreignKeys } = getTableConfig(vectorEmbeddings3072)
+          const fk = foreignKeys.find((f) => {
+            const ref = f.reference()
+            return (
+              ref.columns.some((c) => c.name === 'embedding_model_id') &&
+              ref.columns.some((c) => c.name === 'embedding_dimension')
+            )
+          })
+          expect(fk).toBeDefined()
+          const ref = fk!.reference()
+          expect(ref.columns.map((c) => c.name)).toEqual(
+            expect.arrayContaining(['embedding_model_id', 'embedding_dimension'])
+          )
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
+            expect.arrayContaining(['id', 'dimension'])
+          )
         })
       })
 
@@ -1823,9 +2246,16 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings1024.chunkOverlap.name).toBe('chunk_overlap')
         })
 
-        it('should have distanceMetric column', () => {
-          expect(vectorEmbeddings1024.distanceMetric).toBeDefined()
-          expect(vectorEmbeddings1024.distanceMetric.name).toBe('distance_metric')
+        it('should have embeddingModelId column', () => {
+          expect(vectorEmbeddings1024.embeddingModelId).toBeDefined()
+          expect(vectorEmbeddings1024.embeddingModelId.name).toBe('embedding_model_id')
+          expect(vectorEmbeddings1024.embeddingModelId.columnType).toBe('PgUUID')
+        })
+
+        it('should have embeddingDimension column', () => {
+          expect(vectorEmbeddings1024.embeddingDimension).toBeDefined()
+          expect(vectorEmbeddings1024.embeddingDimension.name).toBe('embedding_dimension')
+          expect(vectorEmbeddings1024.embeddingDimension.columnType).toBe('PgInteger')
         })
 
         it('should have createdAt column', () => {
@@ -1896,16 +2326,49 @@ describe('Database Schema', () => {
           expect(vectorEmbeddings1024.chunkOverlap.hasDefault).toBe(true)
         })
 
-        it('should have not null constraint on distanceMetric', () => {
-          expect(vectorEmbeddings1024.distanceMetric.notNull).toBe(true)
+        it('should have not null constraint on embeddingModelId', () => {
+          expect(vectorEmbeddings1024.embeddingModelId.notNull).toBe(true)
         })
 
-        it('should have default value for distanceMetric', () => {
-          expect(vectorEmbeddings1024.distanceMetric.hasDefault).toBe(true)
+        it('should have not null constraint on embeddingDimension', () => {
+          expect(vectorEmbeddings1024.embeddingDimension.notNull).toBe(true)
         })
 
-        it('should default distanceMetric to cosine', () => {
-          expect(vectorEmbeddings1024.distanceMetric.default).toBe('cosine')
+        it('should have default value for embeddingDimension', () => {
+          expect(vectorEmbeddings1024.embeddingDimension.hasDefault).toBe(true)
+        })
+
+        it('should default embeddingDimension to 1024', () => {
+          expect(vectorEmbeddings1024.embeddingDimension.default).toBe(1024)
+        })
+      })
+
+      describe('embeddingDimension constraints and composite FK', () => {
+        it('should have embeddingDimensionCheck enforcing dimension = 1024', () => {
+          const { checks } = getTableConfig(vectorEmbeddings1024)
+          const check = checks.find(
+            (c) => c.name === 'vector_embeddings_1024_embedding_dimension_check'
+          )
+          expect(check).toBeDefined()
+        })
+
+        it('should have composite FK linking (embeddingModelId, embeddingDimension) to (embeddingModels.id, embeddingModels.dimension)', () => {
+          const { foreignKeys } = getTableConfig(vectorEmbeddings1024)
+          const fk = foreignKeys.find((f) => {
+            const ref = f.reference()
+            return (
+              ref.columns.some((c) => c.name === 'embedding_model_id') &&
+              ref.columns.some((c) => c.name === 'embedding_dimension')
+            )
+          })
+          expect(fk).toBeDefined()
+          const ref = fk!.reference()
+          expect(ref.columns.map((c) => c.name)).toEqual(
+            expect.arrayContaining(['embedding_model_id', 'embedding_dimension'])
+          )
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
+            expect.arrayContaining(['id', 'dimension'])
+          )
         })
       })
 
@@ -1977,6 +2440,81 @@ describe('Database Schema', () => {
         expect(vectorEmbeddings384.embedding.columnType).toBe('PgCustomColumn')
         expect(vectorEmbeddings3072.embedding.columnType).toBe('PgCustomColumn')
         expect(vectorEmbeddings1024.embedding.columnType).toBe('PgCustomColumn')
+      })
+
+      it('should all have an embeddingModelId (UUID) column linking to embedding_models', () => {
+        expect(vectorEmbeddings1536.embeddingModelId.columnType).toBe('PgUUID')
+        expect(vectorEmbeddings768.embeddingModelId.columnType).toBe('PgUUID')
+        expect(vectorEmbeddings384.embeddingModelId.columnType).toBe('PgUUID')
+        expect(vectorEmbeddings3072.embeddingModelId.columnType).toBe('PgUUID')
+        expect(vectorEmbeddings1024.embeddingModelId.columnType).toBe('PgUUID')
+      })
+
+      it('should all have a notNull embeddingDimension (integer) column', () => {
+        expect(vectorEmbeddings1536.embeddingDimension.columnType).toBe('PgInteger')
+        expect(vectorEmbeddings768.embeddingDimension.columnType).toBe('PgInteger')
+        expect(vectorEmbeddings384.embeddingDimension.columnType).toBe('PgInteger')
+        expect(vectorEmbeddings3072.embeddingDimension.columnType).toBe('PgInteger')
+        expect(vectorEmbeddings1024.embeddingDimension.columnType).toBe('PgInteger')
+
+        expect(vectorEmbeddings1536.embeddingDimension.notNull).toBe(true)
+        expect(vectorEmbeddings768.embeddingDimension.notNull).toBe(true)
+        expect(vectorEmbeddings384.embeddingDimension.notNull).toBe(true)
+        expect(vectorEmbeddings3072.embeddingDimension.notNull).toBe(true)
+        expect(vectorEmbeddings1024.embeddingDimension.notNull).toBe(true)
+      })
+
+      it('should all have dimension-specific embeddingDimensionCheck constraints', () => {
+        expect(
+          getTableConfig(vectorEmbeddings1536).checks.find(
+            (c) => c.name === 'vector_embeddings_1536_embedding_dimension_check'
+          )
+        ).toBeDefined()
+        expect(
+          getTableConfig(vectorEmbeddings768).checks.find(
+            (c) => c.name === 'vector_embeddings_768_embedding_dimension_check'
+          )
+        ).toBeDefined()
+        expect(
+          getTableConfig(vectorEmbeddings384).checks.find(
+            (c) => c.name === 'vector_embeddings_384_embedding_dimension_check'
+          )
+        ).toBeDefined()
+        expect(
+          getTableConfig(vectorEmbeddings3072).checks.find(
+            (c) => c.name === 'vector_embeddings_3072_embedding_dimension_check'
+          )
+        ).toBeDefined()
+        expect(
+          getTableConfig(vectorEmbeddings1024).checks.find(
+            (c) => c.name === 'vector_embeddings_1024_embedding_dimension_check'
+          )
+        ).toBeDefined()
+      })
+
+      it('should all have a composite FK from (embeddingModelId, embeddingDimension) to embedding_models', () => {
+        const tables = [
+          vectorEmbeddings1536,
+          vectorEmbeddings768,
+          vectorEmbeddings384,
+          vectorEmbeddings3072,
+          vectorEmbeddings1024,
+        ]
+        tables.forEach((table) => {
+          const { foreignKeys } = getTableConfig(table)
+          const fk = foreignKeys.find((f) => {
+            const ref = f.reference()
+            return (
+              ref.columns.some((c) => c.name === 'embedding_model_id') &&
+              ref.columns.some((c) => c.name === 'embedding_dimension')
+            )
+          })
+          expect(fk).toBeDefined()
+          const ref = fk!.reference()
+          expect(ref.foreignColumns.map((c) => c.name)).toEqual(
+            expect.arrayContaining(['id', 'dimension'])
+          )
+        })
       })
     })
   })
