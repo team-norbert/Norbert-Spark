@@ -177,6 +177,15 @@ pnpm test         # Run all tests
 pnpm typecheck    # TypeScript type checking (no emit)
 pnpm format       # Format code with Prettier
 
+With all new code the above commands should be run in this order from the root:
+1. pnpm format
+2. pnpm lint:fix
+3. pnpm typecheck
+4. pnpm test
+5. pnpm test:e2e
+
+When pushing to GitHub, it is possibe to bypass the E2E tests by adding `SKIP_E2E=1` to the CLI, example `SKIP_E2E=1 git push origin build/update-copilot-instructions`.
+
 # Frontend-specific
 pnpm --filter @norberts-spark/frontend dev      # Next.js dev server
 pnpm --filter @norberts-spark/frontend build    # Next.js production build
