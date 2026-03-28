@@ -312,7 +312,7 @@ CREATE TABLE IF NOT EXISTS vector_embeddings_384 (
     REFERENCES documents(id)
     ON DELETE CASCADE,
     embedding_model_id UUID NOT NULL,
-    embedding_dimension INTEGER NOT NULL DEFAULT 3072
+    embedding_dimension INTEGER NOT NULL DEFAULT 384
     CHECK (embedding_dimension = 384),
     chunk_index INTEGER NOT NULL DEFAULT 0,
     content TEXT NOT NULL,
