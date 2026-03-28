@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS embedding_models (
               'CLUSTERING'
                               )
             OR task_type ~ '^[A-Z_]+$'
-    )
+    ),
     CHECK (
               provider = 'google'
               OR task_type IS NULL
