@@ -36,7 +36,11 @@ const EmbeddingModelsRequestSchema = z.union([
       modelName: z.string(),
       modelProvider: ModelProviderSchema,
       dimension: DimensionSchema,
-      releaseYear: z.number().int().min(2000).max(2027),
+      releaseYear: z
+        .number()
+        .int()
+        .min(2000)
+        .max(new Date().getFullYear() + 1),
       recommendedUsage: z.string().min(1),
       taskType: TaskTypeSchema.optional(),
     })

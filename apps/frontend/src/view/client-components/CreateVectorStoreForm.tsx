@@ -647,7 +647,9 @@ export function CreateVectorStoreForm({
             label="Frequency Penalty"
             type="number"
             value={frequencyPenalty}
-            onChange={(e) => setFrequencyPenalty(e.target.value === '' ? 0 : Number(e.target.value))}
+            onChange={(e) =>
+              setFrequencyPenalty(e.target.value === '' ? 0 : Number(e.target.value))
+            }
             inputProps={{ step: 0.1, min: -2, max: 2 }}
             fullWidth
             data-testid="chat-ai-options-frequency-penalty-input"
