@@ -743,6 +743,103 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit).not.toHaveBeenCalled()
     })
 
+    it('blocks form submission when modelName is empty in manual entry mode', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ modelName: '' })
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('blocks form submission when releaseYear is below 2000', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ releaseYear: '1999' })
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('blocks form submission when releaseYear is above 2027', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ releaseYear: '2028' })
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('blocks form submission when releaseYear is not an integer', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ releaseYear: '2024.5' })
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('allows submission when releaseYear is exactly 2000 (lower bound)', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ releaseYear: '2000' })
+      submitForm()
+
+      expect(mockOnSubmit).toHaveBeenCalledOnce()
+      expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.releaseYear).toBe(2000)
+    })
+
+    it('allows submission when releaseYear is exactly 2027 (upper bound)', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ releaseYear: '2027' })
+      submitForm()
+
+      expect(mockOnSubmit).toHaveBeenCalledOnce()
+      expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.releaseYear).toBe(2027)
+    })
+
+    it('blocks form submission when modelProvider is google with a task-type model but taskType is empty', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ modelName: 'text-embedding-005', modelProvider: 'google' })
+      // taskType select is enabled but left empty
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('allows form submission when modelProvider is google with a task-type model and taskType is set', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ modelName: 'text-embedding-005', modelProvider: 'google' })
+
+      // Select a taskType from the enabled select
+      const taskTypeSelect = document.querySelector(
+        '[data-testid="embedding-models-task-type-select"]'
+      ) as HTMLElement
+      const trigger = (taskTypeSelect.querySelector('[role="combobox"]') ??
+        taskTypeSelect) as HTMLElement
+      fireEvent.mouseDown(trigger)
+      fireEvent.click(
+        document.querySelector('li[role="option"][data-value="RETRIEVAL_QUERY"]') as HTMLElement
+      )
+
+      submitForm()
+
+      expect(mockOnSubmit).toHaveBeenCalledOnce()
+      expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.taskType).toBe('RETRIEVAL_QUERY')
+    })
+
+    it('allows form submission for google provider with a non-task-type model name without taskType', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ modelName: 'text-embedding-gecko', modelProvider: 'google' })
+      submitForm()
+
+      expect(mockOnSubmit).toHaveBeenCalledOnce()
+    })
+
     it('submits existingModelId when a dropdown model is selected and no manual entry is made', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
