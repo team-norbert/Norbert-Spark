@@ -192,7 +192,7 @@ export function CreateVectorStoreForm({
         ...(stopSequences
           ? { stopSequences: stopSequences.split(',').map((s) => s.trim()) }
           : { stopSequences: [] }),
-        ...(maxRetries != null && maxRetries !== '' ? { maxRetries: Number(maxRetries) } : {}),
+        ...(maxRetries ? { maxRetries: Number(maxRetries) } : {}),
       },
     }
 
