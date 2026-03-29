@@ -1,4 +1,5 @@
 import { z } from 'zod'
+// TODO: import the actual OpenAPI-generated types, and ensure these Zod schemas stay in sync with them.
 
 /**
  * Schema for a single AI Embedding Model
