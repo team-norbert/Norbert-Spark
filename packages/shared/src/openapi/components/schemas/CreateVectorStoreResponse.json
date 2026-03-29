@@ -15,7 +15,7 @@
         "documents": {
           "type": "object",
           "description": "Created document record",
-          "required": ["id", "title", "source", "createdAt", "updatedAt"],
+          "required": ["id", "title", "source", "checksum", "createdAt", "updatedAt"],
           "properties": {
             "id": {
               "type": "string",
@@ -30,6 +30,13 @@
             "source": {
               "type": "string",
               "description": "Source of the document"
+            },
+            "checksum": {
+              "type": "string",
+              "description": "SHA-256 checksum (hex digest) of the document content for integrity verification",
+              "minLength": 64,
+              "maxLength": 64,
+              "pattern": "^[0-9a-f]{64}$"
             },
             "createdAt": {
               "type": "string",
@@ -48,7 +55,17 @@
         "embeddingModels": {
           "type": "object",
           "description": "Created embedding model record",
-          "required": ["id", "dimension", "modelName", "modelProvider", "createdAt", "updatedAt"],
+          "required": [
+            "id",
+            "dimension",
+            "modelName",
+            "modelProvider",
+            "status",
+            "recommendedUsage",
+            "releaseYear",
+            "createdAt",
+            "updatedAt"
+          ],
           "properties": {
             "id": {
               "type": "string",
@@ -62,13 +79,41 @@
             },
             "modelProvider": {
               "type": "string",
-              "description": "Provider of the embedding model (e.g., OpenAI, Hugging Face)"
+              "description": "Provider of the embedding model (e.g., OpenAI)",
+              "enum": ["openai", "google", "cohere", "amazon", "voyage", "mistral"]
+            },
+            "status": {
+              "type": "string",
+              "description": "Status of the embedding model (e.g., current, legacy, deprecated, experimental)",
+              "example": "current"
+            },
+            "recommendedUsage": {
+              "type": "string",
+              "description": "Recommended usage scenario for the embedding model"
+            },
+            "releaseYear": {
+              "type": "integer",
+              "description": "Release year of the embedding model",
+              "minimum": 2000,
+              "example": 2023
             },
             "dimension": {
               "type": "integer",
               "description": "Dimension of the vector embeddings",
               "enum": [3072, 1536, 1024, 768, 384],
               "example": 1536
+            },
+            "taskType": {
+              "type": "string",
+              "description": "Task type of the embedding model",
+              "enum": [
+                "RETRIEVAL_QUERY",
+                "RETRIEVAL_DOCUMENT",
+                "SEMANTIC_SIMILARITY",
+                "CLASSIFICATION",
+                "CLUSTERING"
+              ],
+              "default": "RETRIEVAL_QUERY"
             },
             "createdAt": {
               "type": "string",
