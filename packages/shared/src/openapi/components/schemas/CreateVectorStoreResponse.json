@@ -34,7 +34,6 @@
             "checksum": {
               "type": "string",
               "description": "SHA-256 checksum (hex digest) of the document content for integrity verification",
-              "example": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b982",
               "minLength": 64,
               "maxLength": 64,
               "pattern": "^[0-9a-f]{64}$"
