@@ -13,5 +13,5 @@ Your goal is to generate a Playwright test based on the provided scenario after 
 - DO NOT generate test code prematurely or based solely on the scenario without completing all prescribed steps.
 - DO run steps one by one using the tools provided by the Playwright MCP.
 - Only after all steps are completed, emit a Playwright TypeScript test that uses `@playwright/test` based on message history
-- Save generated test file in the tests directory
+- Save the generated test file under the Playwright `testDir` configured in `apps/frontend/playwright.config.ts` (currently the `e2e/` directory)
 - Execute the test file and iterate until the test passes

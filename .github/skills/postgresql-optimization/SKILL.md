@@ -7,7 +7,7 @@ description: 'PostgreSQL-specific development assistant focusing on unique Postg
 
 Expert PostgreSQL guidance for ${selection} (or entire project if no selection). Focus on PostgreSQL-specific features, optimization patterns, and advanced capabilities.
 
-## � PostgreSQL-Specific Features
+## ⭐ PostgreSQL-Specific Features
 
 ### JSONB Operations
 
@@ -98,7 +98,7 @@ WHERE search_vector @@ plainto_tsquery('postgresql')
 ORDER BY rank DESC;
 ```
 
-## � PostgreSQL Performance Tuning
+## ⚡ PostgreSQL Performance Tuning
 
 ### Query Optimization
 
@@ -149,7 +149,7 @@ FROM pg_settings
 WHERE name IN ('shared_buffers', 'work_mem', 'maintenance_work_mem');
 ```
 
-## �️ PostgreSQL Advanced Data Types
+## 🗂️ PostgreSQL Advanced Data Types
 
 ### Custom Types & Domains
 
@@ -388,7 +388,7 @@ SELECT * FROM users WHERE data @> '{"role": "admin"}';
 **Recommended Indexes**:
 ```sql
 CREATE INDEX idx_table_column ON table(column);
-````
+```
 
 **Performance Impact**: Expected 80% improvement in execution time
 
@@ -406,7 +406,7 @@ SELECT
     SUM(amount) OVER (PARTITION BY product_id ORDER BY order_date) as running_total,
     ROW_NUMBER() OVER (PARTITION BY product_id ORDER BY amount DESC) as rank
 FROM sales;
-````
+```
 
 ### Common Table Expressions (CTEs)
 
