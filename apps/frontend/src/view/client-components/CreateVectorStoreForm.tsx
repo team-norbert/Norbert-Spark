@@ -133,9 +133,6 @@ export function CreateVectorStoreForm({
   // vectorEmbeddings
   const [chunkSize, setChunkSize] = useState('300')
   const [chunkOverlap, setChunkOverlap] = useState('40')
-  const [distanceMetric, setDistanceMetric] = useState<'cosine' | 'euclidean' | 'dot_product'>(
-    'cosine'
-  )
 
   // chatAIOptions
   const [chatTypeId, setChatTypeId] = useState(initialChatTypeId ?? '')
@@ -152,7 +149,6 @@ export function CreateVectorStoreForm({
 
     if (!selectedModelId && (dimension === '' || !releaseYear)) return
     if (!selectedModelId && !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)) return
-    if (distanceMetric === 'euclidean' || distanceMetric === 'dot_product') return
 
     const embeddingModels =
       selectedModelId !== ''
@@ -180,8 +176,7 @@ export function CreateVectorStoreForm({
       embeddingModels,
       vectorEmbeddings: {
         chunkSize: Number(chunkSize),
-        chunkOverlap: Number(chunkOverlap),
-        distanceMetric,
+        chunkOverlap: Number(chunkOverlap)
       },
       chatAIOptions: {
         chatTypeId,
@@ -471,37 +466,6 @@ export function CreateVectorStoreForm({
             header="Information on Vector Embeddings"
             body={vectorEmbeddingsText}
           />
-          <Divider sx={{ my: 2 }} />
-
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel id="distance-metric-label" shrink>
-              Distance Metric
-            </InputLabel>
-            <Select
-              labelId="distance-metric-label"
-              label="Distance Metric"
-              value={distanceMetric}
-              data-test-id="vector-embeddings-distance-metric-select"
-              onChange={(e) =>
-                setDistanceMetric(e.target.value as 'cosine' | 'euclidean' | 'dot_product')
-              }
-            >
-              <MenuItem value="cosine">cosine</MenuItem>
-              <MenuItem value="euclidean">euclidean (not currently supported)</MenuItem>
-              <MenuItem value="dot_product">dot_product (not currently supported)</MenuItem>
-            </Select>
-          </FormControl>
-          {(distanceMetric === 'euclidean' || distanceMetric === 'dot_product') && (
-            <Typography
-              color="error"
-              variant="body2"
-              data-test-id="distance-metric-error"
-              sx={{ mb: 2 }}
-            >
-              This distance metric is not currently supported.
-            </Typography>
-          )}
-
           <Divider sx={{ my: 2 }} />
 
           <TextField

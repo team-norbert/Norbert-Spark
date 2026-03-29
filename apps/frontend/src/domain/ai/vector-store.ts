@@ -59,7 +59,6 @@ export const CreateVectorStoreRequestSchema = z.object({
   vectorEmbeddings: z.object({
     chunkSize: z.number().int().min(1).max(10000),
     chunkOverlap: z.number().int().min(0).max(1000),
-    distanceMetric: z.enum(['cosine', 'euclidean', 'dot_product']).optional(),
   }),
   chatAIOptions: z.object({
     chatTypeId: z.uuid(),
@@ -69,7 +68,6 @@ export const CreateVectorStoreRequestSchema = z.object({
     frequencyPenalty: z.number().min(-2).max(2).optional(),
     presencePenalty: z.number().min(-2).max(2).optional(),
     stopSequences: z.array(z.string()).optional(),
-    seed: z.number().int().optional(),
     maxRetries: z.number().int().min(0).max(10).optional(),
   }),
 })
