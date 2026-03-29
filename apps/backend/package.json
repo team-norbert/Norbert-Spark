@@ -30,7 +30,8 @@
     "eval": "evalite run",
     "eval:view": "evalite view",
     "test:pact": "vitest run --config vitest.config.pact.ts pact/provider.pact.spec.ts",
-    "test:mutation": "stryker run"
+    "test:mutation": "stryker run",
+    "varlock:regenerate": "pnpm exec varlock typegen"
   },
   "dependencies": {
     "@ai-sdk/cohere": "^3.0.27",
@@ -38,8 +39,8 @@
     "@ai-sdk/huggingface": "^1.0.39",
     "@ai-sdk/openai": "^3.0.48",
     "@ai-sdk/provider": "^3.0.8",
-    "@aws-sdk/client-s3": "^3.1018.0",
-    "@aws-sdk/s3-request-presigner": "^3.1018.0",
+    "@aws-sdk/client-s3": "^3.1019.0",
+    "@aws-sdk/s3-request-presigner": "^3.1019.0",
     "@fastify/cors": "^11.2.0",
     "@fastify/helmet": "^13.0.2",
     "@fastify/multipart": "^9.4.0",
@@ -54,10 +55,10 @@
     "@smithy/node-http-handler": "^4.5.0",
     "@supercharge/promise-pool": "^3.3.0",
     "@upstash/redis": "^1.37.0",
-    "ai": "^6.0.140",
+    "ai": "^6.0.141",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.3.1",
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "^0.45.2",
     "fastify": "^5.8.4",
     "file-type": "^21.3.4",
     "isomorphic-dompurify": "^3.7.1",
@@ -73,7 +74,7 @@
     "unzipper": "^0.12.3",
     "uuidv7": "^1.2.1",
     "uuidv7-utilities": "^3.1.0",
-    "varlock": "^0.5.0",
+    "varlock": "^0.6.2",
     "voyage-ai-provider": "^3.0.0",
     "yaml": "^2.8.3",
     "zod": "^4.3.6"

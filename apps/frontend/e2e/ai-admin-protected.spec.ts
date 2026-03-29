@@ -124,16 +124,16 @@ test.describe('AI Admin Page - Role-Based Access Control', () => {
 
     // Find the search field
     const searchField = page.getByPlaceholder(/Search by name, description, or SEO ID/i)
-    await expect(searchField).toBeVisible()
+    await expect(searchField.last()).toBeVisible()
 
     // Type a search query
-    await searchField.fill('general')
+    await searchField.last().fill('general')
 
     // Wait a moment for debouncing
     await page.waitForTimeout(500)
 
     // Verify search field has the value
-    await expect(searchField).toHaveValue('general')
+    await expect(searchField.last()).toHaveValue('general')
   })
 
   test('should support pagination in AI admin page', async ({ page }) => {
