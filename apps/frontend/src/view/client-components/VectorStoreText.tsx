@@ -155,9 +155,22 @@ increase response latency if repeated failures occur.
 
 A value of 0 disables retries. The maximum allowed value is 10.`
 
-export const taskTypes = `This is only required for a few different models provided by Google.
-
-It is recommended that you read the online documentation: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/embeddings/task-types</Link>
-
-If you are unsure, then pick RETRIEVAL_QUERY
-`
+export const taskTypes = (
+  <>
+    This is only required for a few different models provided by Google.
+    <br />
+    <br />
+    It is recommended that you read the online documentation:{' '}
+    <Link
+      href="https://docs.cloud.google.com/vertex-ai/generative-ai/docs/embeddings/task-types"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Google Vertex AI embeddings task types documentation
+    </Link>
+    .
+    <br />
+    <br />
+    If you are unsure, then pick <code>RETRIEVAL_QUERY</code>.
+  </>
+)
