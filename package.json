@@ -59,7 +59,8 @@
       "minimatch@>=1.0.0 <5.1.8": ">=5.1.8",
       "redoc@<2.4.0": "^2.4.0",
       "picomatch@<4.0.4": "^4.0.4",
-      "handlebars@<4.7.9": "^4.7.9"
+      "handlebars@<4.7.9": "^4.7.9",
+      "path-to-regexp@<8.4.0": "^8.4.0"
     }
   },
   "workspaces": [
