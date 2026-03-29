@@ -54,7 +54,7 @@ const GOOGLE_TASK_TYPE_MODEL_NAMES = [
 ] as const
 
 const RELEASE_YEAR_MIN = 2000
-const RELEASE_YEAR_MAX = 2027
+const RELEASE_YEAR_MAX = new Date().getFullYear() + 1
 
 function isReleaseYearValid(value: string): boolean {
   const num = Number(value)

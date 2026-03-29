@@ -761,10 +761,10 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit).not.toHaveBeenCalled()
     })
 
-    it('blocks form submission when releaseYear is above 2027', () => {
+    it('blocks form submission when releaseYear is above the current year + 1', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      fillRequiredFields({ releaseYear: '2028' })
+      fillRequiredFields({ releaseYear: String(new Date().getFullYear() + 2) })
       submitForm()
 
       expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -789,14 +789,15 @@ describe('CreateVectorStoreForm', () => {
       expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.releaseYear).toBe(2000)
     })
 
-    it('allows submission when releaseYear is exactly 2027 (upper bound)', () => {
+    it('allows submission when releaseYear is exactly current year + 1 (upper bound)', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
-      fillRequiredFields({ releaseYear: '2027' })
+      const upperBound = new Date().getFullYear() + 1
+      fillRequiredFields({ releaseYear: String(upperBound) })
       submitForm()
 
       expect(mockOnSubmit).toHaveBeenCalledOnce()
-      expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.releaseYear).toBe(2027)
+      expect(mockOnSubmit.mock.calls[0]![0]!.embeddingModels.releaseYear).toBe(upperBound)
     })
 
     it('blocks form submission when modelProvider is google with a task-type model but taskType is empty', () => {
