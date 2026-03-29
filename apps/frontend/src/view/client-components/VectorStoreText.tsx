@@ -1,3 +1,5 @@
+import { Link } from '@mui/material'
+
 export const bodyText = `To create a vector store, fill out the form with information about your documents,
 embedding model, vector settings, and chat AI options. When you submit the form, this information
 will be used to call the API endpoint that creates and configures your vector store.
@@ -154,3 +156,23 @@ Setting a retry value can improve reliability, but higher values may
 increase response latency if repeated failures occur.
 
 A value of 0 disables retries. The maximum allowed value is 10.`
+
+export const taskTypes = (
+  <>
+    This is only required for a few different models provided by Google.
+    <br />
+    <br />
+    It is recommended that you read the online documentation:{' '}
+    <Link
+      href="https://docs.cloud.google.com/vertex-ai/generative-ai/docs/embeddings/task-types"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Google Vertex AI embeddings task types documentation
+    </Link>
+    .
+    <br />
+    <br />
+    If you are unsure, then pick <code>RETRIEVAL_QUERY</code>.
+  </>
+)

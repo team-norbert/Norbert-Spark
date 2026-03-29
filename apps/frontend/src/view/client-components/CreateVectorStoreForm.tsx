@@ -1,3 +1,5 @@
+// TODO: refactor to be under 600 lines of code
+/* eslint-disable max-lines */
 'use client'
 
 import {
@@ -8,7 +10,6 @@ import {
   CircularProgress,
   Divider,
   FormControl,
-  FormHelperText,
   InputLabel,
   MenuItem,
   Select,
@@ -33,8 +34,8 @@ import {
   maxRetriesText,
   maxTokensText,
   presencePenaltyText,
-  seedText,
   stopSequencesText,
+  taskTypes,
   temperatureText,
   topPText,
   vectorEmbeddingsText,
@@ -43,11 +44,27 @@ import {
 export type CreateVectorStoreFormData = CreateVectorStoreRequest
 export type DocumentEntry = VectorStoreDocumentEntry
 
-const DISTANCE_METRICS: CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric'][] = [
-  'cosine',
-  'euclidean',
-  'dot_product',
-]
+const ALLOWED_PROVIDERS = ['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral'] as const
+type AllowedProvider = (typeof ALLOWED_PROVIDERS)[number]
+
+const GOOGLE_TASK_TYPE_MODEL_NAMES = [
+  'text-embedding-005',
+  'text-multilingual-embedding-002',
+  'gemini-embedding-001',
+] as const
+
+const RELEASE_YEAR_MIN = 2000
+const RELEASE_YEAR_MAX = new Date().getFullYear() + 1
+
+function isReleaseYearValid(value: string): boolean {
+  const num = Number(value)
+  return (
+    !Number.isNaN(num) &&
+    Number.isInteger(num) &&
+    num >= RELEASE_YEAR_MIN &&
+    num <= RELEASE_YEAR_MAX
+  )
+}
 
 /**
  * Derives a human-readable document title from a bucket fileKey.
@@ -73,7 +90,8 @@ interface CreateVectorStoreFormProps {
  * The form is typed against the generated OpenAPI `CreateVectorStoreRequest`
  * schema. Select fields are used for enum-constrained values:
  * - `embeddingModels.dimension`: [3072, 1536, 1024, 768, 384]
- * - `vectorEmbeddings.distanceMetric`: ['cosine', 'euclidean', 'dot_product']
+ * - `embeddingModels.modelProvider`: ['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral']
+ * - `embeddingModels.taskType` (optional): ['RETRIEVAL_QUERY', 'RETRIEVAL_DOCUMENT', 'SEMANTIC_SIMILARITY', 'CLASSIFICATION', 'CLUSTERING']
  */
 export function CreateVectorStoreForm({
   fileKeys,
@@ -111,6 +129,9 @@ export function CreateVectorStoreForm({
   const [modelName, setModelName] = useState('')
   const [modelProvider, setModelProvider] = useState('')
   const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384 | ''>('')
+  const [releaseYear, setReleaseYear] = useState('')
+  const [recommendedUsage, setRecommendedUsage] = useState('')
+  const [taskType, setTaskType] = useState('')
 
   // Selecting a pre-seeded model clears the manual fields (mutually exclusive modes)
   const handleModelSelect = (modelId: string) => {
@@ -118,6 +139,9 @@ export function CreateVectorStoreForm({
     setModelName('')
     setModelProvider('')
     setDimension('')
+    setReleaseYear('')
+    setRecommendedUsage('')
+    setTaskType('')
   }
 
   // Typing into a manual field deselects the dropdown (mutually exclusive modes)
@@ -129,10 +153,6 @@ export function CreateVectorStoreForm({
     }
 
   // vectorEmbeddings
-  const [distanceMetric, setDistanceMetric] = useState<
-    CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric'] | ''
-  >('cosine')
-  const [distanceMetricError, setDistanceMetricError] = useState<string | null>(null)
   const [chunkSize, setChunkSize] = useState('300')
   const [chunkOverlap, setChunkOverlap] = useState('40')
 
@@ -141,29 +161,62 @@ export function CreateVectorStoreForm({
   const [maxTokens, setMaxTokens] = useState('1000')
   const [temperature, setTemperature] = useState('0.7')
   const [topP, setTopP] = useState('1')
-  const [frequencyPenalty, setFrequencyPenalty] = useState('')
-  const [presencePenalty, setPresencePenalty] = useState('')
+  const [frequencyPenalty, setFrequencyPenalty] = useState(0)
+  const [presencePenalty, setPresencePenalty] = useState(0)
   const [stopSequences, setStopSequences] = useState('')
-  const [seed, setSeed] = useState('')
-  const [maxRetries, setMaxRetries] = useState('')
+  const [maxRetries, setMaxRetries] = useState(2)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!selectedModelId && dimension === '') return
-    if (distanceMetric === '' || distanceMetricError) return
+    if (
+      !selectedModelId &&
+      (!modelName ||
+        dimension === '' ||
+        !releaseYear ||
+        !recommendedUsage ||
+        !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider) ||
+        !isReleaseYearValid(releaseYear))
+    )
+      return
+
+    // taskType is required when the model is a Google model that mandates it
+    if (
+      !selectedModelId &&
+      modelProvider === 'google' &&
+      GOOGLE_TASK_TYPE_MODEL_NAMES.includes(
+        modelName as (typeof GOOGLE_TASK_TYPE_MODEL_NAMES)[number]
+      ) &&
+      !taskType
+    )
+      return
 
     const embeddingModels =
       selectedModelId !== ''
         ? { existingModelId: selectedModelId }
-        : { modelName, modelProvider, dimension: dimension as 3072 | 1536 | 1024 | 768 | 384 }
+        : {
+            modelName,
+            modelProvider: modelProvider as AllowedProvider,
+            dimension: dimension as 3072 | 1536 | 1024 | 768 | 384,
+            releaseYear: Number(releaseYear),
+            recommendedUsage,
+            ...(taskType
+              ? {
+                  taskType: taskType as
+                    | 'RETRIEVAL_QUERY'
+                    | 'RETRIEVAL_DOCUMENT'
+                    | 'SEMANTIC_SIMILARITY'
+                    | 'CLASSIFICATION'
+                    | 'CLUSTERING',
+                }
+              : {}),
+          }
 
     const formData: CreateVectorStoreFormData = {
       id,
       documents,
       embeddingModels,
       vectorEmbeddings: {
-        distanceMetric,
         chunkSize: Number(chunkSize),
         chunkOverlap: Number(chunkOverlap),
       },
@@ -177,7 +230,6 @@ export function CreateVectorStoreForm({
         ...(stopSequences
           ? { stopSequences: stopSequences.split(',').map((s) => s.trim()) }
           : { stopSequences: [] }),
-        ...(seed ? { seed: Number(seed) } : {}),
         ...(maxRetries ? { maxRetries: Number(maxRetries) } : {}),
       },
     }
@@ -211,7 +263,7 @@ export function CreateVectorStoreForm({
             className={'hide'}
             inputProps={{ readOnly: true }}
             sx={{ mb: 2 }}
-            data-test-id="vector-store-id-input"
+            data-testid="vector-store-id-input"
           />
           {/* Documents */}
           <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1.5 }}>
@@ -230,7 +282,7 @@ export function CreateVectorStoreForm({
                 fullWidth
                 required
                 sx={{ mb: 1.5 }}
-                data-test-id={`documents-title-input-${index}`}
+                data-testid={`documents-title-input-${index}`}
               />
               <TextField
                 label="Source"
@@ -239,7 +291,7 @@ export function CreateVectorStoreForm({
                 fullWidth
                 required
                 sx={{ mb: 0.5 }}
-                data-test-id={`documents-source-input-${index}`}
+                data-testid={`documents-source-input-${index}`}
               />
             </Box>
           ))}
@@ -265,7 +317,7 @@ export function CreateVectorStoreForm({
               labelId="embedding-model-select-label"
               label="Select a pre-seeded model"
               value={selectedModelId}
-              data-test-id="embedding-models-select"
+              data-testid="embedding-models-select"
               displayEmpty
               disabled={embeddingModelsLoading}
               onChange={(e) => handleModelSelect(e.target.value)}
@@ -311,23 +363,36 @@ export function CreateVectorStoreForm({
             onChange={handleManualModelChange(setModelName)}
             fullWidth
             sx={{ mb: 2 }}
-            data-test-id="embedding-models-model-name-input"
+            data-testid="embedding-models-model-name-input"
           />
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
             <strong>Examples:</strong> &#39;text-embedding-3-large&#39;,
             &#39;embed-english-v3.0&#39;
           </Typography>
           <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Model Provider"
             value={modelProvider}
-            onChange={handleManualModelChange(setModelProvider)}
+            onChange={(e) => {
+              setModelProvider(e.target.value)
+              setSelectedModelId('')
+            }}
+            data-testid="embedding-models-provider-input"
             fullWidth
             sx={{ mb: 2 }}
-            data-test-id="embedding-models-model-provider-input"
+            error={
+              modelProvider !== '' && !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)
+            }
+            helperText={
+              modelProvider !== '' && !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)
+                ? 'Must be one of: openai, google, cohere, amazon, voyage, mistral'
+                : undefined
+            }
           />
+
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            <strong>Examples: openai, google</strong>
+            <strong>Examples:</strong> openai, google, cohere, amazon, voyage, mistral
           </Typography>
           <Divider sx={{ my: 2 }} />
           <FormControl fullWidth sx={{ mb: 2 }}>
@@ -339,7 +404,7 @@ export function CreateVectorStoreForm({
               label="Dimension"
               value={dimension}
               displayEmpty
-              data-test-id="embedding-models-dimension-select"
+              data-testid="embedding-models-dimension-select"
               onChange={(e) => {
                 setDimension(e.target.value as 3072 | 1536 | 1024 | 768 | 384 | '')
                 setSelectedModelId('')
@@ -357,8 +422,101 @@ export function CreateVectorStoreForm({
           </FormControl>
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            <strong>This selects the database table to use</strong>
+            If you are adding a new embedding model then all the relevant details should be
+            accessible on the provider website
           </Typography>
+
+          <Divider sx={{ my: 2 }} />
+
+          <TextField
+            label="Release Year"
+            type="number"
+            value={releaseYear}
+            onChange={handleManualModelChange(setReleaseYear)}
+            inputProps={{ min: RELEASE_YEAR_MIN, max: RELEASE_YEAR_MAX }}
+            fullWidth
+            sx={{ mb: 2 }}
+            data-testid="embedding-models-release-year-input"
+            error={releaseYear !== '' && !isReleaseYearValid(releaseYear)}
+            helperText={
+              releaseYear !== '' && !isReleaseYearValid(releaseYear)
+                ? `Must be a whole number between ${RELEASE_YEAR_MIN} and ${RELEASE_YEAR_MAX}`
+                : undefined
+            }
+          />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Example:</strong> 2025
+          </Typography>
+
+          <Divider sx={{ my: 2 }} />
+
+          <TextField
+            label="Recommended Usage"
+            value={recommendedUsage}
+            onChange={handleManualModelChange(setRecommendedUsage)}
+            fullWidth
+            sx={{ mb: 2 }}
+            data-testid="embedding-models-recommended-usage-input"
+          />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Examples:</strong> &#39;Best for semantic similarity tasks&#39;, &#39;Good for
+            multilingual documents&#39;
+          </Typography>
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent header="Information on Task Type" body={taskTypes} />
+          <Divider sx={{ my: 2 }} />
+
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel id="task-type-label" shrink>
+              {[
+                'text-embedding-005',
+                'text-multilingual-embedding-002',
+                'gemini-embedding-001',
+              ].includes(modelName) && modelProvider === 'google'
+                ? 'Task Type (required for this Google model)'
+                : 'Task Type (not applicable for this model)'}
+            </InputLabel>
+            <Select
+              labelId="task-type-label"
+              label={
+                [
+                  'text-embedding-005',
+                  'text-multilingual-embedding-002',
+                  'gemini-embedding-001',
+                ].includes(modelName) && modelProvider === 'google'
+                  ? 'Task Type (required for this Google model)'
+                  : 'Task Type (not applicable for this model)'
+              }
+              value={taskType}
+              displayEmpty
+              disabled={
+                !(
+                  [
+                    'text-embedding-005',
+                    'text-multilingual-embedding-002',
+                    'gemini-embedding-001',
+                  ].includes(modelName) && modelProvider === 'google'
+                )
+              }
+              data-testid="embedding-models-task-type-select"
+              onChange={(e) => {
+                setTaskType(e.target.value)
+                setSelectedModelId('')
+              }}
+            >
+              <MenuItem value="">
+                <em>— none —</em>
+              </MenuItem>
+              <MenuItem value="RETRIEVAL_QUERY">RETRIEVAL_QUERY</MenuItem>
+              <MenuItem value="RETRIEVAL_DOCUMENT">RETRIEVAL_DOCUMENT</MenuItem>
+              <MenuItem value="SEMANTIC_SIMILARITY">SEMANTIC_SIMILARITY</MenuItem>
+              <MenuItem value="CLASSIFICATION">CLASSIFICATION</MenuItem>
+              <MenuItem value="CLUSTERING">CLUSTERING</MenuItem>
+            </Select>
+          </FormControl>
 
           <Divider sx={{ my: 2 }} />
 
@@ -367,54 +525,12 @@ export function CreateVectorStoreForm({
             Vector Embeddings
           </Typography>
           <AccordionComponent
-            header="Information on Vector Embeddings distance metrics"
+            header="Information on Vector Embeddings"
             body={vectorEmbeddingsText}
           />
           <Divider sx={{ my: 2 }} />
-          <FormControl fullWidth required sx={{ mb: 2 }} error={Boolean(distanceMetricError)}>
-            <InputLabel id="distance-metric-label" shrink>
-              Distance Metric
-            </InputLabel>
-            <Select
-              labelId="distance-metric-label"
-              label="Distance Metric"
-              value={distanceMetric}
-              displayEmpty
-              data-test-id="vector-embeddings-distance-metric-select"
-              onChange={(e) => {
-                const value = e.target.value as
-                  | CreateVectorStoreFormData['vectorEmbeddings']['distanceMetric']
-                  | ''
-                setDistanceMetric(value)
-                if (value !== 'cosine' && value !== '') {
-                  setDistanceMetricError(
-                    `"${value}" is not currently supported. Only "cosine" is permitted.`
-                  )
-                } else {
-                  setDistanceMetricError(null)
-                }
-              }}
-            >
-              <MenuItem value="">
-                <em>— choose a distance metric —</em>
-              </MenuItem>
-              {DISTANCE_METRICS.map((metric) => (
-                <MenuItem key={metric} value={metric}>
-                  {metric}
-                  {metric !== 'cosine' ? ' (not currently supported)' : ''}
-                </MenuItem>
-              ))}
-            </Select>
-            {distanceMetricError && (
-              <FormHelperText data-test-id="distance-metric-error">
-                {distanceMetricError}
-              </FormHelperText>
-            )}
-          </FormControl>
 
-          <Divider sx={{ my: 2 }} />
-          <AccordionComponent header="Read Chunk Size" body={chunkSizeText} />
-
+          <AccordionComponent header="Information on Chunk Size" body={chunkSizeText} />
           <Divider sx={{ my: 2 }} />
 
           <TextField
@@ -425,7 +541,7 @@ export function CreateVectorStoreForm({
             inputProps={{ min: 1, max: 10000 }}
             fullWidth
             required
-            data-test-id="vector-embeddings-chunk-size-input"
+            data-testid="vector-embeddings-chunk-size-input"
             sx={{ mb: 2 }}
           />
 
@@ -446,7 +562,7 @@ export function CreateVectorStoreForm({
             inputProps={{ min: 0, max: 1000 }}
             fullWidth
             required
-            data-test-id="vector-embeddings-chunk-overlap-input"
+            data-testid="vector-embeddings-chunk-overlap-input"
             sx={{ mb: 2 }}
           />
 
@@ -470,10 +586,8 @@ export function CreateVectorStoreForm({
             fine-tune the AI&#39;s responses. For example, `maxTokens` limits the length of the
             generated response, while `temperature` and `topP` control the randomness and creativity
             of the output. Penalties can be applied to reduce repetition or encourage new topics.
-            Stop sequences can be defined to indicate when the AI should stop generating text. The
-            seed can be set for reproducibility, and max retries can specify how many times the AI
-            should attempt to generate a response if it fails or produces undesirable output. Adjust
-            these settings based on your specific use case and desired behaviour of the AI.
+            Stop sequences can be defined to indicate when the AI should stop generating text.
+            Adjust these settings based on your specific use case and desired behaviour of the AI.
           </Typography>
           <Divider sx={{ my: 2 }} />
           <TextField
@@ -482,7 +596,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setChatTypeId(e.target.value)}
             fullWidth
             required
-            data-test-id="chat-ai-options-chat-type-id-input"
+            data-testid="chat-ai-options-chat-type-id-input"
             sx={{ mb: 2 }}
           />
 
@@ -497,7 +611,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setMaxTokens(e.target.value)}
             inputProps={{ min: 1, max: 100000 }}
             fullWidth
-            data-test-id="chat-ai-options-max-tokens-input"
+            data-testid="chat-ai-options-max-tokens-input"
             sx={{ mb: 2 }}
           />
 
@@ -523,7 +637,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setTemperature(e.target.value)}
             inputProps={{ step: 0.1, min: 0, max: 2 }}
             fullWidth
-            data-test-id="chat-ai-options-temperature-input"
+            data-testid="chat-ai-options-temperature-input"
             sx={{ mb: 2 }}
           />
 
@@ -545,7 +659,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setTopP(e.target.value)}
             inputProps={{ step: 0.1, min: 0, max: 1 }}
             fullWidth
-            data-test-id="chat-ai-options-top-p-input"
+            data-testid="chat-ai-options-top-p-input"
             sx={{ mb: 2 }}
           />
 
@@ -567,12 +681,24 @@ export function CreateVectorStoreForm({
             label="Frequency Penalty"
             type="number"
             value={frequencyPenalty}
-            onChange={(e) => setFrequencyPenalty(e.target.value)}
+            onChange={(e) =>
+              setFrequencyPenalty(e.target.value === '' ? 0 : Number(e.target.value))
+            }
             inputProps={{ step: 0.1, min: -2, max: 2 }}
             fullWidth
-            data-test-id="chat-ai-options-frequency-penalty-input"
+            data-testid="chat-ai-options-frequency-penalty-input"
             sx={{ mb: 2 }}
           />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Recommended default 0.</strong> Adjust based on your preference and desired
+            response style. For RAG, the priority is usually faithful, grounded answers, not
+            novelty. Presence and frequency penalties are designed to push the model toward using
+            different words or avoiding repetition; that can be useful for creative writing, but for
+            RAG it can make answers slightly less literal and less stable. Gemini documents both
+            penalties as vocabulary-shaping controls rather than grounding controls, so 0 is the
+            safest default.
+          </Typography>
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
@@ -585,12 +711,22 @@ export function CreateVectorStoreForm({
             label="Presence Penalty"
             type="number"
             value={presencePenalty}
-            onChange={(e) => setPresencePenalty(e.target.value)}
+            onChange={(e) => setPresencePenalty(e.target.value === '' ? 0 : Number(e.target.value))}
             inputProps={{ step: 0.1, min: -2, max: 2 }}
             fullWidth
-            data-test-id="chat-ai-options-presence-penalty-input"
+            data-testid="chat-ai-options-presence-penalty-input"
             sx={{ mb: 2 }}
           />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Recommended default 0.</strong> Adjust based on your preference and desired
+            response style. For RAG, the priority is usually faithful, grounded answers, not
+            novelty. Presence and frequency penalties are designed to push the model toward using
+            different words or avoiding repetition; that can be useful for creative writing, but for
+            RAG it can make answers slightly less literal and less stable. Gemini documents both
+            penalties as vocabulary-shaping controls rather than grounding controls, so 0 is the
+            safest default.
+          </Typography>
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent
@@ -604,28 +740,22 @@ export function CreateVectorStoreForm({
             value={stopSequences}
             onChange={(e) => setStopSequences(e.target.value)}
             fullWidth
-            data-test-id="chat-ai-options-stop-sequences-input"
+            data-testid="chat-ai-options-stop-sequences-input"
             sx={{ mb: 2 }}
           />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Recommended default - leave empty.</strong> Adjust based on your preference and
+            desired response style. For stop sequences, the safest default is usually none unless
+            you have a very specific output format you need to terminate early. Stop sequences can
+            truncate valid answers unexpectedly, and providers already stop naturally or at the
+            token limit. Both OpenAI and Gemini describe stop conditions as either a natural stop or
+            a provided stop sequence.
+          </Typography>
 
           <Typography variant={'body2'} color="text.secondary" sx={{ mb: 1.5 }}>
             If no stop sequences are specified, an empty array will be used.
           </Typography>
-
-          <Divider sx={{ my: 2 }} />
-          <AccordionComponent header="Information on Seed settings" body={seedText} />
-          <Divider sx={{ my: 2 }} />
-
-          <TextField
-            label="Seed"
-            type="number"
-            value={seed}
-            onChange={(e) => setSeed(e.target.value)}
-            inputProps={{ min: 0, max: 1000000 }}
-            fullWidth
-            data-test-id="chat-ai-options-seed-input"
-            sx={{ mb: 2 }}
-          />
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent header="Information on Max Retries settings" body={maxRetriesText} />
@@ -635,12 +765,19 @@ export function CreateVectorStoreForm({
             label="Max Retries"
             type="number"
             value={maxRetries}
-            onChange={(e) => setMaxRetries(e.target.value)}
+            onChange={(e) => setMaxRetries(e.target.value === '' ? 0 : Number(e.target.value))}
             inputProps={{ min: 0, max: 10 }}
             fullWidth
-            data-test-id="chat-ai-options-max-retries-input"
+            data-testid="chat-ai-options-max-retries-input"
             sx={{ mb: 2 }}
           />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Recommended default: 2</strong> Adjust based on your preference and desired
+            response style. For max retries, 2 is a good production default. In the AI SDK docs,
+            retry-related generation helpers default to 2 retries (3 total attempts), which is a
+            sensible balance between resilience and latency/cost.
+          </Typography>
 
           <Divider sx={{ my: 2 }} />
 
@@ -650,7 +787,7 @@ export function CreateVectorStoreForm({
             type="submit"
             fullWidth
             size="large"
-            data-test-id="create-vector-store-submit-button"
+            data-testid="create-vector-store-submit-button"
           >
             Create Vector Store
           </Button>

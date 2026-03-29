@@ -19,7 +19,7 @@ const BASE_REQUEST_EXISTING_MODEL: CreateVectorStoreRequest = {
   id: VECTOR_STORE_ID,
   documents: [{ title: 'Heart of Darkness', source: 'rag/uuid/heart-of-darkness.pdf' }],
   embeddingModels: { existingModelId: EXISTING_MODEL_ID },
-  vectorEmbeddings: { distanceMetric: 'cosine', chunkSize: 300, chunkOverlap: 40 },
+  vectorEmbeddings: { chunkSize: 300, chunkOverlap: 40 },
   chatAIOptions: { chatTypeId: CHAT_TYPE_ID },
 }
 
@@ -31,8 +31,10 @@ const BASE_REQUEST_MANUAL_MODEL: CreateVectorStoreRequest = {
     modelName: 'text-embedding-3-large',
     modelProvider: 'openai',
     dimension: 1536,
+    releaseYear: 2024,
+    recommendedUsage: 'Best for semantic similarity',
   },
-  vectorEmbeddings: { distanceMetric: 'cosine', chunkSize: 500, chunkOverlap: 50 },
+  vectorEmbeddings: { chunkSize: 500, chunkOverlap: 50 },
   chatAIOptions: { chatTypeId: CHAT_TYPE_ID },
 }
 
@@ -170,7 +172,6 @@ describe('createVectorStoreAction', () => {
           frequencyPenalty: 0.1,
           presencePenalty: -0.1,
           stopSequences: ['\n', ' Human:'],
-          seed: 42,
           maxRetries: 3,
         },
       }
@@ -188,38 +189,6 @@ describe('createVectorStoreAction', () => {
       )
     })
 
-    it('handles all supported distance metrics', async () => {
-      const distanceMetrics = ['cosine', 'euclidean', 'dot_product'] as const
-
-      for (const distanceMetric of distanceMetrics) {
-        vi.resetModules()
-        mockGetAuthToken = vi.fn().mockResolvedValue(TEST_TOKEN)
-        mockBackendRequest = vi.fn().mockResolvedValue(MOCK_RESPONSE)
-        vi.doMock('@/lib/auth/auth.js', () => ({ getAuthToken: mockGetAuthToken }))
-        vi.doMock('@/infrastructure/serverActions/baseServerAction.js', () => ({
-          backendRequest: mockBackendRequest,
-        }))
-
-        const request: CreateVectorStoreRequest = {
-          ...BASE_REQUEST_EXISTING_MODEL,
-          vectorEmbeddings: { ...BASE_REQUEST_EXISTING_MODEL.vectorEmbeddings, distanceMetric },
-        }
-
-        const { createVectorStoreAction } =
-          await import('@/infrastructure/serverActions/createVectorStore.server.js')
-
-        await createVectorStoreAction(request)
-
-        expect(mockBackendRequest).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({
-              vectorEmbeddings: expect.objectContaining({ distanceMetric }),
-            }),
-          })
-        )
-      }
-    })
-
     it('handles all supported embedding model dimension values', async () => {
       const dimensions = [3072, 1536, 1024, 768, 384] as const
 
@@ -234,7 +203,13 @@ describe('createVectorStoreAction', () => {
 
         const request: CreateVectorStoreRequest = {
           ...BASE_REQUEST_MANUAL_MODEL,
-          embeddingModels: { modelName: 'model', modelProvider: 'openai', dimension },
+          embeddingModels: {
+            modelName: 'model',
+            modelProvider: 'openai',
+            dimension,
+            releaseYear: 2024,
+            recommendedUsage: 'Best for semantic similarity',
+          },
         }
 
         const { createVectorStoreAction } =
