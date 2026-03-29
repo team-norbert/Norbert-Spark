@@ -224,7 +224,7 @@ export function CreateVectorStoreForm({
             className={'hide'}
             inputProps={{ readOnly: true }}
             sx={{ mb: 2 }}
-            data-test-id="vector-store-id-input"
+            data-testid="vector-store-id-input"
           />
           {/* Documents */}
           <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1.5 }}>
@@ -243,7 +243,7 @@ export function CreateVectorStoreForm({
                 fullWidth
                 required
                 sx={{ mb: 1.5 }}
-                data-test-id={`documents-title-input-${index}`}
+                data-testid={`documents-title-input-${index}`}
               />
               <TextField
                 label="Source"
@@ -252,7 +252,7 @@ export function CreateVectorStoreForm({
                 fullWidth
                 required
                 sx={{ mb: 0.5 }}
-                data-test-id={`documents-source-input-${index}`}
+                data-testid={`documents-source-input-${index}`}
               />
             </Box>
           ))}
@@ -278,7 +278,7 @@ export function CreateVectorStoreForm({
               labelId="embedding-model-select-label"
               label="Select a pre-seeded model"
               value={selectedModelId}
-              data-test-id="embedding-models-select"
+              data-testid="embedding-models-select"
               displayEmpty
               disabled={embeddingModelsLoading}
               onChange={(e) => handleModelSelect(e.target.value)}
@@ -324,7 +324,7 @@ export function CreateVectorStoreForm({
             onChange={handleManualModelChange(setModelName)}
             fullWidth
             sx={{ mb: 2 }}
-            data-test-id="embedding-models-model-name-input"
+            data-testid="embedding-models-model-name-input"
           />
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
             <strong>Examples:</strong> &#39;text-embedding-3-large&#39;,
@@ -342,7 +342,6 @@ export function CreateVectorStoreForm({
             data-testid="embedding-models-provider-input"
             fullWidth
             sx={{ mb: 2 }}
-            data-test-id="embedding-models-model-provider-input"
             error={
               modelProvider !== '' && !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)
             }
@@ -366,7 +365,7 @@ export function CreateVectorStoreForm({
               label="Dimension"
               value={dimension}
               displayEmpty
-              data-test-id="embedding-models-dimension-select"
+              data-testid="embedding-models-dimension-select"
               onChange={(e) => {
                 setDimension(e.target.value as 3072 | 1536 | 1024 | 768 | 384 | '')
                 setSelectedModelId('')
@@ -398,7 +397,7 @@ export function CreateVectorStoreForm({
             inputProps={{ min: 2000, max: new Date().getFullYear() + 1 }}
             fullWidth
             sx={{ mb: 2 }}
-            data-test-id="embedding-models-release-year-input"
+            data-testid="embedding-models-release-year-input"
             error={
               releaseYear !== '' &&
               (Number(releaseYear) < 2000 || Number(releaseYear) > new Date().getFullYear() + 1)
@@ -423,7 +422,7 @@ export function CreateVectorStoreForm({
             onChange={handleManualModelChange(setRecommendedUsage)}
             fullWidth
             sx={{ mb: 2 }}
-            data-test-id="embedding-models-recommended-usage-input"
+            data-testid="embedding-models-recommended-usage-input"
           />
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
@@ -467,7 +466,7 @@ export function CreateVectorStoreForm({
                   ].includes(modelName) && modelProvider === 'google'
                 )
               }
-              data-test-id="embedding-models-task-type-select"
+              data-testid="embedding-models-task-type-select"
               onChange={(e) => {
                 setTaskType(e.target.value)
                 setSelectedModelId('')
@@ -504,7 +503,7 @@ export function CreateVectorStoreForm({
             inputProps={{ min: 1, max: 10000 }}
             fullWidth
             required
-            data-test-id="vector-embeddings-chunk-size-input"
+            data-testid="vector-embeddings-chunk-size-input"
             sx={{ mb: 2 }}
           />
 
@@ -525,7 +524,7 @@ export function CreateVectorStoreForm({
             inputProps={{ min: 0, max: 1000 }}
             fullWidth
             required
-            data-test-id="vector-embeddings-chunk-overlap-input"
+            data-testid="vector-embeddings-chunk-overlap-input"
             sx={{ mb: 2 }}
           />
 
@@ -559,7 +558,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setChatTypeId(e.target.value)}
             fullWidth
             required
-            data-test-id="chat-ai-options-chat-type-id-input"
+            data-testid="chat-ai-options-chat-type-id-input"
             sx={{ mb: 2 }}
           />
 
@@ -574,7 +573,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setMaxTokens(e.target.value)}
             inputProps={{ min: 1, max: 100000 }}
             fullWidth
-            data-test-id="chat-ai-options-max-tokens-input"
+            data-testid="chat-ai-options-max-tokens-input"
             sx={{ mb: 2 }}
           />
 
@@ -600,7 +599,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setTemperature(e.target.value)}
             inputProps={{ step: 0.1, min: 0, max: 2 }}
             fullWidth
-            data-test-id="chat-ai-options-temperature-input"
+            data-testid="chat-ai-options-temperature-input"
             sx={{ mb: 2 }}
           />
 
@@ -622,7 +621,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setTopP(e.target.value)}
             inputProps={{ step: 0.1, min: 0, max: 1 }}
             fullWidth
-            data-test-id="chat-ai-options-top-p-input"
+            data-testid="chat-ai-options-top-p-input"
             sx={{ mb: 2 }}
           />
 
@@ -647,7 +646,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setFrequencyPenalty(e.target.value)}
             inputProps={{ step: 0.1, min: -2, max: 2 }}
             fullWidth
-            data-test-id="chat-ai-options-frequency-penalty-input"
+            data-testid="chat-ai-options-frequency-penalty-input"
             sx={{ mb: 2 }}
           />
 
@@ -675,7 +674,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setPresencePenalty(e.target.value)}
             inputProps={{ step: 0.1, min: -2, max: 2 }}
             fullWidth
-            data-test-id="chat-ai-options-presence-penalty-input"
+            data-testid="chat-ai-options-presence-penalty-input"
             sx={{ mb: 2 }}
           />
 
@@ -701,7 +700,7 @@ export function CreateVectorStoreForm({
             value={stopSequences}
             onChange={(e) => setStopSequences(e.target.value)}
             fullWidth
-            data-test-id="chat-ai-options-stop-sequences-input"
+            data-testid="chat-ai-options-stop-sequences-input"
             sx={{ mb: 2 }}
           />
 
@@ -729,7 +728,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => setMaxRetries(e.target.value)}
             inputProps={{ min: 0, max: 10 }}
             fullWidth
-            data-test-id="chat-ai-options-max-retries-input"
+            data-testid="chat-ai-options-max-retries-input"
             sx={{ mb: 2 }}
           />
 
@@ -748,7 +747,7 @@ export function CreateVectorStoreForm({
             type="submit"
             fullWidth
             size="large"
-            data-test-id="create-vector-store-submit-button"
+            data-testid="create-vector-store-submit-button"
           >
             Create Vector Store
           </Button>

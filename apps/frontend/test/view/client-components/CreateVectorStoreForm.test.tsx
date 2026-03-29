@@ -74,7 +74,7 @@ function submitForm() {
 /** Open the Dimension Select dropdown and click the given option. */
 function selectDimension(value: string) {
   const selectRoot = document.querySelector(
-    '[data-test-id="embedding-models-dimension-select"]'
+    '[data-testid="embedding-models-dimension-select"]'
   ) as HTMLElement
   const trigger = (selectRoot.querySelector('[role="combobox"]') ?? selectRoot) as HTMLElement
   fireEvent.mouseDown(trigger)
@@ -599,7 +599,7 @@ describe('CreateVectorStoreForm', () => {
      */
     function openEmbeddingModelsDropdown() {
       const select = document.querySelector(
-        '[data-test-id="embedding-models-select"]'
+        '[data-testid="embedding-models-select"]'
       ) as HTMLElement
       const trigger = (select.querySelector('[role="combobox"]') ?? select) as HTMLElement
       fireEvent.mouseDown(trigger)
@@ -655,7 +655,7 @@ describe('CreateVectorStoreForm', () => {
       ).not.toBeInTheDocument()
       // The dropdown combobox should no longer show the selected model name
       const select = document.querySelector(
-        '[data-test-id="embedding-models-select"]'
+        '[data-testid="embedding-models-select"]'
       ) as HTMLElement
       const combobox = (select.querySelector('[role="combobox"]') ?? select) as HTMLElement
       expect(combobox).not.toHaveTextContent('text-embedding-ada-002')
@@ -793,7 +793,7 @@ describe('CreateVectorStoreForm', () => {
       expect((screen.getByLabelText(/^model name/i) as HTMLInputElement).value).toBe('')
       expect((screen.getByLabelText(/^model provider/i) as HTMLInputElement).value).toBe('')
       const dimensionSelect = document.querySelector(
-        '[data-test-id="embedding-models-dimension-select"]'
+        '[data-testid="embedding-models-dimension-select"]'
       ) as HTMLElement
       const dimensionCombobox = (dimensionSelect.querySelector('[role="combobox"]') ??
         dimensionSelect) as HTMLElement
