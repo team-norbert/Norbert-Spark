@@ -397,6 +397,7 @@ CREATE INDEX idx_table_column ON table(column);
 ## 🚀 Advanced PostgreSQL Features
 
 ### Window Functions
+
 ```sql
 -- Running totals and rankings
 SELECT
