@@ -167,8 +167,8 @@ importers:
         specifier: ^5.8.4
         version: 5.8.4
       file-type:
-        specifier: ^21.3.4
-        version: 21.3.4
+        specifier: ^22.0.0
+        version: 22.0.0
       isomorphic-dompurify:
         specifier: ^3.7.1
         version: 3.7.1(@noble/hashes@1.8.0)
@@ -6575,9 +6575,9 @@ packages:
     resolution: {integrity: sha512-VZR5I7k5wkD0HgFnMsq5hOsSc710MJMu5Nc5QYsbe38NN5iPV/XTObYLc/cpttRTf6lX538+5uO1ZQRhYibiZQ==}
     engines: {node: '>=18'}
 
-  file-type@21.3.4:
-    resolution: {integrity: sha512-Ievi/yy8DS3ygGvT47PjSfdFoX+2isQueoYP1cntFW1JLYAuS4GD7NUPGg4zv2iZfV52uDyk5w5Z0TdpRS6Q1g==}
-    engines: {node: '>=20'}
+  file-type@22.0.0:
+    resolution: {integrity: sha512-cmBmnYo8Zymabm2+qAP7jTFbKF10bQpYmxoGfuZbRFRcq00BRddJdGNH/P7GA1EMpJy5yQbqa9B7yROb3z8Ziw==}
+    engines: {node: '>=22'}
 
   file-uri-to-path@1.0.0:
     resolution: {integrity: sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==}
@@ -15719,7 +15719,7 @@ snapshots:
     dependencies:
       '@babel/types': 7.29.0
 
-  babel-plugin-styled-components@2.1.4(@babel/core@7.29.0)(styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@17.0.2))(react-is@19.2.4)(react@17.0.2))(supports-color@5.5.0):
+  babel-plugin-styled-components@2.1.4(@babel/core@7.29.0)(styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@19.2.4))(react-is@19.2.4)(react@17.0.2))(supports-color@5.5.0):
     dependencies:
       '@babel/helper-annotate-as-pure': 7.27.3
       '@babel/helper-module-imports': 7.28.6(supports-color@5.5.0)
@@ -17788,7 +17788,7 @@ snapshots:
       token-types: 6.1.2
       uint8array-extras: 1.5.0
 
-  file-type@21.3.4:
+  file-type@22.0.0:
     dependencies:
       '@tokenizer/inflate': 0.4.1
       strtok3: 10.3.5
@@ -19598,7 +19598,7 @@ snapshots:
       pkg-types: 1.3.1
       ufo: 1.6.3
 
-  mobx-react-lite@4.1.1(mobx@6.15.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+  mobx-react-lite@4.1.1(mobx@6.15.0)(react-dom@17.0.2(react@19.2.4))(react@17.0.2):
     dependencies:
       mobx: 6.15.0
       react: 17.0.2
@@ -19614,10 +19614,10 @@ snapshots:
     optionalDependencies:
       react-dom: 19.2.4(react@19.2.4)
 
-  mobx-react@9.2.0(mobx@6.15.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+  mobx-react@9.2.0(mobx@6.15.0)(react-dom@17.0.2(react@19.2.4))(react@17.0.2):
     dependencies:
       mobx: 6.15.0
-      mobx-react-lite: 4.1.1(mobx@6.15.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+      mobx-react-lite: 4.1.1(mobx@6.15.0)(react-dom@17.0.2(react@19.2.4))(react@17.0.2)
       react: 17.0.2
     optionalDependencies:
       react-dom: 17.0.2(react@17.0.2)
@@ -20675,7 +20675,7 @@ snapshots:
       node-libs-browser: 2.2.1
       react: 17.0.2
       react-dom: 17.0.2(react@17.0.2)
-      redoc: 2.5.1(core-js@3.48.0)(mobx@6.15.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)(styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@17.0.2))(react-is@19.2.4)(react@17.0.2))
+      redoc: 2.5.1(core-js@3.48.0)(mobx@6.15.0)(react-dom@17.0.2(react@19.2.4))(react@17.0.2)(styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@19.2.4))(react-is@19.2.4)(react@17.0.2))
       styled-components: 5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@19.2.4))(react-is@19.2.4)(react@19.2.4)
       yargs: 17.7.2
     transitivePeerDependencies:
@@ -20686,7 +20686,7 @@ snapshots:
       - react-native
       - supports-color
 
-  redoc@2.5.1(core-js@3.48.0)(mobx@6.15.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)(styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@17.0.2))(react-is@19.2.4)(react@17.0.2)):
+  redoc@2.5.1(core-js@3.48.0)(mobx@6.15.0)(react-dom@17.0.2(react@19.2.4))(react@17.0.2)(styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@19.2.4))(react-is@19.2.4)(react@17.0.2)):
     dependencies:
       '@redocly/openapi-core': 1.34.8
       classnames: 2.5.1
@@ -20699,7 +20699,7 @@ snapshots:
       mark.js: 8.11.1
       marked: 4.3.0
       mobx: 6.15.0
-      mobx-react: 9.2.0(mobx@6.15.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+      mobx-react: 9.2.0(mobx@6.15.0)(react-dom@17.0.2(react@19.2.4))(react@17.0.2)
       openapi-sampler: 1.7.0
       path-browserify: 1.0.1
       perfect-scrollbar: 1.5.6
@@ -21566,7 +21566,7 @@ snapshots:
       '@emotion/is-prop-valid': 1.4.0
       '@emotion/stylis': 0.8.5
       '@emotion/unitless': 0.7.5
-      babel-plugin-styled-components: 2.1.4(@babel/core@7.29.0)(styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@17.0.2))(react-is@19.2.4)(react@17.0.2))(supports-color@5.5.0)
+      babel-plugin-styled-components: 2.1.4(@babel/core@7.29.0)(styled-components@5.3.11(@babel/core@7.29.0)(react-dom@17.0.2(react@19.2.4))(react-is@19.2.4)(react@17.0.2))(supports-color@5.5.0)
       css-to-react-native: 3.2.0
       hoist-non-react-statics: 3.3.2
       react: 19.2.4
