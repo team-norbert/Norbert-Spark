@@ -50,14 +50,21 @@
               { "required": ["modelProvider"] },
               { "required": ["dimension"] },
               { "required": ["releaseYear"] },
-              { "required": ["taskType"] }
+              { "required": ["taskType"] },
+              { "required": ["recommendedUsage"] }
             ]
           }
         },
         {
           "description": "Define a new embedding model",
           "type": "object",
-          "required": ["modelName", "modelProvider", "dimension", "releaseYear"],
+          "required": [
+            "modelName",
+            "modelProvider",
+            "dimension",
+            "releaseYear",
+            "recommendedUsage"
+          ],
           "properties": {
             "modelName": {
               "type": "string",
@@ -80,6 +87,12 @@
               "minimum": 2000,
               "maximum": 2027,
               "example": 2023
+            },
+            "recommendedUsage": {
+              "type": "string",
+              "description": "Recommended usage for the embedding model, e.g. 'best for semantic similarity tasks' or 'good for multilingual documents'",
+              "example": "Best for semantic similarity tasks",
+              "minLength": 1
             },
             "taskType": {
               "type": "string",

@@ -41,10 +41,10 @@ function fillRequiredFields({
   chunkOverlap = '50',
   chunkSize = '512',
   dimension = '1536',
-  distanceMetric = 'cosine',
   id = 'test-id-0000-0000-0000-000000000001',
   modelName = 'text-embedding-ada-002',
   modelProvider = 'openai',
+  recommendedUsage = 'Best for semantic similarity',
   releaseYear = '2024',
   source = 'https://example.com',
   title = 'My Document',
@@ -57,7 +57,9 @@ function fillRequiredFields({
     target: { value: modelProvider },
   })
   selectDimension(dimension)
-  selectDistanceMetric(distanceMetric)
+  fireEvent.change(screen.getByLabelText(/^recommended usage/i), {
+    target: { value: recommendedUsage },
+  })
   fireEvent.change(screen.getByLabelText(/^release year/i), { target: { value: releaseYear } })
   fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: chunkSize } })
   fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: chunkOverlap } })
@@ -73,17 +75,6 @@ function submitForm() {
 function selectDimension(value: string) {
   const selectRoot = document.querySelector(
     '[data-test-id="embedding-models-dimension-select"]'
-  ) as HTMLElement
-  const trigger = (selectRoot.querySelector('[role="combobox"]') ?? selectRoot) as HTMLElement
-  fireEvent.mouseDown(trigger)
-  // CSS attribute selector is far faster than screen.getByRole which traverses the full ARIA tree
-  fireEvent.click(document.querySelector(`li[role="option"][data-value="${value}"]`) as HTMLElement)
-}
-
-/** Open the Distance Metric Select dropdown and click the given option. */
-function selectDistanceMetric(value: string) {
-  const selectRoot = document.querySelector(
-    '[data-test-id="vector-embeddings-distance-metric-select"]'
   ) as HTMLElement
   const trigger = (selectRoot.querySelector('[role="combobox"]') ?? selectRoot) as HTMLElement
   fireEvent.mouseDown(trigger)
@@ -142,8 +133,7 @@ describe('CreateVectorStoreForm', () => {
       expect(screen.getByLabelText(/^model provider/i)).toBeInTheDocument()
     })
 
-    it('renders Distance Metric, Chunk Size and Chunk Overlap fields', () => {
-      expect(screen.getByLabelText(/^distance metric/i)).toBeInTheDocument()
+    it('renders Chunk Size and Chunk Overlap fields', () => {
       expect(screen.getByLabelText(/^chunk size/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^chunk overlap/i)).toBeInTheDocument()
     })
@@ -222,15 +212,6 @@ describe('CreateVectorStoreForm', () => {
 
       it('id field starts empty', () => {
         expect((screen.getByLabelText(/^vector store id/i) as HTMLInputElement).value).toBe('')
-      })
-
-      it('distanceMetric Select defaults to "cosine"', () => {
-        const selectRoot = document.querySelector(
-          '[data-test-id="vector-embeddings-distance-metric-select"]'
-        ) as HTMLElement
-        const combobox = (selectRoot.querySelector('[role="combobox"]') ??
-          selectRoot) as HTMLElement
-        expect(combobox).toHaveTextContent('cosine')
       })
 
       it('dimension shows "— choose a dimension —" placeholder by default', () => {
@@ -332,6 +313,7 @@ describe('CreateVectorStoreForm', () => {
         modelProvider: 'openai',
         dimension: 1536, // default
         releaseYear: 2024, // default from fillRequiredFields
+        recommendedUsage: 'Best for semantic similarity', // default from fillRequiredFields
       })
     })
 
@@ -346,25 +328,6 @@ describe('CreateVectorStoreForm', () => {
       expect(vectorEmbeddings.chunkOverlap).toBe(32)
       expect(typeof vectorEmbeddings.chunkSize).toBe('number')
       expect(typeof vectorEmbeddings.chunkOverlap).toBe('number')
-    })
-
-    it('blocks submission when an unsupported distanceMetric is selected', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields()
-      selectDistanceMetric('euclidean')
-      submitForm()
-
-      expect(mockOnSubmit).not.toHaveBeenCalled()
-    })
-
-    it('submits distanceMetric "cosine" when cosine is selected', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields() // default distanceMetric param is 'cosine'
-      submitForm()
-
-      expect(mockOnSubmit.mock.calls[0]![0]!.vectorEmbeddings.distanceMetric).toBe('cosine')
     })
 
     it('includes chatTypeId in chatAIOptions', () => {
@@ -573,80 +536,6 @@ describe('CreateVectorStoreForm', () => {
     })
   })
 
-  // ── Distance Metric Select ────────────────────────────────────────────────────
-
-  describe('Distance Metric Select', () => {
-    it('selecting euclidean shows a "not currently supported" error', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      selectDistanceMetric('euclidean')
-
-      const errorEl = document.querySelector('[data-test-id="distance-metric-error"]')
-      expect(errorEl).not.toBeNull()
-      expect(errorEl).toHaveTextContent(/not currently supported/i)
-    })
-
-    it('blocks form submission when euclidean is selected', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields()
-      selectDistanceMetric('euclidean')
-      submitForm()
-
-      expect(mockOnSubmit).not.toHaveBeenCalled()
-    })
-
-    it('selecting dot_product shows a "not currently supported" error', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      selectDistanceMetric('dot_product')
-
-      const errorEl = document.querySelector('[data-test-id="distance-metric-error"]')
-      expect(errorEl).not.toBeNull()
-      expect(errorEl).toHaveTextContent(/not currently supported/i)
-    })
-
-    it('blocks form submission when dot_product is selected', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields()
-      selectDistanceMetric('dot_product')
-      submitForm()
-
-      expect(mockOnSubmit).not.toHaveBeenCalled()
-    })
-
-    it('clears the error when cosine is re-selected after an unsupported metric', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      selectDistanceMetric('euclidean')
-      expect(document.querySelector('[data-test-id="distance-metric-error"]')).not.toBeNull()
-
-      selectDistanceMetric('cosine')
-      expect(document.querySelector('[data-test-id="distance-metric-error"]')).toBeNull()
-    })
-
-    it('euclidean and dot_product options show "(not currently supported)" in the dropdown', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      const selectRoot = document.querySelector(
-        '[data-test-id="vector-embeddings-distance-metric-select"]'
-      ) as HTMLElement
-      const trigger = (selectRoot.querySelector('[role="combobox"]') ?? selectRoot) as HTMLElement
-      fireEvent.mouseDown(trigger)
-
-      expect(document.querySelector('li[role="option"][data-value="euclidean"]')).toHaveTextContent(
-        /not currently supported/i
-      )
-      expect(
-        document.querySelector('li[role="option"][data-value="dot_product"]')
-      ).toHaveTextContent(/not currently supported/i)
-      expect(
-        document.querySelector('li[role="option"][data-value="cosine"]')
-      ).not.toHaveTextContent(/not currently supported/i)
-    })
-  })
-
   // ── Optional onSubmit prop ───────────────────────────────────────────────────
 
   describe('onSubmit prop is optional', () => {
@@ -822,7 +711,6 @@ describe('CreateVectorStoreForm', () => {
       })
       fireEvent.change(screen.getByLabelText(/^model provider/i), { target: { value: 'openai' } })
       // Intentionally skip selecting a dimension
-      selectDistanceMetric('cosine')
       fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: '512' } })
       fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: '50' } })
       fireEvent.change(screen.getByLabelText(/^chat type id/i), {
@@ -866,7 +754,6 @@ describe('CreateVectorStoreForm', () => {
       fireEvent.change(screen.getAllByLabelText(/^source/i)[0]!, {
         target: { value: 'https://example.com' },
       })
-      // distanceMetric already defaults to 'cosine' in React state — no DOM interaction needed
       fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: '512' } })
       fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: '50' } })
       fireEvent.change(screen.getByLabelText(/^chat type id/i), {

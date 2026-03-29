@@ -110,6 +110,7 @@ export function CreateVectorStoreForm({
   const [modelProvider, setModelProvider] = useState('')
   const [dimension, setDimension] = useState<3072 | 1536 | 1024 | 768 | 384 | ''>('')
   const [releaseYear, setReleaseYear] = useState('')
+  const [recommendedUsage, setRecommendedUsage] = useState('')
   const [taskType, setTaskType] = useState('')
 
   // Selecting a pre-seeded model clears the manual fields (mutually exclusive modes)
@@ -119,6 +120,7 @@ export function CreateVectorStoreForm({
     setModelProvider('')
     setDimension('')
     setReleaseYear('')
+    setRecommendedUsage('')
     setTaskType('')
   }
 
@@ -147,7 +149,7 @@ export function CreateVectorStoreForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!selectedModelId && (dimension === '' || !releaseYear)) return
+    if (!selectedModelId && (dimension === '' || !releaseYear || !recommendedUsage)) return
     if (!selectedModelId && !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)) return
 
     const embeddingModels =
@@ -158,6 +160,7 @@ export function CreateVectorStoreForm({
             modelProvider: modelProvider as AllowedProvider,
             dimension: dimension as 3072 | 1536 | 1024 | 768 | 384,
             releaseYear: Number(releaseYear),
+            recommendedUsage,
             ...(taskType
               ? {
                   taskType: taskType as
@@ -380,6 +383,11 @@ export function CreateVectorStoreForm({
             </Select>
           </FormControl>
 
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            If you are adding a new embedding model then all the relevant details should be
+            accessible on the provider website
+          </Typography>
+
           <Divider sx={{ my: 2 }} />
 
           <TextField
@@ -402,6 +410,26 @@ export function CreateVectorStoreForm({
                 : undefined
             }
           />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Example:</strong> 2025
+          </Typography>
+
+          <Divider sx={{ my: 2 }} />
+
+          <TextField
+            label="Recommended Usage"
+            value={recommendedUsage}
+            onChange={handleManualModelChange(setRecommendedUsage)}
+            fullWidth
+            sx={{ mb: 2 }}
+            data-test-id="embedding-models-recommended-usage-input"
+          />
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <strong>Examples:</strong> &#39;Best for semantic similarity tasks&#39;, &#39;Good for
+            multilingual documents&#39;
+          </Typography>
 
           <Divider sx={{ my: 2 }} />
           <AccordionComponent header="Information on Task Type" body={taskTypes} />

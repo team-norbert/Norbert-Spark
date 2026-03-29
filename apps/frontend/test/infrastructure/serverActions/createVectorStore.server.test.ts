@@ -32,6 +32,7 @@ const BASE_REQUEST_MANUAL_MODEL: CreateVectorStoreRequest = {
     modelProvider: 'openai',
     dimension: 1536,
     releaseYear: 2024,
+    recommendedUsage: 'Best for semantic similarity',
   },
   vectorEmbeddings: { chunkSize: 500, chunkOverlap: 50 },
   chatAIOptions: { chatTypeId: CHAT_TYPE_ID },
@@ -207,6 +208,7 @@ describe('createVectorStoreAction', () => {
             modelProvider: 'openai',
             dimension,
             releaseYear: 2024,
+            recommendedUsage: 'Best for semantic similarity',
           },
         }
 
