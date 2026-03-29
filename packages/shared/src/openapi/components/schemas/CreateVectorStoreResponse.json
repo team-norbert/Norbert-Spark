@@ -96,7 +96,6 @@
               "type": "integer",
               "description": "Release year of the embedding model",
               "minimum": 2000,
-              "maximum": 2027,
               "example": 2023
             },
             "dimension": {
