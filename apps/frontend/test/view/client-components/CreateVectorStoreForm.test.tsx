@@ -190,20 +190,20 @@ describe('CreateVectorStoreForm', () => {
           /^model name/i,
           /^model provider/i,
           /^chat type id/i,
-          /^frequency penalty/i,
-          /^presence penalty/i,
           /^stop sequences/i,
-          /^max retries/i,
         ]
         for (const labelRegex of labelRegexes) {
           expect((screen.getByLabelText(labelRegex) as HTMLInputElement).value).toBe('')
         }
       })
 
-      it('max tokens, temperature and top p start with their default values', () => {
+      it('max tokens, temperature, top p, frequency penalty, presence penalty and max retries start with their default values', () => {
         expect((screen.getByLabelText(/^max tokens/i) as HTMLInputElement).value).toBe('1000')
         expect((screen.getByLabelText(/^temperature/i) as HTMLInputElement).value).toBe('0.7')
         expect((screen.getByLabelText(/^top p/i) as HTMLInputElement).value).toBe('1')
+        expect((screen.getByLabelText(/^frequency penalty/i) as HTMLInputElement).value).toBe('0')
+        expect((screen.getByLabelText(/^presence penalty/i) as HTMLInputElement).value).toBe('0')
+        expect((screen.getByLabelText(/^max retries/i) as HTMLInputElement).value).toBe('2')
       })
 
       it('chatTypeId is empty when initialChatTypeId is not provided', () => {
@@ -351,6 +351,9 @@ describe('CreateVectorStoreForm', () => {
       fireEvent.change(screen.getByLabelText(/^max tokens/i), { target: { value: '' } })
       fireEvent.change(screen.getByLabelText(/^temperature/i), { target: { value: '' } })
       fireEvent.change(screen.getByLabelText(/^top p/i), { target: { value: '' } })
+      fireEvent.change(screen.getByLabelText(/^frequency penalty/i), { target: { value: '' } })
+      fireEvent.change(screen.getByLabelText(/^presence penalty/i), { target: { value: '' } })
+      fireEvent.change(screen.getByLabelText(/^max retries/i), { target: { value: '' } })
       submitForm()
 
       const { chatAIOptions } = mockOnSubmit.mock.calls[0]![0]!

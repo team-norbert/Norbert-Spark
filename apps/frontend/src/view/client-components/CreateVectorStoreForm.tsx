@@ -29,6 +29,7 @@ import { AccordionComponent } from './AccordionComponent.js'
 import {
   bodyText,
   chunkOverlapText,
+  chunkSizeText,
   frequencyPenaltyText,
   maxRetriesText,
   maxTokensText,
@@ -141,10 +142,10 @@ export function CreateVectorStoreForm({
   const [maxTokens, setMaxTokens] = useState('1000')
   const [temperature, setTemperature] = useState('0.7')
   const [topP, setTopP] = useState('1')
-  const [frequencyPenalty, setFrequencyPenalty] = useState('')
-  const [presencePenalty, setPresencePenalty] = useState('')
+  const [frequencyPenalty, setFrequencyPenalty] = useState(0)
+  const [presencePenalty, setPresencePenalty] = useState(0)
   const [stopSequences, setStopSequences] = useState('')
-  const [maxRetries, setMaxRetries] = useState('')
+  const [maxRetries, setMaxRetries] = useState(2)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -495,6 +496,9 @@ export function CreateVectorStoreForm({
           />
           <Divider sx={{ my: 2 }} />
 
+          <AccordionComponent header="Information on Chunk Size" body={chunkSizeText} />
+          <Divider sx={{ my: 2 }} />
+
           <TextField
             label="Chunk Size"
             type="number"
@@ -643,7 +647,7 @@ export function CreateVectorStoreForm({
             label="Frequency Penalty"
             type="number"
             value={frequencyPenalty}
-            onChange={(e) => setFrequencyPenalty(e.target.value)}
+            onChange={(e) => setFrequencyPenalty(e.target.value === '' ? 0 : Number(e.target.value))}
             inputProps={{ step: 0.1, min: -2, max: 2 }}
             fullWidth
             data-testid="chat-ai-options-frequency-penalty-input"
@@ -671,7 +675,7 @@ export function CreateVectorStoreForm({
             label="Presence Penalty"
             type="number"
             value={presencePenalty}
-            onChange={(e) => setPresencePenalty(e.target.value)}
+            onChange={(e) => setPresencePenalty(e.target.value === '' ? 0 : Number(e.target.value))}
             inputProps={{ step: 0.1, min: -2, max: 2 }}
             fullWidth
             data-testid="chat-ai-options-presence-penalty-input"
@@ -705,12 +709,12 @@ export function CreateVectorStoreForm({
           />
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            <strong>Recommended default [].</strong> Adjust based on your preference and desired
-            response style. For stop sequences, the safest default is usually none unless you have a
-            very specific output format you need to terminate early. Stop sequences can truncate
-            valid answers unexpectedly, and providers already stop naturally or at the token limit.
-            Both OpenAI and Gemini describe stop conditions as either a natural stop or a provided
-            stop sequence.
+            <strong>Recommended default - leave empty.</strong> Adjust based on your preference and
+            desired response style. For stop sequences, the safest default is usually none unless
+            you have a very specific output format you need to terminate early. Stop sequences can
+            truncate valid answers unexpectedly, and providers already stop naturally or at the
+            token limit. Both OpenAI and Gemini describe stop conditions as either a natural stop or
+            a provided stop sequence.
           </Typography>
 
           <Typography variant={'body2'} color="text.secondary" sx={{ mb: 1.5 }}>
@@ -725,7 +729,7 @@ export function CreateVectorStoreForm({
             label="Max Retries"
             type="number"
             value={maxRetries}
-            onChange={(e) => setMaxRetries(e.target.value)}
+            onChange={(e) => setMaxRetries(e.target.value === '' ? 0 : Number(e.target.value))}
             inputProps={{ min: 0, max: 10 }}
             fullWidth
             data-testid="chat-ai-options-max-retries-input"
