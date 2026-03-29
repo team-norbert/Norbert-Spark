@@ -176,7 +176,7 @@ export function CreateVectorStoreForm({
       embeddingModels,
       vectorEmbeddings: {
         chunkSize: Number(chunkSize),
-        chunkOverlap: Number(chunkOverlap)
+        chunkOverlap: Number(chunkOverlap),
       },
       chatAIOptions: {
         chatTypeId,
