@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.53",
-    "@ai-sdk/react": "^3.0.142",
+    "@ai-sdk/react": "^3.0.143",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.9",
