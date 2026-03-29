@@ -346,12 +346,10 @@ export function CreateVectorStoreForm({
             sx={{ mb: 2 }}
             data-test-id="embedding-models-model-provider-input"
             error={
-              modelProvider !== '' &&
-              !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)
+              modelProvider !== '' && !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)
             }
             helperText={
-              modelProvider !== '' &&
-              !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)
+              modelProvider !== '' && !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)
                 ? 'Must be one of: openai, google, cohere, amazon, voyage, mistral'
                 : undefined
             }
