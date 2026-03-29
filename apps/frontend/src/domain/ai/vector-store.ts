@@ -143,8 +143,8 @@ export const CreateVectorStoreResponseSchema = z.object({
     }),
     vectorEmbeddings: z.object({
       id: z.uuid(),
-      chunkSize: z.number(),
-      chunkOverlap: z.number(),
+      chunkSize: z.number().int(),
+      chunkOverlap: z.number().int(),
       createdAt: z.iso.datetime(),
       updatedAt: z.iso.datetime(),
     }),
