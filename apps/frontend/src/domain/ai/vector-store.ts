@@ -24,10 +24,26 @@ const TaskTypeSchema = z.enum([
 ])
 
 /**
+ * Google embedding model names that require a `taskType` per the OpenAPI schema.
+ */
+const GOOGLE_TASK_TYPE_MODELS = [
+  'text-embedding-005',
+  'text-multilingual-embedding-002',
+  'gemini-embedding-001',
+] as const
+
+function isGoogleTaskTypeModel(name: string): boolean {
+  return (GOOGLE_TASK_TYPE_MODELS as readonly string[]).includes(name)
+}
+
+/**
  * Embedding models sub-schema.
  * Either an existing model is referenced by ID, or a new one is defined
  * by name, provider, dimension and release year — matching the OpenAPI
  * `oneOf` constraint with `additionalProperties: false` on each branch.
+ *
+ * `taskType` is conditionally required when `modelProvider` is `'google'`
+ * and `modelName` is one of the Google models listed in the OpenAPI schema.
  */
 const EmbeddingModelsRequestSchema = z.union([
   z.object({ existingModelId: z.uuid() }).strict(),
@@ -44,7 +60,20 @@ const EmbeddingModelsRequestSchema = z.union([
       recommendedUsage: z.string().min(1),
       taskType: TaskTypeSchema.optional(),
     })
-    .strict(),
+    .strict()
+    .superRefine((data, ctx) => {
+      if (
+        data.modelProvider === 'google' &&
+        isGoogleTaskTypeModel(data.modelName) &&
+        data.taskType === undefined
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'taskType is required for this Google embedding model',
+          path: ['taskType'],
+        })
+      }
+    }),
 ])
 
 /**

@@ -47,6 +47,25 @@ export type DocumentEntry = VectorStoreDocumentEntry
 const ALLOWED_PROVIDERS = ['openai', 'google', 'cohere', 'amazon', 'voyage', 'mistral'] as const
 type AllowedProvider = (typeof ALLOWED_PROVIDERS)[number]
 
+const GOOGLE_TASK_TYPE_MODEL_NAMES = [
+  'text-embedding-005',
+  'text-multilingual-embedding-002',
+  'gemini-embedding-001',
+] as const
+
+const RELEASE_YEAR_MIN = 2000
+const RELEASE_YEAR_MAX = new Date().getFullYear() + 1
+
+function isReleaseYearValid(value: string): boolean {
+  const num = Number(value)
+  return (
+    !Number.isNaN(num) &&
+    Number.isInteger(num) &&
+    num >= RELEASE_YEAR_MIN &&
+    num <= RELEASE_YEAR_MAX
+  )
+}
+
 /**
  * Derives a human-readable document title from a bucket fileKey.
  * e.g. "rag/uuid/Sample-Handbook_copy.pdf" → "Sample-Handbook copy"
@@ -150,8 +169,27 @@ export function CreateVectorStoreForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!selectedModelId && (dimension === '' || !releaseYear || !recommendedUsage)) return
-    if (!selectedModelId && !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider)) return
+    if (
+      !selectedModelId &&
+      (!modelName ||
+        dimension === '' ||
+        !releaseYear ||
+        !recommendedUsage ||
+        !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider) ||
+        !isReleaseYearValid(releaseYear))
+    )
+      return
+
+    // taskType is required when the model is a Google model that mandates it
+    if (
+      !selectedModelId &&
+      modelProvider === 'google' &&
+      GOOGLE_TASK_TYPE_MODEL_NAMES.includes(
+        modelName as (typeof GOOGLE_TASK_TYPE_MODEL_NAMES)[number]
+      ) &&
+      !taskType
+    )
+      return
 
     const embeddingModels =
       selectedModelId !== ''
@@ -395,18 +433,14 @@ export function CreateVectorStoreForm({
             type="number"
             value={releaseYear}
             onChange={handleManualModelChange(setReleaseYear)}
-            inputProps={{ min: 2000, max: new Date().getFullYear() + 1 }}
+            inputProps={{ min: RELEASE_YEAR_MIN, max: RELEASE_YEAR_MAX }}
             fullWidth
             sx={{ mb: 2 }}
             data-testid="embedding-models-release-year-input"
-            error={
-              releaseYear !== '' &&
-              (Number(releaseYear) < 2000 || Number(releaseYear) > new Date().getFullYear() + 1)
-            }
+            error={releaseYear !== '' && !isReleaseYearValid(releaseYear)}
             helperText={
-              releaseYear !== '' &&
-              (Number(releaseYear) < 2000 || Number(releaseYear) > new Date().getFullYear() + 1)
-                ? `Must be between 2000 and ${new Date().getFullYear() + 1}`
+              releaseYear !== '' && !isReleaseYearValid(releaseYear)
+                ? `Must be a whole number between ${RELEASE_YEAR_MIN} and ${RELEASE_YEAR_MAX}`
                 : undefined
             }
           />
