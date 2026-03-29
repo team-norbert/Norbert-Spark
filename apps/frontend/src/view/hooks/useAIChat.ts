@@ -1,8 +1,8 @@
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport } from 'ai'
+import { DefaultChatTransport, type UIMessage } from 'ai'
 import { useRouter } from 'next/navigation.js'
 import { useSession } from 'next-auth/react'
-import { useEffect, useRef, useState } from 'react'
+import { type RefObject,useEffect, useRef, useState } from 'react'
 import { uuidv7 } from 'uuidv7'
 import { isValidUUID, uuidVersionValidation } from 'uuidv7-utilities'
 
@@ -37,6 +37,37 @@ interface UseAIChatProps {
   initialMessages?: any[]
 }
 
+type UseChatHelpers = ReturnType<typeof useChat>
+
+interface UseAIChatReturn {
+  messages: UIMessage[]
+  sendMessage: UseChatHelpers['sendMessage']
+  stop: UseChatHelpers['stop']
+  status: UseChatHelpers['status']
+  input: string
+  isLoading: boolean
+  selectedFile: File | null
+  errorMessage: string
+  mobileOpen: boolean
+  messagesEndRef: RefObject<HTMLDivElement | null>
+  disabled: boolean
+  userId: string | null
+  currentChatId: string | undefined
+  chats: ReturnType<typeof useUserChats>['data']
+  isChatsError: boolean
+  isLoadingChats: boolean
+  accordionHeader: string
+  accordionBody: string
+  handleSubmit: (e: React.FormEvent) => Promise<void>
+  handleFileSelect: (file: File | null) => void
+  handleDrawerToggle: () => void
+  handleNewChat: () => void
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  handleErrorClose: () => void
+  handleNavigateHome: () => void
+  handleSignOut: () => void
+}
+
 export function isValidUUIDv7(id: string | Buffer) {
   if (!isValidUUID(id)) {
     return false
@@ -50,7 +81,11 @@ export function isValidUUIDv7(id: string | Buffer) {
 export function processUserUUID(id: string | Buffer) {
   return isValidUUIDv7(id)
 }
-export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps = {}) {
+export function useAIChat({
+  chatTypeParam,
+  id,
+  initialMessages,
+}: UseAIChatProps = {}): UseAIChatReturn {
   const router = useRouter()
   const { data: session } = useSession()
 
@@ -231,6 +266,8 @@ export function useAIChat({ chatTypeParam, id, initialMessages }: UseAIChatProps
   return {
     // State
     messages,
+    sendMessage,
+    stop,
     input,
     isLoading,
     selectedFile,
