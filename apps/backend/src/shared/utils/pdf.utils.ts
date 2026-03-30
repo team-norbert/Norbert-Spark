@@ -4,7 +4,10 @@ import unzipper from 'unzipper'
 
 import type { LoggerPort } from '../../application/ports/logger.port.js'
 import { ValidationException } from '../exceptions/validation.exception.js'
-
+import { ZipSecurityInvalidZipSizeException } from '../exceptions/zip-invalidzipsize.exception.js'
+import { ZipSecurityMaxDecompressedException } from '../exceptions/zip-maxdecompressed.exception.js'
+import { ZipSecurityMaxFileException } from '../exceptions/zip-maxfile.exception.js'
+import { ZipSecuritySuspiciousException } from '../exceptions/zip-suspicious.exception.js'
 /**
  * Security limits for ZIP extraction to prevent zip bomb and DoS attacks
  */
@@ -27,19 +30,6 @@ const DEFAULT_SECURITY_LIMITS: ZipSecurityLimits = {
   maxFileCount: 100, // Maximum 100 files
   maxFileSize: 50 * 1024 * 1024, // 50MB per file
   maxCompressionRatio: 100, // Max 100:1 compression ratio
-}
-
-/**
- * Custom error for ZIP security violations
- */
-export class ZipSecurityError extends Error {
-  constructor(
-    message: string,
-    public readonly code: string
-  ) {
-    super(message)
-    this.name = 'ZipSecurityError'
-  }
 }
 
 /**
@@ -242,7 +232,7 @@ export class PDFUtils {
     if (directory.files.length > limits.maxFileCount) {
       const error = `ZIP contains too many files: ${directory.files.length} > ${limits.maxFileCount}`
       this.logger.error(error)
-      throw new ZipSecurityError(error, 'MAX_FILE_COUNT_EXCEEDED')
+      throw new ZipSecurityMaxFileException(error)
     }
 
     // Calculate total uncompressed size
@@ -254,7 +244,7 @@ export class PDFUtils {
     if (totalUncompressedSize > limits.maxDecompressedSize) {
       const error = `ZIP total decompressed size exceeds limit: ${totalUncompressedSize} bytes > ${limits.maxDecompressedSize} bytes`
       this.logger.error(error)
-      throw new ZipSecurityError(error, 'MAX_DECOMPRESSED_SIZE_EXCEEDED')
+      throw new ZipSecurityMaxDecompressedException(error)
     }
 
     // Check overall compression ratio
@@ -263,14 +253,14 @@ export class PDFUtils {
     if (compressedSize < MIN_VALID_ZIP_SIZE) {
       const error = `Invalid or corrupted ZIP: buffer size ${compressedSize} bytes is below minimum valid ZIP size`
       this.logger.error(error)
-      throw new ZipSecurityError(error, 'INVALID_ZIP_SIZE')
+      throw new ZipSecurityInvalidZipSizeException(error)
     }
 
     const overallRatio = totalUncompressedSize / compressedSize
     if (overallRatio > limits.maxCompressionRatio) {
       const error = `Suspicious overall compression ratio: ${overallRatio.toFixed(2)} > ${limits.maxCompressionRatio}`
       this.logger.error(error)
-      throw new ZipSecurityError(error, 'SUSPICIOUS_COMPRESSION_RATIO')
+      throw new ZipSecuritySuspiciousException(error)
     }
 
     const pdfFiles: unzipper.File[] = []

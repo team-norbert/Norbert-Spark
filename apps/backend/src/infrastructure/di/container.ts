@@ -411,6 +411,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.aiRagController = new AiRagController(
       this.logger,
       this.getEmbeddingModelUseCase,
+      this.extractDataUseCase,
       this.presignedUploadUrlUseCase,
       this.pdfUtils
     )

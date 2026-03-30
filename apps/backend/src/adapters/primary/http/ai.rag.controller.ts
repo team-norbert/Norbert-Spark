@@ -1,10 +1,13 @@
 import type { components } from '@norberts-spark/shared/openapi-types'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
+import { ExtractDataDto } from '../../../application/dtos/extract-data.dto.js'
 import { RagDto } from '../../../application/dtos/rag.dto.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
 import { GetEmbeddingModelUseCase } from '../../../application/use-cases/get-embedding-model.use-case.js'
 import { PresignedUploadUrlUseCase } from '../../../application/use-cases/presigned-url-put.use-case.js'
+import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
@@ -27,12 +30,14 @@ export class AiRagController {
   /**
    * @param logger - Structured logger for request and error telemetry.
    * @param getEmbeddingModelUseCase - Use case that retrieves all embedding models from the database.
+   * @param extractDataUseCase - Use case that extracts data from a PDF document and prepares it for ingestion.
    * @param presignedUploadUrlUseCase - Use case that generates a pre-signed S3 upload URL for a document.
    * @param pdfUtils - PDF utility helpers used during document ingestion.
    */
   constructor(
     private readonly logger: LoggerPort,
     private readonly getEmbeddingModelUseCase: GetEmbeddingModelUseCase,
+    private readonly extractDataUseCase: ExtractDataUseCase,
     private readonly presignedUploadUrlUseCase: PresignedUploadUrlUseCase,
     private readonly pdfUtils: PDFUtils
   ) {}
@@ -140,8 +145,14 @@ export class AiRagController {
 
       const body = request.body as components['schemas']['CreateVectorStoreRequest']
       const ragDto = RagDto.validate(body)
-      // TODO: Implement the logic to handle the RAG request, such as processing the uploaded file, extracting text, and generating embeddings.
-      // const { buffer, fileType } = await this.extractDataUseCase.execute(ragDto, auditContext)
+
+      /* ragDto.documents.forEach(doc => {
+
+      })*/
+
+      //const dto = ExtractDataDto.validate({ ragDto, bucketName: EnvConfig.BUCKET })
+
+      //const { buffer, fileType } = await this.extractDataUseCase.execute(ragDto, auditContext)
 
       // Placeholder response until RAG vector store creation is fully implemented
       reply.code(501).send({

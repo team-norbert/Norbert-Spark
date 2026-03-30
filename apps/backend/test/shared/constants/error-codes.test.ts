@@ -58,6 +58,10 @@ describe('ErrorCode', () => {
         'INTERNAL_ERROR',
         'DATABASE_ERROR',
         'EXTERNAL_SERVICE_ERROR',
+        'MAX_FILE_COUNT_EXCEEDED',
+        'MAX_DECOMPRESSED_SIZE_EXCEEDED',
+        'SUSPICIOUS_COMPRESSION_RATIO',
+        'INVALID_ZIP_SIZE',
       ]
 
       const actualCodes = Object.values(ErrorCode)
