@@ -171,8 +171,6 @@ export class AiRagController {
       // 2. Extract text from the PDF
       // 3. Use the RAGUtils.generateChecksum to create a checksum for the database entry
 
-
-
       /* ragDto.documents.forEach(doc => {
 
       })*/
