@@ -3,6 +3,7 @@
 'use client'
 
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -133,6 +134,7 @@ export function CreateVectorStoreForm({
   const [releaseYear, setReleaseYear] = useState('')
   const [recommendedUsage, setRecommendedUsage] = useState('')
   const [taskType, setTaskType] = useState('')
+  const [embeddingModelError, setEmbeddingModelError] = useState('')
 
   // Selecting a pre-seeded model clears the manual fields (mutually exclusive modes)
   const handleModelSelect = (modelId: string) => {
@@ -143,6 +145,7 @@ export function CreateVectorStoreForm({
     setReleaseYear('')
     setRecommendedUsage('')
     setTaskType('')
+    setEmbeddingModelError('')
   }
 
   // Typing into a manual field deselects the dropdown (mutually exclusive modes)
@@ -151,6 +154,7 @@ export function CreateVectorStoreForm({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setter(e.target.value)
       setSelectedModelId('')
+      setEmbeddingModelError('')
     }
 
   // vectorEmbeddings
@@ -181,8 +185,12 @@ export function CreateVectorStoreForm({
         !recommendedUsage ||
         !ALLOWED_PROVIDERS.includes(modelProvider as AllowedProvider) ||
         !isReleaseYearValid(releaseYear))
-    )
+    ) {
+      setEmbeddingModelError(
+        'Please either select an existing model from the dropdown, or complete all manual model fields: Model Name, Provider, Dimension, Release Year, and Recommended Usage.'
+      )
       return
+    }
 
     // taskType is required when the model is a Google model that mandates it
     if (
@@ -192,8 +200,12 @@ export function CreateVectorStoreForm({
         modelName as (typeof GOOGLE_TASK_TYPE_MODEL_NAMES)[number]
       ) &&
       !taskType
-    )
+    ) {
+      setEmbeddingModelError('Task Type is required for the selected Google model.')
       return
+    }
+
+    setEmbeddingModelError('')
 
     const embeddingModels =
       selectedModelId !== ''
@@ -382,6 +394,7 @@ export function CreateVectorStoreForm({
             onChange={(e) => {
               setModelProvider(e.target.value)
               setSelectedModelId('')
+              setEmbeddingModelError('')
             }}
             data-testid="embedding-models-provider-input"
             fullWidth
@@ -413,6 +426,7 @@ export function CreateVectorStoreForm({
               onChange={(e) => {
                 setDimension(e.target.value as 3072 | 1536 | 1024 | 768 | 384 | '')
                 setSelectedModelId('')
+                setEmbeddingModelError('')
               }}
             >
               <MenuItem value="">
@@ -510,6 +524,7 @@ export function CreateVectorStoreForm({
               onChange={(e) => {
                 setTaskType(e.target.value)
                 setSelectedModelId('')
+                setEmbeddingModelError('')
               }}
             >
               <MenuItem value="">
@@ -801,6 +816,12 @@ export function CreateVectorStoreForm({
           </Typography>
 
           <Divider sx={{ my: 2 }} />
+
+          {embeddingModelError && (
+            <Alert severity="error" sx={{ mb: 2 }} data-testid="embedding-model-error-alert">
+              <strong>Embedding model required:</strong> {embeddingModelError}
+            </Alert>
+          )}
 
           <Button
             variant="contained"
