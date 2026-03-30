@@ -110,7 +110,7 @@ erDiagram
         text        name                    "NOT NULL, non-empty"
         uuid        embedding_model_id  FK  "REFERENCES embedding_models ON DELETE RESTRICT"
         timestamptz created_at              "Default: now()"
-        timestamptz updated_at              "Default: now()"
+        timestamptz updated_at              "Default: now(), trigger-managed"
     }
 
     vector_store_documents {
