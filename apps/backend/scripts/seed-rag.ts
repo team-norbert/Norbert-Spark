@@ -45,6 +45,10 @@ const rows = models.map((m) => ({
   name: m.name,
   provider: m.provider,
   dimension: Number(m.dimension) as EmbeddingDimension,
+  status: m.status,
+  releaseYear: m.release_year,
+  recommendedUsage: m.recommended_usage,
+  taskType: m.task_type ?? null,
 }))
 
 console.log(`🌱 Seeding ${rows.length} embedding models…`)
