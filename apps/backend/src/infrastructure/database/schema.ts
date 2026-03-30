@@ -803,6 +803,57 @@ export type DBVectorEmbeddings384 = typeof vectorEmbeddings384.$inferInsert
 export type DBVectorEmbeddingsSelect384 = typeof vectorEmbeddings384.$inferSelect
 
 /**
+ * Vector Stores table: A named collection of documents used for RAG retrieval.
+ * Tied to a single embedding model so all chunks are comparable.
+ */
+export const vectorStores = pgTable(
+  'vector_stores',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
+    name: text('name').notNull(),
+    embeddingModelId: uuid('embedding_model_id')
+      .notNull()
+      .references(() => embeddingModels.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    nameCheck: check('vector_stores_name_check', sql`length(trim(${table.name})) > 0`),
+    embeddingModelIdIdx: index('vector_stores_embedding_model_id_idx').on(table.embeddingModelId),
+  })
+)
+
+export type DBVectorStore = typeof vectorStores.$inferInsert
+export type DBVectorStoreSelect = typeof vectorStores.$inferSelect
+
+/**
+ * Vector Store Documents table: Join table linking many documents to many vector stores.
+ * Allows a single vector store to contain multiple documents and a document to
+ * appear in multiple stores.
+ */
+export const vectorStoreDocuments = pgTable(
+  'vector_store_documents',
+  {
+    vectorStoreId: uuid('vector_store_id')
+      .notNull()
+      .references(() => vectorStores.id, { onDelete: 'cascade' }),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, { onDelete: 'cascade' }),
+    addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    pk: { columns: [table.vectorStoreId, table.documentId], name: 'vector_store_documents_pkey' },
+    documentIdIdx: index('vector_store_documents_document_id_idx').on(table.documentId),
+  })
+)
+
+export type DBVectorStoreDocument = typeof vectorStoreDocuments.$inferInsert
+export type DBVectorStoreDocumentSelect = typeof vectorStoreDocuments.$inferSelect
+
+/**
  * Vector Embeddings table: Stores 3072-dimension vector embeddings for RAG
  */
 export const vectorEmbeddings3072 = pgTable(
@@ -1327,12 +1378,14 @@ export const documentsRelations = relations(documents, ({ many }) => ({
   vectorEmbeddings1536: many(vectorEmbeddings1536),
   vectorEmbeddings768: many(vectorEmbeddings768),
   vectorEmbeddings384: many(vectorEmbeddings384),
+  vectorStoreDocuments: many(vectorStoreDocuments),
 }))
 
 export const embeddingModelsRelations = relations(embeddingModels, ({ many }) => ({
   vectorEmbeddings1536: many(vectorEmbeddings1536),
   vectorEmbeddings768: many(vectorEmbeddings768),
   vectorEmbeddings384: many(vectorEmbeddings384),
+  vectorStores: many(vectorStores),
 }))
 
 export const vectorEmbeddings1536Relations = relations(vectorEmbeddings1536, ({ one }) => ({
@@ -1365,6 +1418,25 @@ export const vectorEmbeddings384Relations = relations(vectorEmbeddings384, ({ on
   embeddingModel: one(embeddingModels, {
     fields: [vectorEmbeddings384.embeddingModelId],
     references: [embeddingModels.id],
+  }),
+}))
+
+export const vectorStoresRelations = relations(vectorStores, ({ many, one }) => ({
+  embeddingModel: one(embeddingModels, {
+    fields: [vectorStores.embeddingModelId],
+    references: [embeddingModels.id],
+  }),
+  vectorStoreDocuments: many(vectorStoreDocuments),
+}))
+
+export const vectorStoreDocumentsRelations = relations(vectorStoreDocuments, ({ one }) => ({
+  vectorStore: one(vectorStores, {
+    fields: [vectorStoreDocuments.vectorStoreId],
+    references: [vectorStores.id],
+  }),
+  document: one(documents, {
+    fields: [vectorStoreDocuments.documentId],
+    references: [documents.id],
   }),
 }))
 

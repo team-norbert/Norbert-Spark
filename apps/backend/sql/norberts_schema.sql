@@ -174,6 +174,33 @@ CREATE TABLE IF NOT EXISTS embedding_models (
 );
 
 -- ============================================================
+-- vector_stores groups one or more documents into a named collection
+-- for retrieval. vector_store_documents is the join table allowing
+-- many documents per store and one document to belong to many stores.
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS vector_stores (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+    embedding_model_id UUID NOT NULL REFERENCES embedding_models(id) ON DELETE RESTRICT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS vector_stores_embedding_model_id_idx
+    ON vector_stores (embedding_model_id);
+
+CREATE TABLE IF NOT EXISTS vector_store_documents (
+    vector_store_id UUID NOT NULL REFERENCES vector_stores(id) ON DELETE CASCADE,
+    document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    added_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (vector_store_id, document_id)
+);
+
+CREATE INDEX IF NOT EXISTS vector_store_documents_document_id_idx
+    ON vector_store_documents (document_id);
+
+-- ============================================================
 -- All three vector embedding tables use UUID foreign keys instead of
 -- TEXT document_id, added embedding_model_id foreign key,
 -- and added unique constraint on (document_id, embedding_model_id, chunk_index)
