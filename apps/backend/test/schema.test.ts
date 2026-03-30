@@ -23,6 +23,8 @@ import {
   vectorEmbeddings1024,
   vectorEmbeddings1536,
   vectorEmbeddings3072,
+  vectorStoreDocuments,
+  vectorStores,
 } from '../src/infrastructure/database/schema.js'
 
 describe('Database Schema', () => {
@@ -126,6 +128,16 @@ describe('Database Schema', () => {
       expect(embeddingModels).toBeDefined()
       expect(typeof embeddingModels).toBe('object')
     })
+
+    it('should export vectorStores table constant', () => {
+      expect(vectorStores).toBeDefined()
+      expect(typeof vectorStores).toBe('object')
+    })
+
+    it('should export vectorStoreDocuments table constant', () => {
+      expect(vectorStoreDocuments).toBeDefined()
+      expect(typeof vectorStoreDocuments).toBe('object')
+    })
   })
 
   describe('Table names', () => {
@@ -203,6 +215,14 @@ describe('Database Schema', () => {
 
     it('should have correct table name for refresh_tokens', () => {
       expect(getTableName(refreshTokens)).toBe('refresh_tokens')
+    })
+
+    it('should have correct table name for vector_stores', () => {
+      expect(getTableName(vectorStores)).toBe('vector_stores')
+    })
+
+    it('should have correct table name for vector_store_documents', () => {
+      expect(getTableName(vectorStoreDocuments)).toBe('vector_store_documents')
     })
   })
 
@@ -1175,6 +1195,53 @@ describe('Database Schema', () => {
       it('should have taskType column', () => {
         expect(embeddingModels.taskType).toBeDefined()
         expect(embeddingModels.taskType.name).toBe('task_type')
+      })
+    })
+
+    describe('vectorStores table columns', () => {
+      it('should have id column', () => {
+        expect(vectorStores.id).toBeDefined()
+        expect(vectorStores.id.name).toBe('id')
+      })
+
+      it('should have name column', () => {
+        expect(vectorStores.name).toBeDefined()
+        expect(vectorStores.name.name).toBe('name')
+      })
+
+      it('should have embeddingModelId column', () => {
+        expect(vectorStores.embeddingModelId).toBeDefined()
+        expect(vectorStores.embeddingModelId.name).toBe('embedding_model_id')
+        expect(vectorStores.embeddingModelId.columnType).toBe('PgUUID')
+      })
+
+      it('should have createdAt column', () => {
+        expect(vectorStores.createdAt).toBeDefined()
+        expect(vectorStores.createdAt.name).toBe('created_at')
+      })
+
+      it('should have updatedAt column', () => {
+        expect(vectorStores.updatedAt).toBeDefined()
+        expect(vectorStores.updatedAt.name).toBe('updated_at')
+      })
+    })
+
+    describe('vectorStoreDocuments table columns', () => {
+      it('should have vectorStoreId column', () => {
+        expect(vectorStoreDocuments.vectorStoreId).toBeDefined()
+        expect(vectorStoreDocuments.vectorStoreId.name).toBe('vector_store_id')
+        expect(vectorStoreDocuments.vectorStoreId.columnType).toBe('PgUUID')
+      })
+
+      it('should have documentId column', () => {
+        expect(vectorStoreDocuments.documentId).toBeDefined()
+        expect(vectorStoreDocuments.documentId.name).toBe('document_id')
+        expect(vectorStoreDocuments.documentId.columnType).toBe('PgUUID')
+      })
+
+      it('should have addedAt column', () => {
+        expect(vectorStoreDocuments.addedAt).toBeDefined()
+        expect(vectorStoreDocuments.addedAt.name).toBe('added_at')
       })
     })
   })
@@ -2515,6 +2582,139 @@ describe('Database Schema', () => {
             expect.arrayContaining(['id', 'dimension'])
           )
         })
+      })
+    })
+  })
+
+  describe('vectorStores', () => {
+    describe('column properties', () => {
+      it('should have primary key on id', () => {
+        expect(vectorStores.id.primary).toBe(true)
+      })
+
+      it('should have not null constraint on name', () => {
+        expect(vectorStores.name.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on embeddingModelId', () => {
+        expect(vectorStores.embeddingModelId.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on createdAt', () => {
+        expect(vectorStores.createdAt.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on updatedAt', () => {
+        expect(vectorStores.updatedAt.notNull).toBe(true)
+      })
+
+      it('should have a default value for id', () => {
+        expect(vectorStores.id.hasDefault).toBe(true)
+      })
+
+      it('should have a default value for createdAt', () => {
+        expect(vectorStores.createdAt.hasDefault).toBe(true)
+      })
+
+      it('should have a default value for updatedAt', () => {
+        expect(vectorStores.updatedAt.hasDefault).toBe(true)
+      })
+    })
+
+    describe('constraints', () => {
+      it('should have a name length check constraint', () => {
+        const { checks } = getTableConfig(vectorStores)
+        const check = checks.find((c) => c.name === 'vector_stores_name_check')
+        expect(check).toBeDefined()
+      })
+
+      it('should have a FK from embeddingModelId to embedding_models.id', () => {
+        const { foreignKeys } = getTableConfig(vectorStores)
+        const fk = foreignKeys.find((f) =>
+          f.reference().columns.some((c) => c.name === 'embedding_model_id')
+        )
+        expect(fk).toBeDefined()
+        const ref = fk!.reference()
+        expect(ref.foreignColumns.map((c) => c.name)).toContain('id')
+      })
+    })
+
+    describe('indexes', () => {
+      it('should be defined with the correct table name', () => {
+        expect(getTableName(vectorStores)).toBe('vector_stores')
+      })
+
+      it('should have embeddingModelId column available for indexing', () => {
+        expect(vectorStores.embeddingModelId).toBeDefined()
+        expect(vectorStores.embeddingModelId.name).toBe('embedding_model_id')
+      })
+    })
+  })
+
+  describe('vectorStoreDocuments', () => {
+    describe('column properties', () => {
+      it('should have not null constraint on vectorStoreId', () => {
+        expect(vectorStoreDocuments.vectorStoreId.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on documentId', () => {
+        expect(vectorStoreDocuments.documentId.notNull).toBe(true)
+      })
+
+      it('should have not null constraint on addedAt', () => {
+        expect(vectorStoreDocuments.addedAt.notNull).toBe(true)
+      })
+
+      it('should have a default value for addedAt', () => {
+        expect(vectorStoreDocuments.addedAt.hasDefault).toBe(true)
+      })
+    })
+
+    describe('foreign keys', () => {
+      it('should have a FK from vectorStoreId to vector_stores.id', () => {
+        const { foreignKeys } = getTableConfig(vectorStoreDocuments)
+        const fk = foreignKeys.find((f) =>
+          f.reference().columns.some((c) => c.name === 'vector_store_id')
+        )
+        expect(fk).toBeDefined()
+        const ref = fk!.reference()
+        expect(ref.foreignColumns.map((c) => c.name)).toContain('id')
+      })
+
+      it('should have a FK from documentId to documents.id', () => {
+        const { foreignKeys } = getTableConfig(vectorStoreDocuments)
+        const fk = foreignKeys.find((f) =>
+          f.reference().columns.some((c) => c.name === 'document_id')
+        )
+        expect(fk).toBeDefined()
+        const ref = fk!.reference()
+        expect(ref.foreignColumns.map((c) => c.name)).toContain('id')
+      })
+
+      it('should have exactly two foreign keys', () => {
+        const { foreignKeys } = getTableConfig(vectorStoreDocuments)
+        expect(foreignKeys).toHaveLength(2)
+      })
+    })
+
+    describe('primary keys', () => {
+      it('should have a composite primary key on (vectorStoreId, documentId)', () => {
+        const { primaryKeys } = getTableConfig(vectorStoreDocuments)
+        expect(primaryKeys).toHaveLength(1)
+        const pk = primaryKeys[0]
+        const columnNames = pk.columns.map((c) => c.name).sort()
+        expect(columnNames).toEqual(['document_id', 'vector_store_id'])
+      })
+    })
+
+    describe('indexes', () => {
+      it('should be defined with the correct table name', () => {
+        expect(getTableName(vectorStoreDocuments)).toBe('vector_store_documents')
+      })
+
+      it('should have documentId column available for indexing', () => {
+        expect(vectorStoreDocuments.documentId).toBeDefined()
+        expect(vectorStoreDocuments.documentId.name).toBe('document_id')
       })
     })
   })
