@@ -444,6 +444,6 @@ erDiagram
 
 ## Triggers (auto-managed `updated_at`)
 
-The `touch_updated_at()` function fires `BEFORE UPDATE` on: `chats`, `chat_types`, `company`, `key_person`, `documents`, `embedding_models`, `vector_embeddings_384`, `vector_embeddings_768`, `vector_embeddings_1024`, `vector_embeddings_1536`, `vector_embeddings_3072`.
+The `touch_updated_at()` function fires `BEFORE UPDATE` on: `chats`, `chat_types`, `company`, `key_person`, `documents`, `embedding_models`, `vector_stores`, `vector_embeddings_384`, `vector_embeddings_768`, `vector_embeddings_1024`, `vector_embeddings_1536`, `vector_embeddings_3072`.
 
 The `users` table uses its own dedicated `users_set_updated_at()` trigger.
