@@ -146,6 +146,33 @@ export class AiRagController {
       const body = request.body as components['schemas']['CreateVectorStoreRequest']
       const ragDto = RagDto.validate(body)
 
+      const result = {
+        id: '019d3e6e-2d1d-765c-ab4f-07d429e8a613',
+        documents: [
+          {
+            title: 'Sample-Handbook',
+            source: 'rag/019d3ead-9941-7625-bfe4-ef798304bacd/Sample-Handbook.pdf',
+          },
+        ],
+        embeddingModels: { existingModelId: '019d3458-36c1-7af0-8ca7-f46c2f2922bd' },
+        vectorEmbeddings: { chunkSize: 300, chunkOverlap: 40 },
+        chatAIOptions: {
+          chatTypeId: '019d3e6e-2d1d-765c-ab4f-07d429e8a613',
+          maxTokens: 1000,
+          temperature: 0.7,
+          topP: 1,
+          stopSequences: [],
+          maxRetries: 2,
+        },
+      }
+
+      // In the following order
+      // 1. Retrieve the content of the PDF file
+      // 2. Extract text from the PDF
+      // 3. Use the RAGUtils.generateChecksum to create a checksum for the database entry
+
+
+
       /* ragDto.documents.forEach(doc => {
 
       })*/
