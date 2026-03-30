@@ -2697,6 +2697,16 @@ describe('Database Schema', () => {
       })
     })
 
+    describe('primary keys', () => {
+      it('should have a composite primary key on (vectorStoreId, documentId)', () => {
+        const { primaryKeys } = getTableConfig(vectorStoreDocuments)
+        expect(primaryKeys).toHaveLength(1)
+        const pk = primaryKeys[0]
+        const columnNames = pk.columns.map((c) => c.name).sort()
+        expect(columnNames).toEqual(['document_id', 'vector_store_id'])
+      })
+    })
+
     describe('indexes', () => {
       it('should be defined with the correct table name', () => {
         expect(getTableName(vectorStoreDocuments)).toBe('vector_store_documents')

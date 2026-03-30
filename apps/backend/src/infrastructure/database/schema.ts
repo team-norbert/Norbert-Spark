@@ -13,6 +13,7 @@ import {
   numeric,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -845,7 +846,10 @@ export const vectorStoreDocuments = pgTable(
     addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
-    pk: { columns: [table.vectorStoreId, table.documentId], name: 'vector_store_documents_pkey' },
+    pk: primaryKey({
+      columns: [table.vectorStoreId, table.documentId],
+      name: 'vector_store_documents_pkey',
+    }),
     documentIdIdx: index('vector_store_documents_document_id_idx').on(table.documentId),
   })
 )

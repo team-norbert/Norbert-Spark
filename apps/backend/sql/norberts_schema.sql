@@ -794,6 +794,12 @@ CREATE TRIGGER embedding_models_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION touch_updated_at();
 
+DROP TRIGGER IF EXISTS vector_stores_touch_updated_at ON vector_stores;
+CREATE TRIGGER vector_stores_touch_updated_at
+    BEFORE UPDATE ON vector_stores
+    FOR EACH ROW
+    EXECUTE FUNCTION touch_updated_at();
+
 DROP TRIGGER IF EXISTS vector_embeddings_3072_updated_at ON vector_embeddings_3072;
 CREATE TRIGGER vector_embeddings_3072_updated_at
     BEFORE UPDATE ON vector_embeddings_3072
