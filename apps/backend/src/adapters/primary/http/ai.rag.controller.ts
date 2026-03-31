@@ -42,6 +42,7 @@ export class AiRagController {
    * @param pdfUtils - PDF utility helpers used during document ingestion.
    * @param ragUtils - RAG utility functions for generating checksums and other RAG-related tasks.
    * @param getEmbeddingModelByIdUseCase - Use case that retrieves all embedding models from the database.
+   * @param createVectorStoreUseCase - Use case that creates a new vector store and ingests documents.
    */
   constructor(
     private readonly logger: LoggerPort,
