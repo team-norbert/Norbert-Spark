@@ -182,9 +182,9 @@ export class AiRagController {
       // 2. Determine chunking parameters once, reused for every document.
       const chunkSize = ragDto.vectorEmbeddings.chunkSize
       const chunkOverlap = ragDto.vectorEmbeddings.chunkOverlap
-      // Do not reuse chat AI stop sequences for chunking; allow downstream utilities
-      // (e.g., RAGUtils) to apply their own default chunk separators.
-      const stopSequences = undefined
+      // Allow downstream utilities (e.g., RAGUtils) to apply their own default
+      // chunk separators; we do not define any custom separators here.
+      const chunkSeparators = undefined
 
       // 3. Process each document individually to maintain per-document attribution
       //    in the vector_embeddings table (documentId FK).
@@ -211,13 +211,19 @@ export class AiRagController {
                 chunkSize,
                 chunkOverlap,
                 textResult.text,
-                stopSequences
+                chunkSeparators
               )
               const docEmbeddings = await this.ragUtils.generateEmbeddings(
                 docChunks,
                 embeddedModels.name,
                 embeddedModels.provider
               )
+
+              if (docEmbeddings.length !== docChunks.length) {
+                throw new ValidationException(
+                  `Embedding count mismatch for "${fileEntry.path}": expected ${docChunks.length} embeddings but received ${docEmbeddings.length}`
+                )
+              }
 
               documentInputs.push({
                 title: (infoResult.info?.Title as string | undefined) ?? fileEntry.path,
@@ -226,7 +232,7 @@ export class AiRagController {
                 records: docChunks.map((content, i) => ({
                   content,
                   // eslint-disable-next-line security/detect-object-injection
-                  embedding: docEmbeddings[i] ?? [],
+                  embedding: docEmbeddings[i] as number[],
                 })),
               })
             } finally {
@@ -247,13 +253,19 @@ export class AiRagController {
               chunkSize,
               chunkOverlap,
               textResult.text,
-              stopSequences
+              chunkSeparators
             )
             const docEmbeddings = await this.ragUtils.generateEmbeddings(
               docChunks,
               embeddedModels.name,
               embeddedModels.provider
             )
+
+            if (docEmbeddings.length !== docChunks.length) {
+              throw new ValidationException(
+                `Embedding count mismatch for "${doc.source}": expected ${docChunks.length} embeddings but received ${docEmbeddings.length}`
+              )
+            }
 
             documentInputs.push({
               title: doc.title,
@@ -262,7 +274,7 @@ export class AiRagController {
               records: docChunks.map((content, i) => ({
                 content,
                 // eslint-disable-next-line security/detect-object-injection
-                embedding: docEmbeddings[i] ?? [],
+                embedding: docEmbeddings[i] as number[],
               })),
             })
           } finally {
