@@ -60,6 +60,7 @@ import { SaveChatUseCase } from '../../application/use-cases/save-chat.use-case.
 import { StreamTextUseCase } from '../../application/use-cases/stream-text.use-case.js'
 // Utils
 import { PDFUtils } from '../../shared/utils/pdf.utils.js'
+import { RAGUtils } from '../../shared/utils/rag.utils.js'
 import { EnvConfig } from '../config/env.config.js'
 import { pool } from '../database/index.js'
 import { createFastifyApp } from '../http/fastify.config.js'
@@ -142,6 +143,7 @@ export class Container {
 
   // Utils
   public readonly pdfUtils: PDFUtils
+  public readonly ragUtils: RAGUtils
 
   // Controllers
   public readonly userController: UserController
@@ -224,6 +226,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
 
     // utils
     this.pdfUtils = new PDFUtils(this.logger)
+    this.ragUtils = new RAGUtils(this.logger)
 
     // Initialize services (secondary adapters)
     this.emailService = new EmailService(EnvConfig.RESEND_API_KEY, this.logger)
@@ -413,7 +416,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.getEmbeddingModelUseCase,
       this.extractDataUseCase,
       this.presignedUploadUrlUseCase,
-      this.pdfUtils
+      this.pdfUtils,
+      this.ragUtils
     )
     // Register routes
     this.registerRoutes()

@@ -16,9 +16,16 @@ export class RAGUtils {
   async chunking(
     chunkSize: number,
     chunkOverlap: number,
-    separators: string[] = [' '],
-    content: string
+    content: string,
+    separators: string[] = [' ']
   ): Promise<string[]> {
+    this.logger.info('Starting text chunking', {
+      event: 'rag.chunking.started',
+      chunkSize,
+      chunkOverlap,
+      content: content.substring(0, 100),
+      separators,
+    })
     const textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize,
       chunkOverlap,
@@ -42,11 +49,11 @@ export class RAGUtils {
   }
 
   async generateEmbedding(
-    text: string,
+    chunks: string,
     modelName: string,
     modelProvider: string
   ): Promise<number[]> {
-    const input = text.replaceAll('\n', ' ')
+    const input = chunks.replaceAll('\n', ' ')
 
     const provider = (await loadProvider(modelProvider)) as {
       embeddingModel: (modelId: string) => EmbeddingModelV3
@@ -61,11 +68,17 @@ export class RAGUtils {
   }
 
   async generateEmbeddings(
-    texts: string[],
+    chunks: string[],
     modelName: string,
     modelProvider: string
   ): Promise<number[][]> {
-    const inputs = texts.map((text) => text.replaceAll('\n', ' '))
+    this.logger.info('Generating embeddings', {
+      event: 'rag.embeddings.started',
+      chunkCount: chunks.length,
+      modelName,
+      modelProvider,
+    })
+    const inputs = chunks.map((text) => text.replaceAll('\n', ' '))
 
     const provider = (await loadProvider(modelProvider)) as {
       embeddingModel: (modelId: string) => EmbeddingModelV3

@@ -1,5 +1,7 @@
+import { isArray } from '@norberts-spark/shared'
 import type { components } from '@norberts-spark/shared/openapi-types'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import { PDFParse } from 'pdf-parse'
 
 import { ExtractDataDto } from '../../../application/dtos/extract-data.dto.js'
 import { RagDto } from '../../../application/dtos/rag.dto.js'
@@ -13,6 +15,7 @@ import { requireRole } from '../../../infrastructure/http/middleware/role.middle
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
+import { RAGUtils } from '../../../shared/utils/rag.utils.js'
 
 /**
  * Primary HTTP adapter for Retrieval-Augmented Generation (RAG) operations.
@@ -33,13 +36,15 @@ export class AiRagController {
    * @param extractDataUseCase - Use case that extracts data from a PDF document and prepares it for ingestion.
    * @param presignedUploadUrlUseCase - Use case that generates a pre-signed S3 upload URL for a document.
    * @param pdfUtils - PDF utility helpers used during document ingestion.
+   * @param ragUtils - RAG utility functions for generating checksums and other RAG-related tasks.
    */
   constructor(
     private readonly logger: LoggerPort,
     private readonly getEmbeddingModelUseCase: GetEmbeddingModelUseCase,
     private readonly extractDataUseCase: ExtractDataUseCase,
     private readonly presignedUploadUrlUseCase: PresignedUploadUrlUseCase,
-    private readonly pdfUtils: PDFUtils
+    private readonly pdfUtils: PDFUtils,
+    private readonly ragUtils: RAGUtils
   ) {}
 
   /**
@@ -146,6 +151,7 @@ export class AiRagController {
       const body = request.body as components['schemas']['CreateVectorStoreRequest']
       const ragDto = RagDto.validate(body)
 
+      // example of ragDto data
       const result = {
         id: '019d3e6e-2d1d-765c-ab4f-07d429e8a613',
         documents: [
@@ -166,10 +172,66 @@ export class AiRagController {
         },
       }
 
+      let textToChunk: string = ''
+
+      for (const doc of ragDto.documents) {
+        const dto = ExtractDataDto.validate({ fileKey: doc.source, bucketName: EnvConfig.BUCKET })
+        const { buffer, fileType } = await this.extractDataUseCase.execute(dto, auditContext)
+        this.logger.debug('Extracted data from S3', { fileType, bufferLength: buffer.length })
+        if (fileType === 'zip') {
+          const { pdfFiles } = await this.pdfUtils.extractFromBuffer(Buffer.from(buffer))
+          for (const fileEntry of pdfFiles) {
+            this.logger.debug('Processing PDF from zip', { path: fileEntry.path })
+            const fileBuffer = await fileEntry.buffer()
+            const parser = new PDFParse({ data: fileBuffer })
+            const result = await parser.getInfo({ parsePageInfo: true })
+            const textResult = await parser.getText()
+            const checksum = this.ragUtils.generateChecksum(textResult.text)
+            textToChunk += textResult.text
+            // for entry into documents table
+            // title: result.info?.Title || fileEntry.path
+            // source: could be `doc.source + '::' + fileEntry.path` to maintain uniqueness and traceability back to the original zip and the file within it
+            // checksum: checksum
+            this.logger.debug('Generated checksum for PDF', { checksum })
+            await parser.destroy()
+          }
+        }
+        if (fileType === 'pdf') {
+          this.logger.debug('Processing PDF from S3', { path: doc.source })
+          const parser = new PDFParse({ data: buffer })
+          const result = await parser.getText()
+          textToChunk += result.text
+          const checksum = this.ragUtils.generateChecksum(result.text)
+          // for entry into documents table
+          // title: doc.title
+          // source: doc.source
+          // checksum: checksum
+          this.logger.debug('Generated checksum for PDF', { checksum })
+          await parser.destroy()
+        }
+      }
+
+      // text to chunk: textToChunk
+
+      //ragDto.chatAIOptions.stopSequences
+
+      //ragDto.vectorEmbeddings.chunkSize
+      //ragDto.vectorEmbeddings.chunkOverlap.
+
+      const chunks = await this.ragUtils.chunking(
+        ragDto.vectorEmbeddings.chunkSize,
+        ragDto.vectorEmbeddings.chunkOverlap,
+        textToChunk,
+        isArray(ragDto.chatAIOptions.stopSequences) && ragDto.chatAIOptions.stopSequences.length > 0
+          ? ragDto.chatAIOptions.stopSequences
+          : undefined
+      )
+
       // In the following order
       // 1. Retrieve the content of the PDF file
       // 2. Extract text from the PDF
       // 3. Use the RAGUtils.generateChecksum to create a checksum for the database entry
+      // 4.
 
       /* ragDto.documents.forEach(doc => {
 
