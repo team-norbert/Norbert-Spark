@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@norberts-sparke/shared': path.resolve(__dirname, '../../packages/shared/src'),
+      '@norberts-spark/shared': path.resolve(__dirname, '../../packages/shared/src'),
       'server-only': path.resolve(__dirname, './test/__mocks__/server-only.ts'),
     },
   },

@@ -25,7 +25,8 @@ export class RAGUtils {
       event: 'rag.chunking.started',
       chunkSize,
       chunkOverlap,
-      content: content.substring(0, 100),
+      contentLength: content.length,
+      contentChecksum: this.generateChecksum(content),
       separators,
     })
     const textSplitter = new RecursiveCharacterTextSplitter({

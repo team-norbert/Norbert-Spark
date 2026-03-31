@@ -4,12 +4,6 @@ import { BaseException } from './base.exception.js'
 
 export class ZipSecurityMaxFileException extends BaseException {
   constructor(message: string, details?: Record<string, any>, options?: ErrorOptions) {
-    super(
-      message,
-      ErrorCode.MAX_FILE_COUNT_EXCEEDED,
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      details,
-      options
-    )
+    super(message, ErrorCode.MAX_FILE_COUNT_EXCEEDED, HttpStatus.BAD_REQUEST, details, options)
   }
 }

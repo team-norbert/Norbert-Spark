@@ -7,7 +7,7 @@ export class ZipSecuritySuspiciousException extends BaseException {
     super(
       message,
       ErrorCode.SUSPICIOUS_COMPRESSION_RATIO,
-      HttpStatus.INTERNAL_SERVER_ERROR,
+      HttpStatus.UNPROCESSABLE_ENTITY,
       details,
       options
     )

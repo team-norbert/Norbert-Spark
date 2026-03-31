@@ -4,6 +4,6 @@ import { BaseException } from './base.exception.js'
 
 export class ZipSecurityInvalidZipSizeException extends BaseException {
   constructor(message: string, details?: Record<string, any>, options?: ErrorOptions) {
-    super(message, ErrorCode.INVALID_ZIP_SIZE, HttpStatus.INTERNAL_SERVER_ERROR, details, options)
+    super(message, ErrorCode.INVALID_ZIP_SIZE, HttpStatus.BAD_REQUEST, details, options)
   }
 }

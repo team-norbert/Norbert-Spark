@@ -1,4 +1,3 @@
-import { isArray } from '@norberts-spark/shared'
 import type { components } from '@norberts-spark/shared/openapi-types'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { PDFParse } from 'pdf-parse'
@@ -13,10 +12,12 @@ import { GetEmbeddingModelUseCase } from '../../../application/use-cases/get-emb
 import { GetEmbeddingModelByIdUseCase } from '../../../application/use-cases/get-embedding-model-by-id.use-case.js'
 import { PresignedUploadUrlUseCase } from '../../../application/use-cases/presigned-url-put.use-case.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
+import type { DBEmbeddingModelSelect } from '../../../infrastructure/database/schema.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 import { NotFoundException } from '../../../shared/exceptions/not-found.exception.js'
+import { ValidationException } from '../../../shared/exceptions/validation.exception.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 import { RAGUtils } from '../../../shared/utils/rag.utils.js'
@@ -161,7 +162,7 @@ export class AiRagController {
 
       // 1. Resolve the embedding model before processing documents so it is
       //    available for per-document chunking and embedding generation below.
-      let embeddedModels
+      let embeddedModels: DBEmbeddingModelSelect | undefined
 
       if ('existingModelId' in ragDto.embeddingModels) {
         embeddedModels = await this.getEmbeddingModelByIdUseCase.execute(
@@ -179,10 +180,9 @@ export class AiRagController {
       // 2. Determine chunking parameters once, reused for every document.
       const chunkSize = ragDto.vectorEmbeddings.chunkSize
       const chunkOverlap = ragDto.vectorEmbeddings.chunkOverlap
-      const stopSequences =
-        isArray(ragDto.chatAIOptions.stopSequences) && ragDto.chatAIOptions.stopSequences.length > 0
-          ? ragDto.chatAIOptions.stopSequences
-          : undefined
+      // Do not reuse chat AI stop sequences for chunking; allow downstream utilities
+      // (e.g., RAGUtils) to apply their own default chunk separators.
+      const stopSequences = undefined
 
       // 3. Process each document individually to maintain per-document attribution
       //    in the vector_embeddings table (documentId FK).
@@ -199,7 +199,44 @@ export class AiRagController {
             this.logger.debug('Processing PDF from zip', { path: fileEntry.path })
             const fileBuffer = await fileEntry.buffer()
             const parser = new PDFParse({ data: fileBuffer })
-            const infoResult = await parser.getInfo({ parsePageInfo: true })
+            try {
+              const infoResult = await parser.getInfo({ parsePageInfo: true })
+              const textResult = await parser.getText()
+              const checksum = this.ragUtils.generateChecksum(textResult.text)
+              this.logger.debug('Generated checksum for PDF', { checksum })
+
+              const docChunks = await this.ragUtils.chunking(
+                chunkSize,
+                chunkOverlap,
+                textResult.text,
+                stopSequences
+              )
+              const docEmbeddings = await this.ragUtils.generateEmbeddings(
+                docChunks,
+                embeddedModels.name,
+                embeddedModels.provider
+              )
+
+              documentInputs.push({
+                title: (infoResult.info?.Title as string | undefined) ?? fileEntry.path,
+                source: `${doc.source}::${fileEntry.path}`,
+                checksum,
+                records: docChunks.map((content, i) => ({
+                  content,
+                  // eslint-disable-next-line security/detect-object-injection
+                  embedding: docEmbeddings[i] ?? [],
+                })),
+              })
+            } finally {
+              await parser.destroy()
+            }
+          }
+        }
+
+        if (fileType === 'pdf') {
+          this.logger.debug('Processing PDF from S3', { path: doc.source })
+          const parser = new PDFParse({ data: buffer })
+          try {
             const textResult = await parser.getText()
             const checksum = this.ragUtils.generateChecksum(textResult.text)
             this.logger.debug('Generated checksum for PDF', { checksum })
@@ -217,8 +254,8 @@ export class AiRagController {
             )
 
             documentInputs.push({
-              title: (infoResult.info?.Title as string | undefined) ?? fileEntry.path,
-              source: `${doc.source}::${fileEntry.path}`,
+              title: doc.title,
+              source: doc.source,
               checksum,
               records: docChunks.map((content, i) => ({
                 content,
@@ -226,44 +263,20 @@ export class AiRagController {
                 embedding: docEmbeddings[i] ?? [],
               })),
             })
+          } finally {
             await parser.destroy()
           }
         }
-
-        if (fileType === 'pdf') {
-          this.logger.debug('Processing PDF from S3', { path: doc.source })
-          const parser = new PDFParse({ data: buffer })
-          const textResult = await parser.getText()
-          const checksum = this.ragUtils.generateChecksum(textResult.text)
-          this.logger.debug('Generated checksum for PDF', { checksum })
-
-          const docChunks = await this.ragUtils.chunking(
-            chunkSize,
-            chunkOverlap,
-            textResult.text,
-            stopSequences
-          )
-          const docEmbeddings = await this.ragUtils.generateEmbeddings(
-            docChunks,
-            embeddedModels.name,
-            embeddedModels.provider
-          )
-
-          documentInputs.push({
-            title: doc.title,
-            source: doc.source,
-            checksum,
-            records: docChunks.map((content, i) => ({
-              content,
-              // eslint-disable-next-line security/detect-object-injection
-              embedding: docEmbeddings[i] ?? [],
-            })),
-          })
-          await parser.destroy()
-        }
       }
 
-      // 4. Delegate persistence to the use case / repository layer.
+      // 4. Ensure at least one document was successfully processed before persisting.
+      if (documentInputs.length === 0) {
+        throw new ValidationException(
+          'No valid documents were found to process. Ensure your upload contains at least one valid PDF file.'
+        )
+      }
+
+      // 5. Delegate persistence to the use case / repository layer.
       const result = await this.createVectorStoreUseCase.execute({
         vectorStoreName: documentInputs[0]?.title ?? ragDto.id,
         embeddingModelId: embeddedModels.id,
@@ -274,7 +287,7 @@ export class AiRagController {
         chatAIOptions: ragDto.chatAIOptions,
       })
 
-      // 5. Map the persisted DB records to the OpenAPI response shape.
+      // 6. Map the persisted DB records to the OpenAPI response shape.
       const responseData: components['schemas']['CreateVectorStoreResponse']['data'] = {
         documents: result.documents.map((doc) => ({
           id: doc.id,
