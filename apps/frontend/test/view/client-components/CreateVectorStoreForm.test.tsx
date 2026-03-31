@@ -357,6 +357,24 @@ describe('CreateVectorStoreForm', () => {
         'Answer only from the provided documents.'
       )
     })
+
+    it('trims whitespace from prompt before submitting', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ prompt: '  You are helpful.  ' })
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.prompt).toBe('You are helpful.')
+    })
+
+    it('does not submit when prompt is whitespace-only', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ prompt: '   ' })
+      submitForm()
+
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
   })
 
   // ── Form submission — optional chatAIOptions ────────────────────────────────
