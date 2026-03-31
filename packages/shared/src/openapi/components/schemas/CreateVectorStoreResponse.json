@@ -13,42 +13,46 @@
       "required": ["documents", "embeddingModels", "vectorEmbeddings", "chatAIOptions"],
       "properties": {
         "documents": {
-          "type": "object",
-          "description": "Created document record",
-          "required": ["id", "title", "source", "checksum", "createdAt", "updatedAt"],
-          "properties": {
-            "id": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Unique identifier for the document",
-              "example": "01933c89-6f67-7b3a-8e4c-123456789abc"
-            },
-            "title": {
-              "type": "string",
-              "description": "Title of the document"
-            },
-            "source": {
-              "type": "string",
-              "description": "Source of the document"
-            },
-            "checksum": {
-              "type": "string",
-              "description": "SHA-256 checksum (hex digest) of the document content for integrity verification",
-              "minLength": 64,
-              "maxLength": 64,
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "createdAt": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Timestamp when the document was created",
-              "example": "2026-02-17T10:30:00Z"
-            },
-            "updatedAt": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Timestamp when the document was last updated",
-              "example": "2026-02-17T10:30:00Z"
+          "type": "array",
+          "description": "Vector store documents configuration. One entry per uploaded file.",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "title", "source", "checksum", "createdAt", "updatedAt"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Unique identifier for the document",
+                "example": "01933c89-6f67-7b3a-8e4c-123456789abc"
+              },
+              "title": {
+                "type": "string",
+                "description": "Title of the document"
+              },
+              "source": {
+                "type": "string",
+                "description": "Source of the document"
+              },
+              "checksum": {
+                "type": "string",
+                "description": "SHA-256 checksum (hex digest) of the document content for integrity verification",
+                "minLength": 64,
+                "maxLength": 64,
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp when the document was created",
+                "example": "2026-02-17T10:30:00Z"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp when the document was last updated",
+                "example": "2026-02-17T10:30:00Z"
+              }
             }
           }
         },

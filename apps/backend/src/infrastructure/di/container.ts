@@ -32,6 +32,7 @@ import { JwtTokenGeneratorService } from '../../adapters/secondary/services/jwt-
 import { PinoLoggerService } from '../../adapters/secondary/services/logger.service.js'
 // Use Cases
 import { AppendedChatUseCase } from '../../application/use-cases/append-chat.use-case.js'
+import { CreateVectorStoreUseCase } from '../../application/use-cases/create-vector-store.use-case.js'
 import { DeleteUsersUseCase } from '../../application/use-cases/delete-users.use-case.js'
 import { ExtractDataUseCase } from '../../application/use-cases/extract-data.use-case.js'
 import { GetAIAdminUseCase } from '../../application/use-cases/get-ai-admin.use-case.js'
@@ -43,6 +44,7 @@ import { GetChatDetailsUseCase } from '../../application/use-cases/get-chat-deta
 import { GetChatsByUserIdUseCase } from '../../application/use-cases/get-chats-by-userid.use-case.js'
 import { GetCompanyDetailsUseCase } from '../../application/use-cases/get-company-details.use-case.js'
 import { GetEmbeddingModelUseCase } from '../../application/use-cases/get-embedding-model.use-case.js'
+import { GetEmbeddingModelByIdUseCase } from '../../application/use-cases/get-embedding-model-by-id.use-case.js'
 import { GetUserByIdUseCase } from '../../application/use-cases/get-user-by-id.use-case.js'
 import { LogOutUseCase } from '../../application/use-cases/log-out.use-case.js'
 import { LoginUserUseCase } from '../../application/use-cases/login-user.use-case.js'
@@ -140,6 +142,8 @@ export class Container {
   private readonly refreshAccessTokenUseCase: RefreshAccessTokenUseCase
   private readonly logOutUseCase: LogOutUseCase
   private readonly streamTextUseCase: StreamTextUseCase<ToolSet>
+  private readonly getEmbeddingModelByIdUseCase: GetEmbeddingModelByIdUseCase
+  private readonly createVectorStoreUseCase: CreateVectorStoreUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
@@ -360,6 +364,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     )
     this.logOutUseCase = new LogOutUseCase(this.logger, this.auditLog, this.refreshTokenRepo)
     this.streamTextUseCase = new StreamTextUseCase(this.logger, this.appendChatUseCase)
+    this.getEmbeddingModelByIdUseCase = new GetEmbeddingModelByIdUseCase(
+      this.logger,
+      this.aiRagRepository
+    )
+    this.createVectorStoreUseCase = new CreateVectorStoreUseCase(this.logger, this.aiRagRepository)
 
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
@@ -417,7 +426,9 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.extractDataUseCase,
       this.presignedUploadUrlUseCase,
       this.pdfUtils,
-      this.ragUtils
+      this.ragUtils,
+      this.getEmbeddingModelByIdUseCase,
+      this.createVectorStoreUseCase
     )
     // Register routes
     this.registerRoutes()

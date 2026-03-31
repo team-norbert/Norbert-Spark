@@ -5,14 +5,18 @@ import { PDFParse } from 'pdf-parse'
 
 import { ExtractDataDto } from '../../../application/dtos/extract-data.dto.js'
 import { RagDto } from '../../../application/dtos/rag.dto.js'
+import type { CreateVectorStoreDocumentWithRecords } from '../../../application/ports/ai.rag.repository.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { CreateVectorStoreUseCase } from '../../../application/use-cases/create-vector-store.use-case.js'
 import { ExtractDataUseCase } from '../../../application/use-cases/extract-data.use-case.js'
 import { GetEmbeddingModelUseCase } from '../../../application/use-cases/get-embedding-model.use-case.js'
+import { GetEmbeddingModelByIdUseCase } from '../../../application/use-cases/get-embedding-model-by-id.use-case.js'
 import { PresignedUploadUrlUseCase } from '../../../application/use-cases/presigned-url-put.use-case.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
+import { NotFoundException } from '../../../shared/exceptions/not-found.exception.js'
 import { safelyMaskIp } from '../../../shared/utils/mask-ip.js'
 import { PDFUtils } from '../../../shared/utils/pdf.utils.js'
 import { RAGUtils } from '../../../shared/utils/rag.utils.js'
@@ -37,6 +41,7 @@ export class AiRagController {
    * @param presignedUploadUrlUseCase - Use case that generates a pre-signed S3 upload URL for a document.
    * @param pdfUtils - PDF utility helpers used during document ingestion.
    * @param ragUtils - RAG utility functions for generating checksums and other RAG-related tasks.
+   * @param getEmbeddingModelByIdUseCase - Use case that retrieves all embedding models from the database.
    */
   constructor(
     private readonly logger: LoggerPort,
@@ -44,7 +49,9 @@ export class AiRagController {
     private readonly extractDataUseCase: ExtractDataUseCase,
     private readonly presignedUploadUrlUseCase: PresignedUploadUrlUseCase,
     private readonly pdfUtils: PDFUtils,
-    private readonly ragUtils: RAGUtils
+    private readonly ragUtils: RAGUtils,
+    private readonly getEmbeddingModelByIdUseCase: GetEmbeddingModelByIdUseCase,
+    private readonly createVectorStoreUseCase: CreateVectorStoreUseCase
   ) {}
 
   /**
@@ -151,104 +158,191 @@ export class AiRagController {
       const body = request.body as components['schemas']['CreateVectorStoreRequest']
       const ragDto = RagDto.validate(body)
 
-      // example of ragDto data
-      const result = {
-        id: '019d3e6e-2d1d-765c-ab4f-07d429e8a613',
-        documents: [
-          {
-            title: 'Sample-Handbook',
-            source: 'rag/019d3ead-9941-7625-bfe4-ef798304bacd/Sample-Handbook.pdf',
-          },
-        ],
-        embeddingModels: { existingModelId: '019d3458-36c1-7af0-8ca7-f46c2f2922bd' },
-        vectorEmbeddings: { chunkSize: 300, chunkOverlap: 40 },
-        chatAIOptions: {
-          chatTypeId: '019d3e6e-2d1d-765c-ab4f-07d429e8a613',
-          maxTokens: 1000,
-          temperature: 0.7,
-          topP: 1,
-          stopSequences: [],
-          maxRetries: 2,
-        },
+      // 1. Resolve the embedding model before processing documents so it is
+      //    available for per-document chunking and embedding generation below.
+      let embeddedModels
+
+      if ('existingModelId' in ragDto.embeddingModels) {
+        embeddedModels = await this.getEmbeddingModelByIdUseCase.execute(
+          ragDto.embeddingModels.existingModelId
+        )
+      } else {
+        // ragDto.embeddingModels.modelName, .modelProvider, .dimension etc. are available here
+        // New-model creation is not yet implemented
       }
 
-      let textToChunk: string = ''
+      if (!embeddedModels) {
+        throw new NotFoundException('EmbeddingModel')
+      }
+
+      // 2. Determine chunking parameters once, reused for every document.
+      const chunkSize = ragDto.vectorEmbeddings.chunkSize
+      const chunkOverlap = ragDto.vectorEmbeddings.chunkOverlap
+      const stopSequences =
+        isArray(ragDto.chatAIOptions.stopSequences) && ragDto.chatAIOptions.stopSequences.length > 0
+          ? ragDto.chatAIOptions.stopSequences
+          : undefined
+
+      // 3. Process each document individually to maintain per-document attribution
+      //    in the vector_embeddings table (documentId FK).
+      const documentInputs: CreateVectorStoreDocumentWithRecords[] = []
 
       for (const doc of ragDto.documents) {
         const dto = ExtractDataDto.validate({ fileKey: doc.source, bucketName: EnvConfig.BUCKET })
         const { buffer, fileType } = await this.extractDataUseCase.execute(dto, auditContext)
         this.logger.debug('Extracted data from S3', { fileType, bufferLength: buffer.length })
+
         if (fileType === 'zip') {
           const { pdfFiles } = await this.pdfUtils.extractFromBuffer(Buffer.from(buffer))
           for (const fileEntry of pdfFiles) {
             this.logger.debug('Processing PDF from zip', { path: fileEntry.path })
             const fileBuffer = await fileEntry.buffer()
             const parser = new PDFParse({ data: fileBuffer })
-            const result = await parser.getInfo({ parsePageInfo: true })
+            const infoResult = await parser.getInfo({ parsePageInfo: true })
             const textResult = await parser.getText()
             const checksum = this.ragUtils.generateChecksum(textResult.text)
-            textToChunk += textResult.text
-            // for entry into documents table
-            // title: result.info?.Title || fileEntry.path
-            // source: could be `doc.source + '::' + fileEntry.path` to maintain uniqueness and traceability back to the original zip and the file within it
-            // checksum: checksum
             this.logger.debug('Generated checksum for PDF', { checksum })
+
+            const docChunks = await this.ragUtils.chunking(
+              chunkSize,
+              chunkOverlap,
+              textResult.text,
+              stopSequences
+            )
+            const docEmbeddings = await this.ragUtils.generateEmbeddings(
+              docChunks,
+              embeddedModels.name,
+              embeddedModels.provider
+            )
+
+            documentInputs.push({
+              title: (infoResult.info?.Title as string | undefined) ?? fileEntry.path,
+              source: `${doc.source}::${fileEntry.path}`,
+              checksum,
+              records: docChunks.map((content, i) => ({
+                content,
+                // eslint-disable-next-line security/detect-object-injection
+                embedding: docEmbeddings[i] ?? [],
+              })),
+            })
             await parser.destroy()
           }
         }
+
         if (fileType === 'pdf') {
           this.logger.debug('Processing PDF from S3', { path: doc.source })
           const parser = new PDFParse({ data: buffer })
-          const result = await parser.getText()
-          textToChunk += result.text
-          const checksum = this.ragUtils.generateChecksum(result.text)
-          // for entry into documents table
-          // title: doc.title
-          // source: doc.source
-          // checksum: checksum
+          const textResult = await parser.getText()
+          const checksum = this.ragUtils.generateChecksum(textResult.text)
           this.logger.debug('Generated checksum for PDF', { checksum })
+
+          const docChunks = await this.ragUtils.chunking(
+            chunkSize,
+            chunkOverlap,
+            textResult.text,
+            stopSequences
+          )
+          const docEmbeddings = await this.ragUtils.generateEmbeddings(
+            docChunks,
+            embeddedModels.name,
+            embeddedModels.provider
+          )
+
+          documentInputs.push({
+            title: doc.title,
+            source: doc.source,
+            checksum,
+            records: docChunks.map((content, i) => ({
+              content,
+              // eslint-disable-next-line security/detect-object-injection
+              embedding: docEmbeddings[i] ?? [],
+            })),
+          })
           await parser.destroy()
         }
       }
 
-      // text to chunk: textToChunk
+      // 4. Delegate persistence to the use case / repository layer.
+      const result = await this.createVectorStoreUseCase.execute({
+        vectorStoreName: documentInputs[0]?.title ?? ragDto.id,
+        embeddingModelId: embeddedModels.id,
+        dimension: embeddedModels.dimension as 384 | 768 | 1024 | 1536 | 3072,
+        documents: documentInputs,
+        chunkSize,
+        chunkOverlap,
+        chatAIOptions: ragDto.chatAIOptions,
+      })
 
-      //ragDto.chatAIOptions.stopSequences
-
-      //ragDto.vectorEmbeddings.chunkSize
-      //ragDto.vectorEmbeddings.chunkOverlap.
-
-      const chunks = await this.ragUtils.chunking(
-        ragDto.vectorEmbeddings.chunkSize,
-        ragDto.vectorEmbeddings.chunkOverlap,
-        textToChunk,
-        isArray(ragDto.chatAIOptions.stopSequences) && ragDto.chatAIOptions.stopSequences.length > 0
-          ? ragDto.chatAIOptions.stopSequences
-          : undefined
-      )
-
-      // In the following order
-      // 1. Retrieve the content of the PDF file
-      // 2. Extract text from the PDF
-      // 3. Use the RAGUtils.generateChecksum to create a checksum for the database entry
-      // 4.
-
-      /* ragDto.documents.forEach(doc => {
-
-      })*/
-
-      //const dto = ExtractDataDto.validate({ ragDto, bucketName: EnvConfig.BUCKET })
-
-      //const { buffer, fileType } = await this.extractDataUseCase.execute(ragDto, auditContext)
-
-      // Placeholder response until RAG vector store creation is fully implemented
-      reply.code(501).send({
-        success: false,
-        message: 'createRagVectorStore is not implemented yet',
-        data: {
-          auditContext,
-          ragRequest: ragDto,
+      // 5. Map the persisted DB records to the OpenAPI response shape.
+      const responseData: components['schemas']['CreateVectorStoreResponse']['data'] = {
+        // The generated TS type has documents as a singular object (codegen reflects
+        // the first/primary document). Multiple documents are stored in the DB.
+        documents: (() => {
+          const doc = result.documents[0]
+          if (!doc) throw new NotFoundException('document', 'first inserted document')
+          return {
+            id: doc.id,
+            title: doc.title,
+            source: doc.source,
+            checksum: doc.checksum,
+            createdAt: doc.createdAt.toISOString(),
+            updatedAt: doc.updatedAt.toISOString(),
+          }
+        })(),
+        embeddingModels: {
+          id: embeddedModels.id,
+          modelName: embeddedModels.name,
+          modelProvider:
+            embeddedModels.provider as components['schemas']['CreateVectorStoreResponse']['data']['embeddingModels']['modelProvider'],
+          status: embeddedModels.status,
+          recommendedUsage: embeddedModels.recommendedUsage,
+          releaseYear: embeddedModels.releaseYear,
+          dimension:
+            embeddedModels.dimension as components['schemas']['CreateVectorStoreResponse']['data']['embeddingModels']['dimension'],
+          taskType: (embeddedModels.taskType ??
+            'RETRIEVAL_QUERY') as components['schemas']['CreateVectorStoreResponse']['data']['embeddingModels']['taskType'],
+          createdAt: embeddedModels.createdAt.toISOString(),
+          updatedAt: embeddedModels.updatedAt.toISOString(),
         },
+        vectorEmbeddings: {
+          id: result.vectorStore.id,
+          chunkSize,
+          chunkOverlap,
+          createdAt: result.vectorStore.createdAt.toISOString(),
+          updatedAt: result.vectorStore.updatedAt.toISOString(),
+        },
+        chatAIOptions: {
+          id: result.chatAIOptions.id,
+          prompt: result.chatAIOptions.prompt,
+          ...(result.chatAIOptions.maxTokens != null && {
+            maxTokens: result.chatAIOptions.maxTokens,
+          }),
+          ...(result.chatAIOptions.temperature != null && {
+            temperature: Number(result.chatAIOptions.temperature),
+          }),
+          ...(result.chatAIOptions.topP != null && { topP: Number(result.chatAIOptions.topP) }),
+          ...(result.chatAIOptions.frequencyPenalty != null && {
+            frequencyPenalty: Number(result.chatAIOptions.frequencyPenalty),
+          }),
+          ...(result.chatAIOptions.presencePenalty != null && {
+            presencePenalty: Number(result.chatAIOptions.presencePenalty),
+          }),
+          ...(result.chatAIOptions.stopSequences != null && {
+            stopSequences: result.chatAIOptions.stopSequences,
+          }),
+          ...(result.chatAIOptions.maxRetries != null && {
+            maxRetries: result.chatAIOptions.maxRetries,
+          }),
+          createdAt: result.chatAIOptions.createdAt.toISOString(),
+          updatedAt: result.chatAIOptions.updatedAt.toISOString(),
+        },
+      }
+
+      this.logger.debug('Created vector store', { responseData, event: 'rag.vector_store.created' })
+
+      return reply.code(201).send({
+        success: true,
+        data: responseData,
       })
     } catch (error) {
       this.logger.error(

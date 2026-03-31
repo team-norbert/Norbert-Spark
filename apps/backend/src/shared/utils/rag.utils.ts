@@ -1,9 +1,11 @@
 import type { EmbeddingModelV3 } from '@ai-sdk/provider'
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters'
+import { isDefined } from '@norberts-spark/shared'
 import { embed, embedMany } from 'ai'
 import { createHash } from 'crypto'
 
 import type { LoggerPort } from '../../application/ports/logger.port.js'
+import { InternalErrorException } from '../exceptions/internal-error.exception.js'
 import { loadProvider } from './provider-loader-map.util.js'
 
 export class RAGUtils {
@@ -69,9 +71,13 @@ export class RAGUtils {
 
   async generateEmbeddings(
     chunks: string[],
-    modelName: string,
-    modelProvider: string
+    modelName: string | undefined,
+    modelProvider: string | undefined
   ): Promise<number[][]> {
+    if (!isDefined(modelName) || !isDefined(modelProvider)) {
+      throw new InternalErrorException('Model name and provider are required')
+    }
+
     this.logger.info('Generating embeddings', {
       event: 'rag.embeddings.started',
       chunkCount: chunks.length,
