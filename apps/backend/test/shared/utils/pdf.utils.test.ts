@@ -4,7 +4,11 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
-import { PDFUtils, ZipSecurityError } from '../../../src/shared/utils/pdf.utils.js'
+import { ZipSecurityInvalidZipSizeException } from '../../../src/shared/exceptions/zip-invalidzipsize.exception.js'
+import { ZipSecurityMaxDecompressedException } from '../../../src/shared/exceptions/zip-maxdecompressed.exception.js'
+import { ZipSecurityMaxFileException } from '../../../src/shared/exceptions/zip-maxfile.exception.js'
+import { ZipSecuritySuspiciousException } from '../../../src/shared/exceptions/zip-suspicious.exception.js'
+import { PDFUtils } from '../../../src/shared/utils/pdf.utils.js'
 import { createMockLogger } from '../factories/logger.factory.js'
 
 describe('PDFUtils', () => {
@@ -185,10 +189,12 @@ describe('PDFUtils', () => {
     const zipBuffer = readFileSync(testZipPath)
 
     describe('File Count Limits', () => {
-      it('should throw ZipSecurityError when file count exceeds limit', async () => {
+      it('should throw ZipSecurityMaxFileException when file count exceeds limit', async () => {
         const strictPdfUtils = new PDFUtils(mockLogger, { maxFileCount: 5 })
 
-        await expect(strictPdfUtils.extractFromBuffer(zipBuffer)).rejects.toThrow(ZipSecurityError)
+        await expect(strictPdfUtils.extractFromBuffer(zipBuffer)).rejects.toThrow(
+          ZipSecurityMaxFileException
+        )
         await expect(strictPdfUtils.extractFromBuffer(zipBuffer)).rejects.toThrow(
           /ZIP contains too many files/
         )
@@ -207,10 +213,12 @@ describe('PDFUtils', () => {
     })
 
     describe('Decompressed Size Limits', () => {
-      it('should throw ZipSecurityError when total size exceeds limit', async () => {
+      it('should throw ZipSecurityMaxDecompressedException when total size exceeds limit', async () => {
         const strictPdfUtils = new PDFUtils(mockLogger, { maxDecompressedSize: 100 }) // 100 bytes
 
-        await expect(strictPdfUtils.extractFromBuffer(zipBuffer)).rejects.toThrow(ZipSecurityError)
+        await expect(strictPdfUtils.extractFromBuffer(zipBuffer)).rejects.toThrow(
+          ZipSecurityMaxDecompressedException
+        )
         await expect(strictPdfUtils.extractFromBuffer(zipBuffer)).rejects.toThrow(
           /total decompressed size exceeds limit/
         )
@@ -269,16 +277,16 @@ describe('PDFUtils', () => {
       })
     })
 
-    describe('ZipSecurityError', () => {
+    describe('ZipSecurity exceptions', () => {
       it('should have correct error code for file count exceeded', async () => {
         const strictPdfUtils = new PDFUtils(mockLogger, { maxFileCount: 1 })
 
         const result = await strictPdfUtils
           .extractFromBuffer(zipBuffer)
-          .catch((e: ZipSecurityError) => e)
+          .catch((e: ZipSecurityMaxFileException) => e)
 
-        expect(result).toBeInstanceOf(ZipSecurityError)
-        const error = result as ZipSecurityError
+        expect(result).toBeInstanceOf(ZipSecurityMaxFileException)
+        const error = result as ZipSecurityMaxFileException
         expect(error.code).toBe('MAX_FILE_COUNT_EXCEEDED')
       })
 
@@ -287,10 +295,10 @@ describe('PDFUtils', () => {
 
         const result = await strictPdfUtils
           .extractFromBuffer(zipBuffer)
-          .catch((e: ZipSecurityError) => e)
+          .catch((e: ZipSecurityMaxDecompressedException) => e)
 
-        expect(result).toBeInstanceOf(ZipSecurityError)
-        const error = result as ZipSecurityError
+        expect(result).toBeInstanceOf(ZipSecurityMaxDecompressedException)
+        const error = result as ZipSecurityMaxDecompressedException
         expect(error.code).toBe('MAX_DECOMPRESSED_SIZE_EXCEEDED')
       })
     })
@@ -685,7 +693,7 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
     const spy = vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({ files } as any)
 
     const zipBuf = Buffer.alloc(100)
-    await expect(pdfUtils.extractFromBuffer(zipBuf)).rejects.toThrow(ZipSecurityError)
+    await expect(pdfUtils.extractFromBuffer(zipBuf)).rejects.toThrow(ZipSecurityMaxFileException)
 
     spy.mockRestore()
   })
@@ -721,7 +729,7 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
     spy.mockRestore()
   })
 
-  it('should throw ZipSecurityError with INVALID_ZIP_SIZE when buffer is too small', async () => {
+  it('should throw ZipSecurityInvalidZipSizeException when buffer is too small', async () => {
     // Mutants 6954, 6957, 6958: compressedSize < MIN_VALID_ZIP_SIZE (22) block
     // unzipper.Open.buffer is called before the size check, so mock it to succeed
     const unzipper = await import('unzipper')
@@ -729,7 +737,9 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
 
     const tinyBuf = Buffer.alloc(10) // 10 bytes < 22 MIN_VALID_ZIP_SIZE
 
-    await expect(pdfUtils.extractFromBuffer(tinyBuf)).rejects.toThrow(ZipSecurityError)
+    await expect(pdfUtils.extractFromBuffer(tinyBuf)).rejects.toThrow(
+      ZipSecurityInvalidZipSizeException
+    )
     await expect(pdfUtils.extractFromBuffer(tinyBuf)).rejects.toThrow(
       /below minimum valid ZIP size/
     )
@@ -744,9 +754,11 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
 
     const tinyBuf = Buffer.alloc(10)
 
-    const result = await pdfUtils.extractFromBuffer(tinyBuf).catch((e: ZipSecurityError) => e)
-    expect(result).toBeInstanceOf(ZipSecurityError)
-    expect((result as ZipSecurityError).code).toBe('INVALID_ZIP_SIZE')
+    const result = await pdfUtils
+      .extractFromBuffer(tinyBuf)
+      .catch((e: ZipSecurityInvalidZipSizeException) => e)
+    expect(result).toBeInstanceOf(ZipSecurityInvalidZipSizeException)
+    expect((result as ZipSecurityInvalidZipSizeException).code).toBe('INVALID_ZIP_SIZE')
 
     spy.mockRestore()
   })
@@ -778,7 +790,9 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
     const zipBuf = Buffer.alloc(100)
 
     // overallRatio = 200MB / ~few hundred bytes >> 100
-    await expect(specialPdfUtils.extractFromBuffer(zipBuf)).rejects.toThrow(ZipSecurityError)
+    await expect(specialPdfUtils.extractFromBuffer(zipBuf)).rejects.toThrow(
+      ZipSecuritySuspiciousException
+    )
     await expect(specialPdfUtils.extractFromBuffer(zipBuf)).rejects.toThrow(
       /Suspicious overall compression ratio/
     )
@@ -804,8 +818,10 @@ describe('PDFUtils - extractFromBuffer boundary conditions', () => {
     const specialPdfUtils = new PDFUtils(mockLogger, { maxDecompressedSize: 500 * 1024 * 1024 })
     const zipBuf = Buffer.alloc(100)
 
-    const result = await specialPdfUtils.extractFromBuffer(zipBuf).catch((e: ZipSecurityError) => e)
-    expect((result as ZipSecurityError).code).toBe('SUSPICIOUS_COMPRESSION_RATIO')
+    const result = await specialPdfUtils
+      .extractFromBuffer(zipBuf)
+      .catch((e: ZipSecuritySuspiciousException) => e)
+    expect((result as ZipSecuritySuspiciousException).code).toBe('SUSPICIOUS_COMPRESSION_RATIO')
 
     spy.mockRestore()
   })

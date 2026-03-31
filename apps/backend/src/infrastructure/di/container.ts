@@ -32,6 +32,7 @@ import { JwtTokenGeneratorService } from '../../adapters/secondary/services/jwt-
 import { PinoLoggerService } from '../../adapters/secondary/services/logger.service.js'
 // Use Cases
 import { AppendedChatUseCase } from '../../application/use-cases/append-chat.use-case.js'
+import { CreateVectorStoreUseCase } from '../../application/use-cases/create-vector-store.use-case.js'
 import { DeleteUsersUseCase } from '../../application/use-cases/delete-users.use-case.js'
 import { ExtractDataUseCase } from '../../application/use-cases/extract-data.use-case.js'
 import { GetAIAdminUseCase } from '../../application/use-cases/get-ai-admin.use-case.js'
@@ -43,6 +44,7 @@ import { GetChatDetailsUseCase } from '../../application/use-cases/get-chat-deta
 import { GetChatsByUserIdUseCase } from '../../application/use-cases/get-chats-by-userid.use-case.js'
 import { GetCompanyDetailsUseCase } from '../../application/use-cases/get-company-details.use-case.js'
 import { GetEmbeddingModelUseCase } from '../../application/use-cases/get-embedding-model.use-case.js'
+import { GetEmbeddingModelByIdUseCase } from '../../application/use-cases/get-embedding-model-by-id.use-case.js'
 import { GetUserByIdUseCase } from '../../application/use-cases/get-user-by-id.use-case.js'
 import { LogOutUseCase } from '../../application/use-cases/log-out.use-case.js'
 import { LoginUserUseCase } from '../../application/use-cases/login-user.use-case.js'
@@ -60,6 +62,7 @@ import { SaveChatUseCase } from '../../application/use-cases/save-chat.use-case.
 import { StreamTextUseCase } from '../../application/use-cases/stream-text.use-case.js'
 // Utils
 import { PDFUtils } from '../../shared/utils/pdf.utils.js'
+import { RAGUtils } from '../../shared/utils/rag.utils.js'
 import { EnvConfig } from '../config/env.config.js'
 import { pool } from '../database/index.js'
 import { createFastifyApp } from '../http/fastify.config.js'
@@ -139,9 +142,12 @@ export class Container {
   private readonly refreshAccessTokenUseCase: RefreshAccessTokenUseCase
   private readonly logOutUseCase: LogOutUseCase
   private readonly streamTextUseCase: StreamTextUseCase<ToolSet>
+  private readonly getEmbeddingModelByIdUseCase: GetEmbeddingModelByIdUseCase
+  private readonly createVectorStoreUseCase: CreateVectorStoreUseCase
 
   // Utils
   public readonly pdfUtils: PDFUtils
+  public readonly ragUtils: RAGUtils
 
   // Controllers
   public readonly userController: UserController
@@ -224,6 +230,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
 
     // utils
     this.pdfUtils = new PDFUtils(this.logger)
+    this.ragUtils = new RAGUtils(this.logger)
 
     // Initialize services (secondary adapters)
     this.emailService = new EmailService(EnvConfig.RESEND_API_KEY, this.logger)
@@ -357,6 +364,11 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     )
     this.logOutUseCase = new LogOutUseCase(this.logger, this.auditLog, this.refreshTokenRepo)
     this.streamTextUseCase = new StreamTextUseCase(this.logger, this.appendChatUseCase)
+    this.getEmbeddingModelByIdUseCase = new GetEmbeddingModelByIdUseCase(
+      this.logger,
+      this.aiRagRepository
+    )
+    this.createVectorStoreUseCase = new CreateVectorStoreUseCase(this.logger, this.aiRagRepository)
 
     // Initialize controllers (primary adapters)
     this.userController = new UserController(
@@ -411,8 +423,12 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.aiRagController = new AiRagController(
       this.logger,
       this.getEmbeddingModelUseCase,
+      this.extractDataUseCase,
       this.presignedUploadUrlUseCase,
-      this.pdfUtils
+      this.pdfUtils,
+      this.ragUtils,
+      this.getEmbeddingModelByIdUseCase,
+      this.createVectorStoreUseCase
     )
     // Register routes
     this.registerRoutes()

@@ -6,6 +6,8 @@ const providerLoaders = {
   huggingface: async () => (await import('@ai-sdk/huggingface')).huggingface,
   voyage: async () => (await import('voyage-ai-provider')).voyage,
   cohere: async () => (await import('@ai-sdk/cohere')).cohere,
+  mistral: async () => (await import('@ai-sdk/mistral')).mistral,
+  amazon: async () => (await import('@ai-sdk/amazon-bedrock')).bedrock,
 } as const satisfies Record<string, ProviderLoader>
 
 export type ProviderName = keyof typeof providerLoaders

@@ -34,9 +34,11 @@
     "varlock:typegen": "pnpm exec varlock typegen"
   },
   "dependencies": {
+    "@ai-sdk/amazon-bedrock": "^4.0.83",
     "@ai-sdk/cohere": "^3.0.27",
     "@ai-sdk/google": "^3.0.53",
     "@ai-sdk/huggingface": "^1.0.39",
+    "@ai-sdk/mistral": "^3.0.27",
     "@ai-sdk/openai": "^3.0.48",
     "@ai-sdk/provider": "^3.0.8",
     "@aws-sdk/client-s3": "^3.1019.0",

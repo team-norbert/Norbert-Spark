@@ -6,3 +6,5 @@ ignoredBuiltDependencies:
   - '@mui/x-telemetry'
   - better-sqlite3
 
+minimumReleaseAge: 1440
+
