@@ -63,6 +63,6 @@ export interface CreateVectorStoreResult {
 export interface AiRagRepositoryPost {
   createRagVectorEntry(data: RagDto): Promise<void>
   getAllEmbeddingModels(): Promise<DBEmbeddingModelSelect[]>
-  getAllEmbeddingModelsById(id: string): Promise<DBEmbeddingModelSelect | undefined>
+  getEmbeddingModelById(id: string): Promise<DBEmbeddingModelSelect | undefined>
   createVectorStore(data: CreateVectorStoreData): Promise<CreateVectorStoreResult>
 }

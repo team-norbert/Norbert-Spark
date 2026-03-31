@@ -13,6 +13,6 @@ export class GetEmbeddingModelByIdUseCase {
   ) {}
   public async execute(id: string): Promise<DBEmbeddingModelSelect | undefined> {
     this.logger.info('Fetching embedding models', { event: 'embedding_model.fetch.attempt' })
-    return this.aiRagRepository.getAllEmbeddingModelsById(id)
+    return this.aiRagRepository.getEmbeddingModelById(id)
   }
 }

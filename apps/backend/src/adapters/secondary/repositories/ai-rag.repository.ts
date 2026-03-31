@@ -263,7 +263,7 @@ export class AIRAGRepository implements AiRagRepositoryPost {
     }
   }
 
-  async getAllEmbeddingModelsById(id: string): Promise<DBEmbeddingModelSelect | undefined> {
+  async getEmbeddingModelById(id: string): Promise<DBEmbeddingModelSelect | undefined> {
     try {
       const rows: DBEmbeddingModelSelect[] = await db
         .select()
@@ -273,7 +273,7 @@ export class AIRAGRepository implements AiRagRepositoryPost {
       return rows[0]
     } catch (error) {
       this.logger.error(
-        'Error in getAllEmbeddingModelsById',
+        'Error in getEmbeddingModelById',
         error instanceof Error ? error : new Error(String(error))
       )
       throw error

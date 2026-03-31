@@ -47,7 +47,7 @@ export class RAGUtils {
         error instanceof Error ? error : new Error(String(error)),
         { event: 'rag.chunking.failed' }
       )
-      return []
+      throw error
     }
   }
 
