@@ -134,15 +134,17 @@ export class AiRagController {
    * OpenAPI schema, extracts an audit context from the request (user ID, IP,
    * user-agent), and delegates to the RAG pipeline use case.
    *
-   * **Currently returns 501 Not Implemented** while the underlying vector
-   * ingestion logic is being built out. Once implemented, the expected success
-   * response will be:
+   * Ingests documents (PDF or ZIP of PDFs), generates vector embeddings, and
+   * persists everything to the database via the vector store use case.
+   *
+   * **Success response — 201 Created:**
    * ```json
    * { "success": true, "data": { ... } }
    * ```
    *
    * **Error responses:**
-   * - `400` — validation failure (`ValidationException` from `RagDto.validate`)
+   * - `400` — validation failure (`ValidationException` from `RagDto.validate` or empty document set)
+   * - `404` — embedding model not found (`NotFoundException`)
    * - `500` — unexpected server or database error
    *
    * @param request - Incoming Fastify request containing a `CreateVectorStoreRequest` body.
