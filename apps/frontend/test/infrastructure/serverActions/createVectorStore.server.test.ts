@@ -70,6 +70,7 @@ const MOCK_RESPONSE: CreateVectorStoreResponse = {
     },
     chatAIOptions: {
       id: '01933c89-0000-0000-0000-000000000004',
+      prompt: 'You are a helpful AI assistant.',
       createdAt: TIMESTAMP,
       updatedAt: TIMESTAMP,
     },
