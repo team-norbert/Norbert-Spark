@@ -33,6 +33,7 @@ export class RagDto {
     },
     public readonly chatAIOptions: {
       chatTypeId: string
+      prompt: string
       maxTokens?: number
       temperature?: number
       topP?: number
@@ -270,6 +271,14 @@ export class RagDto {
       throw new ValidationException('chatAIOptions.chatTypeId must be a string')
     }
 
+    if (!isDefined(data.chatAIOptions.prompt) || !isString(data.chatAIOptions.prompt)) {
+      throw new ValidationException('chatAIOptions.prompt is required and must be a string')
+    }
+
+    if (!data.chatAIOptions.prompt.trim()) {
+      throw new ValidationException('chatAIOptions.prompt must not be empty or whitespace-only')
+    }
+
     return new RagDto(
       data.id,
       data.documents.map((doc) => ({ title: doc.title, source: doc.source })),
@@ -280,6 +289,7 @@ export class RagDto {
       },
       {
         chatTypeId: data.chatAIOptions.chatTypeId,
+        prompt: data.chatAIOptions.prompt.trim(),
         maxTokens: data.chatAIOptions.maxTokens ?? undefined,
         temperature: data.chatAIOptions.temperature ?? undefined,
         topP: data.chatAIOptions.topP ?? undefined,

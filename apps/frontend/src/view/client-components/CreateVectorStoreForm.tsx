@@ -171,7 +171,7 @@ export function CreateVectorStoreForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!prompt) return
+    if (!prompt.trim()) return
 
     if (
       !selectedModelId &&
@@ -226,7 +226,7 @@ export function CreateVectorStoreForm({
       },
       chatAIOptions: {
         chatTypeId,
-        prompt,
+        prompt: prompt.trim(),
         ...(maxTokens ? { maxTokens: Number(maxTokens) } : {}),
         ...(temperature ? { temperature: Number(temperature) } : {}),
         ...(topP ? { topP: Number(topP) } : {}),

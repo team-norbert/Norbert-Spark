@@ -171,7 +171,7 @@
         "chatAIOptions": {
           "type": "object",
           "description": "Created chat AI options record",
-          "required": ["id", "createdAt", "updatedAt"],
+          "required": ["id", "prompt", "createdAt", "updatedAt"],
           "properties": {
             "id": {
               "type": "string",
