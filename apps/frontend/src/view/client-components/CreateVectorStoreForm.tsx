@@ -34,6 +34,7 @@ import {
   maxRetriesText,
   maxTokensText,
   presencePenaltyText,
+  promptText,
   stopSequencesText,
   taskTypes,
   temperatureText,
@@ -158,6 +159,7 @@ export function CreateVectorStoreForm({
 
   // chatAIOptions
   const [chatTypeId, setChatTypeId] = useState(initialChatTypeId ?? '')
+  const [prompt, setPrompt] = useState('')
   const [maxTokens, setMaxTokens] = useState('1000')
   const [temperature, setTemperature] = useState('0.7')
   const [topP, setTopP] = useState('1')
@@ -168,6 +170,8 @@ export function CreateVectorStoreForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!prompt.trim()) return
 
     if (
       !selectedModelId &&
@@ -222,6 +226,7 @@ export function CreateVectorStoreForm({
       },
       chatAIOptions: {
         chatTypeId,
+        prompt: prompt.trim(),
         ...(maxTokens ? { maxTokens: Number(maxTokens) } : {}),
         ...(temperature ? { temperature: Number(temperature) } : {}),
         ...(topP ? { topP: Number(topP) } : {}),
@@ -597,6 +602,22 @@ export function CreateVectorStoreForm({
             fullWidth
             required
             data-testid="chat-ai-options-chat-type-id-input"
+            sx={{ mb: 2 }}
+          />
+
+          <Divider sx={{ my: 2 }} />
+          <AccordionComponent header="Information on Prompt" body={promptText} />
+          <Divider sx={{ my: 2 }} />
+
+          <TextField
+            label="Prompt"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            fullWidth
+            required
+            multiline
+            minRows={4}
+            data-testid="chat-ai-options-prompt-input"
             sx={{ mb: 2 }}
           />
 

@@ -20,7 +20,7 @@ const BASE_REQUEST_EXISTING_MODEL: CreateVectorStoreRequest = {
   documents: [{ title: 'Heart of Darkness', source: 'rag/uuid/heart-of-darkness.pdf' }],
   embeddingModels: { existingModelId: EXISTING_MODEL_ID },
   vectorEmbeddings: { chunkSize: 300, chunkOverlap: 40 },
-  chatAIOptions: { chatTypeId: CHAT_TYPE_ID },
+  chatAIOptions: { chatTypeId: CHAT_TYPE_ID, prompt: 'You are a helpful AI assistant.' },
 }
 
 /** Minimal valid request using a manually-defined embedding model */
@@ -35,7 +35,7 @@ const BASE_REQUEST_MANUAL_MODEL: CreateVectorStoreRequest = {
     recommendedUsage: 'Best for semantic similarity',
   },
   vectorEmbeddings: { chunkSize: 500, chunkOverlap: 50 },
-  chatAIOptions: { chatTypeId: CHAT_TYPE_ID },
+  chatAIOptions: { chatTypeId: CHAT_TYPE_ID, prompt: 'You are a helpful AI assistant.' },
 }
 
 /** Full response fixture */
@@ -70,6 +70,7 @@ const MOCK_RESPONSE: CreateVectorStoreResponse = {
     },
     chatAIOptions: {
       id: '01933c89-0000-0000-0000-000000000004',
+      prompt: 'You are a helpful AI assistant.',
       createdAt: TIMESTAMP,
       updatedAt: TIMESTAMP,
     },
@@ -169,6 +170,7 @@ describe('createVectorStoreAction', () => {
         ...BASE_REQUEST_EXISTING_MODEL,
         chatAIOptions: {
           chatTypeId: CHAT_TYPE_ID,
+          prompt: 'You are a helpful AI assistant.',
           maxTokens: 2000,
           temperature: 0.7,
           topP: 0.9,

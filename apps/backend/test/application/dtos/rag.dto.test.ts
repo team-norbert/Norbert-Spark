@@ -23,6 +23,7 @@ const validInput = () => ({
   },
   chatAIOptions: {
     chatTypeId: '01935e8a-7890-7123-b456-123456789abc',
+    prompt: 'You are a helpful AI assistant.',
     stopSequences: ['\n', ' Human:'],
   },
 })
@@ -37,7 +38,7 @@ describe('RagDto', () => {
         [{ title: 'Title', source: 'source' }],
         { modelName: 'model', modelProvider: 'provider', dimension: 1536, releaseYear: 2024 },
         { chunkSize: 500, chunkOverlap: 50 },
-        { chatTypeId: 'chat-type-id', stopSequences: [] }
+        { chatTypeId: 'chat-type-id', prompt: 'You are helpful.', stopSequences: [] }
       )
 
       expect(dto.id).toBe('01933c89-6f67-7b3a-8e4c-123456789abc')
@@ -58,6 +59,7 @@ describe('RagDto', () => {
         { chunkSize: 200, chunkOverlap: 20 },
         {
           chatTypeId: 'chat-type-id',
+          prompt: 'You are a helpful assistant.',
           maxTokens: 4096,
           temperature: 0.7,
           topP: 0.9,
@@ -628,7 +630,7 @@ describe('RagDto', () => {
     it('should accept chatAIOptions without stopSequences (it is optional)', () => {
       const data = {
         ...validInput(),
-        chatAIOptions: { chatTypeId: 'id' },
+        chatAIOptions: { chatTypeId: 'id', prompt: 'You are helpful.' },
       }
       expect(() => RagDto.validate(data as any)).not.toThrow()
     })
@@ -653,7 +655,10 @@ describe('RagDto', () => {
     })
 
     it('should accept an empty stopSequences array', () => {
-      const data = { ...validInput(), chatAIOptions: { chatTypeId: 'id', stopSequences: [] } }
+      const data = {
+        ...validInput(),
+        chatAIOptions: { chatTypeId: 'id', prompt: 'You are helpful.', stopSequences: [] },
+      }
       const dto = RagDto.validate(data)
       expect(dto.chatAIOptions.stopSequences).toEqual([])
     })
@@ -743,7 +748,7 @@ describe('RagDto', () => {
     it('should allow all optional chatAIOptions fields to be omitted', () => {
       const data = {
         ...validInput(),
-        chatAIOptions: { chatTypeId: 'type-id', stopSequences: ['\n'] },
+        chatAIOptions: { chatTypeId: 'type-id', prompt: 'You are helpful.', stopSequences: ['\n'] },
       }
       const dto = RagDto.validate(data)
       expect(dto.chatAIOptions.maxTokens).toBeUndefined()
@@ -752,6 +757,46 @@ describe('RagDto', () => {
       expect(dto.chatAIOptions.frequencyPenalty).toBeUndefined()
       expect(dto.chatAIOptions.presencePenalty).toBeUndefined()
       expect(dto.chatAIOptions.maxRetries).toBeUndefined()
+    })
+
+    it('should throw ValidationException when prompt is missing', () => {
+      const { prompt: _p, ...chatAIOptionsWithoutPrompt } = validInput().chatAIOptions
+      const data = { ...validInput(), chatAIOptions: chatAIOptionsWithoutPrompt }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'chatAIOptions.prompt is required and must be a string'
+      )
+    })
+
+    it('should throw ValidationException when prompt is not a string', () => {
+      const data = {
+        ...validInput(),
+        chatAIOptions: { ...validInput().chatAIOptions, prompt: 42 },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'chatAIOptions.prompt is required and must be a string'
+      )
+    })
+
+    it('should throw ValidationException when prompt is whitespace-only', () => {
+      const data = {
+        ...validInput(),
+        chatAIOptions: { ...validInput().chatAIOptions, prompt: '   ' },
+      }
+      expect(() => RagDto.validate(data as any)).toThrow(ValidationException)
+      expect(() => RagDto.validate(data as any)).toThrow(
+        'chatAIOptions.prompt must not be empty or whitespace-only'
+      )
+    })
+
+    it('should trim whitespace from prompt', () => {
+      const data = {
+        ...validInput(),
+        chatAIOptions: { ...validInput().chatAIOptions, prompt: '  You are helpful.  ' },
+      }
+      const dto = RagDto.validate(data)
+      expect(dto.chatAIOptions.prompt).toBe('You are helpful.')
     })
   })
 
@@ -773,6 +818,7 @@ describe('RagDto', () => {
       expect(dto.vectorEmbeddings.chunkSize).toBe(500)
       expect(dto.vectorEmbeddings.chunkOverlap).toBe(50)
       expect(dto.chatAIOptions.chatTypeId).toBe('01935e8a-7890-7123-b456-123456789abc')
+      expect(dto.chatAIOptions.prompt).toBe('You are a helpful AI assistant.')
       expect(dto.chatAIOptions.stopSequences).toEqual(['\n', ' Human:'])
     })
 
@@ -792,6 +838,7 @@ describe('RagDto', () => {
         ...validInput(),
         chatAIOptions: {
           chatTypeId: 'type-id',
+          prompt: 'You are a helpful assistant.',
           stopSequences: ['\n'],
           maxTokens: 4096,
           temperature: 0.7,

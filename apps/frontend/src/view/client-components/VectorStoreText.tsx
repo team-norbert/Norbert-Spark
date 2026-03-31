@@ -146,6 +146,17 @@ vary between requests.
 Note that deterministic results depend on whether the underlying AI model
 and provider support seeded sampling.`
 
+export const promptText = `Prompt is the system instruction given to the AI model to guide how it
+responds to user queries against this vector store.
+
+A well-crafted prompt tells the model its role, the context it is operating in,
+and any constraints on how it should respond. For example, you might instruct
+the model to only answer questions based on the provided documents, to respond
+in a specific tone, or to refuse out-of-scope questions.
+
+This field is required. The prompt is stored alongside the vector store
+configuration and is used every time the AI generates a response from this store.`
+
 export const maxRetriesText = `Max Retries specifies how many times the client should retry the
 generation request if it fails.
 

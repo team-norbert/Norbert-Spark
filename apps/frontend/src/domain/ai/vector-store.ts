@@ -97,6 +97,7 @@ export const CreateVectorStoreRequestSchema = z.object({
   }),
   chatAIOptions: z.object({
     chatTypeId: z.uuid(),
+    prompt: z.string().min(1),
     maxTokens: z.number().int().min(1).max(100000).optional(),
     temperature: z.number().min(0).max(2).optional(),
     topP: z.number().min(0).max(1).optional(),
@@ -150,6 +151,7 @@ export const CreateVectorStoreResponseSchema = z.object({
     }),
     chatAIOptions: z.object({
       id: z.uuid(),
+      prompt: z.string(),
       maxTokens: z.number().int().optional(),
       temperature: z.number().optional(),
       topP: z.number().optional(),
