@@ -177,9 +177,13 @@ export class PDFUtils {
    *
    * @param {Buffer} buffer - The ZIP file content as a Buffer
    * @param {Partial<ZipSecurityLimits>} overrideLimits - Optional security limit overrides
-   * @returns {Promise<unzipper.File[]>} Array of unzipper File entries for PDF files.
-   *          Each entry has a `buffer()` method to read the file content and a `path` property.
-   * @throws {ZipSecurityError} If security limits are exceeded
+   * @returns {Promise<{ totalEntries: number; pdfFilesFound: number; pdfPaths: string[]; pdfFiles: unzipper.File[] }>}
+   *          Object containing metadata about the ZIP contents and an array of unzipper File entries for PDF files.
+   *          Each file entry has a `buffer()` method to read the file content and a `path` property.
+   * @throws {ZipSecurityMaxFileException} If the ZIP contains more files than the allowed maximum.
+   * @throws {ZipSecurityMaxDecompressedException} If the total decompressed size exceeds the allowed limit.
+   * @throws {ZipSecurityInvalidZipSizeException} If the ZIP buffer is too small to be a valid ZIP file.
+   * @throws {ZipSecuritySuspiciousException} If the overall compression ratio is suspiciously high.
    *
    * @example
    * // Basic usage

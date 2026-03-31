@@ -7,7 +7,7 @@ export class ZipSecurityMaxDecompressedException extends BaseException {
     super(
       message,
       ErrorCode.MAX_DECOMPRESSED_SIZE_EXCEEDED,
-      HttpStatus.INTERNAL_SERVER_ERROR,
+      HttpStatus.UNPROCESSABLE_ENTITY,
       details,
       options
     )

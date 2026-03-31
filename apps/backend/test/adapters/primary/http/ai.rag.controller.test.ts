@@ -511,12 +511,12 @@ describe('AiRagController', () => {
       expect(mockReply.code).toHaveBeenCalledWith(500)
     })
 
-    it('passes stopSequences to ragUtils.chunking when the array is non-empty', async () => {
+    it('always passes undefined as stopSequences to ragUtils.chunking (chat stop sequences are not reused for chunking)', async () => {
       vi.spyOn(RagDto, 'validate').mockReturnValue(makeRagDto({ stopSequences: ['\n', 'END'] }))
 
       await controller.createRagVectorStore(mockRequest, mockReply)
 
-      expect(mockRagUtils.chunking).toHaveBeenCalledWith(300, 40, expect.any(String), ['\n', 'END'])
+      expect(mockRagUtils.chunking).toHaveBeenCalledWith(300, 40, expect.any(String), undefined)
     })
 
     it('omits stopSequences from ragUtils.chunking when the array is empty', async () => {

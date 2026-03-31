@@ -130,11 +130,15 @@ export class AIRAGRepository implements AiRagRepositoryPost {
             throw new Error(`Failed to insert document record for: ${doc.title}`)
           }
 
+          if (insertedDoc.checksum == null) {
+            throw new Error(`Document checksum is null after insert for: ${doc.title}`)
+          }
+
           insertedDocuments.push({
             id: insertedDoc.id,
             title: insertedDoc.title,
             source: insertedDoc.source,
-            checksum: insertedDoc.checksum ?? '',
+            checksum: insertedDoc.checksum,
             createdAt: insertedDoc.createdAt,
             updatedAt: insertedDoc.updatedAt,
           })
@@ -174,8 +178,11 @@ export class AIRAGRepository implements AiRagRepositoryPost {
         }
 
         // Step 3: Persist AI chat options linked to the chosen chat type.
-        //         numeric columns (temperature, topP, etc.) must be strings in PG.
-        const [insertedChatAIOptions] = await tx
+        //         Use upsert (onConflictDoUpdate) because chatTypeId is unique —
+        //         a second vector store creation for the same chatTypeId must
+        //         update the existing row rather than fail with a unique violation.
+        //         Numeric columns (temperature, topP, etc.) must be strings in PG.
+        const [upsertedChatAIOptions] = await tx
           .insert(chatAiOptions)
           .values({
             chatTypeId: data.chatAIOptions.chatTypeId,
@@ -197,6 +204,28 @@ export class AIRAGRepository implements AiRagRepositoryPost {
             stopSequences: data.chatAIOptions.stopSequences ?? null,
             maxRetries: data.chatAIOptions.maxRetries ?? null,
           })
+          .onConflictDoUpdate({
+            target: chatAiOptions.chatTypeId,
+            set: {
+              prompt: data.chatAIOptions.prompt,
+              maxTokens: data.chatAIOptions.maxTokens ?? null,
+              temperature:
+                data.chatAIOptions.temperature != null
+                  ? String(data.chatAIOptions.temperature)
+                  : null,
+              topP: data.chatAIOptions.topP != null ? String(data.chatAIOptions.topP) : null,
+              frequencyPenalty:
+                data.chatAIOptions.frequencyPenalty != null
+                  ? String(data.chatAIOptions.frequencyPenalty)
+                  : null,
+              presencePenalty:
+                data.chatAIOptions.presencePenalty != null
+                  ? String(data.chatAIOptions.presencePenalty)
+                  : null,
+              stopSequences: data.chatAIOptions.stopSequences ?? null,
+              maxRetries: data.chatAIOptions.maxRetries ?? null,
+            },
+          })
           .returning({
             id: chatAiOptions.id,
             prompt: chatAiOptions.prompt,
@@ -211,8 +240,8 @@ export class AIRAGRepository implements AiRagRepositoryPost {
             updatedAt: chatAiOptions.updatedAt,
           })
 
-        if (!insertedChatAIOptions) {
-          throw new Error('Failed to insert chat AI options record')
+        if (!upsertedChatAIOptions) {
+          throw new Error('Failed to insert or update chat AI options record')
         }
 
         return {
@@ -222,7 +251,7 @@ export class AIRAGRepository implements AiRagRepositoryPost {
             createdAt: vectorStore.createdAt,
             updatedAt: vectorStore.updatedAt,
           },
-          chatAIOptions: insertedChatAIOptions,
+          chatAIOptions: upsertedChatAIOptions,
         }
       })
     } catch (error) {
