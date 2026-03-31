@@ -230,6 +230,16 @@ export class PDFUtils {
     const limits = { ...this.securityLimits, ...overrideLimits }
     const compressedSize = buffer.length
 
+    // Minimum valid ZIP file size is ~22 bytes (empty ZIP header).
+    // Validate BEFORE calling unzipper so that tiny/corrupt buffers reliably
+    // raise ZipSecurityInvalidZipSizeException instead of an unzipper parse error.
+    const MIN_VALID_ZIP_SIZE = 22
+    if (compressedSize < MIN_VALID_ZIP_SIZE) {
+      const error = `Invalid or corrupted ZIP: buffer size ${compressedSize} bytes is below minimum valid ZIP size`
+      this.logger.error(error)
+      throw new ZipSecurityInvalidZipSizeException(error)
+    }
+
     const directory = await unzipper.Open.buffer(buffer)
 
     // Check total file count
@@ -249,15 +259,6 @@ export class PDFUtils {
       const error = `ZIP total decompressed size exceeds limit: ${totalUncompressedSize} bytes > ${limits.maxDecompressedSize} bytes`
       this.logger.error(error)
       throw new ZipSecurityMaxDecompressedException(error)
-    }
-
-    // Check overall compression ratio
-    // Minimum valid ZIP file size is ~22 bytes (empty ZIP header)
-    const MIN_VALID_ZIP_SIZE = 22
-    if (compressedSize < MIN_VALID_ZIP_SIZE) {
-      const error = `Invalid or corrupted ZIP: buffer size ${compressedSize} bytes is below minimum valid ZIP size`
-      this.logger.error(error)
-      throw new ZipSecurityInvalidZipSizeException(error)
     }
 
     const overallRatio = totalUncompressedSize / compressedSize
