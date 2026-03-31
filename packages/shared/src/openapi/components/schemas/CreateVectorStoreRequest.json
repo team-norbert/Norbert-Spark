@@ -154,13 +154,18 @@
     "chatAIOptions": {
       "type": "object",
       "description": "Chat AI for vector store configuration",
-      "required": ["chatTypeId"],
+      "required": ["chatTypeId", "prompt"],
       "properties": {
         "chatTypeId": {
           "type": "string",
           "format": "uuid",
           "description": "Unique identifier for the chat type to use for AI responses",
           "example": "01933c89-6f67-7b3a-8e4c-123456789abc"
+        },
+        "prompt": {
+          "type": "string",
+          "example": "You are a helpful AI assistant...",
+          "description": "The prompt template for the AI model"
         },
         "maxTokens": {
           "type": "integer",

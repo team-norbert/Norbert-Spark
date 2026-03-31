@@ -44,6 +44,7 @@ function fillRequiredFields({
   id = 'test-id-0000-0000-0000-000000000001',
   modelName = 'text-embedding-ada-002',
   modelProvider = 'openai',
+  prompt = 'You are a helpful AI assistant.',
   recommendedUsage = 'Best for semantic similarity',
   releaseYear = '2024',
   source = 'https://example.com',
@@ -64,6 +65,7 @@ function fillRequiredFields({
   fireEvent.change(screen.getByLabelText(/^chunk size/i), { target: { value: chunkSize } })
   fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: chunkOverlap } })
   fireEvent.change(screen.getByLabelText(/^chat type id/i), { target: { value: chatTypeId } })
+  fireEvent.change(screen.getByLabelText(/^prompt/i), { target: { value: prompt } })
 }
 
 /** Submit the form via the submit button. */
@@ -142,6 +144,10 @@ describe('CreateVectorStoreForm', () => {
       expect(screen.getByLabelText(/^chat type id/i)).toBeInTheDocument()
     })
 
+    it('renders the Prompt textarea', () => {
+      expect(screen.getByLabelText(/^prompt/i)).toBeInTheDocument()
+    })
+
     it('renders all optional chatAIOptions fields', () => {
       expect(screen.getByLabelText(/^max tokens/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^temperature/i)).toBeInTheDocument()
@@ -190,6 +196,7 @@ describe('CreateVectorStoreForm', () => {
           /^model name/i,
           /^model provider/i,
           /^chat type id/i,
+          /^prompt/i,
           /^stop sequences/i,
         ]
         for (const labelRegex of labelRegexes) {
@@ -338,6 +345,17 @@ describe('CreateVectorStoreForm', () => {
       submitForm()
 
       expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.chatTypeId).toBe(id)
+    })
+
+    it('includes prompt in chatAIOptions', () => {
+      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
+
+      fillRequiredFields({ prompt: 'Answer only from the provided documents.' })
+      submitForm()
+
+      expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.prompt).toBe(
+        'Answer only from the provided documents.'
+      )
     })
   })
 
@@ -859,6 +877,9 @@ describe('CreateVectorStoreForm', () => {
       fireEvent.change(screen.getByLabelText(/^chunk overlap/i), { target: { value: '50' } })
       fireEvent.change(screen.getByLabelText(/^chat type id/i), {
         target: { value: 'aabbccdd-1234-1234-1234-aabbccddee01' },
+      })
+      fireEvent.change(screen.getByLabelText(/^prompt/i), {
+        target: { value: 'You are a helpful AI assistant.' },
       })
       submitForm()
 
