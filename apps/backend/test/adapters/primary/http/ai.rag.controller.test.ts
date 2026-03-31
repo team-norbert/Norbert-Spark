@@ -343,14 +343,16 @@ describe('AiRagController', () => {
       expect(mockReply.send).toHaveBeenCalledWith({
         success: true,
         data: {
-          documents: {
-            id: DOC_ID,
-            title: 'Test Document',
-            source: 'rag/path/test.pdf',
-            checksum: CHECKSUM,
-            createdAt: TS_ISO,
-            updatedAt: TS_ISO,
-          },
+          documents: [
+            {
+              id: DOC_ID,
+              title: 'Test Document',
+              source: 'rag/path/test.pdf',
+              checksum: CHECKSUM,
+              createdAt: TS_ISO,
+              updatedAt: TS_ISO,
+            },
+          ],
           embeddingModels: {
             id: model.id,
             modelName: model.name,

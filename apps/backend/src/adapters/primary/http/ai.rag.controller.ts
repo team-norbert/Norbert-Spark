@@ -276,20 +276,14 @@ export class AiRagController {
 
       // 5. Map the persisted DB records to the OpenAPI response shape.
       const responseData: components['schemas']['CreateVectorStoreResponse']['data'] = {
-        // The generated TS type has documents as a singular object (codegen reflects
-        // the first/primary document). Multiple documents are stored in the DB.
-        documents: (() => {
-          const doc = result.documents[0]
-          if (!doc) throw new NotFoundException('document', 'first inserted document')
-          return {
-            id: doc.id,
-            title: doc.title,
-            source: doc.source,
-            checksum: doc.checksum,
-            createdAt: doc.createdAt.toISOString(),
-            updatedAt: doc.updatedAt.toISOString(),
-          }
-        })(),
+        documents: result.documents.map((doc) => ({
+          id: doc.id,
+          title: doc.title,
+          source: doc.source,
+          checksum: doc.checksum,
+          createdAt: doc.createdAt.toISOString(),
+          updatedAt: doc.updatedAt.toISOString(),
+        })),
         embeddingModels: {
           id: embeddedModels.id,
           modelName: embeddedModels.name,
