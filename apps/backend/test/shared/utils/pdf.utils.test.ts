@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
+import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 import { ZipSecurityInvalidZipSizeException } from '../../../src/shared/exceptions/zip-invalidzipsize.exception.js'
 import { ZipSecurityMaxDecompressedException } from '../../../src/shared/exceptions/zip-maxdecompressed.exception.js'
 import { ZipSecurityMaxFileException } from '../../../src/shared/exceptions/zip-maxfile.exception.js'
@@ -1255,5 +1256,129 @@ describe('PDFUtils - file filtering edge cases', () => {
     expect(result.pdfPaths).toEqual(['valid/file.pdf'])
 
     spy.mockRestore()
+  })
+
+  it('should include actual file paths in pdfPaths within the debug summary log', async () => {
+    // Kill mutation 7349: pdfFiles.map(f => f.path) → () => undefined in debug log
+    const pdfData = Buffer.from('%PDF-1.4 valid')
+    const unzipper = await import('unzipper')
+    const spy = vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({
+      files: [
+        {
+          type: 'File',
+          path: 'docs/invoice.pdf',
+          uncompressedSize: pdfData.length,
+          compressedSize: pdfData.length,
+          buffer: vi.fn().mockResolvedValue(pdfData),
+        },
+      ],
+    } as any)
+
+    const zipBuf = Buffer.alloc(100)
+    await pdfUtils.extractFromBuffer(zipBuf)
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      'ZIP extraction summary',
+      expect.objectContaining({
+        pdfPaths: ['docs/invoice.pdf'],
+      })
+    )
+
+    spy.mockRestore()
+  })
+
+  it('should have empty skippedFiles in debug log when no files are skipped', async () => {
+    // Kill mutation 7301: skippedFiles initial value [] → ['Stryker was here']
+    const pdfData = Buffer.from('%PDF-1.4 valid')
+    const unzipper = await import('unzipper')
+    const spy = vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({
+      files: [
+        {
+          type: 'File',
+          path: 'clean/normal.pdf',
+          uncompressedSize: pdfData.length,
+          compressedSize: pdfData.length,
+          buffer: vi.fn().mockResolvedValue(pdfData),
+        },
+      ],
+    } as any)
+
+    const zipBuf = Buffer.alloc(100)
+    await pdfUtils.extractFromBuffer(zipBuf)
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      'ZIP extraction summary',
+      expect.objectContaining({
+        skippedFiles: [],
+      })
+    )
+
+    spy.mockRestore()
+  })
+
+  it('should exclude Directory entries even when path ends with .pdf', async () => {
+    // Kill mutation 7304: type check (f.type !== 'File') → false → never skips based on type
+    const unzipper = await import('unzipper')
+    const spy = vi.spyOn(unzipper.default.Open, 'buffer').mockResolvedValue({
+      files: [
+        {
+          type: 'Directory',
+          path: 'uploads.pdf',
+          uncompressedSize: 0,
+          compressedSize: 0,
+          buffer: vi.fn(),
+        },
+      ],
+    } as any)
+
+    const zipBuf = Buffer.alloc(100)
+    const result = await pdfUtils.extractFromBuffer(zipBuf)
+
+    expect(result.pdfFiles).toHaveLength(0)
+
+    spy.mockRestore()
+  })
+})
+
+describe('PDFUtils - validatePDF', () => {
+  const testZipPath = join(process.cwd(), 'test', 'fake-reciepts.zip')
+  const zipBuffer = readFileSync(testZipPath)
+
+  let pdfUtils: PDFUtils
+  let mockLogger: LoggerPort
+
+  beforeEach(() => {
+    mockLogger = createMockLogger()
+    pdfUtils = new PDFUtils(mockLogger)
+  })
+
+  it('should return true for a valid PDF buffer', async () => {
+    // Kill mutations 7265 (return true → false) and 7264 ({ data: copy } → {})
+    const unzipper = await import('unzipper')
+    const directory = await unzipper.default.Open.buffer(zipBuffer)
+    const pdfFile = directory.files.find(
+      (f) =>
+        f.type === 'File' &&
+        f.path.toLowerCase().endsWith('.pdf') &&
+        !f.path.includes('__MACOSX') &&
+        !f.path.includes('._')
+    )
+    expect(pdfFile).toBeDefined()
+    const pdfBuffer = await pdfFile!.buffer()
+
+    const result = await pdfUtils.validatePDF(pdfBuffer)
+    expect(result).toBe(true)
+  })
+
+  it('should throw ValidationException with message "Invalid PDF" for non-PDF data', async () => {
+    // Kill mutation 7267: 'Invalid PDF' → ''
+    const garbage = Buffer.from('this is definitely not a valid pdf document')
+    await expect(pdfUtils.validatePDF(garbage)).rejects.toThrow('Invalid PDF')
+  })
+
+  it('should throw a ValidationException instance for invalid PDF data', async () => {
+    // Confirm exception type and message together
+    const garbage = Buffer.from('not a pdf')
+    await expect(pdfUtils.validatePDF(garbage)).rejects.toBeInstanceOf(ValidationException)
   })
 })
