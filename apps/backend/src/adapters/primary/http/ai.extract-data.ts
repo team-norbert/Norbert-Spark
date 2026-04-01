@@ -148,7 +148,7 @@ export class AIExtractDataController {
     request: FastifyRequest,
     reply: FastifyReply
   ): Promise<{ output: any } | boolean | void> {
-    this.logger.debug('Received getAIChatsByUserId request')
+    this.logger.debug('Received extractData request')
     const params = request.params as Record<string, unknown>
     const fileKey = params.fileId as string
 
@@ -351,6 +351,8 @@ export class AIExtractDataController {
         reply.raw.end()
         return
       }
+
+      throw new UnprocessableEntityException(`Unsupported file type: ${fileType}`)
     } catch (error) {
       this.logger.error(
         'Error in extractData endpoint',

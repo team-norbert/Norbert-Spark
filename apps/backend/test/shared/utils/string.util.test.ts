@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import crypto from 'crypto'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 import { StringUtil } from '../../../src/shared/utils/string.util.js'
@@ -346,6 +347,61 @@ describe('StringUtil', () => {
       StringUtil.slugify(original)
       StringUtil.truncate(original, 5)
       expect(original).toBe('Hello World')
+    })
+  })
+
+  describe('randomString — crypto byte filtering', () => {
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('should reject bytes >= 248 (maxByte) and not use them for character generation', () => {
+      // charCount=62, 256%62=8, so maxByte=248. Bytes 248-255 must be rejected.
+      // Mutation 7814: maxByte = 256+256%62 = 264 → nothing is ever rejected.
+      // Mutation 7833: condition replaced with false → nothing is ever rejected.
+      // Mutation 7836: removes the `continue` so rejected bytes fall through to char generation.
+      // All three mutants accept byte 250 and produce chars[250%62] = chars[2] = 'C'.
+      // The original rejects 250, skips to byte 0 → chars[0] = 'A'.
+      vi.spyOn(crypto, 'randomBytes').mockImplementation((_size: number): Buffer => {
+        return Buffer.from([250, 0])
+      })
+
+      const result = StringUtil.randomString(1)
+      expect(result).toBe('A')
+    })
+
+    it('should reject exactly byte 248 (the >= boundary, not just >)', () => {
+      // Mutation 7834 changes `byte >= maxByte` to `byte > maxByte`.
+      // With >, byte 248 is NOT rejected (248 > 248 = false).
+      // Mutant uses byte 248: 248 % 62 = 0 → chars[0] = 'A'.
+      // Original rejects 248 (>=), skips to byte 1: 1 % 62 = 1 → chars[1] = 'B'.
+      vi.spyOn(crypto, 'randomBytes').mockImplementation((_size: number): Buffer => {
+        return Buffer.from([248, 1])
+      })
+
+      const result = StringUtil.randomString(1)
+      expect(result).toBe('B')
+    })
+
+    it('should request (length - result.length) bytes per iteration, not (length + result.length)', () => {
+      // Mutation 7821 changes `bytesNeeded = length - result.length`
+      // to `bytesNeeded = length + result.length`.
+      // After the first iteration produces 1 char (result.length=1, length=2):
+      //   original: 2nd call size = 2 - 1 = 1
+      //   mutant:   2nd call size = 2 + 1 = 3
+      const requestedSizes: number[] = []
+      vi.spyOn(crypto, 'randomBytes').mockImplementation((size: number): Buffer => {
+        requestedSizes.push(size)
+        // Return a 1-byte buffer so the while loop needs two iterations to build 2 chars.
+        return Buffer.from([0])
+      })
+
+      StringUtil.randomString(2)
+
+      // First call: bytesNeeded = 2 - 0 = 2 (same for both original and mutant)
+      expect(requestedSizes[0]).toBe(2)
+      // Second call: original = 2-1 = 1; mutant = 2+1 = 3
+      expect(requestedSizes[1]).toBe(1)
     })
   })
 })
