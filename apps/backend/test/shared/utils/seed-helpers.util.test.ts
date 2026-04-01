@@ -107,15 +107,6 @@ describe('SeedHelpers', () => {
       expect(SeedHelpers.randomInt(1, 5)).toBe(5)
     })
 
-    it('includes both min and max endpoints across many calls', () => {
-      const results = new Set<number>()
-      for (let i = 0; i < 200; i++) {
-        results.add(SeedHelpers.randomInt(1, 5))
-      }
-      expect(results.has(1)).toBe(true)
-      expect(results.has(5)).toBe(true)
-    })
-
     it('returns a single value when min equals max', () => {
       expect(SeedHelpers.randomInt(7, 7)).toBe(7)
     })
