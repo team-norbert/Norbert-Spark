@@ -16,7 +16,7 @@ describe('HEART_OF_DARKNESS_MAPPINGS', () => {
   })
 
   describe('river rule', () => {
-    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules[0]!
+    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules.find((r) => r.triggers.includes('river'))!
 
     it('should have triggers containing river', () => {
       expect(rule().triggers).toContain('river')
@@ -56,7 +56,8 @@ describe('HEART_OF_DARKNESS_MAPPINGS', () => {
   })
 
   describe('position/hired rule', () => {
-    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules[1]!
+    const rule = () =>
+      HEART_OF_DARKNESS_MAPPINGS.rules.find((r) => r.triggers.includes('position'))!
 
     it('should have triggers containing position', () => {
       expect(rule().triggers).toContain('position')
@@ -104,7 +105,7 @@ describe('HEART_OF_DARKNESS_MAPPINGS', () => {
   })
 
   describe('kurtz rule', () => {
-    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules[2]!
+    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules.find((r) => r.triggers.includes('kurtz'))!
 
     it('should have triggers containing kurtz', () => {
       expect(rule().triggers).toContain('kurtz')
@@ -144,7 +145,7 @@ describe('HEART_OF_DARKNESS_MAPPINGS', () => {
   })
 
   describe('death/words rule', () => {
-    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules[3]!
+    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules.find((r) => r.triggers.includes('death'))!
 
     it('should have triggers containing death', () => {
       expect(rule().triggers).toContain('death')
@@ -192,7 +193,7 @@ describe('HEART_OF_DARKNESS_MAPPINGS', () => {
   })
 
   describe('attack rule', () => {
-    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules[4]!
+    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules.find((r) => r.triggers.includes('attack'))!
 
     it('should have triggers containing attack', () => {
       expect(rule().triggers).toContain('attack')
@@ -236,7 +237,7 @@ describe('HEART_OF_DARKNESS_MAPPINGS', () => {
   })
 
   describe('repair/steamboat rule', () => {
-    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules[5]!
+    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules.find((r) => r.triggers.includes('repair'))!
 
     it('should have triggers containing repair', () => {
       expect(rule().triggers).toContain('repair')
@@ -284,7 +285,7 @@ describe('HEART_OF_DARKNESS_MAPPINGS', () => {
   })
 
   describe('poles/station rule', () => {
-    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules[6]!
+    const rule = () => HEART_OF_DARKNESS_MAPPINGS.rules.find((r) => r.triggers.includes('poles'))!
 
     it('should have triggers containing poles', () => {
       expect(rule().triggers).toContain('poles')

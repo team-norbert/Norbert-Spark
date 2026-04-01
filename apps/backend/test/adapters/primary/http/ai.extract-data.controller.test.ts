@@ -1169,7 +1169,7 @@ describe('AIExtractDataController', () => {
 
         await controller.extractData(mockRequest, mockReply)
 
-        expect(mockLogger.debug).toHaveBeenCalledWith('Received getAIChatsByUserId request')
+        expect(mockLogger.debug).toHaveBeenCalledWith('Received extractData request')
       })
 
       it('should log "Processing PDF file" debug message with the fileKey path', async () => {
@@ -1378,7 +1378,7 @@ describe('AIExtractDataController', () => {
         writeCalls.forEach((line) => expect(line).toMatch(/\n$/))
       })
 
-      it('should not write any data for unknown fileType', async () => {
+      it('should return 422 for unknown fileType', async () => {
         vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue({
           buffer: Buffer.from('unknown-data'),
           fileType: 'unknown',
@@ -1387,9 +1387,11 @@ describe('AIExtractDataController', () => {
 
         await controller.extractData(mockRequest, mockReply)
 
-        expect(mockReply.raw.write).not.toHaveBeenCalled()
-        expect(mockReply.raw.end).not.toHaveBeenCalled()
-        expect(mockReply.raw.setHeader).not.toHaveBeenCalled()
+        expect(mockReply.code).toHaveBeenCalledWith(422)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Unsupported file type: unknown',
+        })
       })
 
       it('should log audit context in extractData', async () => {

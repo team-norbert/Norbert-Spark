@@ -646,8 +646,8 @@ describe('Security Validation Utilities', () => {
       // A path like 'folder/a:note.txt' has 'a:' not at position 0, so the
       // original pattern must not reject it. The mutant /[a-zA-Z]:/ (no ^)
       // would reject it anywhere, killing the mutation.
-      expect(validatePathWithinBase('subfolder/file.txt', baseDir)).toBe(
-        '/app/data/subfolder/file.txt'
+      expect(validatePathWithinBase('folder/a:note.txt', baseDir)).toBe(
+        '/app/data/folder/a:note.txt'
       )
     })
 
@@ -655,7 +655,9 @@ describe('Security Validation Utilities', () => {
       // /^~\// only rejects paths that START with ~/  (home dir expansion).
       // A literal tilde in the middle of a path is not a security risk.
       // The mutant /~\// (no ^) would reject it anywhere.
-      expect(validatePathWithinBase('path/to/file.txt', baseDir)).toBe('/app/data/path/to/file.txt')
+      expect(validatePathWithinBase('folder/~/file.txt', baseDir)).toBe(
+        '/app/data/folder/~/file.txt'
+      )
     })
   })
 
