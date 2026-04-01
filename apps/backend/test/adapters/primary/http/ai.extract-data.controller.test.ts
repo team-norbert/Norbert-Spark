@@ -1157,7 +1157,7 @@ describe('AIExtractDataController', () => {
         expect(mockLogger.debug).toHaveBeenCalledWith(expect.any(String))
       })
 
-      it('should log exact "Received getAIChatsByUserId request" message first', async () => {
+      it('should log "Received extractData request" as the first debug message', async () => {
         const mockBuffer = Buffer.from('%PDF-test')
         vi.mocked(mockExtractDataUseCase.execute).mockResolvedValue({
           buffer: mockBuffer,
@@ -1169,7 +1169,7 @@ describe('AIExtractDataController', () => {
 
         await controller.extractData(mockRequest, mockReply)
 
-        expect(mockLogger.debug).toHaveBeenCalledWith('Received extractData request')
+        expect(mockLogger.debug.mock.calls[0][0]).toBe('Received extractData request')
       })
 
       it('should log "Processing PDF file" debug message with the fileKey path', async () => {
