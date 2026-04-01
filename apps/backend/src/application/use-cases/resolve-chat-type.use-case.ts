@@ -24,7 +24,10 @@ export class ResolveChatTypeUseCase {
    * @param auditContext - Audit context for logging
    * @returns The UUID id of the matching chat type, or null if not found
    */
-  async execute(param: string, auditContext: AuditContext): Promise<string | null> {
+  async execute(
+    param: string,
+    auditContext: AuditContext
+  ): Promise<{ id: string; rag: boolean } | null> {
     this.logger.info('Resolving chat type by param', { event: 'chat_type.resolve.attempt', param })
 
     try {

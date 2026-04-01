@@ -6,7 +6,7 @@ import { PutChatTypeDto } from '../dtos/put-chat-type.dto.js'
 
 export interface AIContentPort {
   fetchChatContent(): Promise<DBChatType[]>
-  resolveChatTypeByParam(param: string): Promise<string | null>
+  resolveChatTypeByParam(param: string): Promise<{ id: string; rag: boolean } | null>
   putChatTypeDetails(details: PutChatTypeDto): Promise<QueryResult | null>
   createChatType(data: ChatTypeInsertDto): Promise<DBChatType>
 }

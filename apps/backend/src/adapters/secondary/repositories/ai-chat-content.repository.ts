@@ -38,7 +38,7 @@ const SEO_FRIENDLY_BASE64_ID_PATTERN = /^[A-Za-z0-9_-]{22}$/
  * This class implements the AIContentPort interface and provides methods to
  * retrieve chat type information from the database. It acts as an adapter
  * between the application layer and the database infrastructure.
- *
+ * resolveChatTypeByParam
  * @implements {AIContentPort}
  */
 export class AIChatContentRepository implements AIContentPort {
@@ -225,7 +225,7 @@ export class AIChatContentRepository implements AIContentPort {
    * @param param - One of the three unique identifiers for a chat type
    * @returns The UUID id of the matching chat type, or null if not found or invalid
    */
-  async resolveChatTypeByParam(param: string): Promise<string | null> {
+  async resolveChatTypeByParam(param: string): Promise<{ id: string; rag: boolean } | null> {
     // Validate maximum length to prevent DoS attacks with extremely long strings
     if (param.length > MAX_PARAM_LENGTH) {
       this.logger.warn('Chat type param exceeds maximum length', {
@@ -271,12 +271,12 @@ export class AIChatContentRepository implements AIContentPort {
 
     try {
       const result = await db
-        .select({ id: chatTypes.id })
+        .select({ id: chatTypes.id, rag: chatTypes.rag })
         .from(chatTypes)
         .where(or(...conditions))
         .limit(1)
 
-      const resolved = result[0]?.id ?? null
+      const resolved = result[0] ? { id: result[0].id, rag: result[0].rag } : null
       this.logger.debug('Resolved chat type', { param, resolvedId: resolved })
       return resolved
     } catch (error) {

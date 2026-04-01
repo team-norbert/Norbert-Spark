@@ -147,7 +147,7 @@ describe('AIChatContentRepository', () => {
 
         vi.mocked(Uuid7Util.isValidUUID).mockReturnValue(true)
 
-        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId }])
+        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId, rag: false }])
         const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit })
         const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
         const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
@@ -155,7 +155,7 @@ describe('AIChatContentRepository', () => {
 
         const result = await repository.resolveChatTypeByParam(param)
 
-        expect(result).toBe(chatTypeId)
+        expect(result).toEqual({ id: chatTypeId, rag: false })
         expect(Uuid7Util.isValidUUID).toHaveBeenCalledWith(param)
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', {
           param,
@@ -163,7 +163,7 @@ describe('AIChatContentRepository', () => {
         })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolved chat type', {
           param,
-          resolvedId: chatTypeId,
+          resolvedId: { id: chatTypeId, rag: false },
         })
       })
 
@@ -173,7 +173,7 @@ describe('AIChatContentRepository', () => {
 
         vi.mocked(Uuid7Util.isValidUUID).mockReturnValue(true)
 
-        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId }])
+        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId, rag: false }])
         const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit })
         const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
         const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
@@ -194,7 +194,7 @@ describe('AIChatContentRepository', () => {
 
         vi.mocked(Uuid7Util.isValidUUID).mockReturnValue(false)
 
-        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId }])
+        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId, rag: false }])
         const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit })
         const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
         const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
@@ -202,7 +202,7 @@ describe('AIChatContentRepository', () => {
 
         const result = await repository.resolveChatTypeByParam(param)
 
-        expect(result).toBe(chatTypeId)
+        expect(result).toEqual({ id: chatTypeId, rag: false })
         expect(Uuid7Util.isValidUUID).toHaveBeenCalledWith(param)
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', {
           param,
@@ -210,7 +210,7 @@ describe('AIChatContentRepository', () => {
         })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolved chat type', {
           param,
-          resolvedId: chatTypeId,
+          resolvedId: { id: chatTypeId, rag: false },
         })
       })
 
@@ -220,7 +220,7 @@ describe('AIChatContentRepository', () => {
 
         vi.mocked(Uuid7Util.isValidUUID).mockReturnValue(false)
 
-        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId }])
+        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId, rag: false }])
         const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit })
         const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
         const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
@@ -241,7 +241,7 @@ describe('AIChatContentRepository', () => {
 
         vi.mocked(Uuid7Util.isValidUUID).mockReturnValue(false)
 
-        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId }])
+        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId, rag: false }])
         const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit })
         const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
         const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
@@ -249,14 +249,14 @@ describe('AIChatContentRepository', () => {
 
         const result = await repository.resolveChatTypeByParam(param)
 
-        expect(result).toBe(chatTypeId)
+        expect(result).toEqual({ id: chatTypeId, rag: false })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolving chat type by param', {
           param,
           length: param.length,
         })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolved chat type', {
           param,
-          resolvedId: chatTypeId,
+          resolvedId: { id: chatTypeId, rag: false },
         })
       })
     })
@@ -420,7 +420,7 @@ describe('AIChatContentRepository', () => {
 
         vi.mocked(Uuid7Util.isValidUUID).mockReturnValue(true)
 
-        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId }])
+        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId, rag: false }])
         const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit })
         const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
         const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
@@ -431,13 +431,13 @@ describe('AIChatContentRepository', () => {
         expect(mockLimit).toHaveBeenCalledWith(1)
       })
 
-      it('should only select the id column', async () => {
+      it('should select id and rag columns', async () => {
         const chatTypeId = uuidv7()
         const param = 'test-param'
 
         vi.mocked(Uuid7Util.isValidUUID).mockReturnValue(false)
 
-        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId }])
+        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId, rag: true }])
         const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit })
         const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
         const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })

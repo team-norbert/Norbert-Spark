@@ -263,7 +263,7 @@ export class AIController {
       }
 
       try {
-        chatTypeId = new ChatId(resolved).getValue()
+        chatTypeId = new ChatId(resolved.id).getValue()
       } catch {
         return reply.code(400).send({
           success: false,
