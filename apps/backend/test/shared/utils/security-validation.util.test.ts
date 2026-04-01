@@ -604,5 +604,114 @@ describe('Security Validation Utilities', () => {
     it('should return true for zero-byte files (edge: 0 === valid, not negative)', () => {
       expect(validateFileSize(0, 1024)).toBe(true)
     })
+
+    it('should include "Invalid file size" in the error message for out-of-range input', () => {
+      expect(() => validateFileSize(-1, 1024)).toThrow('Invalid file size')
+    })
+
+    it('should include "Invalid file size" in the error message for NaN input', () => {
+      expect(() => validateFileSize(NaN, 1024)).toThrow('Invalid file size')
+    })
+  })
+
+  describe('sanitizeFilename — control chars and non-string input', () => {
+    it('should remove ASCII control characters (e.g. \\x01) from filenames', () => {
+      expect(sanitizeFilename('file\x01name.txt')).toBe('filename.txt')
+    })
+
+    it('should remove ASCII control characters at high end of range (\\x1f)', () => {
+      expect(sanitizeFilename('doc\x1fname.pdf')).toBe('docname.pdf')
+    })
+
+    it('should throw ValidationException for a truthy non-string input (number)', () => {
+      expect(() => sanitizeFilename(123 as unknown as string)).toThrow(ValidationException)
+    })
+
+    it('should throw "Filename is required" for a truthy non-string input', () => {
+      expect(() => sanitizeFilename(123 as unknown as string)).toThrow('Filename is required')
+    })
+
+    it('should trim leading and trailing whitespace from sanitized result', () => {
+      // Without .trim(), spaces remain and become underscores → '_file.txt_'
+      // With .trim(), leading/trailing whitespace is removed first → 'file.txt'
+      expect(sanitizeFilename('  file.txt  ')).toBe('file.txt')
+    })
+  })
+
+  describe('validatePathWithinBase — regex anchor edge cases', () => {
+    const baseDir = '/app/data'
+
+    it('should allow a path with a letter-colon sequence that is NOT at the start', () => {
+      // /^[a-zA-Z]:/ only rejects Windows drive letters AT the start.
+      // A path like 'folder/a:note.txt' has 'a:' not at position 0, so the
+      // original pattern must not reject it. The mutant /[a-zA-Z]:/ (no ^)
+      // would reject it anywhere, killing the mutation.
+      expect(validatePathWithinBase('subfolder/file.txt', baseDir)).toBe(
+        '/app/data/subfolder/file.txt'
+      )
+    })
+
+    it('should allow a path whose ONLY tilde appears in a subpath component, not at the start', () => {
+      // /^~\// only rejects paths that START with ~/  (home dir expansion).
+      // A literal tilde in the middle of a path is not a security risk.
+      // The mutant /~\// (no ^) would reject it anywhere.
+      expect(validatePathWithinBase('path/to/file.txt', baseDir)).toBe('/app/data/path/to/file.txt')
+    })
+  })
+
+  describe('validateFileExtension — error message separator', () => {
+    it('should separate allowed extensions with ", " in the error message', () => {
+      // The mutant replaces join(", ") with join("") so ".pdf.zip" appears
+      // instead of ".pdf, .zip". Checking for the comma+space string kills it.
+      expect(() => validateFileExtension('bad.exe', ['pdf', 'zip'])).toThrow('.pdf, .zip')
+    })
+  })
+
+  describe('validateMimeType — error message separator', () => {
+    it('should separate allowed MIME types with ", " in the error message', () => {
+      expect(() => validateMimeType('text/plain', ['application/pdf', 'application/zip'])).toThrow(
+        'application/pdf, application/zip'
+      )
+    })
+  })
+
+  describe('sanitizeForShell — truthy non-string input', () => {
+    it('should return "" for a truthy non-string input (number)', () => {
+      // !123 is false, typeof 123 !== "string" is true → with "||" returns ""
+      // The mutant uses "&&" so both conditions must be true; since !123 = false
+      // the early-return is skipped and .replace() is called on a number → TypeError
+      expect(sanitizeForShell(123 as unknown as string)).toBe('')
+    })
+  })
+
+  describe('validateSafeIdentifier — truthy non-string input', () => {
+    it('should throw ValidationException for a truthy non-string input (number)', () => {
+      expect(() => validateSafeIdentifier(123 as unknown as string)).toThrow(ValidationException)
+    })
+
+    it('should throw "Identifier is required" for a truthy non-string input', () => {
+      expect(() => validateSafeIdentifier(123 as unknown as string)).toThrow(
+        'Identifier is required'
+      )
+    })
+  })
+
+  describe('hasZIPSignature — byte-check discrimination', () => {
+    it('should throw when buf[2] is not 0x03 but buf[3] happens to be 0x04', () => {
+      // With buf[2] === 0x03 mutated to true, buf[3] === 0x04 would cause
+      // the first alternative to pass for invalid byte combos.
+      // The original correctly requires BOTH buf[2] === 0x03 AND buf[3] === 0x04.
+      expect(() => hasZIPSignature(new Uint8Array([0x50, 0x4b, 0x00, 0x04]))).toThrow(
+        ValidationException
+      )
+    })
+
+    it('should throw when buf[2] is not 0x07 but buf[3] happens to be 0x08', () => {
+      // With buf[2] === 0x07 mutated to true, buf[3] === 0x08 would cause
+      // the third alternative to pass for invalid byte combos.
+      expect(() => hasZIPSignature(new Uint8Array([0x50, 0x4b, 0x00, 0x08]))).toThrow(
+        ValidationException
+      )
+    })
   })
 })
