@@ -368,7 +368,6 @@ describe('TextAnalysisService', () => {
         fullText,
         question
       )
-      const resultNoMapping = service.extractRelevantPassages(fullText, question)
       // With mapping: "river" trigger → adds "thames" keyword → finds passage with "thames"
       expect(resultWithMapping).toContain('thames')
       // Without mapping: only "river" and "journey" keywords → "river" matches anyway
