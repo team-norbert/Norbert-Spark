@@ -220,7 +220,7 @@ describe('AIChatContentRepository', () => {
 
         vi.mocked(Uuid7Util.isValidUUID).mockReturnValue(false)
 
-        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId, rag: false }])
+        const mockLimit = vi.fn().mockResolvedValue([{ id: chatTypeId }])
         const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit })
         const mockFrom = vi.fn().mockReturnValue({ where: mockWhere })
         const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
