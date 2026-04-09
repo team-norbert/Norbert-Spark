@@ -4,9 +4,11 @@ import type { DBChatType } from '../../infrastructure/database/schema.js'
 import type { ChatTypeInsertDto } from '../dtos/chat-type-insert.dto.js'
 import { PutChatTypeDto } from '../dtos/put-chat-type.dto.js'
 
+export type ResolvedChatType = { id: string; rag: boolean }
+
 export interface AIContentPort {
   fetchChatContent(): Promise<DBChatType[]>
-  resolveChatTypeByParam(param: string): Promise<{ id: string; rag: boolean } | null>
+  resolveChatTypeByParam(param: string): Promise<ResolvedChatType | null>
   putChatTypeDetails(details: PutChatTypeDto): Promise<QueryResult | null>
   createChatType(data: ChatTypeInsertDto): Promise<DBChatType>
 }
