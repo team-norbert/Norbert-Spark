@@ -38,7 +38,6 @@ const SEO_FRIENDLY_BASE64_ID_PATTERN = /^[A-Za-z0-9_-]{22}$/
  * This class implements the AIContentPort interface and provides methods to
  * retrieve chat type information from the database. It acts as an adapter
  * between the application layer and the database infrastructure.
- * resolveChatTypeByParam
  * @implements {AIContentPort}
  */
 export class AIChatContentRepository implements AIContentPort {
