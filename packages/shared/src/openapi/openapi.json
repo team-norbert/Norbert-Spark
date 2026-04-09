@@ -10,8 +10,7 @@
     },
     "license": {
       "name": "GPLv3",
-      "url": "https://www.gnu.org/licenses/gpl-3.0-standalone.html",
-      "x-license-identifier": "GPL-3.0-only"
+      "url": "https://www.gnu.org/licenses/gpl-3.0-standalone.html"
     }
   },
   "servers": [

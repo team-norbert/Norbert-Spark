@@ -27,6 +27,7 @@ describe('QueryProvider', () => {
     })
 
     it('should provide QueryClient to child components', async () => {
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const TestComponent = () => {
         const { data } = useQuery({
           queryKey: ['test'],
@@ -52,6 +53,7 @@ describe('QueryProvider', () => {
     })
 
     it('should create a stable QueryClient instance', async () => {
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const TestComponent = () => {
         const { data } = useQuery({
           queryKey: ['stability-test'],
@@ -90,6 +92,7 @@ describe('QueryProvider', () => {
     it('should configure queries with correct staleTime', async () => {
       const mockQueryFn = vi.fn().mockResolvedValue({ data: 'test' })
 
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const TestComponent = () => {
         const { data } = useQuery({
           queryKey: ['staleTime-test'],
@@ -123,6 +126,7 @@ describe('QueryProvider', () => {
         return { data: 'success after retries' }
       })
 
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const TestComponent = () => {
         const { data, error } = useQuery({
           queryKey: ['retry-test'],
@@ -162,6 +166,7 @@ describe('QueryProvider', () => {
         return { success: true }
       })
 
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const TestComponent = () => {
         const mutation = useMutation({
           mutationFn: mockMutationFn,
@@ -218,6 +223,7 @@ describe('QueryProvider', () => {
     })
 
     it('should support nested components with queries', async () => {
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const ParentComponent = () => {
         const { data: parentData } = useQuery({
           queryKey: ['parent'],
@@ -232,6 +238,7 @@ describe('QueryProvider', () => {
         )
       }
 
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const ChildComponent = () => {
         const { data: childData } = useQuery({
           queryKey: ['child'],
@@ -258,6 +265,7 @@ describe('QueryProvider', () => {
     it('should handle query errors gracefully', async () => {
       const mockQueryFn = vi.fn().mockRejectedValue(new Error('Query failed'))
 
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const TestComponent = () => {
         const { data, error, isError } = useQuery({
           queryKey: ['error-test'],
@@ -286,6 +294,7 @@ describe('QueryProvider', () => {
     it('should handle mutation errors gracefully', async () => {
       const mockMutationFn = vi.fn().mockRejectedValue(new Error('Mutation failed'))
 
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const TestComponent = () => {
         const mutation = useMutation({
           mutationFn: mockMutationFn,
@@ -321,6 +330,7 @@ describe('QueryProvider', () => {
     it('should cache query results', async () => {
       const mockQueryFn = vi.fn().mockResolvedValue({ data: 'cached data' })
 
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const TestComponent = ({ showSecond }: { showSecond: boolean }) => {
         const query1 = useQuery({
           queryKey: ['cache-test'],

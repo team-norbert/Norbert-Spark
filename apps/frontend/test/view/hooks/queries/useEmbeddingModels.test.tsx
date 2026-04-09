@@ -49,6 +49,7 @@ vi.mock('@/infrastructure/serverActions/getEmbeddingModels.server.js', () => ({
 // ---------------------------------------------------------------------------
 
 function createWrapper(client: QueryClient) {
+  // eslint-disable-next-line @eslint-react/component-hook-factories
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return <QueryClientProvider client={client}>{children}</QueryClientProvider>
   }
