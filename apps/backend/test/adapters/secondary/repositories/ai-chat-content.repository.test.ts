@@ -163,7 +163,7 @@ describe('AIChatContentRepository', () => {
         })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolved chat type', {
           param,
-          resolvedId: { id: chatTypeId, rag: false },
+          resolvedChatType: { id: chatTypeId, rag: false },
         })
       })
 
@@ -210,7 +210,7 @@ describe('AIChatContentRepository', () => {
         })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolved chat type', {
           param,
-          resolvedId: { id: chatTypeId, rag: false },
+          resolvedChatType: { id: chatTypeId, rag: false },
         })
       })
 
@@ -256,7 +256,7 @@ describe('AIChatContentRepository', () => {
         })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolved chat type', {
           param,
-          resolvedId: { id: chatTypeId, rag: false },
+          resolvedChatType: { id: chatTypeId, rag: false },
         })
       })
     })
@@ -282,7 +282,7 @@ describe('AIChatContentRepository', () => {
         })
         expect(mockLogger.debug).toHaveBeenCalledWith('Resolved chat type', {
           param,
-          resolvedId: null,
+          resolvedChatType: null,
         })
       })
 

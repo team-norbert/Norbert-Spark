@@ -64,7 +64,7 @@ describe('ResolveChatTypeUseCase', () => {
         expect(mockLogger.info).toHaveBeenCalledWith('Chat type resolved', {
           event: 'chat_type.resolve.success',
           param,
-          resolvedId: resolved,
+          resolvedChatType: resolved,
         })
       })
 
@@ -84,7 +84,7 @@ describe('ResolveChatTypeUseCase', () => {
           changes: {
             reason: 'chat_type_resolved_successfully',
             param,
-            resolvedId: resolved,
+            resolvedChatType: resolved,
           },
           ipAddress: mockAuditContext.ipAddress,
           userAgent: mockAuditContext.userAgent,
@@ -110,7 +110,7 @@ describe('ResolveChatTypeUseCase', () => {
         expect(mockLogger.info).toHaveBeenCalledWith('Chat type resolved', {
           event: 'chat_type.resolve.success',
           param,
-          resolvedId: resolved,
+          resolvedChatType: resolved,
         })
       })
 
@@ -130,7 +130,7 @@ describe('ResolveChatTypeUseCase', () => {
           changes: {
             reason: 'chat_type_resolved_successfully',
             param,
-            resolvedId: resolved,
+            resolvedChatType: resolved,
           },
           ipAddress: mockAuditContext.ipAddress,
           userAgent: mockAuditContext.userAgent,
@@ -156,7 +156,7 @@ describe('ResolveChatTypeUseCase', () => {
         expect(mockLogger.info).toHaveBeenCalledWith('Chat type resolved', {
           event: 'chat_type.resolve.success',
           param,
-          resolvedId: resolved,
+          resolvedChatType: resolved,
         })
       })
 
@@ -176,7 +176,7 @@ describe('ResolveChatTypeUseCase', () => {
           changes: {
             reason: 'chat_type_resolved_successfully',
             param,
-            resolvedId: resolved,
+            resolvedChatType: resolved,
           },
           ipAddress: mockAuditContext.ipAddress,
           userAgent: mockAuditContext.userAgent,
@@ -215,7 +215,7 @@ describe('ResolveChatTypeUseCase', () => {
         changes: {
           reason: 'chat_type_resolution_failed',
           param,
-          resolvedId: null,
+          resolvedChatType: null,
         },
         ipAddress: mockAuditContext.ipAddress,
         userAgent: mockAuditContext.userAgent,
@@ -303,9 +303,9 @@ describe('ResolveChatTypeUseCase', () => {
   describe('audit logging for success cases', () => {
     it('should include all audit context fields in successful resolution', async () => {
       const param = 'test-chat-type'
-      const resolvedId = uuidv7()
+      const resolved = { id: uuidv7(), rag: true }
 
-      vi.mocked(mockAIContentRepository.resolveChatTypeByParam).mockResolvedValue(resolvedId)
+      vi.mocked(mockAIContentRepository.resolveChatTypeByParam).mockResolvedValue(resolved)
 
       await useCase.execute(param, mockAuditContext)
 
@@ -317,7 +317,7 @@ describe('ResolveChatTypeUseCase', () => {
         changes: {
           reason: 'chat_type_resolved_successfully',
           param,
-          resolvedId,
+          resolvedChatType: resolved,
         },
         ipAddress: mockAuditContext.ipAddress,
         userAgent: mockAuditContext.userAgent,
@@ -326,14 +326,14 @@ describe('ResolveChatTypeUseCase', () => {
 
     it('should set userAgent to undefined when null in audit context', async () => {
       const param = 'test-chat-type'
-      const resolvedId = uuidv7()
+      const resolved = { id: uuidv7(), rag: false }
       const contextWithoutUserAgent: AuditContext = {
         userId: new UserId(uuidv7()).getValue(),
         ipAddress: '10.0.0.1',
         userAgent: null,
       }
 
-      vi.mocked(mockAIContentRepository.resolveChatTypeByParam).mockResolvedValue(resolvedId)
+      vi.mocked(mockAIContentRepository.resolveChatTypeByParam).mockResolvedValue(resolved)
 
       await useCase.execute(param, contextWithoutUserAgent)
 
@@ -345,7 +345,7 @@ describe('ResolveChatTypeUseCase', () => {
         changes: {
           reason: 'chat_type_resolved_successfully',
           param,
-          resolvedId,
+          resolvedChatType: resolved,
         },
         ipAddress: contextWithoutUserAgent.ipAddress,
         userAgent: undefined,
@@ -354,9 +354,9 @@ describe('ResolveChatTypeUseCase', () => {
 
     it('should log both info messages for successful resolution', async () => {
       const param = 'chat-type-test'
-      const resolvedId = uuidv7()
+      const resolved = { id: uuidv7(), rag: true }
 
-      vi.mocked(mockAIContentRepository.resolveChatTypeByParam).mockResolvedValue(resolvedId)
+      vi.mocked(mockAIContentRepository.resolveChatTypeByParam).mockResolvedValue(resolved)
 
       await useCase.execute(param, mockAuditContext)
 
@@ -368,7 +368,7 @@ describe('ResolveChatTypeUseCase', () => {
       expect(mockLogger.info).toHaveBeenNthCalledWith(2, 'Chat type resolved', {
         event: 'chat_type.resolve.success',
         param,
-        resolvedId,
+        resolvedChatType: resolved,
       })
     })
   })
@@ -389,7 +389,7 @@ describe('ResolveChatTypeUseCase', () => {
         changes: {
           reason: 'chat_type_resolution_failed',
           param,
-          resolvedId: null,
+          resolvedChatType: null,
         },
         ipAddress: mockAuditContext.ipAddress,
         userAgent: mockAuditContext.userAgent,
