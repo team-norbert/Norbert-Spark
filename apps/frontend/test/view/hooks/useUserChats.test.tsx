@@ -24,6 +24,7 @@ describe('useUserChats', () => {
 
   // Helper to create a wrapper with QueryClient
   function createWrapper() {
+    // eslint-disable-next-line @eslint-react/component-hook-factories
     function Wrapper({ children }: { children: ReactNode }) {
       return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     }

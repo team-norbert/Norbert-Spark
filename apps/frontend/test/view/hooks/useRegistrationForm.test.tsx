@@ -31,6 +31,7 @@ function createWrapper() {
       mutations: { retry: false },
     },
   })
+  // eslint-disable-next-line @eslint-react/component-hook-factories
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   }

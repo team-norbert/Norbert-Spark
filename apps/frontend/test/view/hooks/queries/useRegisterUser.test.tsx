@@ -12,6 +12,7 @@ vi.mock('@/application/actions/registerUser.js', () => ({
 
 // Helper function to create a QueryClientProvider wrapper
 function createWrapper(client: QueryClient) {
+  // eslint-disable-next-line @eslint-react/component-hook-factories
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return <QueryClientProvider client={client}>{children}</QueryClientProvider>
   }

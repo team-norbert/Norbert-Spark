@@ -179,6 +179,7 @@ describe('RootLayout', () => {
 
   describe('Props Handling', () => {
     it('should accept children prop as ReactNode', () => {
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const TestComponent = () => <div data-testid="test-component">Test</div>
 
       render(
@@ -282,6 +283,7 @@ describe('RootLayout', () => {
 
   describe('Integration', () => {
     it('should maintain provider context for nested components', () => {
+      // eslint-disable-next-line @eslint-react/component-hook-factories
       const NestedComponent = () => {
         return (
           <div data-testid="nested">

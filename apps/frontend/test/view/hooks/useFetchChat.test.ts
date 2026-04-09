@@ -20,6 +20,7 @@ describe('useFetchChat', () => {
 
   // Helper to create a wrapper with QueryClient
   const createWrapper = () => {
+    // eslint-disable-next-line @eslint-react/component-hook-factories
     const TestWrapper = ({ children }: { children: ReactNode }) =>
       React.createElement(QueryClientProvider, { client: queryClient }, children)
     return TestWrapper

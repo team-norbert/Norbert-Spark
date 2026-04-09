@@ -74,6 +74,7 @@ describe('Wrapper Component', () => {
   })
 
   it('should render nested components as children', () => {
+    // eslint-disable-next-line @eslint-react/component-hook-factories
     const NestedComponent = () => <div data-testid="nested">Nested Component</div>
     render(
       <Wrapper>
