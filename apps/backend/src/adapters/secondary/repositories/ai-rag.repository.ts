@@ -161,18 +161,24 @@ export class AIRAGRepository implements AiRagRepositoryPost {
               chunkOverlap: data.chunkOverlap,
             }))
 
-            if (data.dimension === 384) {
-              await tx.insert(vectorEmbeddings384).values(embeddingRows)
-            } else if (data.dimension === 768) {
-              await tx.insert(vectorEmbeddings768).values(embeddingRows)
-            } else if (data.dimension === 1024) {
-              await tx.insert(vectorEmbeddings1024).values(embeddingRows)
-            } else if (data.dimension === 1536) {
-              await tx.insert(vectorEmbeddings1536).values(embeddingRows)
-            } else if (data.dimension === 3072) {
-              await tx.insert(vectorEmbeddings3072).values(embeddingRows)
-            } else {
-              throw new Error(`Unsupported embedding dimension: ${String(data.dimension)}`)
+            switch (data.dimension) {
+              case 384:
+                await tx.insert(vectorEmbeddings384).values(embeddingRows)
+                break
+              case 768:
+                await tx.insert(vectorEmbeddings768).values(embeddingRows)
+                break
+              case 1024:
+                await tx.insert(vectorEmbeddings1024).values(embeddingRows)
+                break
+              case 1536:
+                await tx.insert(vectorEmbeddings1536).values(embeddingRows)
+                break
+              case 3072:
+                await tx.insert(vectorEmbeddings3072).values(embeddingRows)
+                break
+              default:
+                throw new Error(`Unsupported embedding dimension: ${String(data.dimension)}`)
             }
           }
         }
