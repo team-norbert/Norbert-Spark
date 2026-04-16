@@ -7,9 +7,25 @@ import { CreateVectorStoreForm } from '@/view/client-components/CreateVectorStor
 // share a single render across multiple tests. Explicit cleanup calls are added
 // to every describe block instead. vi.hoisted runs before import statements so
 // the env var is set before @testing-library/react registers its afterEach hook.
-vi.hoisted(() => {
+const rtlSkipAutoCleanupState = vi.hoisted(() => {
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  const previousValue = process.env.RTL_SKIP_AUTO_CLEANUP
+
   // eslint-disable-next-line turbo/no-undeclared-env-vars
   process.env.RTL_SKIP_AUTO_CLEANUP = '1'
+
+  return { previousValue }
+})
+
+afterAll(() => {
+  if (rtlSkipAutoCleanupState.previousValue === undefined) {
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
+    delete process.env.RTL_SKIP_AUTO_CLEANUP
+    return
+  }
+
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  process.env.RTL_SKIP_AUTO_CLEANUP = rtlSkipAutoCleanupState.previousValue
 })
 
 // Mock the embedding models hook so tests don't require a QueryClientProvider
@@ -107,12 +123,12 @@ describe('CreateVectorStoreForm', () => {
   // ── Rendering ───────────────────────────────────────────────────────────────
 
   describe('Rendering', () => {
-    // Render once for the whole suite — all tests here are read-only (no form submissions
-    // or state mutations). afterAll handles cleanup; no afterEach needed in this block.
-    beforeAll(() => {
+    // Render a fresh instance for each test in this block so any extra render(...)
+    // calls inside individual tests cannot accumulate DOM nodes across the suite.
+    beforeEach(() => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
     })
-    afterAll(() => cleanup())
+    afterEach(() => cleanup())
 
     it('renders the "Create Vector Store" card title', () => {
       expect(screen.getByRole('heading', { name: /create vector store/i })).toBeInTheDocument()
