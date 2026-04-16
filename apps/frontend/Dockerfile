@@ -9,7 +9,7 @@ ARG NODE_VERSION=24.13.0-slim
 
 FROM node:${NODE_VERSION} AS dependencies
 
-RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 # Set working directory
 WORKDIR /app
@@ -30,7 +30,7 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 
 FROM node:${NODE_VERSION} AS builder
 
-RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 # Set working directory
 WORKDIR /app

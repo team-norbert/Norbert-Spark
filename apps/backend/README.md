@@ -410,7 +410,7 @@ pnpm docker:build
 Builds a Docker image named `norberts-spark-backend` using `apps/backend/Dockerfile`. The image:
 
 - Based on Node.js 24 slim
-- Includes pnpm 10.29.3 via Corepack
+- Includes pnpm 10.33.0 via Corepack
 - Builds the shared package and backend in the correct order
 - Runs as non-root user (built-in `node` user) for security
 - Exposes port 3001
