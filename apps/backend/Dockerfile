@@ -3,7 +3,7 @@ FROM node:24-slim AS builder
 ARG APP_VERSION=unknown
 ENV APP_VERSION=${APP_VERSION}
 
-RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 WORKDIR /app
 
@@ -29,7 +29,7 @@ RUN pnpm --filter @norberts-spark/shared build && \
 FROM node:24-slim
 
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* && \
-    corepack enable && corepack prepare pnpm@10.29.3 --activate
+    corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 WORKDIR /app
 

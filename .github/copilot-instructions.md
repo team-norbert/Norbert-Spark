@@ -164,7 +164,7 @@ It is intended to be used as means of generating UI interfaces from the backend 
 
 ### Package Manager
 
-**Always use `pnpm`**, never npm/yarn. This is enforced by `"packageManager": "pnpm@10.29.3"`.
+**Always use `pnpm`**, never npm/yarn. This is enforced by `"packageManager": "pnpm@10.33.0"`.
 
 ### Running Commands
 
@@ -324,7 +324,7 @@ Defined in `turbo.json`:
 
 ## Common Pitfalls
 
-1. **Don't use npm/yarn** - PNPM `10.29.3` workspace required for monorepo
+1. **Don't use npm/yarn** - PNPM `10.33.0` workspace required for monorepo
 2. **Paths use `apps/`** - All apps are under `apps/backend/` and `apps/frontend/`, not at root
 3. **Backend port is 3001** - Not 3000
 4. **Backend uses tsx for dev** - Runs TypeScript directly via `tsx watch`, compiles to `dist/` for production only
