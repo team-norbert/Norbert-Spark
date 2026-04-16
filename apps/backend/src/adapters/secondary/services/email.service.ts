@@ -47,7 +47,6 @@ export class EmailService implements EmailServicePort {
       this.logger.error('Failed to send welcome email', new Error(error.message), { to, name })
       throw new ExternalServiceException('Failed to send welcome email', { error })
     }
-
     if (data) {
       this.logger.info('Email sent successfully', { id: data.id, to, name })
     }

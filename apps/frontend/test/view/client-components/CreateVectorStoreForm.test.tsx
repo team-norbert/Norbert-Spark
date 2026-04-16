@@ -1,7 +1,32 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CreateVectorStoreForm } from '@/view/client-components/CreateVectorStoreForm.js'
+
+// Disable RTL's auto afterEach(cleanup) so that beforeAll(render) suites can
+// share a single render across multiple tests. Explicit cleanup calls are added
+// to every describe block instead. vi.hoisted runs before import statements so
+// the env var is set before @testing-library/react registers its afterEach hook.
+const rtlSkipAutoCleanupState = vi.hoisted(() => {
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  const previousValue = process.env.RTL_SKIP_AUTO_CLEANUP
+
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  process.env.RTL_SKIP_AUTO_CLEANUP = '1'
+
+  return { previousValue }
+})
+
+afterAll(() => {
+  if (rtlSkipAutoCleanupState.previousValue === undefined) {
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
+    delete process.env.RTL_SKIP_AUTO_CLEANUP
+    return
+  }
+
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  process.env.RTL_SKIP_AUTO_CLEANUP = rtlSkipAutoCleanupState.previousValue
+})
 
 // Mock the embedding models hook so tests don't require a QueryClientProvider
 vi.mock('@/view/hooks/queries/useEmbeddingModels.js', () => ({
@@ -98,11 +123,12 @@ describe('CreateVectorStoreForm', () => {
   // ── Rendering ───────────────────────────────────────────────────────────────
 
   describe('Rendering', () => {
-    // Shared render for all read-only snapshot-style assertions; avoids repeating
-    // render() in every test body.  RTL's afterEach cleanup still runs per-test.
+    // Render a fresh instance for each test in this block so any extra render(...)
+    // calls inside individual tests cannot accumulate DOM nodes across the suite.
     beforeEach(() => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
     })
+    afterEach(() => cleanup())
 
     it('renders the "Create Vector Store" card title', () => {
       expect(screen.getByRole('heading', { name: /create vector store/i })).toBeInTheDocument()
@@ -181,9 +207,12 @@ describe('CreateVectorStoreForm', () => {
   describe('Initial state', () => {
     // ── default props ──────────────────────────────────────────────────────────
     describe('default props', () => {
-      beforeEach(() => {
+      // All tests here only read initial field values — no mutations. Render once
+      // for the group and clean up in afterAll.
+      beforeAll(() => {
         render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
       })
+      afterAll(() => cleanup())
 
       it('all text fields start empty', () => {
         // Note: maxTokens, temperature and topP are intentionally excluded here because
@@ -229,6 +258,8 @@ describe('CreateVectorStoreForm', () => {
 
     // ── with initialChatTypeId prop ────────────────────────────────────────────
     describe('with initialChatTypeId prop', () => {
+      afterEach(() => cleanup())
+
       it('chatTypeId is pre-populated when initialChatTypeId is provided', () => {
         const id = 'aabbccdd-1234-1234-1234-aabbccddee01'
         render(
@@ -258,6 +289,8 @@ describe('CreateVectorStoreForm', () => {
   // ── Form submission — required fields ───────────────────────────────────────
 
   describe('Form submission — required fields', () => {
+    afterEach(() => cleanup())
+
     it('calls onSubmit once when the form is submitted', () => {
       render(<CreateVectorStoreForm fileKeys={DEFAULT_FILE_KEYS} onSubmit={mockOnSubmit} />)
 
@@ -380,6 +413,8 @@ describe('CreateVectorStoreForm', () => {
   // ── Form submission — optional chatAIOptions ────────────────────────────────
 
   describe('Form submission — optional chatAIOptions fields', () => {
+    afterEach(() => cleanup())
+
     it('omits optional fields from chatAIOptions when their inputs are empty', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
@@ -402,72 +437,34 @@ describe('CreateVectorStoreForm', () => {
       expect(chatAIOptions).not.toHaveProperty('maxRetries')
     })
 
-    it('includes maxTokens as a number when provided', () => {
+    it('includes all numeric optional chatAIOptions as their correct types when provided', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
       fillRequiredFields()
       fireEvent.change(screen.getByLabelText(/^max tokens/i), { target: { value: '4096' } })
+      fireEvent.change(screen.getByLabelText(/^temperature/i), { target: { value: '0.7' } })
+      fireEvent.change(screen.getByLabelText(/^top p/i), { target: { value: '0.9' } })
+      fireEvent.change(screen.getByLabelText(/^frequency penalty/i), { target: { value: '0.5' } })
+      fireEvent.change(screen.getByLabelText(/^presence penalty/i), { target: { value: '-0.3' } })
+      fireEvent.change(screen.getByLabelText(/^max retries/i), { target: { value: '3' } })
       submitForm()
 
       const { chatAIOptions } = mockOnSubmit.mock.calls[0]![0]!
       expect(chatAIOptions.maxTokens).toBe(4096)
       expect(typeof chatAIOptions.maxTokens).toBe('number')
-    })
-
-    it('includes temperature as a number when provided', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields()
-      fireEvent.change(screen.getByLabelText(/^temperature/i), { target: { value: '0.7' } })
-      submitForm()
-
-      expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.temperature).toBe(0.7)
-    })
-
-    it('includes topP as a number when provided', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields()
-      fireEvent.change(screen.getByLabelText(/^top p/i), { target: { value: '0.9' } })
-      submitForm()
-
-      expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.topP).toBe(0.9)
-    })
-
-    it('includes frequencyPenalty as a number when provided', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields()
-      fireEvent.change(screen.getByLabelText(/^frequency penalty/i), { target: { value: '0.5' } })
-      submitForm()
-
-      expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.frequencyPenalty).toBe(0.5)
-    })
-
-    it('includes presencePenalty as a number when provided', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields()
-      fireEvent.change(screen.getByLabelText(/^presence penalty/i), { target: { value: '-0.3' } })
-      submitForm()
-
-      expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.presencePenalty).toBe(-0.3)
-    })
-
-    it('includes maxRetries as a number when provided', () => {
-      render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
-
-      fillRequiredFields()
-      fireEvent.change(screen.getByLabelText(/^max retries/i), { target: { value: '3' } })
-      submitForm()
-
-      expect(mockOnSubmit.mock.calls[0]![0]!.chatAIOptions.maxRetries).toBe(3)
+      expect(chatAIOptions.temperature).toBe(0.7)
+      expect(chatAIOptions.topP).toBe(0.9)
+      expect(chatAIOptions.frequencyPenalty).toBe(0.5)
+      expect(chatAIOptions.presencePenalty).toBe(-0.3)
+      expect(chatAIOptions.maxRetries).toBe(3)
     })
   })
 
   // ── stopSequences parsing ────────────────────────────────────────────────────
 
   describe('stopSequences parsing', () => {
+    afterEach(() => cleanup())
+
     it('splits a comma-separated string into an array', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
@@ -525,6 +522,8 @@ describe('CreateVectorStoreForm', () => {
   // ── Dimension Select ─────────────────────────────────────────────────────────
 
   describe('Dimension Select', () => {
+    afterEach(() => cleanup())
+
     it('submits dimension 1536 when 1536 is selected', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
@@ -578,6 +577,8 @@ describe('CreateVectorStoreForm', () => {
   // ── Optional onSubmit prop ───────────────────────────────────────────────────
 
   describe('onSubmit prop is optional', () => {
+    afterEach(() => cleanup())
+
     it('does not throw when onSubmit is not provided', () => {
       render(<CreateVectorStoreForm fileKeys={[]} />)
 
@@ -589,6 +590,8 @@ describe('CreateVectorStoreForm', () => {
   // ── Field interaction ────────────────────────────────────────────────────────
 
   describe('Field interaction', () => {
+    afterEach(() => cleanup())
+
     it('reflects typed value in the Title field', () => {
       render(<CreateVectorStoreForm fileKeys={[]} onSubmit={mockOnSubmit} />)
 
@@ -631,6 +634,8 @@ describe('CreateVectorStoreForm', () => {
   // ── Embedding Model — dropdown vs manual entry validation ────────────────────
 
   describe('Embedding Model — dropdown vs manual entry validation', () => {
+    afterEach(() => cleanup())
+
     /**
      * Opens the embedding models Select dropdown.
      * Uses the data-test-id on the Select root to locate the combobox trigger,
