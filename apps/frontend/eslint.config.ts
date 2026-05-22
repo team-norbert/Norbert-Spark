@@ -37,6 +37,10 @@ const config: Linter.Config[] = [
       '@next/next/no-img-element': 'warn',
       '@next/next/no-sync-scripts': 'error',
       '@next/next/no-duplicate-head': 'error',
+      // Disabled: eslint-plugin-jsx-a11y@6.10.2 is incompatible with eslint@10.x
+      // (minimatch v9+ changed its default export). Re-enable when jsx-a11y
+      // releases a fix.
+      'jsx-a11y/label-has-associated-control': 'off',
     },
   },
   {
