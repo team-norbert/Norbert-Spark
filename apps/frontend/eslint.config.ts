@@ -5,10 +5,8 @@ import vitestPlugin from '@vitest/eslint-plugin'
 import type { Linter } from 'eslint'
 import turboConfig from 'eslint-config-turbo/flat'
 import drizzlePlugin from 'eslint-plugin-drizzle'
-import jsdoc from 'eslint-plugin-jsdoc'
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y'
 import playwrightPlugin from 'eslint-plugin-playwright'
-import security from 'eslint-plugin-security'
 import tseslint from 'typescript-eslint'
 
 import rootConfig from '../../eslint.config.js'
@@ -26,8 +24,6 @@ const config: Linter.Config[] = [
       '@tanstack/query': queryPlugin,
       vitest: vitestPlugin,
       drizzle: drizzlePlugin,
-      jsdoc,
-      security,
     },
   },
   ...queryPlugin.configs['flat/recommended'],
