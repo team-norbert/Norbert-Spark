@@ -597,12 +597,6 @@ describe('AIRAGRepository', () => {
 
     it('should throw when chat AI options upsert fails', async () => {
       const insertCallCount = { count: 0 }
-      const baseInsertMock = buildInsertMock(
-        insertCallCount,
-        insertedDoc,
-        vectorStore,
-        chatAIOptions
-      )
       const mockInsert = vi.fn().mockImplementation(() => ({
         values: vi.fn().mockImplementation(() => {
           insertCallCount.count++
