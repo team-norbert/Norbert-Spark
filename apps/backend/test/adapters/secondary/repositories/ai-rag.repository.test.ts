@@ -34,7 +34,12 @@ const makeInsertChain = (returningValue: unknown[]) => {
   return chain
 }
 
-function buildInsertMock(insertCallCount: { count: number }, insertedDoc: any, vectorStore: any, chatAIOptions: any) {
+function buildInsertMock(
+  insertCallCount: { count: number },
+  insertedDoc: any,
+  vectorStore: any,
+  chatAIOptions: any
+) {
   return vi.fn().mockImplementation(() => ({
     values: vi.fn().mockImplementation(() => {
       insertCallCount.count++
@@ -417,7 +422,9 @@ describe('AIRAGRepository', () => {
       setupTransactionMock(mockInsert)
 
       const result = await repository.createVectorStore(
-        makeCreateVectorStoreData({ documents: [{ ...makeCreateVectorStoreData().documents[0]!, records: [] }] })
+        makeCreateVectorStoreData({
+          documents: [{ ...makeCreateVectorStoreData().documents[0]!, records: [] }],
+        })
       )
 
       expect(result.vectorStore.id).toBe(VS_ID)
@@ -504,7 +511,12 @@ describe('AIRAGRepository', () => {
       }
 
       const insertCallCount = { count: 0 }
-      const mockInsert = buildInsertMock(insertCallCount, insertedDoc, vectorStore, chatAIOptionsAllNull)
+      const mockInsert = buildInsertMock(
+        insertCallCount,
+        insertedDoc,
+        vectorStore,
+        chatAIOptionsAllNull
+      )
       setupTransactionMock(mockInsert)
 
       const result = await repository.createVectorStore(
@@ -549,7 +561,12 @@ describe('AIRAGRepository', () => {
       }
 
       const insertCallCount = { count: 0 }
-      const mockInsert = buildInsertMock(insertCallCount, insertedDoc, vectorStore, chatAIOptionsFull)
+      const mockInsert = buildInsertMock(
+        insertCallCount,
+        insertedDoc,
+        vectorStore,
+        chatAIOptionsFull
+      )
       setupTransactionMock(mockInsert)
 
       const result = await repository.createVectorStore(
@@ -591,15 +608,22 @@ describe('AIRAGRepository', () => {
       }))
 
       const insertCallCount = { count: 0 }
-      const baseInsertMock = buildInsertMock(insertCallCount, insertedDoc, vectorStore, chatAIOptions)
+      const baseInsertMock = buildInsertMock(
+        insertCallCount,
+        insertedDoc,
+        vectorStore,
+        chatAIOptions
+      )
       const mockInsert = vi.fn().mockImplementation(() => ({
         values: vi.fn().mockImplementation(() => {
           insertCallCount.count++
           if (insertCallCount.count <= 4) {
             const chain = makeInsertChain(
-              insertCallCount.count === 1 ? [vectorStore] :
-              insertCallCount.count === 2 ? [insertedDoc] :
-              []
+              insertCallCount.count === 1
+                ? [vectorStore]
+                : insertCallCount.count === 2
+                  ? [insertedDoc]
+                  : []
             )
             return chain
           }
