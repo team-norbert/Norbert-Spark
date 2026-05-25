@@ -285,6 +285,50 @@ describe('BucketService', () => {
 
       expect(query).toEqual({ 'other-param': 'value' })
     })
+
+    it('should only call delete on keys present in the query (checksum-crc32 only)', async () => {
+      const deleteTracker: string[] = []
+      const query = new Proxy<Record<string, string>>(
+        { 'x-amz-checksum-crc32': 'abc123' },
+        {
+          deleteProperty(target, prop) {
+            deleteTracker.push(prop as string)
+            return Reflect.deleteProperty(target, prop)
+          },
+        }
+      )
+
+      const middleware = mockMiddlewareStackAdd.mock.calls[0]![0] as (
+        next: any
+      ) => (args: any) => Promise<any>
+      const mockNext = vi.fn().mockResolvedValue({})
+      const handler = middleware(mockNext)
+      await handler({ request: { query } })
+
+      expect(deleteTracker).toEqual(['x-amz-checksum-crc32'])
+    })
+
+    it('should only call delete on keys present in the query (sdk-checksum-algorithm only)', async () => {
+      const deleteTracker: string[] = []
+      const query = new Proxy<Record<string, string>>(
+        { 'x-amz-sdk-checksum-algorithm': 'CRC32' },
+        {
+          deleteProperty(target, prop) {
+            deleteTracker.push(prop as string)
+            return Reflect.deleteProperty(target, prop)
+          },
+        }
+      )
+
+      const middleware = mockMiddlewareStackAdd.mock.calls[0]![0] as (
+        next: any
+      ) => (args: any) => Promise<any>
+      const mockNext = vi.fn().mockResolvedValue({})
+      const handler = middleware(mockNext)
+      await handler({ request: { query } })
+
+      expect(deleteTracker).toEqual(['x-amz-sdk-checksum-algorithm'])
+    })
   })
 
   describe('implements BucketPort', () => {
