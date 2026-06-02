@@ -28,13 +28,13 @@
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
     "@eslint/js": "^10.0.1",
-    "@redocly/cli": "^2.31.4",
+    "@redocly/cli": "^2.31.5",
     "@typescript-eslint/eslint-plugin": "^8.60.0",
     "@typescript-eslint/parser": "^8.60.0",
     "@typescript-eslint/utils": "^8.60.0",
-    "@vitest/eslint-plugin": "^1.6.18",
-    "eslint": "^10.4.0",
-    "eslint-config-turbo": "^2.9.15",
+    "@vitest/eslint-plugin": "^1.6.19",
+    "eslint": "^10.4.1",
+    "eslint-config-turbo": "^2.9.16",
     "eslint-plugin-codegen": "^0.34.1",
     "eslint-plugin-drizzle": "^0.2.3",
     "eslint-plugin-import": "^2.32.0",
@@ -46,7 +46,7 @@
     "eslint-plugin-sort-destructure-keys": "^3.0.0",
     "husky": "^9.1.7",
     "prettier": "^3.8.3",
-    "turbo": "^2.9.15"
+    "turbo": "^2.9.16"
   },
   "license": "GPL-3.0-only",
   "engines": {
