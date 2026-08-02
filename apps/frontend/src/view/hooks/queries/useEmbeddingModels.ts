@@ -50,12 +50,10 @@ export function useEmbeddingModels(): UseEmbeddingModelsReturn {
     queryKey: ['embedding-models'],
     queryFn: async () => {
       const response = await getEmbeddingModels()
-      return response.data.map(
-        (model): EnrichedEmbeddingModel => ({
-          ...model,
-          ...metaByKey.get(`${model.provider}::${model.name}`),
-        })
-      )
+      return response.data.map((model): EnrichedEmbeddingModel => ({
+        ...model,
+        ...metaByKey.get(`${model.provider}::${model.name}`),
+      }))
     },
     staleTime: 10 * 60 * 1000, // 10 minutes — model list changes infrequently
     gcTime: 15 * 60 * 1000, // 15 minutes

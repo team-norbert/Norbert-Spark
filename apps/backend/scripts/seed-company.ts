@@ -254,10 +254,7 @@ async function seedCompany() {
     const websiteUrl = SeedHelpers.generateWebsiteUrl(display)
     const companySize = SeedHelpers.randomInt(10, 10000)
     const status = SeedHelpers.randomElement([...statuses] as (
-      | 'prospect'
-      | 'active'
-      | 'paused'
-      | 'churned'
+      'prospect' | 'active' | 'paused' | 'churned'
     )[])
     const timezone = SeedHelpers.randomElement(timezones)
 
