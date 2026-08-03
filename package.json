@@ -51,23 +51,13 @@
   "license": "GPL-3.0-only",
   "engines": {
     "node": ">=22 <25",
-    "pnpm": ">=10"
-  },
-  "pnpm": {
-    "overrides": {
-      "rollup@<2.80.0": "^2.80.0",
-      "minimatch@>=1.0.0 <5.1.8": ">=5.1.8",
-      "redoc@<2.4.0": "^2.4.0",
-      "picomatch@<4.0.4": "^4.0.4",
-      "handlebars@<4.7.9": "^4.7.9",
-      "path-to-regexp@<8.4.0": "^8.4.0"
-    }
+    "pnpm": ">=11"
   },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@11.18.0",
   "preinstall": "npx --yes only-allow pnpm",
   "dependencies": {
     "zod": "^4.4.3"

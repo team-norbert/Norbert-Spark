@@ -2,9 +2,26 @@ packages:
   - apps/*
   - packages/*
 
-ignoredBuiltDependencies:
-  - '@mui/x-telemetry'
-  - better-sqlite3
-
 minimumReleaseAge: 1440
-
+overrides:
+  rollup@<2.80.0: ^2.80.0
+  minimatch@>=1.0.0 <5.1.8: '>=5.1.8'
+  redoc@<2.4.0: ^2.4.0
+  picomatch@<4.0.4: ^4.0.4
+  handlebars@<4.7.9: ^4.7.9
+  path-to-regexp@<8.4.0: ^8.4.0
+engineStrict: true
+allowBuilds:
+  '@mui/x-telemetry': false
+  '@scarf/scarf': true
+  aws-sdk: true
+  bcrypt: true
+  better-sqlite3: false
+  core-js: true
+  cpu-features: true
+  esbuild: true
+  pino-logger: true
+  protobufjs: true
+  sharp: true
+  ssh2: true
+  unrs-resolver: true
