@@ -31,7 +31,7 @@
     "split:api": "redocly split ./src/openapi.json --outDir ./src/openapi"
   },
   "dependencies": {
-    "ai": "^6.0.188",
+    "ai": "^6.0.240",
     "zod": "^4.4.3"
   },
   "exports": {
@@ -45,16 +45,16 @@
     }
   },
   "devDependencies": {
-    "@redocly/cli": "^2.31.2",
-    "@stoplight/spectral-cli": "^6.16.0",
-    "@vitest/coverage-v8": "^4.1.7",
-    "@vitest/eslint-plugin": "^1.6.17",
-    "js-yaml": "^4.1.1",
+    "@redocly/cli": "^2.43.2",
+    "@stoplight/spectral-cli": "^6.16.2",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/eslint-plugin": "^1.6.24",
+    "js-yaml": "^4.3.1",
     "jsdom": "^29.1.1",
     "openapi-typescript": "^7.13.0",
     "redoc-cli": "^0.13.21",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.10"
   },
   "packageManager": "pnpm@10.33.0",
   "preinstall": "npx --yes only-allow pnpm"
