@@ -5,7 +5,7 @@
   "type": "module",
   "engines": {
     "node": ">=22 <25",
-    "pnpm": ">=10"
+    "pnpm": ">=11"
   },
   "scripts": {
     "dev": "tsx watch src/infrastructure/di/container/index.ts",
@@ -121,6 +121,6 @@
     "typescript": "^5.9.3",
     "vitest": "^4.1.8"
   },
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@11.18.0",
   "preinstall": "npx --yes only-allow pnpm"
 }
